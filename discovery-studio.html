@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Discovery Studio · Executive Briefing — DI Platform</title>
+<meta name="author" content="Nishanth Kumar Kishore" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root{
+  --void:#060B14; --deep:#090E1A; --navy:#0D1628; --panel:#101828;
+  --card:#14213A; --card2:#172845; --b1:#1C2E48; --b2:#243655; --b3:#2D4268;
+  --amber:#C8921A; --amber2:#E8AC38; --amber3:#FFD070; --aglow:rgba(200,146,26,.12);
+  --green:#0FD49A; --red:#FF4D6A; --blue:#3D8EFF; --purple:#9B72FF;
+  --orange:#FF8030; --teal:#00C9C8; --pink:#FF6BB5;
+  --t1:#EEF4FF; --t2:#8AA4C8; --t3:#4A6285; --t4:#2A3E5A;
+  --f-head:'Fraunces',Georgia,serif;
+  --f-ui:'Outfit',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Courier New',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--void);color:var(--t1);font-family:var(--f-ui);font-size:13px;line-height:1.5}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+
+/* TOP BAR */
+.tb{height:54px;background:var(--panel);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 22px;gap:14px;position:sticky;top:0;z-index:50}
+.tb-logo{width:32px;height:32px;background:linear-gradient(135deg,var(--amber),var(--amber3));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--void)}
+.tb-brand{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1)}
+.tb-div{width:1px;height:24px;background:var(--b1)}
+.tb-crumb{font-size:12px;color:var(--t2);display:flex;gap:8px;align-items:center}
+.tb-crumb a{color:var(--t2);text-decoration:none}
+.tb-crumb a:hover{color:var(--amber2)}
+.tb-crumb .sep{color:var(--t3)}
+.tb-r{margin-left:auto;display:flex;gap:10px;align-items:center}
+.tb-link{padding:6px 14px;background:transparent;border:1px solid var(--b2);border-radius:7px;color:var(--t2);font-size:12px;text-decoration:none;transition:.2s}
+.tb-link:hover{border-color:var(--amber);color:var(--amber2)}
+.tb-link.primary{background:var(--amber);color:var(--void);border-color:var(--amber);font-weight:700}
+.tb-link.primary:hover{background:var(--amber2)}
+
+/* HERO */
+.hero{padding:36px 32px 18px;max-width:1480px;margin:0 auto}
+.hero-row{display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap}
+.hero-badge{display:inline-flex;gap:8px;align-items:center;padding:6px 14px;background:var(--aglow);border:1px solid rgba(200,146,26,.3);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber2);margin-bottom:14px}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--amber2);box-shadow:0 0 8px var(--amber2)}
+.hero h1{font-family:var(--f-head);font-size:clamp(30px,4vw,46px);font-weight:700;letter-spacing:-.02em;line-height:1.05;color:var(--t1);margin-bottom:10px}
+.hero h1 em{font-style:italic;color:var(--amber2)}
+.hero p{font-size:15px;color:var(--t2);max-width:920px;line-height:1.6}
+.run-info{font-size:11px;color:var(--t3);text-align:right;line-height:1.7;font-family:var(--f-mono)}
+.run-info .run-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);margin-right:5px;vertical-align:middle}
+
+/* FILTERS */
+.filters{max-width:1480px;margin:22px auto 0;padding:0 32px;display:grid;grid-template-columns:repeat(5,1fr) auto;gap:12px;align-items:end}
+@media (max-width:980px){.filters{grid-template-columns:repeat(2,1fr)}}
+.fl-pill{display:flex;flex-direction:column;gap:5px}
+.fl-pill label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.fl-pill select{padding:10px 32px 10px 12px;background:var(--card);border:1px solid var(--b1);border-radius:7px;color:var(--t1);font-size:12.5px;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%238AA4C8' d='M0 0l5 6 5-6z'/></svg>");background-repeat:no-repeat;background-position:right 11px center;cursor:pointer;width:100%}
+.fl-pill select:focus{outline:none;border-color:var(--amber)}
+.run-btn{padding:10px 20px;background:var(--amber);border:none;border-radius:7px;color:var(--void);font-size:12.5px;font-weight:700;cursor:pointer;transition:.2s;letter-spacing:.04em}
+.run-btn:hover{background:var(--amber2);transform:translateY(-1px)}
+
+/* MAIN GRID — content + annotations sidebar */
+.main{max-width:1480px;margin:18px auto 40px;padding:0 32px;display:grid;grid-template-columns:1fr 260px;gap:22px;align-items:start}
+@media (max-width:1180px){.main{grid-template-columns:1fr}}
+
+/* EXECUTIVE SUMMARY (KPI row) */
+.section-title{font-family:var(--f-head);font-size:14px;font-weight:600;color:var(--t1);margin:0 0 10px;display:flex;align-items:center;gap:10px;letter-spacing:-.01em}
+.section-title::before{content:'';width:3px;height:14px;background:var(--c,var(--amber));border-radius:2px}
+.section-title .hint{font-family:var(--f-ui);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;margin-left:6px}
+
+.exec-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px}
+@media (max-width:1100px){.exec-row{grid-template-columns:repeat(3,1fr)}}
+.exec-kpi{background:var(--card);border:1px solid var(--b1);border-radius:10px;padding:14px 14px;cursor:pointer;transition:.25s;position:relative;overflow:hidden}
+.exec-kpi:hover{transform:translateY(-2px);border-color:var(--c,var(--amber))}
+.exec-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--amber))}
+.exec-kpi .icon{width:28px;height:28px;border-radius:7px;background:var(--c,var(--amber));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--void);margin-bottom:8px}
+.exec-kpi .lbl{font-size:10px;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;font-weight:600;margin-bottom:2px}
+.exec-kpi .v{font-family:var(--f-head);font-size:24px;font-weight:700;color:var(--t1);line-height:1.05}
+.exec-kpi .sub{font-size:10px;color:var(--t2);margin-top:2px}
+.exec-kpi .drill{font-size:10px;color:var(--c,var(--amber2));margin-top:6px;display:flex;align-items:center;gap:3px;font-weight:600}
+.trend-up{color:var(--green)}.trend-down{color:var(--red)}.trend-flat{color:var(--t2)}
+
+/* CURRENT vs FUTURE COMPARISON */
+.compare-wrap{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:22px;margin-bottom:18px}
+.cmp-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.cmp-head h2{font-family:var(--f-head);font-size:18px;font-weight:600;color:var(--t1)}
+.cmp-head .sub{font-size:12px;color:var(--t3);margin-top:2px}
+.cmp-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:stretch}
+@media (max-width:840px){.cmp-grid{grid-template-columns:1fr}}
+.cmp-col{background:var(--panel);border:1.5px solid var(--b1);border-radius:12px;padding:18px;position:relative}
+.cmp-col.now{border-color:rgba(255,77,106,.4)}
+.cmp-col.future{border-color:rgba(15,212,154,.4)}
+.cmp-col h3{font-family:var(--f-head);font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.cmp-col.now h3{color:var(--red)}
+.cmp-col.future h3{color:var(--green)}
+.cmp-col h3 .pill{display:inline-block;padding:3px 9px;background:rgba(255,77,106,.12);border:1px solid rgba(255,77,106,.3);border-radius:999px;font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--red);text-transform:uppercase;margin-left:auto}
+.cmp-col.future h3 .pill{background:rgba(15,212,154,.12);border-color:rgba(15,212,154,.3);color:var(--green)}
+.cmp-arrow{display:flex;align-items:center;justify-content:center;color:var(--amber2);font-size:30px}
+@media (max-width:840px){.cmp-arrow{transform:rotate(90deg);padding:8px 0}}
+.cmp-attr{display:grid;grid-template-columns:120px 1fr;gap:10px;padding:8px 0;border-bottom:1px dashed var(--b1);font-size:12px}
+.cmp-attr:last-child{border-bottom:none}
+.cmp-attr .k{color:var(--t3);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em;align-self:center}
+.cmp-attr .v{color:var(--t1)}
+.cmp-col.now .v.bad{color:var(--red)}
+.cmp-col.future .v.good{color:var(--green);font-weight:600}
+.cmp-summary{margin-top:14px;padding:12px 14px;background:linear-gradient(90deg,rgba(200,146,26,.08),transparent);border-left:3px solid var(--amber);border-radius:6px;font-size:12px;color:var(--t1)}
+.cmp-summary strong{color:var(--amber2)}
+
+/* MODULE TABLE */
+.modules{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:18px 20px;margin-bottom:18px}
+.mod-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+.mod-head h3{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1)}
+.mod-actions{display:flex;gap:6px;flex-wrap:wrap}
+.mod-actions button{padding:6px 12px;background:var(--panel);border:1px solid var(--b1);border-radius:6px;color:var(--t2);font-size:11px;font-weight:500;cursor:pointer;font-family:var(--f-ui);transition:.2s}
+.mod-actions button:hover{border-color:var(--amber);color:var(--amber2)}
+.mod-actions button.primary{background:var(--amber);color:var(--void);border-color:var(--amber);font-weight:700}
+.mod-actions button.primary:hover{background:var(--amber2)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:9px 8px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--b1)}
+td{padding:9px 8px;border-bottom:1px dashed var(--b1);color:var(--t1);vertical-align:middle}
+tbody tr{cursor:pointer;transition:.15s}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+tbody tr.selected{background:rgba(200,146,26,.06)}
+.cell-mono{font-family:var(--f-mono);font-size:11px;color:var(--t2)}
+.cb{appearance:none;width:14px;height:14px;border:1.5px solid var(--b2);border-radius:3px;background:var(--panel);cursor:pointer;position:relative;flex-shrink:0;transition:.2s;vertical-align:middle}
+.cb:checked{background:var(--amber);border-color:var(--amber)}
+.cb:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--void);font-size:10px;font-weight:900}
+.act-Critical{color:var(--red);font-weight:700}
+.act-High{color:var(--orange);font-weight:700}
+.act-Medium{color:var(--amber2);font-weight:600}
+.act-Low{color:var(--t2)}
+.rec-pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.04em}
+.rec-Rearchitect{background:rgba(15,212,154,.12);color:var(--green);border:1px solid rgba(15,212,154,.3)}
+.rec-Refactor{background:rgba(255,128,48,.12);color:var(--orange);border:1px solid rgba(255,128,48,.3)}
+.rec-Replatform{background:rgba(0,201,200,.12);color:var(--teal);border:1px solid rgba(0,201,200,.3)}
+.rec-Rehost{background:rgba(61,142,255,.12);color:var(--blue);border:1px solid rgba(61,142,255,.3)}
+.rec-Retire{background:rgba(255,77,106,.12);color:var(--red);border:1px solid rgba(255,77,106,.3)}
+.rec-Retain{background:rgba(155,114,255,.12);color:var(--purple);border:1px solid rgba(155,114,255,.3)}
+.totals{font-weight:700;color:var(--amber2);background:var(--panel)}
+.totals td{border-bottom:none;color:var(--amber2)}
+.score-bar{display:inline-flex;align-items:center;gap:8px}
+.score-bar .bar{width:60px;height:6px;background:var(--b1);border-radius:3px;overflow:hidden}
+.score-bar .bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--orange),var(--green));border-radius:3px}
+
+/* LEADERSHIP INSIGHTS */
+.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+@media (max-width:900px){.insights{grid-template-columns:1fr}}
+.ins{background:var(--card);border:1px solid var(--b1);border-radius:12px;padding:18px;position:relative;overflow:hidden}
+.ins::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--amber))}
+.ins-icon{width:36px;height:36px;border-radius:8px;background:var(--c,var(--amber));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:var(--void);margin-bottom:10px}
+.ins h4{font-family:var(--f-head);font-size:14px;font-weight:600;color:var(--t1);margin-bottom:4px}
+.ins .v{font-family:var(--f-head);font-size:28px;font-weight:700;color:var(--c,var(--amber2));margin:4px 0}
+.ins p{font-size:12px;color:var(--t2);line-height:1.55}
+
+/* DRILL-DOWN VIEW */
+.drilldown{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:18px 20px;margin-bottom:18px}
+.dd-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.dd-head h3{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1)}
+.dd-back{padding:5px 12px;background:transparent;border:1px solid var(--b1);border-radius:6px;color:var(--t2);font-size:11px;cursor:pointer;font-family:var(--f-ui)}
+.dd-back:hover{border-color:var(--amber);color:var(--amber2)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:840px){.dd-grid{grid-template-columns:1fr}}
+.dd-tile{background:var(--panel);border:1px solid var(--b1);border-radius:10px;padding:14px}
+.dd-tile h4{font-family:var(--f-head);font-size:13px;color:var(--t1);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.dd-tile h4::before{content:'';width:2px;height:12px;background:var(--c,var(--amber));border-radius:2px}
+.dd-tile table td{padding:6px 4px;font-size:11.5px}
+
+/* RECOMMENDATIONS */
+.reco{background:linear-gradient(135deg,rgba(200,146,26,.08),rgba(255,184,107,.04));border:1px solid rgba(200,146,26,.3);border-radius:12px;padding:18px 22px;margin-bottom:18px;display:grid;grid-template-columns:46px 1fr;gap:14px;align-items:start}
+.reco .reco-icon{width:46px;height:46px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--void);font-weight:900}
+.reco h4{font-family:var(--f-head);font-size:14px;font-weight:600;color:var(--amber2);margin-bottom:4px;letter-spacing:.04em;text-transform:uppercase;font-size:11px;font-family:var(--f-ui);font-weight:700}
+.reco h3{font-family:var(--f-head);font-size:16px;color:var(--t1);margin-bottom:6px}
+.reco p{font-size:12.5px;color:var(--t2);line-height:1.6}
+.reco ul{margin-top:8px;padding-left:18px}
+.reco li{font-size:12px;color:var(--t1);margin-bottom:4px}
+.reco li strong{color:var(--amber2)}
+
+/* ANNOTATIONS sidebar */
+.annot{position:sticky;top:78px;display:flex;flex-direction:column;gap:12px}
+@media (max-width:1180px){.annot{position:static}}
+.an{background:rgba(255,184,107,.05);border:1px solid rgba(255,184,107,.25);border-radius:10px;padding:14px 14px 14px 14px;display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;color:var(--t1);font-size:11.5px;line-height:1.55}
+.an-num{width:22px;height:22px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;color:var(--void);font-size:11px;font-weight:900;flex-shrink:0}
+.an .at{font-family:var(--f-head);font-weight:600;color:var(--t1);margin-bottom:3px;font-size:12px}
+.an .ad{color:var(--t2);font-size:11px;line-height:1.55}
+
+/* OUTCOME BAND */
+.outcome{max-width:1480px;margin:8px auto 30px;padding:18px 26px;background:linear-gradient(90deg,rgba(15,212,154,.08) 0%,transparent 100%);border:1px solid rgba(15,212,154,.3);border-radius:12px;display:grid;grid-template-columns:36px 1fr auto;gap:14px;align-items:center}
+.outcome .icon{width:36px;height:36px;border-radius:50%;background:rgba(15,212,154,.18);display:flex;align-items:center;justify-content:center;color:var(--green);font-weight:900;font-size:18px}
+.outcome .t{font-family:var(--f-head);font-size:14px;font-weight:600;color:var(--t1);margin-bottom:2px}
+.outcome .d{font-size:12px;color:var(--t2)}
+.outcome a{color:var(--green);font-weight:600;text-decoration:none;border:1px solid var(--green);padding:8px 14px;border-radius:7px;font-size:12px;white-space:nowrap;transition:.2s}
+.outcome a:hover{background:rgba(15,212,154,.15)}
+
+footer{text-align:center;padding:28px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1)}
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <div class="tb-logo">DI</div>
+  <div class="tb-brand">Digital Infotech Platform</div>
+  <div class="tb-div"></div>
+  <div class="tb-crumb">
+    <a href="home.html">Home</a><span class="sep">/</span>
+    <span>Discovery Studio · Executive Briefing</span>
+  </div>
+  <div class="tb-r">
+    <a href="home.html" class="tb-link">← Platform Home</a>
+    <a href="architecture-studio.html" class="tb-link">Architecture →</a>
+    <a href="program-governance.html" class="tb-link primary">Program Governance →</a>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="hero-row">
+    <div>
+      <span class="hero-badge">Discovery Studio · Executive Briefing</span>
+      <h1>Current systems vs <em>future state.</em></h1>
+      <p>A board-ready view of where the legacy banking estate stands today, what the modernized platform looks like, and the value at stake. Designed for VPs, EVPs and board reviews — every number is drillable.</p>
+    </div>
+    <div class="run-info">
+      <span class="run-dot"></span>Last run: <strong style="color:var(--t1)">May 20, 2026 · 10:30 AM</strong><br>
+      Scope: 12 servers · 14 modules<br>
+      Audience: <strong style="color:var(--amber2)">VP / EVP / Board</strong>
+    </div>
+  </div>
+</section>
+
+<div class="filters">
+  <div class="fl-pill">
+    <label>Banking Module</label>
+    <select id="f-module">
+      <option value="ALL">All Banking Modules</option>
+      <option>Core Banking — Payments</option>
+      <option>Core Banking — Deposits</option>
+      <option>Core Banking — Loans</option>
+      <option>Cards</option>
+      <option>Trade Finance</option>
+      <option>Treasury</option>
+      <option>Wealth Management</option>
+    </select>
+  </div>
+  <div class="fl-pill">
+    <label>Region</label>
+    <select>
+      <option>All Regions</option><option>North America — East</option><option>North America — West</option>
+      <option>Europe — London</option><option>Europe — Frankfurt</option><option>Asia Pacific — Singapore</option>
+    </select>
+  </div>
+  <div class="fl-pill">
+    <label>Server Type</label>
+    <select>
+      <option>All Server Types</option><option>IBM Mainframe z/OS</option><option>IBM AS/400 — iSeries</option>
+      <option>UNIX — AIX</option><option>UNIX — Solaris</option><option>Windows Server 2012</option><option>Linux — RHEL 7</option>
+    </select>
+  </div>
+  <div class="fl-pill">
+    <label>Priority</label>
+    <select>
+      <option>All Priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
+    </select>
+  </div>
+  <div class="fl-pill">
+    <label>Audience</label>
+    <select>
+      <option>VP / EVP</option><option>Board of Directors</option><option>Steering Committee</option><option>Technical Detail</option>
+    </select>
+  </div>
+  <button class="run-btn" onclick="rerun()">▶ Run Analysis</button>
+</div>
+
+<div class="main">
+  <div class="content">
+
+    <!-- EXECUTIVE SUMMARY KPIs -->
+    <div class="section-title">Executive Summary <span class="hint">· Click any tile to drill down</span></div>
+    <div class="exec-row">
+      <div class="exec-kpi" style="--c:var(--amber)" onclick="drillByMetric('servers')">
+        <div class="icon">S</div>
+        <div class="lbl">Servers Analysed</div>
+        <div class="v">128</div>
+        <div class="sub">Across 7 regions</div>
+        <div class="drill">Drill down →</div>
+      </div>
+      <div class="exec-kpi" style="--c:var(--blue)" onclick="drillByMetric('requirements')">
+        <div class="icon">R</div>
+        <div class="lbl">Requirements</div>
+        <div class="v">1,245</div>
+        <div class="sub">Auto-generated</div>
+        <div class="drill">Drill down →</div>
+      </div>
+      <div class="exec-kpi" style="--c:var(--red)" onclick="drillByMetric('critical')">
+        <div class="icon">!</div>
+        <div class="lbl">High Priority</div>
+        <div class="v">312</div>
+        <div class="sub">25% of total</div>
+        <div class="drill">Drill down →</div>
+      </div>
+      <div class="exec-kpi" style="--c:var(--orange)" onclick="drillByMetric('debt')">
+        <div class="icon">T</div>
+        <div class="lbl">Tech Debt</div>
+        <div class="v">14.2k h</div>
+        <div class="sub">$2.8M to retire</div>
+        <div class="drill">Drill down →</div>
+      </div>
+      <div class="exec-kpi" style="--c:var(--green)" onclick="drillByMetric('savings')">
+        <div class="icon">$</div>
+        <div class="lbl">Annual Savings</div>
+        <div class="v">$3.4M</div>
+        <div class="sub"><span class="trend-up">↑ 30% run-rate</span></div>
+        <div class="drill">Drill down →</div>
+      </div>
+      <div class="exec-kpi" style="--c:var(--purple)" onclick="drillByMetric('score')">
+        <div class="icon">M</div>
+        <div class="lbl">Modernization</div>
+        <div class="v">62 / 100</div>
+        <div class="sub">Industry avg: 54</div>
+        <div class="drill">Drill down →</div>
+      </div>
+    </div>
+
+    <!-- CURRENT vs FUTURE comparison -->
+    <div class="compare-wrap">
+      <div class="cmp-head">
+        <div>
+          <h2 id="cmp-title">Current vs Future — Core Banking · Payments</h2>
+          <div class="sub">Two-side view of the dominant workload. Pick a module above to switch.</div>
+        </div>
+        <div style="font-size:11px;color:var(--t3)">Strategy: <strong style="color:var(--amber2)" id="cmp-strategy">R7 · Rearchitect</strong></div>
+      </div>
+      <div class="cmp-grid" id="cmp-grid">
+        <!-- Filled by JS -->
+      </div>
+      <div class="cmp-summary" id="cmp-summary"></div>
+    </div>
+
+    <!-- LEADERSHIP INSIGHTS -->
+    <div class="section-title" style="--c:var(--blue)">Key Insights for Leadership <span class="hint">· What matters at the board level</span></div>
+    <div class="insights">
+      <div class="ins" style="--c:var(--green)">
+        <div class="ins-icon">$</div>
+        <h4>Cost Reduction</h4>
+        <div class="v">−$3.4M / yr</div>
+        <p>Decommissioning legacy mainframe lots and consolidating on managed services unlocks a 30% run-rate saving with $0 SLA degradation.</p>
+      </div>
+      <div class="ins" style="--c:var(--red)">
+        <div class="ins-icon">!</div>
+        <h4>Risk Reduction</h4>
+        <div class="v">−72%</div>
+        <p>Hardware-backed key custody, zero-trust mTLS, and active-active multi-region failover collapse the systemic operational-risk footprint.</p>
+      </div>
+      <div class="ins" style="--c:var(--blue)">
+        <div class="ins-icon">↑</div>
+        <h4>Innovation Velocity</h4>
+        <div class="v">3.8×</div>
+        <p>Modern CI/CD + feature-flag canary deploys raise change frequency from <strong>1 / month</strong> to <strong>2.4 / week</strong> — DORA-elite territory.</p>
+      </div>
+    </div>
+
+    <!-- MODULE TABLE -->
+    <div class="modules">
+      <div class="mod-head">
+        <div>
+          <h3>Banking Modules — Current vs Future</h3>
+          <div style="font-size:11.5px;color:var(--t3);margin-top:2px">Select modules to prioritize. Totals update automatically.</div>
+        </div>
+        <div class="mod-actions">
+          <button onclick="selectAll(true)">Select All</button>
+          <button onclick="selectAll(false)">Clear</button>
+          <button class="primary" onclick="actSelected()">▶ Apply Strategy</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:30px"></th>
+            <th>Banking Module</th>
+            <th>Current System</th>
+            <th>Future System</th>
+            <th>Priority</th>
+            <th>Strategy (7R)</th>
+            <th>Score</th>
+            <th>Issues</th>
+          </tr>
+        </thead>
+        <tbody id="mod-tbody"><!-- filled by JS --></tbody>
+        <tfoot>
+          <tr class="totals">
+            <td></td>
+            <td>Total <span id="sel-count" style="font-weight:400;color:var(--t3)">(0 selected)</span></td>
+            <td>—</td><td>—</td>
+            <td id="t-priority">—</td>
+            <td>—</td>
+            <td id="t-score">—</td>
+            <td id="t-issues">—</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- DRILL DOWN VIEW -->
+    <div class="drilldown" id="drilldown" style="display:none">
+      <div class="dd-head">
+        <h3 id="dd-title">Drill-Down · Core Banking — Payments</h3>
+        <button class="dd-back" onclick="document.getElementById('drilldown').style.display='none'">✕ Close</button>
+      </div>
+      <div class="dd-grid">
+        <div class="dd-tile" style="--c:var(--red)">
+          <h4>Current State Issues</h4>
+          <table><tbody id="dd-issues"></tbody></table>
+        </div>
+        <div class="dd-tile" style="--c:var(--green)">
+          <h4>Future State Outcomes</h4>
+          <table><tbody id="dd-outcomes"></tbody></table>
+        </div>
+        <div class="dd-tile" style="--c:var(--blue)">
+          <h4>Migration Path · 7R Plan</h4>
+          <table><tbody id="dd-plan"></tbody></table>
+        </div>
+        <div class="dd-tile" style="--c:var(--purple)">
+          <h4>Financial Impact</h4>
+          <table><tbody id="dd-fin"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADERSHIP RECOMMENDATION -->
+    <div class="reco">
+      <div class="reco-icon">★</div>
+      <div>
+        <h4>Leadership Recommendation</h4>
+        <h3>Prioritize Core Payments and AML modernization in FY26 H2.</h3>
+        <p>The combination of <strong style="color:var(--amber2)">14h settlement latency</strong>, <strong style="color:var(--amber2)">12% manual reconciliation</strong>, and <strong style="color:var(--amber2)">$3.4M annual run-rate savings</strong> makes Core Payments and AML the highest-leverage pair to start with. Defer Wealth Management to FY27 — current risk-adjusted return is lower.</p>
+        <ul>
+          <li><strong>Tier-1 first:</strong> Payments + AML → Rearchitect on chosen target (estimated 9 mo).</li>
+          <li><strong>Tier-2 in parallel:</strong> Cards + Deposits → Replatform (estimated 6 mo).</li>
+          <li><strong>Quick wins:</strong> Retire 3 dormant modules (2 mo) — frees $0.4M / yr immediately.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ANNOTATIONS SIDEBAR -->
+  <aside class="annot">
+    <div class="an">
+      <div class="an-num">1</div>
+      <div>
+        <div class="at">Click any metric</div>
+        <div class="ad">to drill down by module, region, type, or issue category.</div>
+      </div>
+    </div>
+    <div class="an">
+      <div class="an-num">2</div>
+      <div>
+        <div class="at">Select modules</div>
+        <div class="ad">to prioritize for action. The totals row updates as you select.</div>
+      </div>
+    </div>
+    <div class="an">
+      <div class="an-num">3</div>
+      <div>
+        <div class="at">Drill down</div>
+        <div class="ad">to view detailed issues, financial impact, and the recommended 7R migration path.</div>
+      </div>
+    </div>
+    <div class="an" style="background:rgba(15,212,154,.06);border-color:rgba(15,212,154,.25)">
+      <div class="an-num" style="background:var(--green)">★</div>
+      <div>
+        <div class="at" style="color:var(--green)">Board-ready</div>
+        <div class="ad">All numbers can be exported via <a href="program-governance.html" style="color:var(--green)">Program Governance</a> as PPT, MS Project, or JSON.</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="outcome">
+  <div class="icon">✓</div>
+  <div>
+    <div class="t">Outcome — Clear executive summary with actionable insights, priority selection, and drill-down by module, issue, or metric.</div>
+    <div class="d">Next: continue to <strong style="color:var(--green)">Architecture Studio</strong> to choose a target, then <strong style="color:var(--green)">Program Governance</strong> to assemble the full program plan.</div>
+  </div>
+  <a href="architecture-studio.html">Continue to Architecture →</a>
+</div>
+
+<footer>
+  DI-Platform · Discovery Studio · IDD: DI-2026-NKK-0511-001 · © 2026 Nishanth Kumar Kishore / Digital Infotech
+</footer>
+
+<script>
+// ─── Module data ────────────────────────────────────────────
+const MODULES = [
+  {n:"Core Banking — Payments",   cur:"COBOL · IBM z/OS · Batch settle",      fut:"FastAPI · K8s · TIPS/SEPA Instant",         pri:"Critical", strat:"Rearchitect", score:42, issues:78,
+    issuesList:["14h settlement latency","12% manual reconciliation","Single-region only","No real-time observability"],
+    outcomes:["<60s settlement","STP ≥ 96%","Multi-region A/A","Real-time dashboards"],
+    plan:[["Discovery","2 mo"],["Decompose monolith","3 mo"],["Build & integrate","6 mo"],["Cut over","2 mo"]],
+    fin:[["Annual run cost (now)","$5.6M"],["Annual run cost (future)","$3.2M"],["One-time migration","$2.8M"],["Payback","11 mo"]]
+  },
+  {n:"Core Banking — Deposits",   cur:"AS/400 · RPG · Green-screen",         fut:"Microservices · Postgres HA",              pri:"High",     strat:"Replatform",  score:55, issues:65,
+    issuesList:["Green-screen UX","Limited APIs","Batch-only updates"],
+    outcomes:["Modern web UX","REST + GraphQL APIs","Real-time balance updates"],
+    plan:[["Wrap with APIs","2 mo"],["Containerize","3 mo"],["Migrate workloads","3 mo"]],
+    fin:[["Annual run cost (now)","$2.1M"],["Annual run cost (future)","$1.3M"],["One-time migration","$1.4M"],["Payback","21 mo"]]
+  },
+  {n:"Core Banking — Loans",       cur:"UNIX AIX · Java EE",                  fut:"Spring Boot · K8s · Event-driven",         pri:"High",     strat:"Refactor",    score:58, issues:54,
+    issuesList:["EAR-packaged monolith","Manual underwriting steps","Slow loan-origination"],
+    outcomes:["Cloud-native microservices","ML-assisted underwriting","Same-day decisions"],
+    plan:[["Refactor core","4 mo"],["Add ML scoring","2 mo"],["Roll out","3 mo"]],
+    fin:[["Annual run cost (now)","$3.2M"],["Annual run cost (future)","$2.0M"],["One-time migration","$2.0M"],["Payback","20 mo"]]
+  },
+  {n:"Cards",                      cur:"Windows Server 2012 · .NET Framework",fut:".NET 8 · Container Apps",                  pri:"Medium",   strat:"Rehost",      score:71, issues:41,
+    issuesList:["EoL OS","Vertical scaling only","Limited DR"],
+    outcomes:["Supported OS","Horizontal scale","Multi-AZ DR"],
+    plan:[["Re-image VMs","1 mo"],["Validate parity","1 mo"],["Cut over","1 mo"]],
+    fin:[["Annual run cost (now)","$1.4M"],["Annual run cost (future)","$0.9M"],["One-time migration","$0.5M"],["Payback","12 mo"]]
+  },
+  {n:"Trade Finance",              cur:"COBOL · Batch SWIFT MT messages",     fut:"ISO 20022 · Event-streaming gateway",      pri:"High",     strat:"Refactor",    score:48, issues:62,
+    issuesList:["MT message dependency","Manual document handling","Regulator deadline FY27"],
+    outcomes:["ISO 20022 ready","Doc OCR + automation","Compliant ahead of schedule"],
+    plan:[["Adopt ISO 20022","3 mo"],["Add doc OCR","2 mo"],["Cut over","2 mo"]],
+    fin:[["Annual run cost (now)","$1.8M"],["Annual run cost (future)","$1.2M"],["One-time migration","$1.1M"],["Payback","22 mo"]]
+  },
+  {n:"Treasury",                   cur:"Solaris · Custom C++ · Oracle 11g",   fut:"Java 21 · Postgres HA · Kafka",            pri:"Medium",   strat:"Replatform",  score:50, issues:48,
+    issuesList:["End-of-life DB","Single-threaded engine","Limited observability"],
+    outcomes:["Supported DB","Concurrent processing","Full APM"],
+    plan:[["Re-engine to Java","3 mo"],["DB migration","2 mo"],["Cut over","1 mo"]],
+    fin:[["Annual run cost (now)","$1.6M"],["Annual run cost (future)","$1.0M"],["One-time migration","$0.8M"],["Payback","16 mo"]]
+  },
+  {n:"Wealth Management",          cur:"Web 1.0 portal · ColdFusion",        fut:"SPA · React · GraphQL",                    pri:"Low",      strat:"Repurchase",  score:39, issues:38,
+    issuesList:["Unsupported runtime","Poor mobile UX","Low adoption"],
+    outcomes:["SaaS adoption","Mobile-first","Faster client onboarding"],
+    plan:[["Vendor select","2 mo"],["Migrate data","3 mo"],["Cut over","1 mo"]],
+    fin:[["Annual run cost (now)","$1.1M"],["Annual run cost (future)","$0.7M"],["One-time migration","$0.6M"],["Payback","18 mo"]]
+  },
+  {n:"Risk & Compliance",          cur:"Mix · Excel + SQL Server",             fut:"Unified risk data platform",               pri:"Critical", strat:"Rearchitect", score:35, issues:84,
+    issuesList:["Excel-based reporting","Stale data","Regulator findings"],
+    outcomes:["Single risk warehouse","Daily refresh by 09:00","Auditable lineage"],
+    plan:[["Risk data model","3 mo"],["Build platform","5 mo"],["Decommission Excel","2 mo"]],
+    fin:[["Annual run cost (now)","$2.4M"],["Annual run cost (future)","$1.6M"],["One-time migration","$2.2M"],["Payback","33 mo"]]
+  },
+  {n:"AML Engine",                 cur:"Vendor v3.2 · Batch screening",       fut:"Async event-driven · Real-time screening", pri:"Critical", strat:"Rearchitect", score:44, issues:71,
+    issuesList:["Batch-only screening","Day-old data","Travel-rule gaps"],
+    outcomes:["Real-time screening","Live KYC data","Travel-rule compliant"],
+    plan:[["Replace vendor adapter","3 mo"],["Event pipeline","4 mo"],["Cut over","2 mo"]],
+    fin:[["Annual run cost (now)","$1.9M"],["Annual run cost (future)","$1.3M"],["One-time migration","$1.6M"],["Payback","32 mo"]]
+  },
+  {n:"Dormant — Branch Locator",   cur:"Java EE · WebSphere",                 fut:"—",                                        pri:"Low",      strat:"Retire",      score:62, issues:9,
+    issuesList:["Unused since 2024","Maintenance burden","Security patches"],
+    outcomes:["Decommissioned","$0.4M / yr saved","Reduced attack surface"],
+    plan:[["Confirm no traffic","1 mo"],["Decommission","1 mo"]],
+    fin:[["Annual run cost (now)","$0.4M"],["Annual run cost (future)","$0"],["One-time migration","$0.05M"],["Payback","2 mo"]]
+  }
+];
+
+const ATTRS_PAYMENTS = {
+  now:[
+    ["Tech Stack",   "COBOL on IBM z/OS",                    "bad"],
+    ["Latency",      "14 hours (overnight batch)",           "bad"],
+    ["STP rate",     "84% (12% manual recon)",               "bad"],
+    ["Resilience",   "Single-region · cold standby",         "bad"],
+    ["Cost / year",  "$5.6M run · $1.2M maintenance",        "bad"],
+    ["Risk",         "High · vendor EoL FY27",               "bad"],
+    ["Compliance",   "Travel Rule gap · MT messages only",   "bad"]
+  ],
+  future:[
+    ["Tech Stack",   "FastAPI + K8s on chosen cloud",        "good"],
+    ["Latency",      "< 60 seconds (TIPS / SEPA Instant)",   "good"],
+    ["STP rate",     "≥ 96% (automated reconciliation)",     "good"],
+    ["Resilience",   "Multi-region active-active",           "good"],
+    ["Cost / year",  "$3.2M (-43%)",                         "good"],
+    ["Risk",         "Low · cloud-native + modern stack",    "good"],
+    ["Compliance",   "ISO 20022 · Travel Rule compliant",    "good"]
+  ]
+};
+
+// Build a generic comparison for any module by mapping its row to attribute pairs
+function buildAttrsFor(m){
+  // Default skeleton if specific data not present
+  const cur = m.cur, fut = m.fut;
+  return {
+    now: [
+      ["Tech Stack",  cur, "bad"],
+      ["Performance", m.issuesList[0] || "Slow / legacy", "bad"],
+      ["Resilience",  "Single-region · limited DR", "bad"],
+      ["Cost / year", (m.fin && m.fin[0] && m.fin[0][1]) || "—", "bad"],
+      ["Risk",        m.pri + " · legacy footprint", "bad"],
+      ["Compliance",  m.issuesList[m.issuesList.length-1] || "—", "bad"]
+    ],
+    future: [
+      ["Tech Stack",  fut, "good"],
+      ["Performance", m.outcomes[0] || "Cloud-native scale", "good"],
+      ["Resilience",  "Multi-AZ · automated DR", "good"],
+      ["Cost / year", (m.fin && m.fin[1] && m.fin[1][1]) || "—", "good"],
+      ["Risk",        "Low · supported & modern", "good"],
+      ["Compliance",  m.outcomes[m.outcomes.length-1] || "Compliant", "good"]
+    ]
+  };
+}
+
+// ─── Render ─────────────────────────────────────────────────
+function renderModuleTable(){
+  const tb = document.getElementById('mod-tbody');
+  tb.innerHTML = MODULES.map((m,i) => `
+    <tr data-idx="${i}" onclick="rowSelect(${i}, event)">
+      <td><input type="checkbox" class="cb" data-idx="${i}" onclick="event.stopPropagation();updateTotals()"></td>
+      <td><strong>${m.n}</strong></td>
+      <td class="cell-mono">${m.cur}</td>
+      <td class="cell-mono" style="color:var(--green)">${m.fut}</td>
+      <td><span class="act-${m.pri}">${m.pri}</span></td>
+      <td><span class="rec-pill rec-${m.strat}">${m.strat}</span></td>
+      <td><div class="score-bar"><div class="bar"><span style="width:${m.score}%"></span></div><span style="font-family:var(--f-mono);font-size:11px;color:var(--t2)">${m.score}</span></div></td>
+      <td class="cell-mono">${m.issues}</td>
+    </tr>
+  `).join('');
+}
+
+function rowSelect(idx, ev){
+  // Click on row opens drill-down for that module
+  document.querySelectorAll('#mod-tbody tr').forEach(r=>r.classList.remove('selected'));
+  document.querySelector(`#mod-tbody tr[data-idx="${idx}"]`).classList.add('selected');
+  renderCompareFor(idx);
+  openDrill(idx);
+}
+
+function selectAll(state){
+  document.querySelectorAll('.cb').forEach(cb=>cb.checked=state);
+  updateTotals();
+}
+
+function updateTotals(){
+  const checked = [...document.querySelectorAll('.cb:checked')].map(cb=>+cb.dataset.idx);
+  document.getElementById('sel-count').textContent = `(${checked.length} selected)`;
+  if (!checked.length) {
+    document.getElementById('t-priority').textContent = '—';
+    document.getElementById('t-score').textContent = '—';
+    document.getElementById('t-issues').textContent = '—';
+    return;
+  }
+  const sel = checked.map(i => MODULES[i]);
+  const priorities = sel.map(m => m.pri);
+  const topP = priorities.includes('Critical') ? 'Critical' :
+               priorities.includes('High') ? 'High' :
+               priorities.includes('Medium') ? 'Medium' : 'Low';
+  const avgScore = Math.round(sel.reduce((a,b)=>a+b.score,0) / sel.length);
+  const totIssues = sel.reduce((a,b)=>a+b.issues,0);
+  document.getElementById('t-priority').innerHTML = `<span class="act-${topP}">${topP}</span>`;
+  document.getElementById('t-score').textContent = avgScore + ' avg';
+  document.getElementById('t-issues').textContent = totIssues;
+}
+
+function actSelected(){
+  const checked = [...document.querySelectorAll('.cb:checked')];
+  if (!checked.length) { alert('Pick at least one module to apply a strategy.'); return; }
+  alert(`Applying strategies for ${checked.length} module(s). Continue to Program Governance to finalize the plan.`);
+}
+
+function renderCompareFor(idx){
+  const m = MODULES[idx];
+  document.getElementById('cmp-title').textContent = `Current vs Future — ${m.n}`;
+  document.getElementById('cmp-strategy').textContent = `R-${m.strat}`;
+
+  // Use rich attrs for Payments, otherwise generic
+  const attrs = (m.n === 'Core Banking — Payments') ? ATTRS_PAYMENTS : buildAttrsFor(m);
+
+  const colHTML = (cls, label, pillText, rows) => `
+    <div class="cmp-col ${cls}">
+      <h3>${label} <span class="pill">${pillText}</span></h3>
+      ${rows.map(([k,v,c]) => `<div class="cmp-attr"><span class="k">${k}</span><span class="v ${c||''}">${v}</span></div>`).join('')}
+    </div>
+  `;
+
+  document.getElementById('cmp-grid').innerHTML = `
+    ${colHTML('now','Current State','As-Is',attrs.now)}
+    <div class="cmp-arrow">➜</div>
+    ${colHTML('future','Future State','To-Be',attrs.future)}
+  `;
+
+  // Summary line
+  const cost0 = (m.fin && m.fin[0] && m.fin[0][1]) || '—';
+  const cost1 = (m.fin && m.fin[1] && m.fin[1][1]) || '—';
+  const payback = (m.fin && m.fin[3] && m.fin[3][1]) || '—';
+  document.getElementById('cmp-summary').innerHTML = `
+    <strong>What this means for leadership:</strong>
+    Moving from <strong>${cost0}</strong> to <strong>${cost1}</strong>, with a payback period of <strong>${payback}</strong>.
+    Strategy: <strong>${m.strat}</strong>. Priority: <strong>${m.pri}</strong>.
+  `;
+}
+
+function openDrill(idx){
+  const m = MODULES[idx];
+  document.getElementById('dd-title').textContent = `Drill-Down · ${m.n}`;
+  document.getElementById('dd-issues').innerHTML   = m.issuesList.map(x=>`<tr><td>${x}</td></tr>`).join('');
+  document.getElementById('dd-outcomes').innerHTML = m.outcomes.map(x=>`<tr><td>${x}</td></tr>`).join('');
+  document.getElementById('dd-plan').innerHTML     = m.plan.map(([s,d])=>`<tr><td>${s}</td><td style="text-align:right;font-family:var(--f-mono);color:var(--amber2)">${d}</td></tr>`).join('');
+  document.getElementById('dd-fin').innerHTML      = m.fin.map(([k,v])=>`<tr><td>${k}</td><td style="text-align:right;font-family:var(--f-mono);color:var(--t1)">${v}</td></tr>`).join('');
+  const dd = document.getElementById('drilldown');
+  dd.style.display = 'block';
+  dd.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function drillByMetric(kind){
+  // Open drill-down for the dominant module given a metric
+  const idx = { servers:0, requirements:0, critical:0, debt:7, savings:0, score:6 }[kind] ?? 0;
+  rowSelect(idx, null);
+  document.querySelector(`#mod-tbody tr[data-idx="${idx}"]`)?.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function rerun(){
+  const sel = document.getElementById('f-module').value;
+  let idx = 0;
+  if (sel !== 'ALL') idx = Math.max(0, MODULES.findIndex(m=>m.n===sel));
+  rowSelect(idx, null);
+}
+
+// Boot
+renderModuleTable();
+renderCompareFor(0);
+updateTotals();
+</script>
+
+<script src="assets/nishi.js" defer></script>
+</body>
+</html>

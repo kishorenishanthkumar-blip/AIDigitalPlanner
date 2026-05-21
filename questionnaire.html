@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RFP Questionnaire · DI Platform</title>
+<meta name="author" content="Nishanth Kumar Kishore" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+:root{
+  --void:#060B14; --deep:#090E1A; --navy:#0D1628; --panel:#101828;
+  --card:#14213A; --card2:#172845; --b1:#1C2E48; --b2:#243655; --b3:#2D4268;
+  --amber:#C8921A; --amber2:#E8AC38; --amber3:#FFD070; --aglow:rgba(200,146,26,.12);
+  --green:#0FD49A; --red:#FF4D6A; --blue:#3D8EFF; --purple:#9B72FF; --orange:#FF8030;
+  --t1:#EEF4FF; --t2:#8AA4C8; --t3:#4A6285;
+  --f-head:'Fraunces',Georgia,serif; --f-ui:'Outfit',system-ui,sans-serif; --f-mono:'JetBrains Mono','Courier New',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--void);color:var(--t1);font-family:var(--f-ui);font-size:13.5px;line-height:1.55}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+
+.tb{height:54px;background:var(--panel);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 22px;gap:14px;position:sticky;top:0;z-index:50}
+.tb-logo{width:32px;height:32px;background:linear-gradient(135deg,var(--amber),var(--amber3));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--void)}
+.tb-brand{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1)}
+.tb-crumb{font-size:12px;color:var(--t2);display:flex;gap:8px;align-items:center}
+.tb-crumb a{color:var(--t2);text-decoration:none}.tb-crumb a:hover{color:var(--amber2)}
+.tb-r{margin-left:auto;display:flex;gap:10px;align-items:center}
+.tb-link{padding:6px 14px;background:transparent;border:1px solid var(--b2);border-radius:7px;color:var(--t2);font-size:12px;text-decoration:none;transition:.2s}
+.tb-link:hover{border-color:var(--amber);color:var(--amber2)}
+.tb-link.primary{background:var(--amber);color:var(--void);border-color:var(--amber);font-weight:700}
+
+.hero{padding:36px 32px 18px;max-width:1280px;margin:0 auto}
+.hero-badge{display:inline-flex;gap:8px;align-items:center;padding:6px 14px;background:var(--aglow);border:1px solid rgba(200,146,26,.3);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber2);margin-bottom:14px}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--amber2);box-shadow:0 0 8px var(--amber2)}
+.hero h1{font-family:var(--f-head);font-size:clamp(28px,3.6vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--t1);margin-bottom:8px}
+.hero h1 em{font-style:italic;color:var(--amber2)}
+.hero p{font-size:15px;color:var(--t2);max-width:880px}
+
+.intro{max-width:1280px;margin:18px auto 0;padding:0 32px;display:grid;grid-template-columns:repeat(3,1fr) auto;gap:14px;align-items:end}
+@media (max-width:900px){.intro{grid-template-columns:1fr}}
+.intro .pill{display:flex;flex-direction:column;gap:5px}
+.intro label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}
+.intro select{padding:10px 32px 10px 12px;background:var(--card);border:1px solid var(--b1);border-radius:8px;color:var(--t1);font-size:13px;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%238AA4C8' d='M0 0l5 6 5-6z'/></svg>");background-repeat:no-repeat;background-position:right 11px center;cursor:pointer;font-family:var(--f-ui)}
+.intro select:focus{outline:none;border-color:var(--amber)}
+.intro button{padding:10px 18px;background:var(--amber);border:none;border-radius:8px;color:var(--void);font-weight:700;font-size:12.5px;cursor:pointer;font-family:var(--f-ui);transition:.2s}
+.intro button:hover{background:var(--amber2)}
+
+.qe-root{max-width:1280px;margin:22px auto 60px;padding:0 32px}
+.qe-shell{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:0;overflow:hidden}
+
+.qe-head{padding:18px 22px;border-bottom:1px solid var(--b1);background:var(--card2);display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.qe-profile{display:flex;gap:8px;flex-wrap:wrap}
+.qe-pill{background:var(--panel);border:1px solid var(--b1);border-radius:999px;padding:5px 12px;font-size:11px;color:var(--t2)}
+.qe-pill strong{color:var(--amber2);font-weight:700}
+.qe-progress{margin-left:auto;display:flex;flex-direction:column;gap:6px;min-width:220px}
+.qe-prog-label{font-size:11px;color:var(--t2);text-align:right}
+.qe-prog-bar{width:100%;height:6px;background:var(--panel);border-radius:3px;overflow:hidden}
+.qe-prog-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--amber3));border-radius:3px;transition:.3s}
+
+.qe-secnav{display:flex;gap:4px;padding:8px 16px;border-bottom:1px solid var(--b1);background:var(--navy);overflow-x:auto}
+.qe-sectab{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:transparent;border:1px solid transparent;border-radius:8px;color:var(--t2);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;font-family:var(--f-ui);transition:.2s}
+.qe-sectab:hover{color:var(--t1);background:rgba(255,255,255,.03)}
+.qe-sectab.act{background:var(--aglow);border-color:rgba(200,146,26,.3);color:var(--amber2)}
+.qe-sectab .num{width:20px;height:20px;border-radius:50%;background:var(--panel);font-size:10px;font-weight:700;color:var(--t3);display:inline-flex;align-items:center;justify-content:center}
+.qe-sectab.act .num{background:var(--amber);color:var(--void)}
+.qe-sectab .tally{font-size:10px;font-family:var(--f-mono);color:var(--t3);margin-left:4px}
+
+.qe-section{padding:24px 28px}
+.qe-section-title{font-family:var(--f-head);font-size:22px;font-weight:600;color:var(--t1);margin-bottom:4px}
+.qe-section-intro{font-size:13px;color:var(--t3);margin-bottom:20px;max-width:780px}
+
+.qe-questions{display:flex;flex-direction:column;gap:14px}
+.qe-q{background:var(--panel);border:1px solid var(--b1);border-radius:12px;padding:16px 18px;transition:.25s}
+.qe-q.done{border-color:rgba(15,212,154,.35)}
+.qe-q-head{display:flex;align-items:start;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.qe-qid{font-family:var(--f-mono);font-size:10.5px;color:var(--amber2);font-weight:700;background:var(--aglow);padding:3px 8px;border-radius:5px;flex-shrink:0}
+.qe-q-label{font-family:var(--f-head);font-size:14.5px;font-weight:600;color:var(--t1);flex:1;line-height:1.4}
+.qe-req{color:var(--red);font-weight:700;margin-left:3px}
+.qe-tags{display:flex;gap:5px;flex-wrap:wrap}
+.qe-tag{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase}
+.qe-tag.reg{background:rgba(155,114,255,.15);color:var(--purple);border:1px solid rgba(155,114,255,.3)}
+.qe-tag.high{background:rgba(255,77,106,.12);color:var(--red);border:1px solid rgba(255,77,106,.3)}
+.qe-tag.map{background:rgba(61,142,255,.12);color:var(--blue);border:1px solid rgba(61,142,255,.3);font-family:var(--f-mono);text-transform:none;letter-spacing:0}
+.qe-help{font-size:11.5px;color:var(--t3);margin-bottom:8px;line-height:1.5;font-style:italic}
+
+.qe-input{width:100%;padding:9px 12px;background:var(--card);border:1px solid var(--b1);border-radius:7px;color:var(--t1);font-size:13px;outline:none;font-family:var(--f-ui)}
+.qe-input:focus{border-color:var(--amber)}
+.qe-textarea{min-height:80px;resize:vertical;line-height:1.5}
+
+.qe-opts{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.qe-opts-h{flex-direction:row;flex-wrap:wrap}
+.qe-opt{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border:1px solid var(--b1);border-radius:7px;cursor:pointer;font-size:12.5px;transition:.2s}
+.qe-opt:hover{border-color:var(--amber);color:var(--t1)}
+.qe-opt input{accent-color:var(--amber);cursor:pointer;flex-shrink:0}
+
+.qe-scale{padding:8px 0;display:grid;grid-template-columns:1fr 50px;gap:10px;align-items:center}
+.qe-range{width:100%;accent-color:var(--amber)}
+.qe-scale output{font-family:var(--f-mono);font-size:18px;font-weight:700;color:var(--amber2);text-align:center}
+.qe-scale-lbls{grid-column:1;display:flex;justify-content:space-between;font-size:10.5px;color:var(--t3);font-family:var(--f-mono)}
+
+.qe-ranked{display:flex;flex-direction:column;gap:4px}
+.qe-rank-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--card);border:1px solid var(--b1);border-radius:7px;font-size:12.5px}
+.qe-rank-item .rn{width:22px;height:22px;border-radius:50%;background:var(--amber);color:var(--void);font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center}
+
+.qe-nav{display:flex;gap:10px;margin-top:28px;padding-top:18px;border-top:1px solid var(--b1);justify-content:space-between;flex-wrap:wrap}
+.qe-btn{padding:10px 18px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--f-ui);transition:.2s;border:1px solid transparent}
+.qe-btn.primary{background:var(--amber);color:var(--void);font-weight:700}
+.qe-btn.primary:hover{background:var(--amber2)}
+.qe-btn.ghost{background:transparent;border-color:var(--b2);color:var(--t2)}
+.qe-btn.ghost:hover{border-color:var(--amber);color:var(--amber2)}
+.qe-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.qe-empty{padding:60px 30px;text-align:center;color:var(--t3);font-size:14px}
+
+/* Done modal */
+.qe-done{position:fixed;inset:0;background:rgba(6,11,20,.85);display:none;align-items:center;justify-content:center;z-index:9990}
+.qe-done.on{display:flex}
+.qe-done-card{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:30px;max-width:560px;width:calc(100% - 40px)}
+.qe-done-card h2{font-family:var(--f-head);font-size:22px;color:var(--t1);margin-bottom:6px}
+.qe-done-card p{color:var(--t2);font-size:13px;margin-bottom:18px}
+.qe-done-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 20px}
+.qe-done-stat{background:var(--panel);border:1px solid var(--b1);border-radius:9px;padding:10px;text-align:center}
+.qe-done-stat .v{font-family:var(--f-head);font-size:22px;color:var(--amber2);font-weight:700}
+.qe-done-stat .l{font-size:10.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+.qe-done-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+footer{text-align:center;padding:28px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1)}
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <div class="tb-logo">DI</div>
+  <div class="tb-brand">Digital Infotech Platform</div>
+  <div class="tb-crumb">
+    <a href="home.html">Home</a><span>/</span><span>RFP Questionnaire</span>
+  </div>
+  <div class="tb-r">
+    <a href="home.html" class="tb-link">← Platform Home</a>
+    <a href="discovery-studio.html" class="tb-link">Discovery →</a>
+    <a href="program-governance.html" class="tb-link primary">Governance →</a>
+  </div>
+</div>
+
+<section class="hero">
+  <span class="hero-badge">Phase 2 · Adaptive RFP Questionnaire</span>
+  <h1>Tell us where you are — and where you're going. <em>Nishi will adapt.</em></h1>
+  <p>This questionnaire feels like a consolidated brainstorm with your CIO, CTO, CRO, CFO, CISO, architects and compliance leads. It branches by your role, your region's regulators, and your banking sub-domain — so you only answer what matters to your stake in the program.</p>
+</section>
+
+<div class="intro">
+  <div class="pill">
+    <label>Your Role</label>
+    <select id="i-role"></select>
+  </div>
+  <div class="pill">
+    <label>Region</label>
+    <select id="i-region"></select>
+  </div>
+  <div class="pill">
+    <label>Banking Domain</label>
+    <select id="i-domain"></select>
+  </div>
+  <button onclick="applyProfile()">Apply Profile</button>
+</div>
+
+<div class="qe-root" id="qe-root">
+  <div class="qe-empty">Loading questionnaire packs…</div>
+</div>
+
+<div class="qe-done" id="qe-done">
+  <div class="qe-done-card">
+    <h2>Thank you — brief consolidated.</h2>
+    <p id="qe-done-summary">Your responses are saved locally. Download the brief in JSON for downstream pipelines, or in Markdown to share with the steering committee.</p>
+    <div class="qe-done-stats" id="qe-done-stats"></div>
+    <div class="qe-done-actions">
+      <button class="qe-btn primary" onclick="QEngine.exportJSON()">⬇ JSON</button>
+      <button class="qe-btn primary" onclick="QEngine.exportMarkdown()">⬇ Markdown</button>
+      <button class="qe-btn ghost" onclick="goToDiscovery()">Continue to Discovery →</button>
+      <button class="qe-btn ghost" onclick="document.getElementById('qe-done').classList.remove('on')">Keep editing</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  DI-Platform · Phase 2 RFP Questionnaire · IDD: DI-2026-NKK-0511-001 · © 2026 Nishanth Kumar Kishore / Digital Infotech
+</footer>
+
+<script src="assets/questionnaire-engine.js"></script>
+<script>
+let PACKS = null;
+
+async function loadPacks() {
+  try {
+    const r = await fetch('assets/questionnaire-packs.json');
+    PACKS = await r.json();
+  } catch (e) {
+    document.getElementById('qe-root').innerHTML = `<div class="qe-empty">Could not load packs (${e.message}). Open via a local web server (e.g. <code>python -m http.server</code>) — browsers block local <code>fetch()</code> over <code>file://</code>.</div>`;
+    return false;
+  }
+  return true;
+}
+
+function populateSelectors() {
+  const role = document.getElementById('i-role');
+  const region = document.getElementById('i-region');
+  const dom = document.getElementById('i-domain');
+  PACKS.roles.forEach(r => role.add(new Option(r, r)));
+  PACKS.regions.forEach(r => region.add(new Option(r, r)));
+  PACKS.domains.forEach(d => dom.add(new Option(d, d)));
+  // Try to pre-fill from Nishi context / account profile
+  try {
+    const ctx = JSON.parse(sessionStorage.getItem('di_nishi_context') || '{}');
+    const acct = JSON.parse(sessionStorage.getItem('di_account_profile') || '{}');
+    const pick = { role: ctx.role || acct.role, region: ctx.region || acct.region };
+    if (pick.role && PACKS.roles.includes(pick.role)) role.value = pick.role;
+    if (pick.region && PACKS.regions.includes(pick.region)) region.value = pick.region;
+  } catch (e) {}
+}
+
+function applyProfile() {
+  if (!PACKS) return;
+  QEngine.setProfile({
+    role: document.getElementById('i-role').value,
+    region: document.getElementById('i-region').value,
+    domain: document.getElementById('i-domain').value
+  });
+}
+
+function mountEngine() {
+  QEngine.mount({
+    rootEl: document.getElementById('qe-root'),
+    packs: PACKS,
+    role: document.getElementById('i-role').value,
+    region: document.getElementById('i-region').value,
+    domain: document.getElementById('i-domain').value,
+    onComplete(out) { showDone(out); },
+    onProgress(p) {}
+  });
+}
+
+function showDone(out) {
+  const stats = document.getElementById('qe-done-stats');
+  stats.innerHTML = `
+    <div class="qe-done-stat"><div class="v">${out.responses.length}</div><div class="l">Questions</div></div>
+    <div class="qe-done-stat"><div class="v">${out.progress.pct}%</div><div class="l">Completion</div></div>
+    <div class="qe-done-stat"><div class="v">${out.derivedArtifacts.requirements.length}</div><div class="l">Reqs derived</div></div>
+    <div class="qe-done-stat"><div class="v">${out.derivedArtifacts.complianceChecklist.length}</div><div class="l">Compliance items</div></div>
+  `;
+  // Save to sessionStorage so Discovery / Governance pages can ingest
+  try { sessionStorage.setItem('di_questionnaire_output', JSON.stringify(out)); } catch (e) {}
+  document.getElementById('qe-done').classList.add('on');
+}
+
+function goToDiscovery() {
+  window.location.href = 'discovery-studio.html';
+}
+
+(async function boot() {
+  if (!(await loadPacks())) return;
+  populateSelectors();
+  mountEngine();
+})();
+</script>
+
+<script src="assets/nishi.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+</body>
+</html>

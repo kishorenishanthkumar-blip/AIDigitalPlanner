@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Operations · Super-Intelligent Run Ops — DI Platform</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+:root{
+  --void:#060B14;--deep:#090E1A;--navy:#0D1628;--panel:#101828;
+  --card:#14213A;--card2:#172845;--b1:#1C2E48;--b2:#243655;
+  --amber:#C8921A;--amber2:#E8AC38;--amber3:#FFD070;
+  --green:#0FD49A;--red:#FF4D6A;--blue:#3D8EFF;--purple:#9B72FF;--orange:#FF8030;--teal:#00C9C8;--pink:#FF6BB5;
+  --t1:#EEF4FF;--t2:#8AA4C8;--t3:#4A6285;
+  --f-head:'Fraunces',Georgia,serif;--f-ui:'Outfit',system-ui,sans-serif;--f-mono:'JetBrains Mono','Courier New',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--void);color:var(--t1);font-family:var(--f-ui);font-size:13px;line-height:1.5}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+
+.tb{height:54px;background:var(--panel);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 22px;gap:14px;position:sticky;top:0;z-index:50}
+.tb-logo{width:32px;height:32px;background:linear-gradient(135deg,var(--amber),var(--amber3));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--void)}
+.tb-brand{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1)}
+.tb-div{width:1px;height:24px;background:var(--b1)}
+.tb-crumb{font-size:12px;color:var(--t2);display:flex;gap:8px;align-items:center}
+.tb-crumb a{color:var(--t2);text-decoration:none}.tb-crumb a:hover{color:var(--amber2)}
+.tb-r{margin-left:auto;display:flex;gap:8px}
+.tb-link{padding:6px 14px;background:transparent;border:1px solid var(--b2);border-radius:7px;color:var(--t2);font-size:12px;text-decoration:none;transition:.2s}
+.tb-link:hover{border-color:var(--amber);color:var(--amber2)}
+
+.hero{padding:32px 32px 16px;max-width:1480px;margin:0 auto}
+.hero-badge{display:inline-flex;gap:8px;align-items:center;padding:6px 14px;background:rgba(155,114,255,.12);border:1px solid rgba(155,114,255,.3);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple);margin-bottom:14px}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--purple);box-shadow:0 0 8px var(--purple)}
+.hero h1{font-family:var(--f-head);font-size:clamp(30px,4.2vw,46px);font-weight:700;letter-spacing:-.02em;line-height:1.05;color:var(--t1);margin-bottom:10px}
+.hero h1 em{font-style:italic;color:var(--purple)}
+.hero p{font-size:14px;color:var(--t2);max-width:920px}
+
+/* Persona row */
+.personas{max-width:1480px;margin:24px auto 0;padding:0 32px}
+.personas h2{font-family:var(--f-head);font-size:14px;color:var(--t1);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.personas h2::before{content:'';width:3px;height:14px;background:var(--purple);border-radius:2px}
+.persona-band{background:linear-gradient(135deg,rgba(155,114,255,.15),rgba(61,142,255,.1));border:1px solid rgba(155,114,255,.3);border-radius:14px;padding:14px 18px;margin-bottom:10px;display:grid;grid-template-columns:160px 1fr 160px;gap:14px;align-items:center}
+.persona-band .left{font-family:var(--f-head);font-size:14px;color:var(--t1)}
+.persona-band .left .ttl{font-weight:700;color:var(--purple)}
+.persona-band .left .sub{font-size:11px;color:var(--t3);margin-top:2px}
+.persona-band .center{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.persona-pill{padding:6px 12px;background:rgba(155,114,255,.15);border:1px solid rgba(155,114,255,.3);border-radius:999px;font-size:11px;color:var(--t1);font-weight:500;white-space:nowrap}
+.persona-band .right{text-align:right;font-size:11px;color:var(--t3)}
+.persona-band .right strong{color:var(--purple);font-family:var(--f-head)}
+
+/* Sub-personas */
+.sub-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px}
+@media (max-width:980px){.sub-row{grid-template-columns:repeat(3,1fr)}}
+.sp{background:var(--card);border:1px solid var(--b1);border-radius:8px;padding:9px 10px;font-size:11px;color:var(--t2);text-align:center;cursor:pointer;transition:.2s}
+.sp:hover{border-color:var(--purple);color:var(--t1);transform:translateY(-2px)}
+.sp strong{display:block;color:var(--t1);font-size:11.5px;font-family:var(--f-head);font-weight:600}
+
+/* Lifecycle stages */
+.stages{max-width:1480px;margin:24px auto 0;padding:0 32px}
+.stage-arrows{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px}
+.stage-arrow{padding:9px 12px;background:linear-gradient(90deg,rgba(155,114,255,.25),rgba(61,142,255,.18));border:1px solid rgba(155,114,255,.3);border-radius:6px;color:var(--t1);font-weight:700;font-size:12px;text-align:center;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%,12px 50%);padding-left:24px;padding-right:24px}
+.stage-arrow:nth-child(1){background:linear-gradient(90deg,rgba(155,114,255,.35),rgba(155,114,255,.2));clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%)}
+.stage-arrow:nth-child(6){clip-path:polygon(12px 0,100% 0,100% 100%,12px 100%,0 50%)}
+
+.activity-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media (max-width:980px){.activity-grid{grid-template-columns:repeat(2,1fr)}}
+.act-col{background:var(--card);border:1px solid var(--b1);border-radius:12px;padding:14px 12px}
+.act-col h3{font-family:var(--f-head);font-size:13px;color:var(--t1);margin-bottom:10px;text-align:center;font-weight:600}
+.act-pill{background:linear-gradient(135deg,rgba(155,114,255,.18),rgba(61,142,255,.08));border:1px solid rgba(155,114,255,.25);border-radius:7px;padding:8px 10px;font-size:11px;color:var(--t1);text-align:center;margin-bottom:6px;line-height:1.35;cursor:default;transition:.2s}
+.act-pill:hover{border-color:var(--purple);transform:translateX(2px)}
+
+/* AI agents row */
+.agents-section{max-width:1480px;margin:24px auto 0;padding:0 32px}
+.agents-section h2{font-family:var(--f-head);font-size:14px;color:var(--t1);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.agents-section h2::before{content:'';width:3px;height:14px;background:var(--pink);border-radius:2px}
+.agents-row{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+@media (max-width:980px){.agents-row{grid-template-columns:repeat(5,1fr)}}
+@media (max-width:600px){.agents-row{grid-template-columns:repeat(3,1fr)}}
+.agent{background:var(--panel);border:1.5px solid var(--pink);border-radius:8px;padding:9px 6px;font-size:10.5px;font-weight:600;color:var(--t1);text-align:center;cursor:pointer;transition:.2s;line-height:1.3}
+.agent:hover{background:rgba(255,107,181,.15);transform:translateY(-3px)}
+
+/* Real-time flow diagram (second screenshot pattern) */
+.flow-section{max-width:1480px;margin:32px auto 0;padding:0 32px}
+.flow-section h2{font-family:var(--f-head);font-size:14px;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.flow-section h2::before{content:'';width:3px;height:14px;background:var(--teal);border-radius:2px}
+.flow-section h2 .sub{font-family:var(--f-ui);font-weight:500;font-size:11px;color:var(--t3);margin-left:6px;letter-spacing:.06em;text-transform:uppercase}
+.flow-grid{display:grid;grid-template-columns:1fr 320px;gap:18px}
+@media (max-width:1100px){.flow-grid{grid-template-columns:1fr}}
+.flow-canvas{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:18px;overflow-x:auto}
+.flow-row{display:grid;grid-template-columns:90px 130px repeat(5,1fr);gap:6px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--b1)}
+.flow-row:last-child{border-bottom:none}
+.flow-row .pct{font-family:var(--f-mono);font-size:10.5px;color:var(--teal);text-align:right;font-weight:700}
+.flow-row .stage{padding:6px 10px;background:linear-gradient(135deg,rgba(155,114,255,.2),rgba(61,142,255,.1));border:1px solid rgba(155,114,255,.3);border-radius:6px;font-size:11px;color:var(--t1);font-weight:600;text-align:center}
+.flow-row .step{padding:6px 10px;background:var(--panel);border:1px solid var(--b1);border-radius:6px;font-size:10.5px;color:var(--t2);text-align:center;font-weight:500;line-height:1.3}
+.flow-row .step.act{background:linear-gradient(135deg,rgba(155,114,255,.3),rgba(155,114,255,.15));border-color:var(--purple);color:var(--t1)}
+.flow-row .step.resolve{background:linear-gradient(135deg,rgba(15,212,154,.18),rgba(15,212,154,.08));border-color:var(--green);color:var(--green)}
+.flow-row .step.human{background:linear-gradient(135deg,rgba(255,184,107,.18),rgba(255,184,107,.08));border-color:var(--orange);color:var(--orange)}
+.flow-row .empty{visibility:hidden}
+
+/* Fabric panel */
+.fabric{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.fabric h3{font-family:var(--f-head);font-size:13px;color:var(--t1);display:flex;align-items:center;gap:8px}
+.fabric h3::before{content:'';width:3px;height:12px;background:var(--c,var(--teal));border-radius:2px}
+.fab-cat{padding:11px;background:var(--panel);border:1px solid var(--b1);border-radius:9px}
+.fab-cat .ftt{font-size:11.5px;font-weight:700;color:var(--c,var(--teal));margin-bottom:6px;display:flex;align-items:center;gap:6px;letter-spacing:.04em;text-transform:uppercase}
+.fab-cat .fab-item{font-size:11px;color:var(--t2);padding:3px 0;display:flex;justify-content:space-between}
+.fab-cat .fab-item span:last-child{color:var(--t3);font-family:var(--f-mono);font-size:10px}
+
+/* KPI panel */
+.metrics{max-width:1480px;margin:24px auto 0;padding:0 32px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+@media (max-width:980px){.metrics{grid-template-columns:repeat(3,1fr)}}
+.metric{background:var(--card);border:1px solid var(--b1);border-radius:10px;padding:14px;position:relative;overflow:hidden}
+.metric::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--teal))}
+.metric .lbl{font-size:10px;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.metric .v{font-family:var(--f-head);font-size:22px;color:var(--t1);font-weight:700;margin-top:4px;line-height:1.1}
+.metric .sub{font-size:10px;color:var(--t2);margin-top:2px}
+
+/* Legend */
+.legend{max-width:1480px;margin:20px auto 0;padding:0 32px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:11.5px;color:var(--t2)}
+.lg{display:flex;align-items:center;gap:6px}
+.lg-sw{width:12px;height:12px;border-radius:3px}
+
+footer{text-align:center;padding:28px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1);margin-top:40px}
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <div class="tb-logo">DI</div>
+  <div class="tb-brand">Digital Infotech Platform</div>
+  <div class="tb-div"></div>
+  <div class="tb-crumb">
+    <a href="home.html">Home</a><span>/</span><span>Operations · Super-Intelligent Ops</span>
+  </div>
+  <div class="tb-r">
+    <a href="program-governance.html" class="tb-link">← Governance</a>
+    <a href="nishi-chatbot.html" class="tb-link">💬 Ask Nishi</a>
+    <a href="home.html" class="tb-link">Home</a>
+  </div>
+</div>
+
+<section class="hero">
+  <span class="hero-badge">Continuous Improvement · Run Ops</span>
+  <h1>Run <em>Super-Intelligent Operations.</em></h1>
+  <p>End-to-end agentic operations across the run-the-bank lifecycle — from proactive monitoring to autonomous remediation, problem management analytics, and continuous modernization. Every persona, every stage, every agent.</p>
+</section>
+
+<!-- PERSONA BAND -->
+<div class="personas">
+  <h2>Personas</h2>
+  <div class="persona-band">
+    <div class="left">
+      <div class="ttl">Client Executive</div>
+      <div class="sub">Outcomes · funding</div>
+    </div>
+    <div class="center">
+      <div class="persona-pill">ITOps Portfolio Manager</div>
+    </div>
+    <div class="right">
+      <div>Audience</div>
+      <strong>End Users</strong>
+    </div>
+  </div>
+  <div class="sub-row">
+    <div class="sp"><strong>Endpoint</strong>Support Engineer</div>
+    <div class="sp"><strong>Cloud</strong>Support Engineer</div>
+    <div class="sp"><strong>Network</strong>Support Engineer</div>
+    <div class="sp"><strong>Data</strong>Support Engineer</div>
+    <div class="sp"><strong>App</strong>Support Engineer</div>
+    <div class="sp"><strong>Business Process</strong>Support Engineer</div>
+  </div>
+</div>
+
+<!-- LIFECYCLE STAGES + ACTIVITIES -->
+<div class="stages">
+  <div class="stage-arrows">
+    <div class="stage-arrow">Transition &amp; Plan</div>
+    <div class="stage-arrow">Observe &amp; Detect</div>
+    <div class="stage-arrow">Diagnose &amp; Analyze</div>
+    <div class="stage-arrow">Act &amp; Remediate</div>
+    <div class="stage-arrow">Learn &amp; Improve</div>
+    <div class="stage-arrow">Modernize &amp; Transform</div>
+  </div>
+  <div class="activity-grid">
+    <div class="act-col">
+      <h3>Transition &amp; Plan</h3>
+      <div class="act-pill">Due Diligence</div>
+      <div class="act-pill">Knowledge Transfer</div>
+      <div class="act-pill">Secondary Support</div>
+    </div>
+    <div class="act-col">
+      <h3>Observe &amp; Detect</h3>
+      <div class="act-pill">Self Service</div>
+      <div class="act-pill">Ticket Management</div>
+      <div class="act-pill">Autonomous Incident Detection &amp; Correlation</div>
+      <div class="act-pill">Predictive Failure Forecasting</div>
+      <div class="act-pill">SLO Drift Detection &amp; Optimization</div>
+    </div>
+    <div class="act-col">
+      <h3>Diagnose &amp; Analyze</h3>
+      <div class="act-pill">Root Cause Analysis (RCA) recommendation</div>
+      <div class="act-pill">Change Impact Simulation &amp; Risk Assessment</div>
+      <div class="act-pill">Intelligent Capacity Planning</div>
+      <div class="act-pill">Intelligent Alert Summarization</div>
+    </div>
+    <div class="act-col">
+      <h3>Act &amp; Remediate</h3>
+      <div class="act-pill">Self-Healing Workflows</div>
+      <div class="act-pill">Dynamic Runbook Generation &amp; Execution</div>
+      <div class="act-pill">Chaos Engineering</div>
+      <div class="act-pill">Intelligent Deployments</div>
+      <div class="act-pill">CI/CD Pipeline Observability &amp; Guardrails</div>
+    </div>
+    <div class="act-col">
+      <h3>Learn &amp; Improve</h3>
+      <div class="act-pill">Problem Management Analytics</div>
+      <div class="act-pill">Auto-Generation of Postmortems</div>
+      <div class="act-pill">Knowledge Base Mining &amp; Retrieval</div>
+      <div class="act-pill">Conversational SRE Assistant</div>
+    </div>
+    <div class="act-col">
+      <h3>Modernize &amp; Transform</h3>
+      <div class="act-pill">Cloud Migration</div>
+      <div class="act-pill">Code Modernization</div>
+      <div class="act-pill">Tech Debt Reduction</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT ROW -->
+<div class="agents-section">
+  <h2>AI Agents · Active in production</h2>
+  <div class="agents-row" id="agents-row">
+    <div class="agent">Transition<br>Agent</div>
+    <div class="agent">Observability<br>Agent</div>
+    <div class="agent">Self-Service<br>Agent</div>
+    <div class="agent">Ticket<br>Agent</div>
+    <div class="agent">Event<br>Agent</div>
+    <div class="agent">Triage<br>Agent</div>
+    <div class="agent">Remediation<br>Agent</div>
+    <div class="agent">Code Intelligence<br>Agent</div>
+    <div class="agent">Ops Analytics<br>Agent</div>
+    <div class="agent">Modernization<br>Agent</div>
+  </div>
+</div>
+
+<!-- FLOW + FABRIC -->
+<div class="flow-section">
+  <h2>Real-Time Operating Model <span class="sub">· effort distribution &amp; auto-resolve thresholds</span></h2>
+
+  <div class="flow-grid">
+    <div class="flow-canvas">
+      <div class="flow-row">
+        <div class="pct">30%</div>
+        <div class="stage">Event Correlations</div>
+        <div class="step">Correlate Events</div>
+        <div class="step">Triage &amp; Assign</div>
+        <div class="step act">Troubleshoot &amp; resolve</div>
+        <div class="step act">Create problem ticket</div>
+        <div class="step empty">-</div>
+      </div>
+      <div class="flow-row">
+        <div class="pct">20%</div>
+        <div class="stage">Ticket Triage &amp; Resolution</div>
+        <div class="step">User reported? (Y)</div>
+        <div class="step">Correlate &amp; Enrich incident</div>
+        <div class="step">Triage &amp; Assign</div>
+        <div class="step act">Troubleshoot &amp; resolve</div>
+        <div class="step empty">-</div>
+      </div>
+      <div class="flow-row">
+        <div class="pct">64%</div>
+        <div class="stage" style="background:linear-gradient(135deg,rgba(15,212,154,.18),rgba(15,212,154,.08));border-color:rgba(15,212,154,.3);color:var(--green)">Validate alert / incident</div>
+        <div class="step resolve">Auto-heal? (Y · 60%)</div>
+        <div class="step resolve">Autonomous resolution</div>
+        <div class="step empty">-</div>
+        <div class="step empty">-</div>
+        <div class="step empty">-</div>
+      </div>
+      <div class="flow-row">
+        <div class="pct">7.5%</div>
+        <div class="stage">Service Request</div>
+        <div class="step">Analyze</div>
+        <div class="step">Adhoc? (Y)</div>
+        <div class="step act">Deliver service request</div>
+        <div class="step empty">-</div>
+        <div class="step empty">-</div>
+      </div>
+      <div class="flow-row">
+        <div class="pct">2.5%</div>
+        <div class="stage">Problem Management</div>
+        <div class="step">5 Why's analysis</div>
+        <div class="step">Perform RCA</div>
+        <div class="step resolve">Autonomous delivery (60%)</div>
+        <div class="step act">Troubleshoot &amp; resolve</div>
+        <div class="step human">Human-in-the-loop</div>
+      </div>
+      <div class="flow-row">
+        <div class="pct">15%</div>
+        <div class="stage">L3 Bug Fix / Enhancement</div>
+        <div class="step">Code Analysis</div>
+        <div class="step">Code Change</div>
+        <div class="step">Validate</div>
+        <div class="step">Document &amp; Close</div>
+        <div class="step human">Human-in-the-loop</div>
+      </div>
+      <div class="flow-row">
+        <div class="pct">25%</div>
+        <div class="stage">Proactive Monitoring</div>
+        <div class="step">Monitor Logs, Traces &amp; Metrics</div>
+        <div class="step">Detect Anomalies</div>
+        <div class="step">Generate Event</div>
+        <div class="step act">Review &amp; approve</div>
+        <div class="step empty">-</div>
+      </div>
+    </div>
+
+    <div class="fabric">
+      <h3>Topaz-style Fabric</h3>
+      <div class="fab-cat" style="--c:var(--purple)">
+        <div class="ftt">IT &amp; BizOps Agents</div>
+        <div class="fab-item"><span>Triage agent</span><span>v3.2</span></div>
+        <div class="fab-item"><span>Correlation agent</span><span>v3.0</span></div>
+        <div class="fab-item"><span>Event handler agent</span><span>v2.8</span></div>
+        <div class="fab-item"><span>Change handler agent</span><span>v2.5</span></div>
+        <div class="fab-item"><span>Auto-healing agent</span><span>v3.4</span></div>
+        <div class="fab-item"><span>Service Request handler</span><span>v2.2</span></div>
+      </div>
+      <div class="fab-cat" style="--c:var(--blue)">
+        <div class="ftt">Digital Brain (ITOps)</div>
+        <div class="fab-item"><span>Client SLM</span><span>privately fine-tuned</span></div>
+        <div class="fab-item"><span>Enterprise RAG</span><span>vector DB · pgvector</span></div>
+      </div>
+      <div class="fab-cat" style="--c:var(--green)">
+        <div class="ftt">Event Intelligence</div>
+        <div class="fab-item"><span>ServiceNow ITOM</span><span>connector</span></div>
+        <div class="fab-item"><span>CMDB / Service mapping</span><span>live sync</span></div>
+        <div class="fab-item"><span>Dynatrace · Splunk</span><span>read · enrich</span></div>
+      </div>
+      <div class="fab-cat" style="--c:var(--orange)">
+        <div class="ftt">Foundational Automation</div>
+        <div class="fab-item"><span>200+ playbooks</span><span>shared</span></div>
+        <div class="fab-item"><span>Policy-as-code</span><span>OPA</span></div>
+        <div class="fab-item"><span>Ansible</span><span>execution</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="lg"><div class="lg-sw" style="background:linear-gradient(135deg,rgba(155,114,255,.3),rgba(155,114,255,.15));border:1px solid var(--purple)"></div>Tool / Automation</div>
+    <div class="lg"><div class="lg-sw" style="background:linear-gradient(135deg,rgba(15,212,154,.18),rgba(15,212,154,.08));border:1px solid var(--green)"></div>Autonomous</div>
+    <div class="lg"><div class="lg-sw" style="background:linear-gradient(135deg,rgba(255,184,107,.18),rgba(255,184,107,.08));border:1px solid var(--orange)"></div>Human-in-the-loop</div>
+    <div class="lg"><span style="font-family:var(--f-mono);color:var(--teal)">%</span> Effort distribution</div>
+  </div>
+</div>
+
+<!-- METRICS -->
+<div class="metrics">
+  <div class="metric" style="--c:var(--green)"><div class="lbl">Auto-Resolved</div><div class="v">68%</div><div class="sub">incidents this month</div></div>
+  <div class="metric" style="--c:var(--blue)"><div class="lbl">MTTR</div><div class="v">14 min</div><div class="sub">↓ 22% QoQ</div></div>
+  <div class="metric" style="--c:var(--purple)"><div class="lbl">Predicted Failures</div><div class="v">142</div><div class="sub">avoided · last 30d</div></div>
+  <div class="metric" style="--c:var(--orange)"><div class="lbl">Open P1</div><div class="v">2</div><div class="sub">SLA: green</div></div>
+  <div class="metric" style="--c:var(--pink)"><div class="lbl">Knowledge hits</div><div class="v">8,431</div><div class="sub">RAG-served / week</div></div>
+  <div class="metric" style="--c:var(--teal)"><div class="lbl">Tech Debt</div><div class="v">−18%</div><div class="sub">retired this quarter</div></div>
+</div>
+
+<footer>
+  DI-Platform · Super-Intelligent Operations · IDD: DI-2026-NKK-0511-001 · © 2026 Nishanth Kumar Kishore / Digital Infotech
+</footer>
+
+</body>
+</html>

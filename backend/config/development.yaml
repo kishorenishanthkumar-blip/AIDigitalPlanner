@@ -1,0 +1,29 @@
+# Development environment — non-secret tunables.
+# Secrets stay in .env.
+
+app:
+  env: development
+  debug: true
+  reload: true
+
+logging:
+  level: DEBUG
+  format: text
+
+agents:
+  discovery_parser:
+    max_input_chars: 50000
+    temperature: 0.2
+  epic_generator:
+    max_epics: 10
+    temperature: 0.4
+  story_writer:
+    max_stories_per_epic: 8
+    temperature: 0.5
+  estimation:
+    fibonacci_scale: [1, 2, 3, 5, 8, 13]
+
+export:
+  jira_enabled: true
+  rally_enabled: true
+  batch_size: 50

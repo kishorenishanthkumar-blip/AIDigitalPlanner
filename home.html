@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Home — DI Platform | Digital Infotech</title>
+<meta name="description" content="Your banking modernization workspace home. Pick a feature, resume your last session, or ask Nishi for help."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="assets/theme.css">
+<script src="assets/toasts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,400&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root{
+  --canvas:#F8FAFD; --canvas2:#EEF2F8;
+  --card:#FFFFFF; --card-hover:#FBFCFE;
+  --ink:#1A2238; --ink2:#5B6B8A; --ink3:#9AA6BE;
+  --border:#E2E7F1; --border2:#D9DFEB;
+  --gold:#C8921A; --gold2:#E8AC38; --gold3:#FFD070;
+  --aglow:#FFF7E6;
+  --green:#0FD49A; --red:#FF4D6A; --blue:#3D8EFF;
+  --shadow:0 18px 38px -16px rgba(20,33,58,.18);
+  --shadow-sm:0 4px 12px -4px rgba(20,33,58,.08);
+  --f-head:'Fraunces',Georgia,serif;
+  --f-ui:'Outfit',system-ui,-apple-system,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--canvas) 0%,var(--canvas2) 100%);color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden}
+a{color:var(--gold);text-decoration:none}
+button{font-family:var(--f-ui);cursor:pointer}
+
+/* ─── Top bar ─── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 24px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+.tb-left{display:flex;align-items:center;gap:24px}
+.tb-brand{display:flex;align-items:center;gap:10px}
+.tb-logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold3));color:var(--ink);font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;letter-spacing:.02em}
+.tb-name{font-size:14px;font-weight:700}
+.tb-name .muted{color:var(--ink2);font-weight:400}
+.tb-nav{display:flex;gap:18px;font-size:13px;font-weight:600}
+.tb-nav a{color:var(--ink);padding:14px 2px;display:inline-block;border-bottom:2px solid transparent}
+.tb-nav a:hover{color:var(--gold)}
+.tb-nav a.act{color:var(--gold);border-bottom-color:var(--gold)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-btn{background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:.18s}
+.tb-btn:hover{border-color:var(--gold);color:var(--gold);background:#FFFCF4}
+.tb-btn.primary{background:var(--aglow);border-color:var(--gold2);color:var(--ink);font-weight:600}
+.tb-btn.primary:hover{background:var(--gold3);color:var(--ink)}
+.tb-search{background:#F8FAFD;border:1px solid var(--border);border-radius:8px;padding:6px 11px;font-size:11.5px;color:var(--ink2);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.tb-search:hover{border-color:var(--gold);color:var(--gold)}
+.tb-search kbd{background:#fff;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:9.5px;font-family:monospace;color:var(--ink2)}
+.tb-bell{position:relative;background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer}
+.tb-bell .dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid #fff}
+.tb-user{display:flex;align-items:center;gap:8px;padding:3px 6px 3px 11px;background:#F8FAFD;border:1px solid var(--border);border-radius:999px;cursor:pointer}
+.tb-user:hover{border-color:var(--gold);background:#FFFCF4}
+.tb-user-meta{text-align:right;line-height:1.1}
+.tb-user-name{font-size:11.5px;font-weight:700;color:var(--ink)}
+.tb-user-sub{font-size:9.5px;color:var(--ink2);margin-top:1px}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--gold3);font-weight:700;font-size:10.5px;display:flex;align-items:center;justify-content:center}
+
+/* ─── Hero ─── */
+.hero{padding:32px 28px 22px;background:linear-gradient(180deg,#FFFFFF,#F8FAFD);border-bottom:1px solid var(--border)}
+.hero-wrap{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:center}
+.hero-greet{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+.hero-h1{font-family:var(--f-head);font-size:28px;font-weight:600;color:var(--ink);line-height:1.18;letter-spacing:-.005em}
+.hero-h1 em{font-style:italic;color:var(--gold)}
+.hero-sub{font-size:13px;color:var(--ink2);margin-top:10px;max-width:600px;line-height:1.55}
+.resume{background:var(--ink);color:#fff;border-radius:14px;padding:16px 18px;border:1px solid #243655;box-shadow:var(--shadow)}
+.resume-tag{font-size:9.5px;font-weight:700;color:var(--gold3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.resume-title{font-weight:600;font-size:13.5px;margin-bottom:2px}
+.resume-meta{font-size:11px;color:#8AA4C8;margin-bottom:9px}
+.resume-bar{height:5px;background:#243655;border-radius:99px;overflow:hidden;margin-bottom:11px}
+.resume-bar > div{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold3));border-radius:99px}
+.resume-cta{background:var(--gold);border:none;color:#fff;border-radius:8px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer}
+.resume-cta:hover{background:var(--gold2)}
+.resume-link{background:transparent;border:1px solid #243655;color:var(--gold3);border-radius:8px;padding:7px 13px;font-size:11.5px;font-weight:600;margin-left:6px;cursor:pointer}
+.resume-link:hover{border-color:var(--gold3)}
+
+/* ─── Section header ─── */
+.section{padding:22px 28px;max-width:1200px;margin:0 auto}
+.section-h{display:flex;align-items:center;gap:10px;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--ink);text-transform:uppercase;margin-bottom:14px}
+.section-h::after{content:'';flex:1;height:1px;background:var(--border)}
+.section-h .view-all{font-size:10px;color:var(--gold);font-weight:700;cursor:pointer}
+
+/* ─── Tiles ─── */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;cursor:pointer;transition:.2s;display:block;color:inherit;position:relative;text-decoration:none}
+.tile:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--gold2)}
+.tile-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.tile-icon{width:38px;height:38px;border-radius:10px;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tile-name{font-size:14px;font-weight:700}
+.tile-desc{font-size:12px;color:var(--ink2);line-height:1.55;margin-bottom:12px}
+.tile-foot{display:flex;justify-content:space-between;align-items:center}
+.tile-status{font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.tile-status.ok{color:var(--green)}
+.tile-status.warn{color:#FF8030}
+.tile-status.err{color:var(--red)}
+.tile-status::before{content:'●';font-size:9px}
+.tile-cta{color:var(--gold);font-weight:700;font-size:13px}
+.tile.featured{background:linear-gradient(135deg,#1A2238,#243655);color:#fff;border:1px solid var(--gold)}
+.tile.featured .tile-icon{background:linear-gradient(135deg,var(--gold),var(--gold3));color:var(--ink)}
+.tile.featured .tile-desc{color:#C8D2E2}
+.tile.featured .tile-cta{color:var(--gold3)}
+.tile.featured:hover{box-shadow:0 18px 38px -8px rgba(200,146,26,.4)}
+
+.icon-gold{background:linear-gradient(135deg,#FFF7E6,#FFE7B3);color:var(--gold)}
+.icon-blue{background:linear-gradient(135deg,#F0F7FF,#D9E9FF);color:#1A4D99}
+.icon-purple{background:linear-gradient(135deg,#F4F0FF,#E2D5FF);color:#5C3DB8}
+.icon-pink{background:linear-gradient(135deg,#FFF0F8,#FFD9EE);color:#A0357A}
+.icon-green{background:linear-gradient(135deg,#E8FBF4,#C7F4E2);color:#0A8462}
+
+/* ─── Spotlight ─── */
+.spotlight{margin-top:24px;background:var(--ink);color:#fff;border-radius:14px;padding:20px 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.spotlight-item .lbl{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gold3);text-transform:uppercase;margin-bottom:6px}
+.spotlight-item .h{font-size:14px;font-weight:600;line-height:1.4}
+.spotlight-item .sub{font-size:11.5px;color:#8AA4C8;margin-top:4px}
+
+/* ─── Nishi dock ─── */
+.nishi-dock{position:fixed;bottom:22px;right:22px;z-index:100;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.nishi-tip{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);max-width:280px;font-size:12px;color:var(--ink);line-height:1.5;animation:tipIn .3s ease}
+.nishi-tip .actions{margin-top:8px;display:flex;gap:6px}
+.nishi-tip .actions button{border-radius:7px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;border:none}
+.nishi-tip .actions .primary{background:var(--gold);color:#fff}
+.nishi-tip .actions .ghost{background:#F8FAFD;border:1px solid var(--border);color:var(--ink2);font-weight:600}
+.nishi-fab{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold3));border:none;color:var(--ink);font-size:24px;cursor:pointer;box-shadow:0 12px 32px -8px rgba(200,146,26,.55);position:relative;transition:.2s}
+.nishi-fab:hover{transform:scale(1.06)}
+.nishi-fab .online{position:absolute;top:2px;right:2px;width:11px;height:11px;border-radius:50%;background:var(--green);border:2px solid #fff}
+@keyframes tipIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── Responsive ─── */
+@media (max-width:960px){
+  .hero-wrap{grid-template-columns:1fr}
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .spotlight{grid-template-columns:1fr}
+  .tb-nav{display:none}
+}
+@media (max-width:640px){
+  .tiles{grid-template-columns:1fr}
+  .topbar{padding:10px 14px}
+}
+</style>
+</head>
+<body>
+
+<div data-di-topbar></div>
+
+<section class="hero">
+  <div class="hero-wrap">
+    <div>
+      <div class="hero-greet" id="hero-greet">GOOD DAY</div>
+      <h1 class="hero-h1">Your banking modernization workspace, <em>ready when you are.</em></h1>
+      <p class="hero-sub">Open a workspace below — or ask Nishi to walk you through it. She remembers your last sessions and can talk you through any feature.</p>
+    </div>
+    <div class="resume" id="resume-card">
+      <div class="resume-tag">▶ Continue where you left off</div>
+      <div class="resume-title" id="resume-title">Discovery Studio · Payments module</div>
+      <div class="resume-meta" id="resume-meta">12 of 17 artifacts reviewed · 3 high-risk</div>
+      <div class="resume-bar"><div style="width:71%"></div></div>
+      <button class="resume-cta" onclick="location.href='discovery-studio.html'">Resume →</button>
+      <button class="resume-link" onclick="location.href='nishi-chatbot.html'">Start something new</button>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-h">Feature workspaces</div>
+  <div class="tiles">
+
+    <a class="tile" href="discovery-studio.html">
+      <div class="tile-head"><div class="tile-icon icon-gold">🔍</div><div class="tile-name">Discovery Studio</div></div>
+      <div class="tile-desc">Time-Capsule view of your legacy estate. Risk-ranks COBOL / Java / SQL and builds your modernization backlog.</div>
+      <div class="tile-foot"><span class="tile-status ok">Ready · 38 artifacts</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" href="architecture-studio.html">
+      <div class="tile-head"><div class="tile-icon icon-blue">🏗</div><div class="tile-name">Architecture Studio</div></div>
+      <div class="tile-desc">Design your To-Be platform across six targets — Private DC, AWS, Azure, GCP, OCI, IBM Cloud.</div>
+      <div class="tile-foot"><span class="tile-status ok">Ready</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" href="program-governance.html">
+      <div class="tile-head"><div class="tile-icon icon-purple">📋</div><div class="tile-name">Program Governance</div></div>
+      <div class="tile-desc">RAID register, 7-R timeline, cost model, MS Project export, runlog. Control tower for your migration.</div>
+      <div class="tile-foot"><span class="tile-status err">4 RAID open</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" href="questionnaire.html">
+      <div class="tile-head"><div class="tile-icon icon-pink">📝</div><div class="tile-name">RFP Questionnaire</div></div>
+      <div class="tile-desc">88-question adaptive RFP. Scoped by role · region · domain. Exports JSON / Markdown.</div>
+      <div class="tile-foot"><span class="tile-status ok">61/61 tests</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" href="operations.html">
+      <div class="tile-head"><div class="tile-icon icon-green">📈</div><div class="tile-name">Operations</div></div>
+      <div class="tile-desc">Live post-go-live KPIs — incident MTTR, SLO burn rate, batch SLAs, FinOps signals.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile featured" href="nishi-chatbot.html">
+      <div class="tile-head"><div class="tile-icon">🤖</div><div class="tile-name">Nishi Chatbot</div></div>
+      <div class="tile-desc">Talk or chat. Nishi explains every feature, drafts requirements, reads replies aloud.</div>
+      <div class="tile-foot"><span class="tile-status ok">Online</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+  </div>
+
+  <div class="spotlight">
+    <div class="spotlight-item"><div class="lbl">Signature method</div><div class="h">7-R modernization framework</div><div class="sub">Rehost · Replatform · Refactor · Rearchitect · Rebuild · Replace · Retain</div></div>
+    <div class="spotlight-item"><div class="lbl">Case study</div><div class="h">Tier-1 bank cut its mainframe footprint 38%</div><div class="sub">Open the read-out →</div></div>
+    <div class="spotlight-item"><div class="lbl">What's new</div><div class="h">RFP pack now covers SEA &amp; SWA regulators</div><div class="sub">Released today</div></div>
+  </div>
+</section>
+
+<!-- Persistent Nishi dock -->
+<div class="nishi-dock">
+  <div class="nishi-tip" id="nishi-tip">
+    💡 <strong>Tip from Nishi:</strong> New here? I can give you a 60-second tour of the platform.
+    <div class="actions">
+      <button class="primary" onclick="location.href='nishi-chatbot.html?tour=1'">Start tour</button>
+      <button class="ghost" onclick="document.getElementById('nishi-tip').style.display='none'">Not now</button>
+    </div>
+  </div>
+  <button class="nishi-fab" onclick="location.href='nishi-chatbot.html'" title="Open Nishi">🤖<span class="online"></span></button>
+</div>
+
+<script>
+/* Populate hero greeting from sessionStorage profile.
+   (User pill + avatar are now handled by the shared top bar in assets/top-bar.js.) */
+(function(){
+  let profile = null;
+  try { profile = JSON.parse(sessionStorage.getItem('di_account_profile') || 'null'); } catch(_){}
+  const u = profile || {};
+  const first = u.firstName || (u.name || 'Welcome').split(' ')[0];
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const greetEl = document.getElementById('hero-greet');
+  if (greetEl) greetEl.textContent = (greet + ', ' + first).toUpperCase();
+})();
+</script>
+
+</body>
+</html>

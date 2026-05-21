@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Program Governance · DI Platform — Digital Infotech</title>
+<meta name="author" content="Nishanth Kumar Kishore" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root{
+  --void:#060B14; --deep:#090E1A; --navy:#0D1628; --panel:#101828;
+  --card:#14213A; --card2:#172845; --b1:#1C2E48; --b2:#243655; --b3:#2D4268;
+  --amber:#C8921A; --amber2:#E8AC38; --amber3:#FFD070; --aglow:rgba(200,146,26,.12);
+  --green:#0FD49A; --red:#FF4D6A; --blue:#3D8EFF; --purple:#9B72FF;
+  --orange:#FF8030; --teal:#00C9C8; --pink:#FF6BB5;
+  --t1:#EEF4FF; --t2:#8AA4C8; --t3:#4A6285; --t4:#2A3E5A;
+  --f-head:'Fraunces',Georgia,serif;
+  --f-ui:'Outfit',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Courier New',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--void);color:var(--t1);font-family:var(--f-ui);font-size:13px;line-height:1.5}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+
+.tb{height:54px;background:var(--panel);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 22px;gap:14px;position:sticky;top:0;z-index:50}
+.tb-logo{width:32px;height:32px;background:linear-gradient(135deg,var(--amber),var(--amber3));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--void)}
+.tb-brand{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1)}
+.tb-div{width:1px;height:24px;background:var(--b1)}
+.tb-crumb{font-size:12px;color:var(--t2);display:flex;gap:8px;align-items:center}
+.tb-crumb a{color:var(--t2);text-decoration:none}
+.tb-crumb a:hover{color:var(--amber2)}
+.tb-crumb .sep{color:var(--t3)}
+.tb-r{margin-left:auto;display:flex;gap:10px;align-items:center}
+.tb-link{padding:6px 14px;background:transparent;border:1px solid var(--b2);border-radius:7px;color:var(--t2);font-size:12px;text-decoration:none;transition:.2s}
+.tb-link:hover{border-color:var(--amber);color:var(--amber2)}
+.tb-link.primary{background:var(--amber);color:var(--void);border-color:var(--amber);font-weight:700}
+.tb-link.primary:hover{background:var(--amber2)}
+
+.hero{padding:36px 32px 18px;max-width:1480px;margin:0 auto}
+.hero-badge{display:inline-flex;gap:8px;align-items:center;padding:6px 14px;background:var(--aglow);border:1px solid rgba(200,146,26,.3);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber2);margin-bottom:14px}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--amber2);box-shadow:0 0 8px var(--amber2)}
+.hero h1{font-family:var(--f-head);font-size:clamp(30px,4vw,46px);font-weight:700;letter-spacing:-.02em;line-height:1.05;color:var(--t1);margin-bottom:10px}
+.hero h1 em{font-style:italic;color:var(--amber2)}
+.hero p{font-size:15px;color:var(--t2);max-width:920px;line-height:1.6}
+
+/* Selector — banking module + architecture */
+.selector{max-width:1480px;margin:22px auto 0;padding:0 32px;display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end}
+@media (max-width:900px){.selector{grid-template-columns:1fr}}
+.sel-pill{display:flex;flex-direction:column;gap:6px}
+.sel-pill label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.sel-pill select{padding:11px 36px 11px 14px;background:var(--card);border:1px solid var(--b1);border-radius:8px;color:var(--t1);font-size:13px;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%238AA4C8' d='M0 0l5 6 5-6z'/></svg>");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer}
+.sel-pill select:focus{outline:none;border-color:var(--amber)}
+.gen-btn{padding:11px 22px;background:var(--amber);border:none;border-radius:8px;color:var(--void);font-size:13px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:.2s}
+.gen-btn:hover{background:var(--amber2);transform:translateY(-1px)}
+
+/* KPI row */
+.kpi-row{max-width:1480px;margin:18px auto 0;padding:0 32px;display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media (max-width:1100px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--b1);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--amber))}
+.kpi .lbl{font-size:10px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.kpi .v{font-family:var(--f-head);font-size:24px;font-weight:700;color:var(--t1);margin-top:4px;line-height:1.1}
+.kpi .sub{font-size:10px;color:var(--t2);margin-top:2px}
+.kpi .trend-up{color:var(--green);font-size:10px;font-weight:600}
+.kpi .trend-down{color:var(--red);font-size:10px;font-weight:600}
+
+/* Tabs */
+.tabs{max-width:1480px;margin:24px auto 0;padding:0 32px;display:flex;gap:4px;border-bottom:1px solid var(--b1);overflow-x:auto}
+.tab{padding:11px 18px;background:transparent;border:none;color:var(--t3);font-size:12.5px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.2s;font-family:var(--f-ui)}
+.tab:hover{color:var(--t1)}
+.tab.act{color:var(--amber2);border-bottom-color:var(--amber)}
+.tab .badge-c{display:inline-block;margin-left:6px;padding:1px 6px;background:var(--card);border-radius:999px;font-size:10px;color:var(--t2)}
+.tab.act .badge-c{background:var(--aglow);color:var(--amber2)}
+
+.pane{display:none;max-width:1480px;margin:0 auto;padding:24px 32px 28px}
+.pane.on{display:block}
+
+/* Generic tile */
+.tile{background:var(--card);border:1px solid var(--b1);border-radius:12px;padding:18px 20px;margin-bottom:14px}
+.tile-h{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1);margin-bottom:4px;display:flex;align-items:center;gap:10px}
+.tile-h::before{content:'';width:3px;height:14px;background:var(--c,var(--amber));border-radius:2px}
+.tile-sub{font-size:12px;color:var(--t3);margin-bottom:14px}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;padding:10px 8px;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--b1)}
+td{padding:10px 8px;border-bottom:1px dashed var(--b1);color:var(--t1);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.cell-mono{font-family:var(--f-mono);font-size:11.5px;color:var(--t2)}
+.cell-id{font-family:var(--f-mono);font-size:11px;color:var(--amber2);font-weight:600}
+.pri-Critical{color:var(--red);font-weight:700}
+.pri-High{color:var(--orange);font-weight:700}
+.pri-Medium{color:var(--amber2);font-weight:600}
+.pri-Low{color:var(--t2)}
+.stat-Open{color:var(--orange)}
+.stat-Mitigated{color:var(--green)}
+.stat-Closed{color:var(--t3)}
+.stat-Active{color:var(--blue)}
+
+/* Two-column */
+.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:900px){.cols-2{grid-template-columns:1fr}}
+
+/* 7R Timeline */
+.tl{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:14px}
+@media (max-width:900px){.tl{grid-template-columns:repeat(2,1fr)}}
+.tl-cell{background:var(--panel);border:1px solid var(--b1);border-radius:9px;padding:12px;position:relative;overflow:hidden;transition:.25s}
+.tl-cell:hover{transform:translateY(-3px);border-color:var(--c,var(--amber))}
+.tl-cell::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--amber))}
+.tl-cell .tk{font-family:var(--f-head);font-size:18px;font-weight:700;color:var(--c,var(--amber2));margin-bottom:4px}
+.tl-cell .tn{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:6px}
+.tl-cell .td{font-size:10.5px;color:var(--t2);line-height:1.45}
+.tl-cell .tm{font-family:var(--f-mono);font-size:10px;color:var(--t3);margin-top:8px;padding-top:8px;border-top:1px dashed var(--b1)}
+
+/* RAID legend */
+.legend{display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap}
+.lg-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t2)}
+.lg-sw{width:10px;height:10px;border-radius:3px}
+
+/* Cost */
+.cost-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:900px){.cost-grid{grid-template-columns:repeat(2,1fr)}}
+.cost-bar{height:6px;background:var(--b1);border-radius:3px;overflow:hidden;margin-top:8px}
+.cost-bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--amber3));border-radius:3px}
+
+/* Drill down  */
+.drill{margin-top:14px;background:var(--navy);border:1px dashed var(--b2);border-radius:9px;padding:14px 18px;font-size:12.5px;color:var(--t2);display:none}
+.drill.on{display:block;animation:fadeUp .3s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Export bar */
+.export-bar{max-width:1480px;margin:14px auto;padding:18px 26px;background:linear-gradient(90deg,rgba(15,212,154,.07),rgba(61,142,255,.05));border:1px solid var(--b1);border-radius:12px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+.eb-l h4{font-family:var(--f-head);font-size:14px;color:var(--t1);margin-bottom:2px}
+.eb-l p{font-size:12px;color:var(--t2)}
+.eb-r{display:flex;gap:8px;flex-wrap:wrap}
+.exp-btn{padding:9px 14px;background:var(--card);border:1px solid var(--b2);border-radius:7px;color:var(--t1);font-size:11.5px;font-weight:600;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:var(--f-ui)}
+.exp-btn:hover{border-color:var(--amber);color:var(--amber2);transform:translateY(-1px)}
+.exp-btn.green:hover{border-color:var(--green);color:var(--green)}
+.exp-btn.blue:hover{border-color:var(--blue);color:var(--blue)}
+
+footer{text-align:center;padding:28px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1)}
+
+/* Banner if no architecture selected */
+.warn{max-width:1480px;margin:18px auto 0;padding:14px 22px;background:rgba(255,128,48,.06);border:1px solid rgba(255,128,48,.3);border-radius:10px;display:flex;align-items:center;gap:12px;color:var(--orange);font-size:12.5px}
+.warn .icon{width:22px;height:22px;border-radius:50%;background:rgba(255,128,48,.18);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.warn a{color:var(--orange);font-weight:600;text-decoration:underline}
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <div class="tb-logo">DI</div>
+  <div class="tb-brand">Digital Infotech Platform</div>
+  <div class="tb-div"></div>
+  <div class="tb-crumb">
+    <a href="home.html">Home</a><span class="sep">/</span>
+    <a href="architecture-studio.html">Architecture</a><span class="sep">/</span>
+    <span>Program Governance</span>
+  </div>
+  <div class="tb-r">
+    <a href="architecture-studio.html" class="tb-link">← Architecture</a>
+    <a href="home.html" class="tb-link">Platform Home</a>
+  </div>
+</div>
+
+<section class="hero">
+  <span class="hero-badge">Program Governance · Step 2 of 2</span>
+  <h1>Plan the <em>full program</em> — end to end.</h1>
+  <p>Pick a banking module and a deployment target. The platform assembles the finalized requirements, governance KPIs, data governance posture, 7R-aligned timeline, RAID log, cost tracker, ops KPIs, and produces a downloadable MS Project plan plus a DR/rollback runlog.</p>
+</section>
+
+<div id="warn-no-arch" class="warn" style="display:none">
+  <div class="icon">!</div>
+  <div>No deployment target selected yet — pick one in the <a href="architecture-studio.html">Architecture Studio</a> first, or choose one below to continue.</div>
+</div>
+
+<div class="selector">
+  <div class="sel-pill">
+    <label>Banking Module</label>
+    <select id="sel-module">
+      <option>Core Banking — Payments</option>
+      <option>Core Banking — Deposits</option>
+      <option>Core Banking — Loans</option>
+      <option>Cards</option>
+      <option>Trade Finance</option>
+      <option>Treasury</option>
+      <option>Wealth Management</option>
+      <option>Risk &amp; Compliance</option>
+      <option>Anti-Money Laundering</option>
+      <option>Customer Onboarding (KYC)</option>
+    </select>
+  </div>
+  <div class="sel-pill">
+    <label>Deployment Target</label>
+    <select id="sel-arch">
+      <option value="private">Banking Private Data Center</option>
+      <option value="aws">AWS</option>
+      <option value="azure">Azure</option>
+      <option value="gcp">GCP</option>
+      <option value="oci">Oracle Cloud (OCI)</option>
+      <option value="ibm">IBM Cloud</option>
+    </select>
+  </div>
+  <button class="gen-btn" onclick="regenerate()">↻ Generate Plan</button>
+</div>
+
+<div class="kpi-row" id="kpi-row"></div>
+
+<div class="tabs" id="tabs"></div>
+
+<div id="panes"></div>
+
+<div class="export-bar">
+  <div class="eb-l">
+    <h4>Export & operational artifacts</h4>
+    <p>Download the program plan as MS Project XML, the runlog for DR / rollback drills, and a summary JSON for downstream pipelines.</p>
+  </div>
+  <div class="eb-r">
+    <button class="exp-btn green" onclick="exportMSProject()">⬇ MS Project (.xml)</button>
+    <button class="exp-btn blue"  onclick="exportRunlog()">⬇ Runlog (.txt)</button>
+    <button class="exp-btn"       onclick="exportJSON()">⬇ Program JSON</button>
+    <button class="exp-btn"       onclick="window.print()">⎙ Print briefing</button>
+  </div>
+</div>
+
+<footer>
+  DI-Platform · Program Governance · IDD: DI-2026-NKK-0511-001 · © 2026 Nishanth Kumar Kishore / Digital Infotech
+</footer>
+
+<script>
+// ─── Data ───────────────────────────────────────────────────
+const ARCH = {
+  private:{name:"Banking Private Data Center", letter:"PD", color:"#C8921A", risk:1.4, costMult:1.6, durMult:1.4},
+  aws:    {name:"AWS",                          letter:"AW", color:"#FF8030", risk:1.0, costMult:1.0, durMult:1.0},
+  azure:  {name:"Azure",                        letter:"AZ", color:"#3D8EFF", risk:1.0, costMult:0.95,durMult:1.0},
+  gcp:    {name:"GCP",                          letter:"GC", color:"#0FD49A", risk:1.0, costMult:0.92,durMult:1.0},
+  oci:    {name:"Oracle Cloud (OCI)",           letter:"OC", color:"#FF4D6A", risk:1.1, costMult:1.15,durMult:1.15},
+  ibm:    {name:"IBM Cloud",                    letter:"IB", color:"#9B72FF", risk:1.05,costMult:1.2, durMult:1.2}
+};
+
+const REQUIREMENTS = {
+  Technical: [
+    ["REQ-T-001","Real-time settlement on TIPS / SEPA Instant rails","Critical"],
+    ["REQ-T-002","Decouple AML engine via async event bus (Kafka)","High"],
+    ["REQ-T-003","p99 API latency < 250ms across all rails","High"],
+    ["REQ-T-004","Multi-region active-active with RPO < 5s","Critical"],
+    ["REQ-T-005","Zero-trust mTLS between all microservices","High"],
+    ["REQ-T-006","Hardware-backed key management (HSM)","Critical"],
+    ["REQ-T-007","Idempotent payment APIs with replay protection","Critical"],
+  ],
+  Business:[
+    ["REQ-B-001","Reduce settlement latency from 14h → <60s","Critical"],
+    ["REQ-B-002","Cut operational cost by 30% over 18 months","High"],
+    ["REQ-B-003","Lower manual reconciliation rate < 2%","High"],
+    ["REQ-B-004","Increase straight-through-processing to 96%","Medium"],
+    ["REQ-B-005","Expand to 3 new corridors (LATAM, EMEA, APAC)","Medium"],
+  ],
+  Product:[
+    ["REQ-P-001","Self-serve corporate payments portal","High"],
+    ["REQ-P-002","Embedded payment widgets via SDK","Medium"],
+    ["REQ-P-003","Real-time payment status webhooks","High"],
+    ["REQ-P-004","Multi-currency wallet — 14 currencies","Medium"],
+    ["REQ-P-005","FX rate streaming with sub-second updates","Medium"],
+  ],
+  Regulatory:[
+    ["REQ-R-001","PCI-DSS 4.0 across the cardholder data env","Critical"],
+    ["REQ-R-002","SOX controls for change & access management","Critical"],
+    ["REQ-R-003","GDPR · Right-to-erasure within 30 days","High"],
+    ["REQ-R-004","ISO 20022 message standard adoption","High"],
+    ["REQ-R-005","FATF Travel Rule for cross-border > $1k","Critical"],
+    ["REQ-R-006","Regulatory reporting — daily MIS by 09:00","High"],
+  ]
+};
+
+const SEVEN_R = [
+  {k:"R1",n:"Retire",       d:"Decommission legacy modules with no continuing value.",         baseDur:"2 mo",  c:"#FF4D6A"},
+  {k:"R2",n:"Retain",       d:"Keep on-prem; wrap with APIs for hybrid integration.",          baseDur:"3 mo",  c:"#8AA4C8"},
+  {k:"R3",n:"Rehost",       d:"Lift-and-shift VMs into target — minimal change.",              baseDur:"4 mo",  c:"#3D8EFF"},
+  {k:"R4",n:"Replatform",   d:"Containerize + minor refactor for managed services.",           baseDur:"6 mo",  c:"#00C9C8"},
+  {k:"R5",n:"Repurchase",   d:"Adopt SaaS replacements for commodity capability.",             baseDur:"5 mo",  c:"#9B72FF"},
+  {k:"R6",n:"Refactor",     d:"Significant code rewrite to cloud-native patterns.",            baseDur:"9 mo",  c:"#FF8030"},
+  {k:"R7",n:"Rearchitect",  d:"Decompose monolith → event-driven microservices.",              baseDur:"12 mo", c:"#0FD49A"}
+];
+
+const RAID = [
+  ["RSK-001","Risk","Vendor lock-in to chosen hyperscaler","Critical","Open","Adopt CNCF-aligned services; quarterly portability test"],
+  ["RSK-002","Risk","HSM key migration error during cutover","Critical","Mitigated","Dual-control rotation; rehearsed rollback to legacy HSM"],
+  ["RSK-003","Risk","Regulator slow to approve EU rollout","High","Open","Pre-engage; submit dossier 90 days ahead"],
+  ["ASM-001","Assumption","Existing AML engine v3.2 supports async events","High","Active","Confirm with vendor in week 2 of discovery"],
+  ["ASM-002","Assumption","Budget approved within FY26 cap","Medium","Active","CFO sign-off captured in steering minutes"],
+  ["ISS-001","Issue","COBOL job scheduler lacks observability hooks","High","Open","Wrap with sidecar collector; sunset by Phase 3"],
+  ["ISS-002","Issue","Mainframe → cloud network latency > 50ms","Medium","Mitigated","Direct Connect / ExpressRoute provisioned"],
+  ["DEP-001","Dependency","Reg dossier approval from central bank","Critical","Open","Critical path · 90-day SLA"],
+  ["DEP-002","Dependency","Vendor delivery: new HSM firmware","High","Active","Contract milestone · contractual penalty"]
+];
+
+const TABS = [
+  {k:"requirements",n:"Finalized Requirements",          c:"var(--amber)"},
+  {k:"governance",  n:"Program Governance",              c:"var(--blue)"},
+  {k:"data",        n:"Data Governance",                 c:"var(--purple)"},
+  {k:"timeline",    n:"7R Timeline",                     c:"var(--teal)"},
+  {k:"raid",        n:"RAID Log",                        c:"var(--red)"},
+  {k:"cost",        n:"Cost & PAT",                      c:"var(--green)"},
+  {k:"ops",         n:"Ops KPIs",                        c:"var(--orange)"},
+  {k:"runlog",      n:"DR / Rollback Runlog",            c:"var(--pink)"}
+];
+
+// ─── State + persistence ────────────────────────────────────
+function loadStoredArch(){
+  try{
+    const stored = JSON.parse(sessionStorage.getItem('diSelectedArch') || 'null');
+    if(stored && ARCH[stored.key]) document.getElementById('sel-arch').value = stored.key;
+    else document.getElementById('warn-no-arch').style.display='flex';
+  }catch(e){}
+}
+
+// ─── Render ─────────────────────────────────────────────────
+function currentState(){
+  return {
+    module: document.getElementById('sel-module').value,
+    archKey: document.getElementById('sel-arch').value,
+    arch: ARCH[document.getElementById('sel-arch').value]
+  };
+}
+
+function renderKPIs(){
+  const {arch} = currentState();
+  const totReqs = Object.values(REQUIREMENTS).reduce((a,b)=>a+b.length,0);
+  const critical = Object.values(REQUIREMENTS).flat().filter(r=>r[2]==='Critical').length;
+  const dur = Math.round(9 * arch.durMult);
+  const cost = (2.5 * arch.costMult).toFixed(1);
+  const raidCount = RAID.length;
+  const raidOpen = RAID.filter(r=>r[4]==='Open').length;
+  const data = [
+    {l:"Total Requirements",v:totReqs,    s:`${critical} Critical`,             c:"var(--amber)"},
+    {l:"Program Duration", v:`${dur} mo`, s:`Based on 7R · ${arch.name}`,       c:"var(--blue)"},
+    {l:"Est. Cost (FY)",   v:`$${cost}M`, s:`±15% confidence`,                  c:"var(--green)"},
+    {l:"RAID Items",       v:raidCount,   s:`${raidOpen} open`,                 c:"var(--red)"},
+    {l:"Health Score",     v:"82 / 100",  s:`<span class='trend-up'>↑ 4 this sprint</span>`, c:"var(--teal)"},
+    {l:"PAT Margin",       v:"22.4%",     s:`<span class='trend-up'>↑ vs plan</span>`,       c:"var(--purple)"}
+  ];
+  document.getElementById('kpi-row').innerHTML = data.map(k => `
+    <div class="kpi" style="--c:${k.c}">
+      <div class="lbl">${k.l}</div>
+      <div class="v">${k.v}</div>
+      <div class="sub">${k.s}</div>
+    </div>`).join('');
+}
+
+function renderTabs(){
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = '';
+  TABS.forEach((t,i) => {
+    const b = document.createElement('button');
+    b.className = 'tab' + (i===0?' act':'');
+    b.dataset.k = t.k;
+    let count = '';
+    if (t.k==='requirements') count = Object.values(REQUIREMENTS).reduce((a,b)=>a+b.length,0);
+    if (t.k==='raid')         count = RAID.length;
+    if (t.k==='timeline')     count = '7R';
+    b.innerHTML = `${t.n}${count!==''?`<span class="badge-c">${count}</span>`:''}`;
+    b.onclick = ()=> activateTab(t.k);
+    tabsEl.appendChild(b);
+  });
+}
+
+function activateTab(k){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('act', t.dataset.k===k));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on', p.dataset.k===k));
+}
+
+function renderPanes(){
+  const {module, arch} = currentState();
+  const wrap = document.getElementById('panes');
+  wrap.innerHTML = '';
+
+  // — Requirements
+  const reqPane = document.createElement('div');
+  reqPane.className = 'pane on'; reqPane.dataset.k='requirements';
+  const cats = Object.keys(REQUIREMENTS);
+  reqPane.innerHTML = `
+    <div class="tile" style="--c:var(--amber)">
+      <div class="tile-h">Finalized Requirements — ${module}</div>
+      <div class="tile-sub">Generated by the 6-agent pipeline · Technical / Business / Product / Regulatory · ${arch.name}</div>
+      ${cats.map(cat=>`
+        <h4 style="font-family:var(--f-head);font-size:13px;color:var(--t1);margin:14px 0 8px">${cat} <span style="color:var(--t3);font-size:11px;font-weight:400">(${REQUIREMENTS[cat].length})</span></h4>
+        <table>
+          <thead><tr><th style="width:90px">ID</th><th>Requirement</th><th style="width:90px">Priority</th></tr></thead>
+          <tbody>${REQUIREMENTS[cat].map(([id,t,p])=>`
+            <tr><td class="cell-id">${id}</td><td>${t}</td><td><span class="pri-${p}">${p}</span></td></tr>`).join('')}
+          </tbody>
+        </table>
+      `).join('')}
+    </div>`;
+  wrap.appendChild(reqPane);
+
+  // — Governance
+  const govPane = document.createElement('div');
+  govPane.className = 'pane'; govPane.dataset.k='governance';
+  govPane.innerHTML = `
+    <div class="cols-2">
+      <div class="tile" style="--c:var(--blue)">
+        <div class="tile-h">Steering Cadence</div>
+        <table><tbody>
+          <tr><td>Sponsor Review</td><td class="cell-mono">Monthly · 1st Tue</td></tr>
+          <tr><td>Steering Committee</td><td class="cell-mono">Bi-weekly · Wed 14:00</td></tr>
+          <tr><td>Architecture Council</td><td class="cell-mono">Weekly · Mon 10:00</td></tr>
+          <tr><td>Risk Forum</td><td class="cell-mono">Weekly · Thu 16:00</td></tr>
+        </tbody></table>
+      </div>
+      <div class="tile" style="--c:var(--blue)">
+        <div class="tile-h">Decision Rights (RACI)</div>
+        <table>
+          <thead><tr><th>Decision</th><th>R</th><th>A</th><th>C</th></tr></thead>
+          <tbody>
+            <tr><td>Tech stack</td><td>Arch Lead</td><td>CIO</td><td>Eng VP</td></tr>
+            <tr><td>Vendor selection</td><td>Procurement</td><td>CFO</td><td>Arch · Sec</td></tr>
+            <tr><td>Go-live</td><td>Program Mgr</td><td>CIO</td><td>Risk · Ops</td></tr>
+            <tr><td>Rollback</td><td>SRE Lead</td><td>CTO</td><td>Risk</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="tile" style="--c:var(--blue)">
+      <div class="tile-h">Program Health KPIs</div>
+      <div class="cost-grid">
+        ${[
+          ["Schedule Variance","+3.2%","On track","var(--green)"],
+          ["Cost Variance","-1.4%","Under budget","var(--green)"],
+          ["Scope Stability","94%","Healthy","var(--green)"],
+          ["Defect Density","0.8 / KLOC","Below threshold","var(--green)"],
+          ["Velocity (sprint)","42 SP","Stable","var(--amber2)"],
+          ["Stakeholder NPS","+38","Improving","var(--green)"],
+          ["Open P1 Defects","2","Watch","var(--orange)"],
+          ["Time-to-Recover","18 min","Best-in-class","var(--green)"]
+        ].map(([l,v,sub,c])=>`<div><div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">${l}</div><div style="font-family:var(--f-head);font-size:18px;color:${c};margin-top:2px">${v}</div><div style="font-size:10px;color:var(--t2);margin-top:2px">${sub}</div></div>`).join('')}
+      </div>
+    </div>`;
+  wrap.appendChild(govPane);
+
+  // — Data Governance
+  const dataPane = document.createElement('div');
+  dataPane.className = 'pane'; dataPane.dataset.k='data';
+  dataPane.innerHTML = `
+    <div class="cols-2">
+      <div class="tile" style="--c:var(--purple)">
+        <div class="tile-h">Data Classification</div>
+        <table>
+          <thead><tr><th>Class</th><th>Examples</th><th>Encryption</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pri-Critical">Restricted</span></td><td class="cell-mono">PAN, CVV, KYC docs</td><td>AES-256 + HSM</td></tr>
+            <tr><td><span class="pri-High">Confidential</span></td><td class="cell-mono">Account #, balance</td><td>AES-256</td></tr>
+            <tr><td><span class="pri-Medium">Internal</span></td><td class="cell-mono">Transaction metadata</td><td>TLS-in-transit</td></tr>
+            <tr><td><span class="pri-Low">Public</span></td><td class="cell-mono">Rate cards, FAQs</td><td>Standard</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tile" style="--c:var(--purple)">
+        <div class="tile-h">Data Lineage & Quality</div>
+        <table>
+          <tbody>
+            <tr><td>Data Catalog</td><td class="cell-mono">Collibra · Alation</td></tr>
+            <tr><td>Lineage Coverage</td><td class="cell-mono">92% of critical datasets</td></tr>
+            <tr><td>DQ Score (avg)</td><td class="cell-mono"><span class="stat-Mitigated">96.4%</span></td></tr>
+            <tr><td>Data Owner SLA</td><td class="cell-mono">48h response</td></tr>
+            <tr><td>Retention Policy</td><td class="cell-mono">7y financial · 5y KYC</td></tr>
+            <tr><td>Right-to-Erasure</td><td class="cell-mono">30-day SLA · GDPR</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="tile" style="--c:var(--purple)">
+      <div class="tile-h">Master Data Strategy</div>
+      <div class="tile-sub">Single source of truth for customer, account, and product domains — synced to consumer systems via CDC streams.</div>
+      <table>
+        <thead><tr><th>Domain</th><th>System of Record</th><th>Sync</th><th>SLA</th></tr></thead>
+        <tbody>
+          <tr><td>Customer</td><td>CIF Hub</td><td class="cell-mono">CDC → Kafka</td><td>&lt; 200ms</td></tr>
+          <tr><td>Account</td><td>Core Ledger</td><td class="cell-mono">CDC → Kafka</td><td>&lt; 200ms</td></tr>
+          <tr><td>Product</td><td>Product Catalog</td><td class="cell-mono">Batch · hourly</td><td>1 h</td></tr>
+          <tr><td>Reference Data</td><td>Ref Data Hub</td><td class="cell-mono">API pull · 15min</td><td>15 min</td></tr>
+        </tbody>
+      </table>
+    </div>`;
+  wrap.appendChild(dataPane);
+
+  // — Timeline
+  const tlPane = document.createElement('div');
+  tlPane.className = 'pane'; tlPane.dataset.k='timeline';
+  tlPane.innerHTML = `
+    <div class="tile" style="--c:var(--teal)">
+      <div class="tile-h">7R Migration Timeline — ${arch.name}</div>
+      <div class="tile-sub">Each strategy maps to a phase of the program. Durations scale with the target's complexity multiplier (×${arch.durMult.toFixed(2)}).</div>
+      <div class="tl">
+        ${SEVEN_R.map(r=>{
+          const baseMo = parseInt(r.baseDur);
+          const adjMo = Math.max(1, Math.round(baseMo * arch.durMult));
+          return `<div class="tl-cell" style="--c:${r.c}">
+            <div class="tk">${r.k}</div>
+            <div class="tn">${r.n}</div>
+            <div class="td">${r.d}</div>
+            <div class="tm">${adjMo} mo · adjusted</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="tile" style="--c:var(--teal)">
+      <div class="tile-h">Critical Path Milestones</div>
+      <table>
+        <thead><tr><th style="width:120px">Milestone</th><th>Description</th><th style="width:100px">Owner</th><th style="width:90px">Date</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-id">M-01</td><td>Landing zone provisioned + reg sign-off</td><td>Arch Lead</td><td>2026-07-15</td></tr>
+          <tr><td class="cell-id">M-02</td><td>First module deployed · UAT signed off</td><td>Eng VP</td><td>2026-10-30</td></tr>
+          <tr><td class="cell-id">M-03</td><td>AML engine cut-over completed</td><td>Risk Lead</td><td>2026-12-15</td></tr>
+          <tr><td class="cell-id">M-04</td><td>Production go-live · 10% traffic</td><td>SRE Lead</td><td>2027-02-15</td></tr>
+          <tr><td class="cell-id">M-05</td><td>100% traffic · legacy decommissioned</td><td>Program Mgr</td><td>2027-05-30</td></tr>
+        </tbody>
+      </table>
+    </div>`;
+  wrap.appendChild(tlPane);
+
+  // — RAID
+  const raidPane = document.createElement('div');
+  raidPane.className = 'pane'; raidPane.dataset.k='raid';
+  raidPane.innerHTML = `
+    <div class="tile" style="--c:var(--red)">
+      <div class="tile-h">RAID Log</div>
+      <div class="tile-sub">Risks · Assumptions · Issues · Dependencies — refreshed every steering cycle.</div>
+      <div class="legend">
+        <div class="lg-item"><div class="lg-sw" style="background:var(--red)"></div>Risk</div>
+        <div class="lg-item"><div class="lg-sw" style="background:var(--blue)"></div>Assumption</div>
+        <div class="lg-item"><div class="lg-sw" style="background:var(--orange)"></div>Issue</div>
+        <div class="lg-item"><div class="lg-sw" style="background:var(--purple)"></div>Dependency</div>
+      </div>
+      <table>
+        <thead><tr><th style="width:80px">ID</th><th style="width:90px">Type</th><th>Description</th><th style="width:80px">Severity</th><th style="width:90px">Status</th><th>Mitigation / Owner</th></tr></thead>
+        <tbody>
+          ${RAID.map(r=>`
+            <tr><td class="cell-id">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="pri-${r[3]}">${r[3]}</span></td><td><span class="stat-${r[4]}">${r[4]}</span></td><td>${r[5]}</td></tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  wrap.appendChild(raidPane);
+
+  // — Cost & PAT
+  const costPane = document.createElement('div');
+  costPane.className = 'pane'; costPane.dataset.k='cost';
+  const baseCost = 2.5; // $M
+  costPane.innerHTML = `
+    <div class="tile" style="--c:var(--green)">
+      <div class="tile-h">Cost Breakdown — ${arch.name}</div>
+      <div class="tile-sub">Total estimated FY: <strong style="color:var(--t1)">$${(baseCost*arch.costMult).toFixed(2)}M</strong> (±15%) · tracked at sprint cadence.</div>
+      <div class="cost-grid">
+        ${[
+          ["Compute & containers",30],
+          ["Data & storage",18],
+          ["Licenses",15],
+          ["Security & compliance",12],
+          ["Networking",8],
+          ["Observability",6],
+          ["Professional services",8],
+          ["Contingency",3]
+        ].map(([l,pct])=>{
+          const amt = (baseCost*arch.costMult*pct/100).toFixed(2);
+          return `<div>
+            <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">${l}</div>
+            <div style="font-family:var(--f-head);font-size:18px;color:var(--t1);margin-top:2px">$${amt}M</div>
+            <div class="cost-bar"><span style="width:${pct*2.5}%"></span></div>
+            <div style="font-size:10px;color:var(--t2);margin-top:4px">${pct}% of total</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="cols-2">
+      <div class="tile" style="--c:var(--green)">
+        <div class="tile-h">PAT Margin Tracker</div>
+        <table>
+          <tbody>
+            <tr><td>FY26 Plan</td><td class="cell-mono">21.0%</td></tr>
+            <tr><td>FY26 Actual (YTD)</td><td class="cell-mono"><span class="stat-Mitigated">22.4%</span></td></tr>
+            <tr><td>Δ vs plan</td><td class="cell-mono"><span class="stat-Mitigated">+1.4 pts</span></td></tr>
+            <tr><td>FY27 Forecast</td><td class="cell-mono">23.8%</td></tr>
+            <tr><td>Cost-to-serve / txn</td><td class="cell-mono">$0.012</td></tr>
+            <tr><td>STP rate</td><td class="cell-mono">96.1%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tile" style="--c:var(--green)">
+        <div class="tile-h">Investment Phasing</div>
+        <table>
+          <thead><tr><th>Phase</th><th>Cap-ex</th><th>Op-ex</th></tr></thead>
+          <tbody>
+            <tr><td>FY26 H1</td><td class="cell-mono">$0.8M</td><td class="cell-mono">$0.2M</td></tr>
+            <tr><td>FY26 H2</td><td class="cell-mono">$1.1M</td><td class="cell-mono">$0.3M</td></tr>
+            <tr><td>FY27 H1</td><td class="cell-mono">$0.6M</td><td class="cell-mono">$0.5M</td></tr>
+            <tr><td>Total</td><td class="cell-mono">$${(baseCost*arch.costMult*0.7).toFixed(2)}M</td><td class="cell-mono">$${(baseCost*arch.costMult*0.3).toFixed(2)}M</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  wrap.appendChild(costPane);
+
+  // — Ops KPIs
+  const opsPane = document.createElement('div');
+  opsPane.className = 'pane'; opsPane.dataset.k='ops';
+  opsPane.innerHTML = `
+    <div class="tile" style="--c:var(--orange)">
+      <div class="tile-h">Operations KPIs</div>
+      <div class="cost-grid">
+        ${[
+          ["Availability","99.97%","SLA: 99.95%"],
+          ["MTTR","18 min","Target: ≤ 30 min"],
+          ["MTBF","720 h","↑ vs last Q"],
+          ["Change Success","98.4%","Plan ≥ 97%"],
+          ["Deployment freq","2.4 / wk","DORA elite"],
+          ["Lead time","2.1 d","DORA elite"],
+          ["Error budget","83% remaining","Healthy"],
+          ["Cost / 1K txn","$3.14","↓ 6% QoQ"]
+        ].map(([l,v,s])=>`<div>
+          <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">${l}</div>
+          <div style="font-family:var(--f-head);font-size:20px;color:var(--t1);margin-top:2px">${v}</div>
+          <div style="font-size:10.5px;color:var(--t2);margin-top:2px">${s}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="tile" style="--c:var(--orange)">
+      <div class="tile-h">Service Quality Heatmap</div>
+      <table>
+        <thead><tr><th>Service</th><th>Avail.</th><th>p99</th><th>Errors</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Payments API</td><td>99.99%</td><td class="cell-mono">142ms</td><td class="cell-mono">0.01%</td><td><span class="stat-Mitigated">● Healthy</span></td></tr>
+          <tr><td>Settlement Engine</td><td>99.96%</td><td class="cell-mono">230ms</td><td class="cell-mono">0.04%</td><td><span class="stat-Mitigated">● Healthy</span></td></tr>
+          <tr><td>AML Engine</td><td>99.92%</td><td class="cell-mono">312ms</td><td class="cell-mono">0.11%</td><td><span class="stat-Open">● Watch</span></td></tr>
+          <tr><td>FX Rate Stream</td><td>99.95%</td><td class="cell-mono">86ms</td><td class="cell-mono">0.02%</td><td><span class="stat-Mitigated">● Healthy</span></td></tr>
+          <tr><td>Notifications</td><td>99.91%</td><td class="cell-mono">410ms</td><td class="cell-mono">0.18%</td><td><span class="stat-Open">● Watch</span></td></tr>
+        </tbody>
+      </table>
+    </div>`;
+  wrap.appendChild(opsPane);
+
+  // — Runlog
+  const runPane = document.createElement('div');
+  runPane.className = 'pane'; runPane.dataset.k='runlog';
+  runPane.innerHTML = `
+    <div class="tile" style="--c:var(--pink)">
+      <div class="tile-h">DR / Rollback Runlog Template</div>
+      <div class="tile-sub">Click <strong style="color:var(--pink)">⬇ Runlog (.txt)</strong> in the export bar to download the full runbook for ${arch.name}. Below is a preview.</div>
+      <pre style="background:var(--navy);border:1px solid var(--b1);border-radius:8px;padding:14px;font-family:var(--f-mono);font-size:11.5px;color:var(--t2);overflow-x:auto;line-height:1.6;white-space:pre-wrap" id="runlog-preview"></pre>
+    </div>
+    <div class="cols-2">
+      <div class="tile" style="--c:var(--pink)">
+        <div class="tile-h">Rollback Strategies</div>
+        <table>
+          <thead><tr><th>Strategy</th><th>RTO</th><th>RPO</th><th>Fits</th></tr></thead>
+          <tbody>
+            <tr><td>Blue-Green</td><td>&lt; 5 min</td><td>0</td><td>Tier-1 stateless</td></tr>
+            <tr><td>Canary</td><td>15 min</td><td>0</td><td>Gradual roll-out</td></tr>
+            <tr><td>Feature Flag</td><td>seconds</td><td>0</td><td>Config-only</td></tr>
+            <tr><td>DB Snapshot Restore</td><td>30 min</td><td>5 min</td><td>Data-affecting</td></tr>
+            <tr><td>Multi-Region Failover</td><td>3 min</td><td>5 sec</td><td>Tier-1 DR</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tile" style="--c:var(--pink)">
+        <div class="tile-h">DR Drill Cadence</div>
+        <table>
+          <tbody>
+            <tr><td>Tabletop exercise</td><td class="cell-mono">Quarterly</td></tr>
+            <tr><td>Region failover drill</td><td class="cell-mono">Semi-annual</td></tr>
+            <tr><td>Full failover (prod)</td><td class="cell-mono">Annual</td></tr>
+            <tr><td>Backup restore test</td><td class="cell-mono">Monthly</td></tr>
+            <tr><td>Chaos engineering</td><td class="cell-mono">Weekly (non-prod)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  wrap.appendChild(runPane);
+
+  document.getElementById('runlog-preview').textContent = buildRunlog().split('\n').slice(0,28).join('\n') + '\n...';
+}
+
+// ─── Exports ────────────────────────────────────────────────
+function buildRunlog(){
+  const {module, arch} = currentState();
+  const dt = new Date().toISOString();
+  return `# DI-Platform · DR / Rollback Runlog
+# Module:       ${module}
+# Target:       ${arch.name}
+# Generated:    ${dt}
+# IDD:          DI-2026-NKK-0511-001
+# ───────────────────────────────────────────────────────────
+
+PHASE 1 — PRE-FLIGHT (T-24h)
+  [ ] Confirm change ticket approved (CAB sign-off)
+  [ ] Notify customers via status page (T-24h advisory)
+  [ ] Validate backup integrity — last successful snapshot < 4h old
+  [ ] Confirm rollback artifact present in artifact store
+  [ ] Page on-call SRE + Risk + Compliance leads
+  [ ] Validate runbook against latest version control hash
+
+PHASE 2 — CUT-OVER (T-0)
+  [ ] Set maintenance window in monitoring (silence alerts P3-P5)
+  [ ] Drain traffic from primary region (canary 10% → 50% → 100%)
+  [ ] Take pre-cutover database snapshot (RPO=0 anchor)
+  [ ] Promote target environment — flip blue/green
+  [ ] Run smoke tests: /health · /ready · synthetic payment flow
+  [ ] Confirm dashboards green for 15 minutes
+
+PHASE 3 — ROLLBACK CRITERIA (auto-triggered)
+  [ ] Error rate > 1% sustained 5 min → trigger rollback
+  [ ] p99 latency > 2× baseline sustained 10 min → trigger rollback
+  [ ] Critical security alert from SIEM → immediate rollback
+  [ ] CFO-flagged financial discrepancy → manual rollback (Approver: CTO)
+
+PHASE 4 — ROLLBACK PROCEDURE (RTO < 5 min)
+  [ ] On-call SRE invokes: dip-cli rollback --target ${arch.name.toLowerCase().replace(/ /g,'-')} --confirm
+  [ ] Route 100% traffic back to legacy stack
+  [ ] Restore database snapshot if data-affecting change
+  [ ] Verify reconciliation: every txn since T-0 accounted for
+  [ ] Notify customers via status page (incident open)
+  [ ] Schedule post-incident review within 48h
+
+PHASE 5 — POST CUT-OVER (T+24h)
+  [ ] Watch error budget burn for 24h
+  [ ] Validate end-of-day batch reconciliation
+  [ ] Decommission legacy pool after T+72h with no rollback trigger
+  [ ] Update runbook with lessons learned
+  [ ] Close change ticket — record outcome
+
+# Approvers
+#   CTO:              _______________________   sign / date
+#   Risk Lead:        _______________________   sign / date
+#   Compliance Lead:  _______________________   sign / date
+`;
+}
+
+function download(name, mime, body){
+  const blob = new Blob([body], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+function exportRunlog(){
+  const {module, arch} = currentState();
+  const safe = (module + '_' + arch.name).replace(/[^a-z0-9]+/ig,'-').toLowerCase();
+  download(`runlog_${safe}.txt`, 'text/plain', buildRunlog());
+}
+
+function exportJSON(){
+  const {module, arch} = currentState();
+  const data = {
+    module, deploymentTarget: arch.name,
+    generatedAt: new Date().toISOString(),
+    requirements: REQUIREMENTS,
+    raid: RAID,
+    sevenR: SEVEN_R,
+    cost: {estimatedTotalM: +(2.5*arch.costMult).toFixed(2), confidence: "±15%"},
+    duration: {months: Math.round(9 * arch.durMult)},
+    inventor: "Nishanth Kumar Kishore",
+    idd: "DI-2026-NKK-0511-001"
+  };
+  const safe = (module + '_' + arch.name).replace(/[^a-z0-9]+/ig,'-').toLowerCase();
+  download(`program_${safe}.json`, 'application/json', JSON.stringify(data, null, 2));
+}
+
+function exportMSProject(){
+  const {module, arch} = currentState();
+  const safe = (module + '_' + arch.name).replace(/[^a-z0-9]+/ig,'-').toLowerCase();
+  const tasks = SEVEN_R.map((r,i) => {
+    const dur = Math.max(1, Math.round(parseInt(r.baseDur) * arch.durMult)) * 20; // working days
+    return {uid: i+1, name: `${r.k} · ${r.n}`, dur, note: r.d};
+  });
+  const start = '2026-06-01T08:00:00';
+  // MS Project compatible XML using the Microsoft Project schema
+  const tasksXml = tasks.map((t,i)=>`
+    <Task>
+      <UID>${t.uid}</UID>
+      <ID>${t.uid}</ID>
+      <Name>${t.name}</Name>
+      <Type>1</Type>
+      <Active>1</Active>
+      <Manual>0</Manual>
+      <Notes>${t.note}</Notes>
+      <DurationFormat>7</DurationFormat>
+      <Duration>PT${t.dur*8}H0M0S</Duration>
+      <OutlineLevel>1</OutlineLevel>
+      <PredecessorLink>${i>0?`<PredecessorUID>${i}</PredecessorUID><Type>1</Type>`:''}</PredecessorLink>
+    </Task>`).join('');
+
+  const xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project xmlns="http://schemas.microsoft.com/project">
+  <Name>DI-Platform Program — ${module} · ${arch.name}</Name>
+  <Title>DI-Platform · ${module} on ${arch.name}</Title>
+  <Author>Nishanth Kumar Kishore</Author>
+  <Company>Digital Infotech</Company>
+  <Subject>Program plan auto-generated by DI-Platform</Subject>
+  <Manager>Program Manager</Manager>
+  <StartDate>${start}</StartDate>
+  <FinishDate>2027-06-30T17:00:00</FinishDate>
+  <CalendarUID>1</CalendarUID>
+  <DefaultStartTime>08:00:00</DefaultStartTime>
+  <DefaultFinishTime>17:00:00</DefaultFinishTime>
+  <MinutesPerDay>480</MinutesPerDay>
+  <MinutesPerWeek>2400</MinutesPerWeek>
+  <DaysPerMonth>20</DaysPerMonth>
+  <Calendars>
+    <Calendar><UID>1</UID><Name>Standard</Name><IsBaseCalendar>1</IsBaseCalendar></Calendar>
+  </Calendars>
+  <Tasks>${tasksXml}
+  </Tasks>
+  <Resources>
+    <Resource><UID>1</UID><Name>Program Manager</Name><Type>1</Type></Resource>
+    <Resource><UID>2</UID><Name>Architecture Lead</Name><Type>1</Type></Resource>
+    <Resource><UID>3</UID><Name>Engineering VP</Name><Type>1</Type></Resource>
+    <Resource><UID>4</UID><Name>SRE Lead</Name><Type>1</Type></Resource>
+    <Resource><UID>5</UID><Name>Risk Lead</Name><Type>1</Type></Resource>
+  </Resources>
+</Project>`;
+  download(`msproject_${safe}.xml`, 'application/xml', xml);
+}
+
+// ─── Boot ───────────────────────────────────────────────────
+function regenerate(){
+  renderKPIs();
+  renderPanes();
+  // Persist current arch choice
+  const {archKey, arch} = currentState();
+  sessionStorage.setItem('diSelectedArch', JSON.stringify({key: archKey, title: arch.name, letter: arch.letter, color: arch.color}));
+  document.getElementById('warn-no-arch').style.display='none';
+}
+
+loadStoredArch();
+renderKPIs();
+renderTabs();
+renderPanes();
+
+document.getElementById('sel-module').addEventListener('change', regenerate);
+document.getElementById('sel-arch').addEventListener('change', regenerate);
+</script>
+
+<script src="assets/nishi.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+</body>
+</html>

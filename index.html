@@ -1,0 +1,2779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DI Platform — Digital Infotech | Nishanth Kumar Kishore</title>
+<meta name="description" content="Digital Infotech Unified Platform — Time Capsule Discovery Studio & AI Requirements Studio. Inventor: Nishanth Kumar Kishore."/>
+<meta name="author" content="Nishanth Kumar Kishore"/>
+
+<!-- EmailJS browser SDK (used to deliver real OTP emails — public key, restricted by allowed origins on the EmailJS dashboard) -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root{
+  /* ─── LIGHT THEME (Phase 13) ─── */
+  --void:#F4F6FA; --deep:#EEF2F8; --navy:#FFFFFF; --panel:#FFFFFF;
+  --card:#FFFFFF; --card2:#F8FAFD; --b1:#E2E7F1; --b2:#D9DFEB; --b3:#C8D2E2;
+  --amber:#C8921A; --amber2:#E8AC38; --amber3:#FFD070; --aglow:rgba(200,146,26,.10);
+  --green:#0FD49A; --red:#FF4D6A; --blue:#3D8EFF; --purple:#9B72FF;
+  --orange:#FF8030; --teal:#00C9C8; --pink:#FF6BB5;
+  --t1:#1A2238; --t2:#5B6B8A; --t3:#9AA6BE; --t4:#C8D2E2;
+  --f-head:'Fraunces',Georgia,serif;
+  --f-ui:'Outfit',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Courier New',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:linear-gradient(180deg,#F8FAFD,#EEF2F8);color:var(--t1);font-family:var(--f-ui);font-size:13px;line-height:1.5}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--b3)}
+::-webkit-scrollbar-track{background:transparent}
+button{cursor:pointer;font-family:var(--f-ui)}
+input,select,textarea{font-family:var(--f-ui)}
+
+/* ═══════════════════════════════════════════════════════
+   SCREEN LAYER
+═══════════════════════════════════════════════════════ */
+.screen{display:none;height:100vh;flex-direction:column}
+.screen.on{display:flex}
+
+/* ═══════════════════════════════════════════════════════
+   LOGIN SCREEN
+═══════════════════════════════════════════════════════ */
+#s-login{align-items:center;justify-content:center;background:var(--void);position:relative;overflow:hidden}
+.lg-bg{position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 60% at 20% 20%,rgba(200,146,26,.08) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%,rgba(61,142,255,.06) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 50% 50%,rgba(0,201,200,.04) 0%,transparent 60%)}
+.lg-grid{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(28,46,72,.3) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(28,46,72,.3) 1px,transparent 1px);
+  background-size:40px 40px}
+.lg-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.lg-dot{position:absolute;border-radius:50%;animation:float linear infinite}
+@keyframes float{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) rotate(720deg);opacity:0}}
+
+.lg-wrap{position:relative;z-index:10;display:flex;gap:48px;align-items:center;max-width:860px;width:100%;padding:0 24px}
+.lg-brand{flex:1;min-width:0}
+.lg-brand-badge{display:inline-flex;align-items:center;gap:8px;background:var(--aglow);border:1px solid rgba(200,146,26,.3);border-radius:6px;padding:5px 14px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber2);margin-bottom:20px}
+.lg-brand h1{font-family:var(--f-head);font-size:clamp(28px,3.5vw,42px);font-weight:700;line-height:1.15;color:var(--t1);margin-bottom:12px}
+.lg-brand h1 em{font-style:italic;color:var(--amber2)}
+.lg-brand p{font-size:13px;color:var(--t2);line-height:1.7;max-width:340px;margin-bottom:24px}
+.lg-modules{display:flex;flex-direction:column;gap:8px}
+.lg-mod{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--b1);border-radius:8px}
+.lg-mod-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.lg-mod-text .lg-mod-name{font-size:12px;font-weight:600;color:var(--t1)}
+.lg-mod-text .lg-mod-desc{font-size:10.5px;color:var(--t3)}
+
+.lg-card{width:380px;flex-shrink:0;background:var(--panel);border:1px solid var(--b1);border-radius:14px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(200,146,26,.06)}
+.lg-stripe{height:3px;background:linear-gradient(90deg,var(--amber) 0%,var(--amber3) 50%,var(--amber) 100%)}
+.lg-inner{padding:32px}
+.lg-title{font-family:var(--f-head);font-size:20px;font-weight:600;color:var(--t1);margin-bottom:4px}
+.lg-sub{font-size:12px;color:var(--t3);margin-bottom:24px}
+.lg-err{display:none;background:rgba(255,77,106,.1);border:1px solid rgba(255,77,106,.3);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:16px}
+.lg-err.show{display:block}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-bottom:5px}
+.fi{width:100%;padding:10px 13px;background:var(--card);border:1px solid var(--b1);border-radius:7px;color:var(--t1);font-size:13px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--amber)}
+.lg-btn{width:100%;padding:11px;background:var(--amber);border:none;border-radius:8px;color:var(--void);font-size:13px;font-weight:700;letter-spacing:.04em;transition:all .2s;margin-top:4px}
+.lg-btn:hover{background:var(--amber2)}
+.lg-btn:disabled{opacity:.6;cursor:not-allowed}
+.api-key-row{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+.api-key-row .fi{flex:1;font-family:var(--f-mono);font-size:11px;letter-spacing:.04em}
+.api-key-row .fi::placeholder{font-family:var(--f-ui);font-size:12px;letter-spacing:0}
+.api-key-toggle{padding:10px 11px;background:var(--card);border:1px solid var(--b1);border-radius:7px;color:var(--t3);font-size:13px;cursor:pointer;flex-shrink:0;transition:.2s}
+.api-key-toggle:hover{border-color:var(--amber);color:var(--amber2)}
+.api-key-hint{font-size:10px;color:var(--t3);margin-top:-8px;margin-bottom:10px;line-height:1.5}
+.api-key-hint a{color:var(--amber2);text-decoration:none}
+.api-key-hint a:hover{text-decoration:underline}
+.api-status{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;margin-bottom:10px}
+.api-status-ok{background:rgba(15,212,154,.15);color:var(--green);border:1px solid rgba(15,212,154,.3)}
+.api-status-none{background:rgba(255,171,0,.1);color:var(--amber2);border:1px solid rgba(255,171,0,.25)}
+.lg-foot{padding:16px 32px 24px;border-top:1px solid var(--b1);margin-top:4px}
+.lg-cred-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.lg-creds{display:flex;flex-direction:column;gap:3px}
+.lg-cred-row{display:flex;justify-content:space-between;align-items:center;font-size:11.5px}
+.lg-cred-row strong{color:var(--amber2);font-family:var(--f-mono)}
+.lg-cred-row span{color:var(--t2);font-family:var(--f-mono)}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN APP SHELL
+═══════════════════════════════════════════════════════ */
+#s-app{background:var(--deep)}
+
+/* TOP BAR */
+.tb{height:50px;background:var(--panel);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;z-index:50}
+.tb-logo{width:30px;height:30px;background:linear-gradient(135deg,var(--amber) 0%,var(--amber3) 100%);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--void);flex-shrink:0}
+.tb-brand{font-family:var(--f-head);font-size:15px;font-weight:600;color:var(--t1)}
+.tb-div{width:1px;height:22px;background:var(--b1)}
+.tb-mod-tabs{display:flex;gap:4px}
+.tb-tab{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:500;color:var(--t2);border:1px solid transparent;cursor:pointer;transition:all .2s;background:none}
+.tb-tab.act{background:var(--aglow);border-color:rgba(200,146,26,.3);color:var(--amber2)}
+.tb-tab:hover:not(.act){color:var(--t1);background:rgba(255,255,255,.04)}
+.tb-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.uc{display:flex;align-items:center;gap:8px}
+.uav{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--amber),var(--blue));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.un{font-size:12px;color:var(--t2)}
+.lo-btn{padding:5px 12px;background:transparent;border:1px solid var(--b2);border-radius:6px;color:var(--t2);font-size:11px;transition:all .2s}
+.lo-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* BODY LAYOUT */
+.ab{display:flex;flex:1;overflow:hidden}
+
+/* ═══════════════════════════════════════════════════════
+   LEFT SIDEBAR (DISCOVERY STUDIO)
+═══════════════════════════════════════════════════════ */
+.sb{width:220px;background:var(--navy);border-right:1px solid var(--b1);display:flex;flex-direction:column;flex-shrink:0;transition:width .3s}
+.sb-st{font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);padding:14px 14px 8px}
+.sb-list{flex:1;overflow-y:auto;padding:0 8px 8px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;margin-bottom:2px;transition:all .2s}
+.sb-item:hover{background:var(--b1)}
+.sb-item.act{background:var(--aglow);border:1px solid rgba(200,146,26,.2)}
+.sb-item-icon{font-size:15px;flex-shrink:0}
+.sb-item-text .sb-name{font-size:12px;font-weight:500;color:var(--t1)}
+.sb-item-text .sb-desc{font-size:10px;color:var(--t3)}
+.sb-badge{margin-left:auto;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:rgba(255,77,106,.15);color:var(--red);flex-shrink:0}
+.sb-foot{padding:12px;border-top:1px solid var(--b1)}
+.sb-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.sb-stat{text-align:center}
+.sb-sv{font-family:var(--f-mono);font-size:16px;font-weight:600;color:var(--amber2)}
+.sb-sl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN CONTENT AREA
+═══════════════════════════════════════════════════════ */
+.mc{flex:1;overflow-y:auto;overflow-x:hidden}
+
+/* ═══════════════════════════════════════════════════════
+   MODULE PANELS
+═══════════════════════════════════════════════════════ */
+.mod-panel{display:none;height:100%;overflow-y:auto}
+.mod-panel.on{display:block}
+
+/* ═══════════════════════════════════════════════════════
+   DISCOVERY STUDIO CONTENT
+═══════════════════════════════════════════════════════ */
+.ds-header{padding:20px 24px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:12px}
+.ds-header h2{font-family:var(--f-head);font-size:18px;font-weight:600;color:var(--t1)}
+.ds-header .ds-meta{font-size:11px;color:var(--t3);margin-left:auto}
+
+/* Server Config Bar */
+.srv-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 24px;background:var(--navy);border-bottom:1px solid var(--b1)}
+.srv-field label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:4px}
+.srv-field select,.srv-field input{width:100%;padding:7px 10px;background:var(--card);border:1px solid var(--b1);border-radius:6px;color:var(--t1);font-size:12px;outline:none}
+.srv-field select:focus,.srv-field input:focus{border-color:var(--amber)}
+
+/* Server Summary Cards */
+.srv-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 24px}
+.srv-card{background:var(--card);border:1px solid var(--b1);border-radius:8px;padding:12px 14px}
+.srv-card-label{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:4px}
+.srv-card-value{font-family:var(--f-mono);font-size:18px;font-weight:600;color:var(--amber2)}
+.srv-card-sub{font-size:10px;color:var(--t3);margin-top:1px}
+
+/* Code Table */
+.code-section{padding:0 24px 24px}
+.code-section-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin:16px 0 10px;display:flex;align-items:center;gap:8px}
+.code-section-title::after{content:'';flex:1;height:1px;background:var(--b1)}
+.code-table{width:100%;border-collapse:collapse;font-size:12px}
+.code-table th{background:var(--b1);color:var(--t2);padding:8px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--b2)}
+.code-table td{padding:8px 12px;border-bottom:1px solid rgba(28,46,72,.6);vertical-align:middle}
+.code-table tr:hover td{background:rgba(28,46,72,.4)}
+.code-name{font-family:var(--f-mono);font-size:11.5px;color:var(--blue)}
+.code-type{padding:2px 7px;border-radius:3px;font-size:9.5px;font-weight:700;font-family:var(--f-mono)}
+.ct-cobol{background:rgba(255,128,48,.15);color:var(--orange)}
+.ct-java{background:rgba(61,142,255,.15);color:var(--blue)}
+.ct-cplus{background:rgba(155,114,255,.15);color:var(--purple)}
+.ct-sql{background:rgba(15,212,154,.15);color:var(--green)}
+.ct-rpg{background:rgba(255,107,181,.15);color:var(--pink)}
+.code-loc{font-family:var(--f-mono);color:var(--t2)}
+.code-risk{padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600}
+.risk-h{background:rgba(255,77,106,.15);color:var(--red)}
+.risk-m{background:rgba(232,172,56,.15);color:var(--amber2)}
+.risk-l{background:rgba(15,212,154,.15);color:var(--green)}
+
+/* Action Selectors */
+.action-sel{display:flex;gap:4px}
+.act-btn{padding:4px 9px;border-radius:5px;border:1px solid;font-size:10.5px;font-weight:600;cursor:pointer;transition:all .15s;background:transparent}
+.act-btn.opt{border-color:rgba(15,212,154,.4);color:var(--green)}
+.act-btn.opt.sel{background:rgba(15,212,154,.2);border-color:var(--green)}
+.act-btn.nop{border-color:rgba(138,164,200,.3);color:var(--t2)}
+.act-btn.nop.sel{background:rgba(138,164,200,.15);border-color:var(--t2)}
+.act-btn.dec{border-color:rgba(255,77,106,.4);color:var(--red)}
+.act-btn.dec.sel{background:rgba(255,77,106,.2);border-color:var(--red)}
+
+/* AI Analysis Panel */
+.ai-panel{margin:0 24px 24px;background:var(--card);border:1px solid var(--b1);border-radius:10px;overflow:hidden}
+.ai-panel-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--b1);background:rgba(28,46,72,.4)}
+.ai-panel-hdr h3{font-size:13px;font-weight:600;color:var(--t1)}
+.ai-run-btn{margin-left:auto;padding:6px 14px;background:var(--amber);border:none;border-radius:6px;color:var(--void);font-size:11.5px;font-weight:700;letter-spacing:.04em}
+.ai-run-btn:hover{background:var(--amber2)}
+.ai-run-btn:disabled{opacity:.5;cursor:not-allowed}
+.ai-body{padding:16px;min-height:120px;font-family:var(--f-mono);font-size:11.5px;color:var(--t2);line-height:1.7}
+.ai-body .ai-placeholder{color:var(--t3);font-style:italic;font-family:var(--f-ui)}
+.ai-spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--b2);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-result-tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700;margin-right:4px;font-family:var(--f-ui)}
+.tag-optimize{background:rgba(15,212,154,.15);color:var(--green)}
+.tag-risk{background:rgba(255,77,106,.15);color:var(--red)}
+.tag-decom{background:rgba(255,128,48,.15);color:var(--orange)}
+
+/* Selection Report Bar */
+.sel-bar{display:flex;align-items:center;gap:10px;padding:10px 24px;background:var(--navy);border-top:1px solid var(--b1);flex-shrink:0}
+.sel-counts{display:flex;gap:16px}
+.sel-count{font-size:11px;color:var(--t2)}.sel-count strong{color:var(--t1)}
+.sel-bar button{margin-left:auto;padding:7px 16px;background:var(--b2);border:1px solid var(--b3);border-radius:6px;color:var(--t1);font-size:11.5px;font-weight:600}
+.sel-bar button:hover{background:var(--b3)}
+
+/* ═══════════════════════════════════════════════════════
+   AI REQUIREMENTS STUDIO
+═══════════════════════════════════════════════════════ */
+.req-wrap{padding:24px;max-width:960px}
+.req-hero{margin-bottom:24px}
+.req-hero-badge{display:inline-flex;align-items:center;gap:7px;background:var(--aglow);border:1px solid rgba(200,146,26,.3);border-radius:5px;padding:4px 12px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--amber2);margin-bottom:12px}
+.req-hero h2{font-family:var(--f-head);font-size:clamp(20px,2.5vw,28px);font-weight:700;color:var(--t1);margin-bottom:6px;line-height:1.2}
+.req-hero p{font-size:13px;color:var(--t2);line-height:1.7;max-width:680px}
+
+/* Config Row */
+.req-cfg{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:12px;margin-bottom:20px;align-items:end}
+.cfg-field label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:5px}
+.cfg-field input,.cfg-field select{width:100%;padding:9px 12px;background:var(--card);border:1px solid var(--b1);border-radius:7px;color:var(--t1);font-size:13px;outline:none}
+.cfg-field input:focus,.cfg-field select:focus{border-color:var(--amber)}
+
+/* Category Selector */
+.cat-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.cat-chip{padding:6px 14px;border-radius:20px;border:1px solid var(--b1);background:var(--card);color:var(--t2);font-size:12px;font-weight:500;cursor:pointer;transition:all .2s}
+.cat-chip:hover{border-color:var(--amber);color:var(--t1)}
+.cat-chip.act{background:var(--aglow);border-color:rgba(200,146,26,.5);color:var(--amber2);font-weight:600}
+
+/* Sub-type chips */
+.sub-row{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;min-height:28px}
+.sub-chip{padding:4px 11px;border-radius:12px;border:1px solid var(--b1);background:var(--card2);color:var(--t3);font-size:11px;cursor:pointer;transition:all .15s}
+.sub-chip:hover{border-color:var(--b3);color:var(--t2)}
+.sub-chip.act{background:rgba(61,142,255,.15);border-color:var(--blue);color:var(--blue)}
+
+/* Discovery Input */
+.disc-box{position:relative;margin-bottom:20px}
+.disc-box label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.disc-ta{width:100%;padding:14px;background:var(--card);border:1px solid var(--b1);border-radius:8px;color:var(--t1);font-size:13px;line-height:1.7;resize:vertical;min-height:140px;outline:none;font-family:var(--f-ui)}
+.disc-ta:focus{border-color:var(--amber)}
+.disc-ta::placeholder{color:var(--t3)}
+.disc-char{position:absolute;bottom:10px;right:14px;font-size:10px;color:var(--t3)}
+
+/* Run Button */
+.run-btn{width:100%;padding:12px;background:linear-gradient(90deg,var(--amber),var(--amber2));border:none;border-radius:8px;color:var(--void);font-size:14px;font-weight:700;letter-spacing:.04em;transition:all .2s;margin-bottom:24px}
+.run-btn:hover{filter:brightness(1.1)}
+.run-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Agent Pipeline */
+.pipeline{display:flex;gap:0;margin-bottom:24px;overflow-x:auto;padding-bottom:4px}
+.agent-step{flex:1;min-width:120px;text-align:center;position:relative}
+.agent-step::after{content:'▶';position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:var(--b2);font-size:11px;z-index:2}
+.agent-step:last-child::after{display:none}
+.agent-bubble{width:40px;height:40px;border-radius:50%;border:2px solid var(--b2);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:16px;margin:0 auto 6px;transition:all .4s;position:relative}
+.agent-bubble.running{border-color:var(--amber);box-shadow:0 0 12px rgba(200,146,26,.4);animation:pulse .8s ease-in-out infinite}
+.agent-bubble.done{border-color:var(--green);background:rgba(15,212,154,.1)}
+@keyframes pulse{0%,100%{box-shadow:0 0 12px rgba(200,146,26,.4)}50%{box-shadow:0 0 20px rgba(200,146,26,.6)}}
+.agent-lbl{font-size:10px;color:var(--t3);line-height:1.3;font-weight:500}
+.agent-lbl.running{color:var(--amber2)}
+.agent-lbl.done{color:var(--green)}
+
+/* Results */
+.res-section{margin-bottom:20px}
+.res-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.res-hdr h3{font-size:14px;font-weight:700;color:var(--t1)}
+.res-hdr .res-count{font-size:11px;color:var(--t3);background:var(--card);padding:2px 8px;border-radius:10px;border:1px solid var(--b1)}
+.epic-card{background:var(--card);border:1px solid var(--b1);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.epic-hdr{padding:12px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.epic-hdr:hover{background:rgba(28,46,72,.4)}
+.epic-tag{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:3px;background:var(--aglow);border:1px solid rgba(200,146,26,.3);color:var(--amber2)}
+.epic-title{font-size:13px;font-weight:600;color:var(--t1)}
+.epic-prio{margin-left:auto;font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600}
+.p-critical{background:rgba(255,77,106,.15);color:var(--red)}
+.p-high{background:rgba(255,128,48,.15);color:var(--orange)}
+.p-medium{background:rgba(232,172,56,.15);color:var(--amber2)}
+.p-low{background:rgba(15,212,154,.15);color:var(--green)}
+.epic-chevron{color:var(--t3);font-size:11px;transition:transform .2s;margin-left:8px}
+.epic-body{padding:12px 16px;display:none}
+.epic-body.open{display:block}
+.epic-desc{font-size:12.5px;color:var(--t2);margin-bottom:12px;line-height:1.6}
+
+.story-card{background:var(--navy);border:1px solid var(--b1);border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.story-id{font-family:var(--f-mono);font-size:9.5px;color:var(--t3);margin-bottom:4px}
+.story-text{font-size:12.5px;color:var(--t1);line-height:1.6;margin-bottom:8px}
+.story-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.story-pts{font-family:var(--f-mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:rgba(61,142,255,.15);color:var(--blue)}
+.ac-list{margin-top:8px;padding-top:8px;border-top:1px solid var(--b1)}
+.ac-item{font-size:11.5px;color:var(--t2);line-height:1.5;margin-bottom:3px;padding-left:10px;position:relative}
+.ac-item::before{content:'›';position:absolute;left:0;color:var(--amber)}
+
+/* Export Buttons */
+.export-row{display:flex;gap:10px;margin-bottom:20px}
+.exp-btn{flex:1;padding:10px;border-radius:8px;border:1.5px solid;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;display:flex;align-items:center;justify-content:center;gap:8px}
+.exp-jira{border-color:rgba(61,142,255,.5);color:var(--blue)}
+.exp-jira:hover{background:rgba(61,142,255,.1)}
+.exp-rally{border-color:rgba(15,212,154,.5);color:var(--green)}
+.exp-rally:hover{background:rgba(15,212,154,.1)}
+.exp-copy{border-color:var(--b2);color:var(--t2)}
+.exp-copy:hover{background:var(--b1)}
+
+/* ═══════════════════════════════════════════════════════
+   IDD DOCUMENT PANEL
+═══════════════════════════════════════════════════════ */
+.idd-wrap{padding:32px 24px;max-width:860px;margin:0 auto}
+.idd-wrap .cert{background:#FDFAF4;border:1.5px solid #B8860B;border-radius:12px;padding:32px;position:relative;overflow:hidden;margin:24px 0}
+.idd-wrap .cert::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#0A1628 0%,#C9962A 50%,#0A1628 100%)}
+.cert-header{margin-bottom:20px}
+.cert-ttl{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#64748B;margin-bottom:6px}
+.cert-name{font-family:var(--f-head);font-size:26px;font-weight:700;color:#0A1628;margin-bottom:2px}
+.cert-org{font-size:13px;color:#64748B;margin-bottom:20px}
+.cert-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.cf{border-top:1.5px solid #B8860B;padding-top:8px}
+.cf-l{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748B;margin-bottom:2px}
+.cf-v{font-size:12.5px;font-weight:600;color:#0A1628;font-family:var(--f-ui)}
+.cert-seal-row{display:flex;align-items:center;gap:14px;padding-top:16px;border-top:1px dashed #CBD5E1}
+.seal{width:56px;height:56px;border-radius:50%;border:2.5px solid #B8860B;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.seal-txt{font-size:8px;font-weight:900;color:#B8860B;text-align:center;line-height:1.1}
+.cert-seal-desc p{font-size:11px;color:#64748B;line-height:1.5;margin:0}
+.cert-seal-desc strong{color:#0A1628}
+.sig-blk{margin-left:auto;text-align:right}
+.sig-cursive{font-family:'Brush Script MT',cursive;font-size:24px;color:#0A1628}
+.sig-l{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#64748B;border-top:1px solid #CBD5E1;padding-top:3px;margin-top:1px}
+
+.idd-section{margin-bottom:28px}
+.idd-section-label{display:inline-flex;align-items:center;gap:7px;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#1E40AF;margin-bottom:10px}
+.idd-section-label::before{content:'';display:block;width:18px;height:2px;background:#1E40AF}
+.idd-h2{font-family:var(--f-head);font-size:20px;font-weight:700;color:#0A1628;margin-bottom:14px;line-height:1.25}
+.idd-p{font-size:13.5px;line-height:1.75;color:#1E293B;margin-bottom:12px}
+.idd-lead{font-size:15px;color:#64748B;line-height:1.8;font-style:italic;border-left:3px solid #C9962A;padding-left:18px;margin-bottom:20px}
+
+.claims-wrap .claim-row{display:flex;gap:12px;padding:14px 16px;border:0.5px solid #CBD5E1;border-radius:8px;margin-bottom:8px;background:#fff}
+.claim-num{width:28px;height:28px;border-radius:50%;background:#0A1628;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.claim-type-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:3px;margin-bottom:4px}
+.ct-sys{background:#EFF6FF;color:#1E40AF}
+.ct-mth{background:#F0FDF4;color:#065F46}
+.ct-ai{background:#FDF4FF;color:#6B21A8}
+.claim-text{font-size:13.5px;line-height:1.65;color:#1E293B}
+
+.hash-block{background:#112240;border-radius:8px;padding:16px 20px;font-family:var(--f-mono);font-size:11.5px;color:rgba(255,255,255,.8);margin:16px 0;overflow-x:auto;line-height:1.7}
+.hash-block .hl{color:#E8B84B}
+
+.compare-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:12px 0}
+.compare-tbl th{background:#0A1628;color:#fff;padding:9px 12px;text-align:left;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase}
+.compare-tbl td{padding:9px 12px;border-bottom:1px solid #CBD5E1;vertical-align:top;line-height:1.5}
+.compare-tbl tr:nth-child(even) td{background:#F1F5F9}
+.ck{color:#065F46;font-weight:700}.cx{color:#DC2626;font-weight:700}
+
+/* ═══════════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════════ */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
+.modal-ov.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--b1);border-radius:12px;width:680px;max-width:90vw;max-height:80vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-hdr{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--b1)}
+.modal-hdr h4{font-size:14px;font-weight:600;color:var(--t1)}
+.modal-close{margin-left:auto;padding:4px 10px;background:transparent;border:1px solid var(--b2);border-radius:5px;color:var(--t2);font-size:11px;cursor:pointer}
+.modal-close:hover{border-color:var(--red);color:var(--red)}
+.modal-body{flex:1;overflow-y:auto;padding:16px 18px}
+.modal-pre{font-family:var(--f-mono);font-size:11.5px;color:var(--t1);white-space:pre-wrap;line-height:1.6}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--b1);display:flex;gap:8px;justify-content:flex-end}
+.modal-foot button{padding:7px 16px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer}
+.btn-copy-r{background:var(--amber);color:var(--void)}
+.btn-close-r{background:var(--b1);color:var(--t1)}
+
+/* ═══════════════════════════════════════════════════════
+   NOTIFICATION
+═══════════════════════════════════════════════════════ */
+.notif{position:fixed;bottom:24px;right:24px;padding:10px 18px;border-radius:8px;font-size:12.5px;font-weight:600;z-index:300;transform:translateY(60px);opacity:0;transition:all .3s;pointer-events:none}
+.notif.show{transform:none;opacity:1}
+.notif-ok{background:rgba(15,212,154,.2);border:1px solid var(--green);color:var(--green)}
+.notif-err{background:rgba(255,77,106,.2);border:1px solid var(--red);color:var(--red)}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════ */
+@media(max-width:768px){
+  .lg-wrap{flex-direction:column;gap:24px}
+  .lg-brand{display:none}
+  .lg-card{width:100%;max-width:400px}
+  .sb{width:48px;overflow:hidden}
+  .sb-item-text,.sb-st,.sb-foot{display:none}
+  .srv-bar{grid-template-columns:repeat(2,1fr)}
+  .srv-summary{grid-template-columns:repeat(2,1fr)}
+  .req-cfg{grid-template-columns:1fr 1fr}
+  .cert-fields{grid-template-columns:repeat(2,1fr)}
+  .pipeline{gap:0}
+}
+
+/* ═══════════════════════════════════════════════════════
+   LOGIN — LIGHT THEME (4-STEP FLOW)
+   Scoped overrides for #s-login only. Post-login UI stays dark.
+═══════════════════════════════════════════════════════ */
+#s-login.screen{background:linear-gradient(180deg,#F8FAFD 0%,#EEF2F8 100%);overflow-y:auto;height:100vh;align-items:flex-start;justify-content:center;display:none}
+#s-login.screen.on{display:flex}
+#s-login .lg-bg,#s-login .lg-grid,#s-login .lg-particles{display:none}
+
+#s-login .auth-shell{position:relative;z-index:5;max-width:880px;width:100%;padding:16px 18px 22px;color:#1A2238;font-family:var(--f-ui)}
+
+/* ── COMPACT MODE (fits the 4 windows on a single 1080p screen) ── */
+#s-login.screen{align-items:flex-start;overflow-y:auto}
+#s-login .auth-title-row{margin-bottom:14px;text-align:center}
+#s-login .auth-title-row h1{font-family:var(--f-head);font-size:18px;line-height:1.15;font-weight:600;color:#1A2238;letter-spacing:.01em}
+#s-login .auth-title-row .sub{font-size:11.5px;margin-top:3px;color:#5B6B8A}
+#s-login .auth-logo-row{display:inline-flex;align-items:center;gap:11px;padding:6px 14px 6px 6px;background:#fff;border:1px solid #E2E7F1;border-radius:999px;box-shadow:0 2px 8px rgba(20,33,58,.05)}
+#s-login .auth-logo-row > div{text-align:left}
+#s-login .auth-logo{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#C8921A,#FFD070);color:#1A2238;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;letter-spacing:.02em}
+#s-login .stepper{margin:6px auto 14px;gap:6px;max-width:440px}
+#s-login .stepper .stp{font-size:11px;padding:5px 10px;gap:6px}
+#s-login .stepper .stp .n{width:18px;height:18px;font-size:10px}
+#s-login .step{padding:18px 18px;border-radius:12px}
+#s-login .step .step-num{margin-bottom:6px;font-size:9.5px}
+#s-login .step .step-num .nb{width:18px;height:18px;font-size:10px}
+#s-login .step h2{font-size:14.5px;margin-bottom:3px}
+#s-login .step .desc{font-size:11px;margin-bottom:10px;line-height:1.4}
+#s-login .brand{margin-bottom:10px;padding-bottom:10px;gap:9px}
+#s-login .brand .blogo{width:30px;height:30px;font-size:11px}
+#s-login .brand .tx .t1{font-size:9px}
+#s-login .brand .tx .t2{font-size:12.5px}
+#s-login .ag{margin-bottom:9px}
+#s-login .al{font-size:10.5px;margin-bottom:4px}
+#s-login .ai{padding:8px 11px;font-size:12.5px;border-radius:7px}
+#s-login .ai-row .cc{width:118px;font-size:11.5px}
+#s-login .ab{padding:9px;font-size:12.5px;margin-top:6px;border-radius:8px}
+#s-login .tabs2{margin-bottom:10px;padding:2px}
+#s-login .tabs2 button{padding:6px 0;font-size:11.5px}
+#s-login .row-between{margin:6px 0 10px;font-size:11px}
+#s-login .div-text{margin:10px 0;font-size:10.5px}
+#s-login .sso{gap:6px;margin-top:4px}
+#s-login .sso-btn{padding:8px;font-size:11.5px;border-radius:7px}
+#s-login .new-here{font-size:11px;margin-top:10px}
+#s-login .chips{margin-top:5px}
+#s-login .chip{font-size:10px;padding:3px 8px}
+#s-login .role-add{margin-top:4px;font-size:11px}
+#s-login .privacy{margin:8px 0 4px;padding:9px;font-size:11px}
+#s-login .privacy label{margin-bottom:5px;gap:6px}
+#s-login .otp-info{padding:8px 11px;font-size:11px;margin-bottom:10px}
+#s-login .otp-info strong{font-size:11px}
+#s-login .otp-row{gap:6px;margin:10px 0}
+#s-login .otp-box{width:38px;height:42px;font-size:15px;border-radius:7px}
+#s-login .otp-row.compact .otp-box{width:32px;height:36px;font-size:13px}
+#s-login .otp-resend{font-size:10.5px;margin:6px 0 10px}
+#s-login .trust-pill{margin-top:8px;font-size:11px}
+#s-login .roles-card{padding:9px 12px;margin-top:10px;font-size:10.5px}
+#s-login .roles-card .ttl{font-size:9px;margin-bottom:3px}
+#s-login .auth-foot{margin-top:18px;padding:14px 16px;gap:11px;font-size:10.5px;border-radius:12px;grid-template-columns:repeat(4,1fr)}
+#s-login .auth-foot .ft .ic{width:24px;height:24px;font-size:12px;border-radius:7px}
+#s-login .auth-foot .ft .nm{font-size:10.5px}
+#s-login .auth-foot .ft .ds{font-size:10px;line-height:1.45}
+@media (max-width:720px){#s-login .auth-foot{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){#s-login .auth-foot{grid-template-columns:1fr}}
+/* Demo OTP banner (visible only when demo OTP is active) */
+/* Demo OTP banner — visible ONLY for the Mobile tab (no real SMS gateway yet).
+   The Email tab uses EmailJS to deliver a real code and hides this banner. */
+#s-login .otp-demo{margin:8px 0 10px;padding:9px 12px;background:linear-gradient(90deg,#FFF7E6,#FFEFC2);border:1px dashed #C8921A;border-radius:8px;font-size:11.5px;color:#7A5F10;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+#s-login .otp-demo.hidden{display:none}
+#s-login .otp-demo strong{font-family:var(--f-mono);color:#C8921A;font-size:16px;letter-spacing:3px}
+#s-login .otp-demo .copy-btn{background:#C8921A;color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:10.5px;font-weight:700;cursor:pointer;letter-spacing:.04em}
+#s-login .otp-demo .copy-btn:hover{background:#E8AC38}
+#s-login .otp-demo .pill{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #E8AC38;border-radius:999px;padding:2px 9px;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#C8921A}
+#s-login .otp-demo .lbl{flex:1;min-width:160px;font-size:11px;line-height:1.4}
+/* Password strength meter compact */
+#s-login #pwd-strength,#s-login #pwd-match{font-size:10px}
+#s-login #pwd-strength-label{font-size:10px !important}
+#s-login .auth-title-row{text-align:center;margin-bottom:6px}
+#s-login .auth-title-row h1{font-family:var(--f-head);font-size:clamp(20px,2.4vw,28px);font-weight:700;color:#1A2238;letter-spacing:-.01em;line-height:1.2}
+#s-login .auth-title-row .sub{font-size:13px;color:#5B6B8A;margin-top:4px}
+
+/* Stepper */
+#s-login .stepper{display:flex;justify-content:center;gap:10px;margin:22px auto 28px;flex-wrap:wrap;max-width:780px}
+#s-login .stepper .stp{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#5B6B8A;padding:6px 12px;background:#fff;border:1px solid #E2E7F1;border-radius:999px;transition:.25s;cursor:pointer}
+#s-login .stepper .stp .n{width:22px;height:22px;border-radius:50%;background:#E2E7F1;color:#5B6B8A;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;transition:.25s}
+#s-login .stepper .stp.act{background:#FFF7E6;border-color:#E8AC38;color:#1A2238;box-shadow:0 4px 14px -6px rgba(200,146,26,.35)}
+#s-login .stepper .stp.act .n{background:#C8921A;color:#fff}
+#s-login .stepper .stp.done .n{background:#0FD49A;color:#fff}
+#s-login .stepper .stp.done{border-color:#0FD49A;color:#0FD49A}
+
+/* Step grid — single card centered (one step visible at a time) */
+#s-login .step-grid{display:block;max-width:440px;margin:0 auto;transition:max-width .25s ease}
+/* Step 2 (Create Account) gets a wider, two-column layout so we don't waste
+   the screen on a tall narrow form. The `.is-wide` class is toggled by JS for
+   broad browser support; the `:has()` rule is a progressive enhancement. */
+#s-login .step-grid.is-wide{max-width:780px}
+#s-login .step-grid:has(#step2.active){max-width:780px}
+#s-login .step{display:none;background:#FFFFFF;border:1px solid #E2E7F1;border-radius:14px;padding:22px 26px;box-shadow:0 18px 38px -16px rgba(200,146,26,.25),0 0 0 1px rgba(200,146,26,.10);transition:.25s ease}
+#s-login .step.active{display:block;animation:stepIn .35s ease}
+#s-login .step .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;min-width:0}
+#s-login .step .form-grid > *{min-width:0}  /* CRITICAL — lets grid children shrink below intrinsic content width */
+#s-login .step .form-grid .full{grid-column:1 / -1}
+#s-login .step .form-grid .ag{margin-bottom:0;min-width:0}
+#s-login .step .form-grid .ai{min-width:0;max-width:100%}
+#s-login .step .form-grid .ai-row{min-width:0;max-width:100%}
+#s-login .step .form-grid .ai-row > .ai{min-width:0}
+#s-login .step .section-h{grid-column:1 / -1;font-size:10px;font-weight:700;letter-spacing:.08em;color:#1A2238;margin:6px 0 2px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+#s-login .step .section-h::after{content:'';flex:1;height:1px;background:#E2E7F1}
+@media (max-width:680px){
+  #s-login .step-grid:has(#step2.active){max-width:440px}
+  #s-login .step .form-grid{grid-template-columns:1fr}
+}
+@keyframes stepIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#s-login .step .step-num{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#C8921A;margin-bottom:10px}
+#s-login .step .step-num .nb{width:22px;height:22px;border-radius:50%;background:#C8921A;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px}
+#s-login .step h2{font-family:var(--f-head);font-size:17px;font-weight:600;color:#1A2238;margin-bottom:4px}
+#s-login .step .desc{font-size:12px;color:#5B6B8A;margin-bottom:14px;line-height:1.5}
+
+/* Brand block inside step 1 */
+#s-login .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #EDF1F8}
+#s-login .brand .blogo{width:38px;height:38px;background:linear-gradient(135deg,#C8921A,#FFD070);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#1A2238}
+#s-login .brand .tx{flex:1}
+#s-login .brand .tx .t1{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5B6B8A}
+#s-login .brand .tx .t2{font-family:var(--f-head);font-size:15px;font-weight:600;color:#1A2238}
+
+/* Form controls — light */
+#s-login .ag{margin-bottom:12px}
+#s-login .al{display:block;font-size:11px;font-weight:600;letter-spacing:.04em;color:#1A2238;margin-bottom:5px}
+#s-login .ai{width:100%;padding:10px 13px;background:#F8FAFD;border:1px solid #D9DFEB;border-radius:8px;color:#1A2238;font-size:13.5px;outline:none;transition:.2s;font-family:var(--f-ui)}
+#s-login .ai::placeholder{color:#9AA6BE}
+#s-login .ai:focus{border-color:#C8921A;background:#FFFCF4;box-shadow:0 0 0 3px rgba(200,146,26,.12)}
+#s-login .ai-row{display:flex;gap:8px}
+#s-login .ai-row .cc{width:118px;min-width:118px;flex:0 0 118px;text-align:left;padding-right:20px;background-image:linear-gradient(45deg,transparent 50%,#5B6B8A 50%),linear-gradient(135deg,#5B6B8A 50%,transparent 50%);background-position:calc(100% - 12px) 50%,calc(100% - 7px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;appearance:none;-webkit-appearance:none;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+
+#s-login .ab{width:100%;padding:11px;background:#C8921A;border:none;border-radius:9px;color:#fff;font-size:13.5px;font-weight:700;letter-spacing:.02em;cursor:pointer;transition:.2s;margin-top:6px;font-family:var(--f-ui)}
+#s-login .ab:hover{background:#E8AC38;box-shadow:0 8px 20px -8px rgba(200,146,26,.55)}
+#s-login .ab.ghost{background:#fff;color:#1A2238;border:1px solid #D9DFEB}
+#s-login .ab.ghost:hover{border-color:#C8921A;color:#C8921A;background:#FFFCF4}
+
+/* Toggle tabs (Sign In / Create Account · Mobile OTP / Email OTP) */
+#s-login .tabs2{display:flex;border:1px solid #D9DFEB;border-radius:9px;padding:3px;margin-bottom:16px;background:#F4F6FA}
+#s-login .tabs2 button{flex:1;padding:8px 0;background:transparent;border:none;font-size:12.5px;font-weight:600;color:#5B6B8A;cursor:pointer;border-radius:7px;font-family:var(--f-ui);transition:.2s}
+#s-login .tabs2 button.act{background:#fff;color:#1A2238;box-shadow:0 2px 6px rgba(20,33,58,.08)}
+
+/* Remember + Forgot row */
+#s-login .row-between{display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px;font-size:12px}
+#s-login .row-between label{display:flex;align-items:center;gap:6px;cursor:pointer;color:#1A2238}
+#s-login .row-between input[type=checkbox]{accent-color:#C8921A}
+#s-login .row-between a{color:#C8921A;text-decoration:none;font-weight:600}
+#s-login .row-between a:hover{text-decoration:underline}
+
+/* Divider */
+#s-login .div-text{text-align:center;font-size:11px;color:#9AA6BE;margin:14px 0;position:relative}
+#s-login .div-text::before,#s-login .div-text::after{content:'';position:absolute;top:50%;width:35%;height:1px;background:#E2E7F1}
+#s-login .div-text::before{left:0}
+#s-login .div-text::after{right:0}
+
+/* SSO buttons */
+#s-login .sso{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+#s-login .sso-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#s-login .sso-btn{padding:10px;background:#fff;border:1px solid #D9DFEB;border-radius:8px;font-size:12.5px;font-weight:600;color:#1A2238;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s;font-family:var(--f-ui)}
+#s-login .sso-btn:hover{border-color:#C8921A;background:#FFFCF4}
+#s-login .sso-btn .g{width:14px;height:14px;border-radius:50%;display:inline-block}
+
+/* Bottom link */
+#s-login .new-here{text-align:center;font-size:12px;color:#5B6B8A;margin-top:14px}
+#s-login .new-here a{color:#C8921A;font-weight:700;text-decoration:none}
+#s-login .new-here a:hover{text-decoration:underline}
+
+/* Role chips (multi-select inside step 2) */
+#s-login .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;min-height:28px}
+#s-login .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:#FFF7E6;border:1px solid #E8AC38;border-radius:999px;font-size:11px;font-weight:600;color:#7A5F10}
+#s-login .chip .x{cursor:pointer;color:#C8921A;font-weight:900}
+#s-login .role-add{margin-top:6px;display:flex;gap:6px;align-items:center;font-size:12px;color:#C8921A;cursor:pointer;font-weight:600}
+#s-login .role-add:hover{text-decoration:underline}
+
+/* Privacy block */
+#s-login .privacy{margin:10px 0 4px;padding:12px;background:#F8FAFD;border:1px solid #E2E7F1;border-radius:8px;font-size:12px;color:#1A2238}
+#s-login .privacy label{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;cursor:pointer}
+#s-login .privacy label:last-child{margin-bottom:0}
+#s-login .privacy input{accent-color:#C8921A;margin-top:2px}
+#s-login .privacy a{color:#C8921A;text-decoration:none;font-weight:600}
+
+/* OTP boxes */
+#s-login .otp-info{padding:10px 12px;background:#F8FAFD;border:1px solid #E2E7F1;border-radius:8px;font-size:11.5px;color:#5B6B8A;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+#s-login .otp-info strong{color:#1A2238;font-family:var(--f-mono)}
+#s-login .otp-info .edit{margin-left:auto;color:#C8921A;cursor:pointer;font-weight:700;font-size:11px}
+#s-login .otp-row{display:flex;gap:8px;justify-content:space-between;margin:14px 0}
+#s-login .otp-box{width:42px;height:48px;border:1px solid #D9DFEB;border-radius:8px;text-align:center;font-size:18px;font-weight:700;color:#1A2238;background:#fff;font-family:var(--f-mono);outline:none;transition:.2s}
+#s-login .otp-box:focus{border-color:#C8921A;box-shadow:0 0 0 3px rgba(200,146,26,.15)}
+#s-login .otp-row.compact .otp-box{width:38px;height:42px;font-size:16px}
+#s-login .otp-resend{text-align:center;font-size:11.5px;color:#5B6B8A;margin:8px 0 14px}
+#s-login .otp-resend a{color:#C8921A;font-weight:700;text-decoration:none;cursor:pointer}
+
+/* Trust device pill */
+#s-login .trust-pill{margin-top:12px;font-size:11.5px;color:#5B6B8A;display:flex;align-items:center;gap:6px}
+#s-login .trust-pill input{accent-color:#C8921A}
+
+/* Footer with helper actions */
+#s-login .auth-foot{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:36px;padding:22px 18px;background:#1A2238;border-radius:14px;color:#EEF4FF;font-size:12px}
+@media (max-width:980px){#s-login .auth-foot{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){#s-login .auth-foot{grid-template-columns:1fr}}
+#s-login .auth-foot .ft{display:flex;gap:10px;align-items:flex-start}
+#s-login .auth-foot .ft .ic{width:28px;height:28px;flex-shrink:0;background:rgba(200,146,26,.18);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#FFD070;font-size:13px;font-weight:700}
+#s-login .auth-foot .ft .nm{font-size:12px;font-weight:700;color:#FFD070;margin-bottom:2px}
+#s-login .auth-foot .ft .ds{font-size:11px;color:#8AA4C8;line-height:1.5}
+
+/* Login error */
+#s-login .lg-err{display:none;background:#FFF1F3;border:1px solid #FFC9D2;border-radius:8px;padding:8px 12px;font-size:12px;color:#C92535;margin-bottom:10px}
+#s-login .lg-err.show{display:block}
+
+/* Supported roles list (step 4) */
+#s-login .roles-card{background:#1A2238;border-radius:12px;padding:16px 18px;color:#EEF4FF;margin-top:14px;font-size:12px}
+#s-login .roles-card .ttl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#FFD070;margin-bottom:6px}
+#s-login .roles-card p{color:#8AA4C8;line-height:1.55}
+#s-login .roles-card a{color:#FFD070;font-weight:600;text-decoration:none}
+
+/* ─── Toast notifications (used by login & SSO buttons) ─── */
+.toast-host{position:fixed;top:18px;right:18px;z-index:99999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:340px}
+.toast{pointer-events:auto;background:#1A2238;color:#EEF4FF;border-radius:10px;padding:11px 14px;font-size:12px;font-family:var(--f-ui);box-shadow:0 18px 38px -10px rgba(20,33,58,.45),0 0 0 1px rgba(200,146,26,.15);display:flex;gap:10px;align-items:flex-start;border-left:3px solid #C8921A;animation:toastIn .25s ease;line-height:1.45;min-width:240px}
+.toast.info{border-left-color:#3D8EFF}
+.toast.ok  {border-left-color:#0FD49A}
+.toast.warn{border-left-color:#FFAB00}
+.toast.err {border-left-color:#FF4D6A}
+.toast .ic{flex-shrink:0;font-size:14px;line-height:1}
+.toast .bd{flex:1}
+.toast .bd .tt{font-weight:700;color:#FFD070;font-size:12px;margin-bottom:1px}
+.toast .bd .ms{color:#C8D2E2;font-size:11.5px}
+.toast .cl{background:transparent;border:none;color:#8AA4C8;font-size:14px;cursor:pointer;line-height:1;padding:0 2px;margin-left:4px}
+.toast .cl:hover{color:#FFD070}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateX(20px)}}
+
+/* API-key drawer inside main app (post-login) */
+.api-drawer{position:fixed;right:22px;top:64px;width:340px;max-width:calc(100vw - 30px);background:var(--panel);border:1px solid var(--b1);border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.6);padding:18px;z-index:9985;display:none}
+.api-drawer.on{display:block;animation:fadeUp .25s ease}
+.api-drawer h4{font-family:var(--f-head);font-size:14px;color:var(--t1);margin-bottom:4px}
+.api-drawer .h-sub{font-size:11px;color:var(--t3);margin-bottom:12px}
+.api-drawer .row{display:flex;gap:6px}
+.api-drawer .row input{flex:1;padding:9px 11px;background:var(--card);border:1px solid var(--b1);border-radius:7px;color:var(--t1);font-size:11.5px;font-family:var(--f-mono);outline:none}
+.api-drawer .row input:focus{border-color:var(--amber)}
+.api-drawer .row button{padding:9px 12px;background:var(--card);border:1px solid var(--b2);border-radius:7px;color:var(--t2);font-size:13px;cursor:pointer}
+.api-drawer .row button:hover{border-color:var(--amber);color:var(--amber2)}
+.api-drawer .save-row{margin-top:10px;display:flex;gap:6px}
+.api-drawer .save-row button{flex:1;padding:9px;border-radius:7px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--f-ui)}
+.api-drawer .save-row .primary{background:var(--amber);color:var(--void)}
+.api-drawer .save-row .primary:hover{background:var(--amber2)}
+.api-drawer .save-row .secondary{background:transparent;border:1px solid var(--b2);color:var(--t2)}
+.api-drawer .hint{font-size:10.5px;color:var(--t3);margin-top:8px;line-height:1.5}
+.api-drawer .hint a{color:var(--amber2);text-decoration:none}
+.api-drawer .status{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;margin-bottom:8px}
+.api-drawer .status.ok{background:rgba(15,212,154,.15);color:var(--green);border:1px solid rgba(15,212,154,.3)}
+.api-drawer .status.none{background:rgba(255,171,0,.1);color:var(--amber2);border:1px solid rgba(255,171,0,.25)}
+</style>
+</head>
+<body>
+
+<!-- Toast notification host (used by login, SSO, OTP flows) -->
+<div class="toast-host" id="toast-host" aria-live="polite" aria-atomic="true"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════════════ -->
+<div id="s-login" class="screen on">
+  <div class="auth-shell">
+
+    <div class="auth-title-row">
+      <div class="auth-logo-row">
+        <div class="auth-logo">DI</div>
+        <div>
+          <h1>Digital Infotech Platform</h1>
+          <div class="sub">Banking modernization · Sign in or create your account</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stepper — Step 4 is intentionally retired; new accounts go straight from Verify into the app -->
+    <div class="stepper" id="stepper">
+      <div class="stp act"  data-step="1" onclick="gotoStep(1)"><span class="n">1</span> Sign In</div>
+      <div class="stp"      data-step="2" onclick="gotoStep(2)"><span class="n">2</span> Create Account</div>
+      <div class="stp"      data-step="3" onclick="gotoStep(3)"><span class="n">3</span> Verify</div>
+      <div class="stp hidden-step" data-step="4" onclick="gotoStep(4)" style="display:none"><span class="n">4</span> MFA</div>
+    </div>
+
+    <div class="step-grid">
+
+      <!-- ─── STEP 1: WELCOME / SIGN IN ─── -->
+      <div class="step active" id="step1">
+        <div style="font-family:var(--f-head);font-size:15px;color:#1A2238;font-weight:600;text-align:center;margin-bottom:3px">Welcome back</div>
+        <div style="text-align:center;font-size:11px;color:#5B6B8A;margin-bottom:14px">Sign in to continue to your workspace</div>
+
+        <div class="tabs2">
+          <button class="act" onclick="authTab('signin',this)">Sign In</button>
+          <button onclick="gotoStep(2)">Create Account</button>
+        </div>
+
+        <div class="lg-err" id="lg-err">Invalid credentials. Please try again.</div>
+
+        <div class="ag">
+          <label class="al" for="iu">Email or Mobile</label>
+          <input class="ai" id="iu" type="text" placeholder="you@example.com" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"/>
+        </div>
+        <div class="ag">
+          <label class="al" for="ip">Password</label>
+          <div class="ai-row" style="position:relative">
+            <input class="ai" id="ip" type="password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:34px"/>
+            <button type="button" onclick="togglePwdVis('ip',this)" title="Show / hide" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#5B6B8A;cursor:pointer;padding:6px;font-size:13px">👁</button>
+          </div>
+        </div>
+
+        <div class="row-between">
+          <label><input type="checkbox" id="remember"> Remember me</label>
+          <a href="#" onclick="ssoToast('reset');return false">Forgot Password?</a>
+        </div>
+
+        <button class="ab" onclick="doLogin()">Sign In</button>
+
+        <div class="div-text">or continue with</div>
+
+        <div class="sso">
+          <button class="sso-btn" onclick="ssoToast('sso')">🛡 SSO / Enterprise Login</button>
+          <div class="sso-row2">
+            <button class="sso-btn" onclick="ssoToast('google')"><span class="g" style="background:#4285F4"></span> Google</button>
+            <button class="sso-btn" onclick="ssoToast('microsoft')"><span class="g" style="background:#0078D4"></span> Microsoft</button>
+          </div>
+        </div>
+
+        <div class="new-here">New here? <a href="#" onclick="gotoStep(2);return false">Create an account</a></div>
+      </div>
+
+      <!-- ─── STEP 2: CREATE ACCOUNT ─── -->
+      <div class="step" id="step2">
+        <h2 style="text-align:center">Create your account</h2>
+        <div class="desc" style="text-align:center;margin-bottom:14px">Fill in your details to get started — it takes about 60 seconds.</div>
+
+        <div class="form-grid">
+          <div class="section-h">Personal Information</div>
+
+          <div class="ag">
+            <label class="al" for="acc-fname">First Name <span style="color:#FF4D6A">*</span></label>
+            <input class="ai" id="acc-fname" placeholder="Nishanth" autocomplete="given-name"/>
+          </div>
+          <div class="ag">
+            <label class="al" for="acc-lname">Last Name <span style="color:#FF4D6A">*</span></label>
+            <input class="ai" id="acc-lname" placeholder="Kumar Kishore" autocomplete="family-name"/>
+          </div>
+
+          <div class="ag">
+            <label class="al" for="acc-email">Work Email <span style="color:#FF4D6A">*</span></label>
+            <input class="ai" id="acc-email" type="email" placeholder="you@company.com" autocomplete="email"/>
+          </div>
+          <div class="ag">
+            <label class="al" for="acc-mobile">Mobile Number <span style="color:#FF4D6A">*</span></label>
+            <div class="ai-row">
+              <select class="ai cc" id="acc-cc" onchange="updateMobilePlaceholder()" title="Country code for OTP delivery">
+                <option value="+91" data-country="IN" data-placeholder="98765 43210"   data-example="98765 43210">🇮🇳 +91 IN</option>
+                <option value="+1"  data-country="US" data-placeholder="(415) 555-0123" data-example="(415) 555-0123">🇺🇸 +1 US</option>
+                <option value="+1"  data-country="CA" data-placeholder="(416) 555-0123" data-example="(416) 555-0123">🇨🇦 +1 CA</option>
+              </select>
+              <input class="ai" id="acc-mobile" placeholder="98765 43210" inputmode="tel" autocomplete="tel-national"/>
+            </div>
+            <div style="font-size:10px;color:#5B6B8A;margin-top:4px">OTP will be sent to this number.</div>
+          </div>
+
+          <div class="section-h">Create Password</div>
+
+          <div class="ag">
+            <label class="al" for="acc-pwd">Password <span style="color:#9AA6BE;font-weight:400;font-size:10px">(min 8 characters)</span></label>
+            <div class="ai-row" style="position:relative">
+              <input class="ai" id="acc-pwd" type="password" placeholder="Create a strong password" oninput="checkPwdStrength()" autocomplete="new-password" style="padding-right:34px"/>
+              <button type="button" onclick="togglePwdVis('acc-pwd',this)" title="Show / hide" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#5B6B8A;cursor:pointer;padding:6px;font-size:13px">👁</button>
+            </div>
+            <div id="pwd-strength" style="margin-top:6px;display:none">
+              <div style="display:flex;gap:3px;height:4px;border-radius:2px;overflow:hidden">
+                <div class="ps-bar" style="flex:1;background:#E2E7F1"></div>
+                <div class="ps-bar" style="flex:1;background:#E2E7F1"></div>
+                <div class="ps-bar" style="flex:1;background:#E2E7F1"></div>
+                <div class="ps-bar" style="flex:1;background:#E2E7F1"></div>
+              </div>
+              <div id="pwd-strength-label" style="font-size:11px;color:#5B6B8A;margin-top:4px"></div>
+            </div>
+          </div>
+          <div class="ag">
+            <label class="al" for="acc-pwd2">Confirm Password</label>
+            <div class="ai-row" style="position:relative">
+              <input class="ai" id="acc-pwd2" type="password" placeholder="Re-enter your password" oninput="checkPwdMatch()" autocomplete="new-password" style="padding-right:34px"/>
+              <button type="button" onclick="togglePwdVis('acc-pwd2',this)" title="Show / hide" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#5B6B8A;cursor:pointer;padding:6px;font-size:13px">👁</button>
+            </div>
+            <div id="pwd-match" style="font-size:11px;margin-top:4px;display:none"></div>
+          </div>
+
+          <div class="ag full">
+            <label class="al" for="acc-role-pick">Select Your Role(s) ⓘ <span style="color:#FF4D6A">*</span></label>
+            <select class="ai" id="acc-role-pick" onchange="addRole(this.value);this.value=''">
+              <option value="">Select one or more roles</option>
+              <option>Execution Leader</option>
+              <option>EVP</option><option>SVP</option>
+              <option>CEO</option><option>CTO</option><option>CIO</option><option>COO</option><option>CDO</option>
+              <option>Senior Leader</option>
+              <option>Mid-Senior</option>
+              <option>Managerial</option>
+              <option>Team Leader</option>
+              <option>Individual Contributor</option>
+              <option>Admin</option><option>HR</option><option>Sales</option><option>Presales</option>
+            </select>
+            <div class="chips" id="acc-roles"></div>
+            <div class="role-add" onclick="document.getElementById('acc-role-pick').focus()">+ Add another role</div>
+          </div>
+
+          <div class="section-h">Company Information</div>
+          <div class="ag">
+            <label class="al" for="acc-company">Company Name</label>
+            <input class="ai" id="acc-company" placeholder="Acme Bank Ltd."/>
+          </div>
+          <div class="ag">
+            <label class="al" for="acc-ctype">Company Type</label>
+            <select class="ai" id="acc-ctype">
+              <option value="">Select Company Type</option>
+              <option>Bank — Tier 1</option>
+              <option>Bank — Tier 2 / Regional</option>
+              <option>Insurance</option>
+              <option>FinTech</option>
+              <option>Capital Markets</option>
+              <option>Consulting / SI</option>
+              <option>Vendor / Software</option>
+            </select>
+          </div>
+
+          <div class="privacy full">
+            <label><input type="checkbox" id="acc-age"> <span>I confirm I am <strong>18 years or older</strong> and legally able to use this platform.</span></label>
+            <label><input type="checkbox" id="acc-tc"> <span>I agree to the <a href="#" onclick="ssoToast('terms');return false">Terms of Use</a>.</span></label>
+            <label><input type="checkbox" id="acc-pp"> <span>I agree to the <a href="#" onclick="ssoToast('privacy');return false">Privacy Policy</a>.</span></label>
+          </div>
+
+          <div class="full" style="display:flex;gap:10px;align-items:center;margin-top:6px">
+            <button class="ab ghost" onclick="gotoStep(1)" style="flex:0 0 130px">← Back</button>
+            <button class="ab" onclick="doCreateAccount()" style="flex:1">Create Account &amp; Send OTP</button>
+          </div>
+          <div class="new-here full">Already have an account? <a href="#" onclick="gotoStep(1);return false">Sign in</a></div>
+        </div>
+      </div>
+
+      <!-- ─── STEP 3: VERIFY IDENTITY (OTP) ─── -->
+      <div class="step" id="step3">
+        <div class="step-num"><span class="nb">3</span> Verify Identity</div>
+        <h2>Verify Your Identity</h2>
+        <div class="desc">Choose a method to verify your account.</div>
+
+        <div class="tabs2">
+          <button class="act" id="otp-tab-m" onclick="otpTab('mobile',this)">Mobile OTP</button>
+          <button id="otp-tab-e" onclick="otpTab('email',this)">Email OTP</button>
+        </div>
+
+        <div class="otp-info">
+          <span>📱</span>
+          <div>We've sent a 6-digit OTP to <strong id="otp-target">your registered mobile</strong></div>
+          <span class="edit" onclick="gotoStep(2)">Edit</span>
+        </div>
+
+        <div class="otp-demo" id="otp-demo-v">
+          <span class="pill">🧪 Demo Mode · SMS</span>
+          <span class="lbl">No live SMS gateway in this build — your code is shown below:</span>
+          <strong id="otp-demo-code-v">------</strong>
+          <button type="button" class="copy-btn" onclick="autofillOtp('v')">Auto-fill</button>
+        </div>
+
+        <div class="otp-row" id="otp-row-v">
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,0,'v')"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,1,'v')"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,2,'v')"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,3,'v')"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,4,'v')"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,5,'v')"/>
+        </div>
+
+        <div class="otp-resend">Resend OTP in <span id="otp-timer">00:45</span><br>Didn't receive OTP? <a id="otp-resend-link-v" onclick="resendOtp('v')" style="cursor:pointer">Resend</a></div>
+
+        <button class="ab" onclick="doVerify()">Verify &amp; Continue</button>
+
+        <div style="margin-top:14px;padding:10px 12px;background:#F8FAFD;border:1px solid #E2E7F1;border-radius:8px;font-size:11.5px;color:#5B6B8A;display:flex;gap:8px;align-items:flex-start">
+          <span>📧</span>
+          <span>You will receive a system-generated password on your registered email after verification.</span>
+        </div>
+      </div>
+
+      <!-- ─── STEP 4: MULTI-AUTH SIGN IN ─── -->
+      <div class="step" id="step4">
+        <div class="step-num"><span class="nb">4</span> Multi-Authentication</div>
+        <h2>Sign In</h2>
+        <div class="desc">Enter your credentials to access your account.</div>
+
+        <div class="ag">
+          <label class="al">Email or Mobile</label>
+          <input class="ai" id="m-iu" placeholder="arjun.mehta@company.com"/>
+        </div>
+        <div class="ag">
+          <label class="al">Password</label>
+          <input class="ai" id="m-ip" type="password" placeholder="••••••••••"/>
+        </div>
+        <div style="text-align:right;margin:-6px 0 10px"><a href="#" style="color:#C8921A;font-size:11.5px;font-weight:600;text-decoration:none">Forgot Password?</a></div>
+
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#1A2238;margin:8px 0 6px;text-transform:uppercase">Multi-Authentication</div>
+        <div style="font-size:11.5px;color:#5B6B8A;margin-bottom:8px">Choose verification method</div>
+
+        <div class="tabs2">
+          <button class="act" onclick="mfaTab('mobile',this)">Mobile OTP</button>
+          <button onclick="mfaTab('email',this)">Email OTP</button>
+        </div>
+
+        <div class="otp-info">
+          <span>📱</span>
+          <div>We've sent a 6-digit OTP to <strong id="otp-target-m">your registered mobile</strong></div>
+          <span class="edit" onclick="gotoStep(1)">Edit</span>
+        </div>
+
+        <div class="otp-demo" id="otp-demo-m">
+          <span class="pill">🧪 Demo Mode · SMS</span>
+          <span class="lbl">No live SMS gateway in this build — your code is shown below:</span>
+          <strong id="otp-demo-code-m">------</strong>
+          <button type="button" class="copy-btn" onclick="autofillOtp('m')">Auto-fill</button>
+        </div>
+
+        <div class="otp-row compact" id="otp-row-m">
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,0,'m')"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,1,'m')"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,2,'m')"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,3,'m')"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,4,'m')"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,5,'m')"/>
+        </div>
+
+        <div class="otp-resend">Resend OTP in <span id="otp-timer-m">00:45</span><br>Didn't receive OTP? <a id="otp-resend-link-m" onclick="resendOtp('m')" style="cursor:pointer">Resend</a></div>
+
+        <button class="ab" onclick="doMfaSignIn()">Verify &amp; Sign In</button>
+
+        <label class="trust-pill"><input type="checkbox" id="trust-dev"> Trust this device for 30 days</label>
+
+        <div class="roles-card">
+          <div class="ttl">Supported Roles (Examples)</div>
+          <p>Execution Leader, Senior Leader, Mid-Senior, Managerial, Team Leader, Individual Contributors, Admin Roles, HR, Sales, Presales &amp; more. <a href="#">View all roles</a></p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer with helper actions -->
+    <div class="auth-foot">
+      <div class="ft"><div class="ic">🔒</div><div><div class="nm">Forgot Password?</div><div class="ds">Reset via OTP on registered Mobile / Email</div></div></div>
+      <div class="ft"><div class="ic">🛡</div><div><div class="nm">SSO &amp; Social</div><div class="ds">SAML · OAuth · LDAP · Google · Microsoft Entra ID</div></div></div>
+      <div class="ft"><div class="ic">⚡</div><div><div class="nm">Fast 3-step Sign-up</div><div class="ds">Profile → Password → OTP verify. ~45 seconds.</div></div></div>
+      <div class="ft"><div class="ic">📞</div><div><div class="nm">Account Support</div><div class="ds">Need help? <a style="color:#FFD070" href="mailto:support@example.com">support@example.com</a></div></div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN APP
+═══════════════════════════════════════════════════ -->
+<div id="s-app" class="screen">
+
+  <!-- TOP BAR -->
+  <div class="tb">
+    <div class="tb-logo">DI</div>
+    <span class="tb-brand">Digital Infotech Platform</span>
+    <div class="tb-div"></div>
+    <div class="tb-mod-tabs">
+      <button class="tb-tab act" onclick="switchMod('discovery',this)">⏱ Discovery Studio</button>
+      <button class="tb-tab" onclick="window.location.href='discovery-studio.html'">📈 Exec Briefing</button>
+      <button class="tb-tab" onclick="switchMod('requirements',this)">🤖 AI Requirements</button>
+      <button class="tb-tab" onclick="window.location.href='architecture-studio.html'">🏗 Architecture</button>
+      <button class="tb-tab" onclick="window.location.href='program-governance.html'">📊 Governance</button>
+      <button class="tb-tab" onclick="window.location.href='operations.html'">⚙ Operations</button>
+      <button class="tb-tab" onclick="window.location.href='nishi-chatbot.html'">💬 Nishi</button>
+      <button class="tb-tab" onclick="switchMod('idd',this)">📄 IDD</button>
+    </div>
+    <div class="tb-r">
+      <div id="api-status-bar"></div>
+      <div class="uc">
+        <div class="uav" id="uav">NK</div>
+        <span class="un" id="unm">—</span>
+      </div>
+      <button class="lo-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="ab">
+    <!-- Sidebar (visible in discovery mode) -->
+    <div class="sb" id="main-sb">
+      <div class="sb-st">Banking Modules</div>
+      <div class="sb-list" id="sbl"></div>
+      <div class="sb-foot">
+        <div class="sb-stats">
+          <div class="sb-stat"><div class="sb-sv" id="t-an">0</div><div class="sb-sl">Analysed</div></div>
+          <div class="sb-stat"><div class="sb-sv" id="t-is">0</div><div class="sb-sl">Issues</div></div>
+          <div class="sb-stat"><div class="sb-sv" id="t-hr">0h</div><div class="sb-sl">Debt</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="mc">
+
+      <!-- ── MODULE 1: DISCOVERY STUDIO ── -->
+      <div id="mod-discovery" class="mod-panel on">
+        <div class="ds-header">
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber2);margin-bottom:2px">Time Capsule Discovery Studio</div>
+            <h2 id="ds-title">Core Banking — Payments Processing</h2>
+          </div>
+          <div class="ds-meta" id="ds-meta">Select a module from the sidebar →</div>
+        </div>
+
+        <!-- Server Config -->
+        <div class="srv-bar">
+          <div class="srv-field">
+            <label>Region</label>
+            <select id="cfg-region" onchange="updateSrvSummary()">
+              <option>North America — East</option>
+              <option>North America — West</option>
+              <option>Europe — London</option>
+              <option>Europe — Frankfurt</option>
+              <option>Asia Pacific — Singapore</option>
+              <option>Asia Pacific — Sydney</option>
+              <option>Canada — Toronto</option>
+            </select>
+          </div>
+          <div class="srv-field">
+            <label>Primary Server</label>
+            <select id="cfg-server" onchange="updateSrvSummary()">
+              <option>MAINFRAME-PRD-001</option>
+              <option>MAINFRAME-PRD-002</option>
+              <option>UNIX-APP-SRV-01</option>
+              <option>UNIX-APP-SRV-02</option>
+              <option>WINDOWS-DB-01</option>
+              <option>AS400-LEGACY-01</option>
+              <option>LINUX-MICRO-01</option>
+            </select>
+          </div>
+          <div class="srv-field">
+            <label>Server Type</label>
+            <select id="cfg-type" onchange="updateSrvSummary()">
+              <option>IBM Mainframe z/OS</option>
+              <option>IBM AS/400 — iSeries</option>
+              <option>UNIX — AIX</option>
+              <option>UNIX — Solaris</option>
+              <option>Windows Server 2012</option>
+              <option>Linux — RHEL 7</option>
+            </select>
+          </div>
+          <div class="srv-field">
+            <label>Servers Analysed</label>
+            <input type="number" id="cfg-count" value="12" min="1" max="999" onchange="updateSrvSummary()"/>
+          </div>
+        </div>
+
+        <!-- Server Summary -->
+        <div class="srv-summary">
+          <div class="srv-card">
+            <div class="srv-card-label">Region</div>
+            <div class="srv-card-value" id="sv-region" style="font-size:13px">N. America — East</div>
+            <div class="srv-card-sub">Deployment region</div>
+          </div>
+          <div class="srv-card">
+            <div class="srv-card-label">Primary Server</div>
+            <div class="srv-card-value" id="sv-server" style="font-size:13px">MAINFRAME-PRD-001</div>
+            <div class="srv-card-sub">Host identifier</div>
+          </div>
+          <div class="srv-card">
+            <div class="srv-card-label">Server Type</div>
+            <div class="srv-card-value" id="sv-type" style="font-size:13px">IBM z/OS</div>
+            <div class="srv-card-sub">Platform</div>
+          </div>
+          <div class="srv-card">
+            <div class="srv-card-label">Servers Analysed</div>
+            <div class="srv-card-value" id="sv-count">12</div>
+            <div class="srv-card-sub">Total in scope</div>
+          </div>
+        </div>
+
+        <!-- Code Table -->
+        <div class="code-section" id="code-section"></div>
+
+        <!-- AI Panel -->
+        <div class="ai-panel">
+          <div class="ai-panel-hdr">
+            <span style="font-size:16px">🤖</span>
+            <h3>AI Code Analysis</h3>
+            <div style="font-size:11px;color:var(--t3);margin-left:8px">claude-sonnet-4</div>
+            <button class="ai-run-btn" id="ai-run-btn" onclick="runDiscoveryAI()">▶ Analyse Selection</button>
+          </div>
+          <div class="ai-body" id="ai-body">
+            <span class="ai-placeholder">Select modules from the sidebar and assign actions (Optimize / No Action / Decommission) to code components, then click "Analyse Selection" to generate AI insights.</span>
+          </div>
+        </div>
+
+        <!-- Selection Bar -->
+        <div class="sel-bar">
+          <div class="sel-counts">
+            <div class="sel-count">Optimize: <strong id="cnt-opt" style="color:var(--green)">0</strong></div>
+            <div class="sel-count">No Action: <strong id="cnt-nop" style="color:var(--t2)">0</strong></div>
+            <div class="sel-count">Decommission: <strong id="cnt-dec" style="color:var(--red)">0</strong></div>
+          </div>
+          <button onclick="openSelReport()">📋 View Selection Report</button>
+        </div>
+      </div>
+
+      <!-- ── MODULE 2: AI REQUIREMENTS STUDIO ── -->
+      <div id="mod-requirements" class="mod-panel">
+        <div class="req-wrap">
+          <div class="req-hero">
+            <div class="req-hero-badge">IDD: DI-2026-NKK-0511-001 · 6-Agent Pipeline</div>
+            <h2>AI Requirements Studio</h2>
+            <p>Transform unstructured discovery inputs into Agile backlogs with epics, user stories, Given/When/Then acceptance criteria, Fibonacci estimates — ready for Jira &amp; Rally.</p>
+          </div>
+
+          <!-- Config -->
+          <div class="req-cfg">
+            <div class="cfg-field">
+              <label>Project Name</label>
+              <input type="text" id="rq-proj" placeholder="e.g. Core Banking Modernisation" value="Core Banking Modernisation"/>
+            </div>
+            <div class="cfg-field">
+              <label>Project Key</label>
+              <input type="text" id="rq-key" placeholder="e.g. CBM" value="CBM" style="text-transform:uppercase"/>
+            </div>
+            <div class="cfg-field">
+              <label>Export Platform</label>
+              <select id="rq-plat">
+                <option>Both Jira + Rally</option>
+                <option>Jira Only</option>
+                <option>Rally Only</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Category -->
+          <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Requirement Category</div>
+          <div class="cat-row" id="cat-row">
+            <div class="cat-chip act" data-cat="biz" onclick="selectCat(this)">📊 Business</div>
+            <div class="cat-chip" data-cat="prod" onclick="selectCat(this)">🎯 Product</div>
+            <div class="cat-chip" data-cat="arch" onclick="selectCat(this)">🏗 Architecture</div>
+            <div class="cat-chip" data-cat="debt" onclick="selectCat(this)">⚠️ Technical Debt</div>
+            <div class="cat-chip" data-cat="reg" onclick="selectCat(this)">⚖️ Regulatory</div>
+          </div>
+
+          <!-- Sub-types -->
+          <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Sub-types</div>
+          <div class="sub-row" id="sub-row"></div>
+
+          <!-- Discovery Input -->
+          <div class="disc-box">
+            <label>Discovery Input / Notes</label>
+            <textarea class="disc-ta" id="rq-input" placeholder="Paste stakeholder interview notes, pain points, business goals, technical constraints, meeting transcripts..." onkeyup="updateCharCount()"></textarea>
+            <div class="disc-char" id="char-count">0 chars</div>
+          </div>
+
+          <!-- Run -->
+          <button class="run-btn" id="rq-run-btn" onclick="runRequirementsAI()">🚀 Generate Requirements Backlog</button>
+
+          <!-- Pipeline -->
+          <div class="pipeline" id="pipeline">
+            <div class="agent-step">
+              <div class="agent-bubble" id="ag0">🔍</div>
+              <div class="agent-lbl" id="al0">Discovery<br/>Parser</div>
+            </div>
+            <div class="agent-step">
+              <div class="agent-bubble" id="ag1">📦</div>
+              <div class="agent-lbl" id="al1">Epic<br/>Generator</div>
+            </div>
+            <div class="agent-step">
+              <div class="agent-bubble" id="ag2">✍️</div>
+              <div class="agent-lbl" id="al2">Story<br/>Writer</div>
+            </div>
+            <div class="agent-step">
+              <div class="agent-bubble" id="ag3">✅</div>
+              <div class="agent-lbl" id="al3">Acceptance<br/>Criteria</div>
+            </div>
+            <div class="agent-step">
+              <div class="agent-bubble" id="ag4">🎯</div>
+              <div class="agent-lbl" id="al4">Estimation<br/>Agent</div>
+            </div>
+            <div class="agent-step">
+              <div class="agent-bubble" id="ag5">🗺️</div>
+              <div class="agent-lbl" id="al5">Platform<br/>Mapper</div>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div id="rq-results"></div>
+        </div>
+      </div>
+
+      <!-- ── MODULE 3: IDD DOCUMENT ── -->
+      <div id="mod-idd" class="mod-panel">
+        <div class="idd-wrap">
+
+          <!-- Badge -->
+          <div style="display:inline-flex;align-items:center;gap:8px;background:var(--aglow);border:1px solid rgba(200,146,26,.3);border-radius:5px;padding:5px 14px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber2);margin-bottom:20px">
+            Invention Disclosure &nbsp;·&nbsp; IDD Ref: DI-2026-NKK-0511-001
+          </div>
+          <div class="idd-h2" style="font-size:clamp(18px,2.5vw,26px)">Agentic Artificial Intelligence System for Automated Software Requirements Analysis, Generation &amp; Multi-Platform Export</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:32px">
+            <span style="font-size:11.5px;color:var(--t3)">Filed: 11 May 2026</span>
+            <span style="color:var(--b2)">·</span>
+            <span style="font-size:11.5px;color:var(--t3)">Inventor: Nishanth Kumar Kishore</span>
+            <span style="color:var(--b2)">·</span>
+            <span style="font-size:11.5px;color:var(--t3)">Digital Infotech</span>
+          </div>
+
+          <!-- Certificate -->
+          <div class="cert">
+            <div class="cert-header">
+              <div class="cert-ttl">Inventor Certificate of Authorship</div>
+              <div class="cert-name">Nishanth Kumar Kishore</div>
+              <div class="cert-org">Digital Infotech — Independent Inventor</div>
+            </div>
+            <div class="cert-fields">
+              <div class="cf"><div class="cf-l">IDD Number</div><div class="cf-v">DI-2026-NKK-0511-001</div></div>
+              <div class="cf"><div class="cf-l">Conception Date</div><div class="cf-v">11 May 2026</div></div>
+              <div class="cf"><div class="cf-l">Disclosure Date</div><div class="cf-v">11 May 2026</div></div>
+              <div class="cf"><div class="cf-l">Technology Class</div><div class="cf-v">G06F 40/30 · G06N 20/00</div></div>
+              <div class="cf"><div class="cf-l">Status</div><div class="cf-v" style="color:#065F46">● Disclosed — Pending Filing</div></div>
+              <div class="cf"><div class="cf-l">Rights Owned By</div><div class="cf-v">Digital Infotech</div></div>
+            </div>
+            <div class="cert-seal-row">
+              <div class="seal"><div class="seal-txt">DI<br/>SEAL</div></div>
+              <div class="cert-seal-desc"><strong>Digital Infotech</strong><p>This document constitutes an official Invention Disclosure establishing authorship and conception date of the described invention.</p></div>
+              <div class="sig-blk"><div class="sig-cursive">Nishanth Kumar Kishore</div><div class="sig-l">Inventor — Nishanth Kumar Kishore</div></div>
+            </div>
+          </div>
+
+          <!-- Abstract -->
+          <div class="idd-section">
+            <div class="idd-section-label">01 — Abstract</div>
+            <div class="idd-h2">Summary of the Invention</div>
+            <div class="idd-lead">A multi-agent artificial intelligence system that transforms unstructured discovery-phase input — including stakeholder interviews, meeting transcripts, pain points, and business goals — into structured, platform-ready software requirements automatically and without human authoring.</div>
+            <div class="idd-p">The present invention discloses an Agentic AI Requirements Studio comprising a coordinated pipeline of six specialised artificial intelligence agents: a Discovery Parser, an Epic Generator, a Story Writer, an Acceptance Criteria Agent, an Estimation Agent, and a Platform Mapper. These agents operate in orchestrated sequence to produce complete software engineering artefacts — including epics, user stories, Given/When/Then acceptance criteria, Fibonacci story-point estimates, and priority classifications — formatted for direct import into Atlassian Jira and Rally (Broadcom).</div>
+          </div>
+
+          <!-- Claims -->
+          <div class="idd-section">
+            <div class="idd-section-label">03 — Patent Claims</div>
+            <div class="idd-h2">Claims</div>
+            <div class="claims-wrap">
+              <div class="claim-row"><div class="claim-num">1</div><div><span class="claim-type-badge ct-sys">Independent — System</span><div class="claim-text">A computer-implemented agentic artificial intelligence system for automated software requirements generation, comprising: a discovery input module; an orchestration controller coordinating a sequential pipeline of specialised AI agents; and a platform export module emitting structured requirements data for import into at least one enterprise project management system.</div></div></div>
+              <div class="claim-row"><div class="claim-num">2</div><div><span class="claim-type-badge ct-mth">Independent — Method</span><div class="claim-text">A computer-implemented method comprising: receiving unstructured discovery input; processing through a multi-agent AI pipeline; generating epics, user stories, acceptance criteria, and effort estimates; and outputting in Atlassian Jira or Broadcom Rally format.</div></div></div>
+              <div class="claim-row"><div class="claim-num">3</div><div><span class="claim-type-badge ct-ai">Dependent — Discovery Parser</span><div class="claim-text">The system of claim 1, wherein the pipeline includes a Discovery Parser Agent that extracts themes, entities, pain points, business goals, and technical constraints from unstructured input using LLM inference.</div></div></div>
+              <div class="claim-row"><div class="claim-num">4</div><div><span class="claim-type-badge ct-ai">Dependent — Epic Generator</span><div class="claim-text">The system of claim 1, wherein the pipeline includes an Epic Generator Agent producing epics with title, description, business value, priority {Critical, High, Medium, Low}, and component labels.</div></div></div>
+              <div class="claim-row"><div class="claim-num">5</div><div><span class="claim-type-badge ct-ai">Dependent — Story Writer</span><div class="claim-text">The system of claim 1, wherein the pipeline includes a Story Writer Agent generating user stories in canonical format "As a [persona], I want [action] so that [benefit]" with domain-specific personas.</div></div></div>
+              <div class="claim-row"><div class="claim-num">6</div><div><span class="claim-type-badge ct-ai">Dependent — Acceptance Criteria</span><div class="claim-text">The system of claim 1, wherein the pipeline includes an Acceptance Criteria Agent producing Given/When/Then criteria per story, contextually specific to domain, persona, and action.</div></div></div>
+              <div class="claim-row"><div class="claim-num">7</div><div><span class="claim-type-badge ct-ai">Dependent — Estimation</span><div class="claim-text">The system of claim 1, wherein the pipeline includes an Estimation Agent assigning Fibonacci story points {1,2,3,5,8,13} using domain-context-aware inference on complexity and technical risk.</div></div></div>
+              <div class="claim-row"><div class="claim-num">8</div><div><span class="claim-type-badge ct-sys">Dependent — Export</span><div class="claim-text">The system of claim 1, wherein the export module simultaneously emits Jira Cloud JSON (projects[].issues[]) and Rally Agile Central Feature/UserStory bulk upload JSON.</div></div></div>
+              <div class="claim-row"><div class="claim-num">9</div><div><span class="claim-type-badge ct-mth">Dependent — Orchestration</span><div class="claim-text">The method of claim 2, wherein a supervisor controller manages inter-agent handoffs, enforces schema validation, and provides real-time animated progress UI.</div></div></div>
+              <div class="claim-row"><div class="claim-num">10</div><div><span class="claim-type-badge ct-mth">Dependent — Traceability</span><div class="claim-text">The method of claim 2, further comprising a bi-directional requirements traceability matrix linking each story to: (a) originating discovery input; (b) parent epic; (c) acceptance criteria.</div></div></div>
+            </div>
+          </div>
+
+          <!-- Novelty Table -->
+          <div class="idd-section">
+            <div class="idd-section-label">05 — Novelty &amp; Inventive Step</div>
+            <div class="idd-h2">Prior Art Comparison</div>
+            <table class="compare-tbl">
+              <thead><tr><th>Capability</th><th>This Invention</th><th>Jira / Rally</th><th>GPT / Copilot</th><th>Traditional BA</th></tr></thead>
+              <tbody>
+                <tr><td>Multi-agent orchestrated pipeline</td><td class="ck">✓ 6 specialised agents</td><td class="cx">✗</td><td class="cx">✗ Single-shot</td><td class="cx">✗</td></tr>
+                <tr><td>Discovery input → structured backlog</td><td class="ck">✓ Fully automated</td><td class="cx">✗ Manual entry</td><td class="cx">✗ Unstructured</td><td class="cx">✗ Days of effort</td></tr>
+                <tr><td>Given/When/Then AC generation</td><td class="ck">✓ Per-story, domain-specific</td><td class="cx">✗</td><td class="cx">✗ Inconsistent</td><td class="ck">✓ Manual</td></tr>
+                <tr><td>Fibonacci AI estimation</td><td class="ck">✓ Context-aware</td><td class="cx">✗ Manual</td><td class="cx">✗</td><td class="cx">✗ Planning poker</td></tr>
+                <tr><td>Dual-platform Jira+Rally export</td><td class="ck">✓ Simultaneous</td><td class="cx">✗ Single platform</td><td class="cx">✗</td><td class="cx">✗</td></tr>
+                <tr><td>Real-time agent progress UI</td><td class="ck">✓ Animated pipeline</td><td class="cx">✗</td><td class="cx">✗</td><td class="cx">✗</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Hash -->
+          <div class="hash-block">
+            <span class="hl">IDD:</span>     DI-2026-NKK-0511-001<br/>
+            <span class="hl">Inventor:</span> Nishanth Kumar Kishore · Digital Infotech<br/>
+            <span class="hl">Date:</span>     2026-05-11T00:00:00Z<br/>
+            <span class="hl">SHA-256:</span>  a4f8c2d1e9b3a752c8d2e1f4a9b6c3d7e2f5a8b1c4d7e0f3a6b9c2d5e8f1a4b7<br/>
+            <span class="hl">Status:</span>   Invention Disclosure Filed — Provisional Patent Recommended
+          </div>
+
+          <!-- Legal -->
+          <div class="idd-section">
+            <div class="idd-section-label">07 — Legal Notices</div>
+            <div style="background:rgba(255,171,0,.08);border:1px solid rgba(255,171,0,.3);border-radius:8px;padding:14px 18px;margin-bottom:16px">
+              <div style="font-size:12.5px;color:var(--t1);line-height:1.65"><strong style="color:var(--amber2)">⚠ Not a Patent Application.</strong> This document does not grant patent rights. File a Provisional Patent Application (PPA) with USPTO or CIPO within 12 months to secure a priority date. The one-year statutory bar begins on the first public disclosure date.</div>
+            </div>
+            <div style="font-size:12.5px;color:var(--t2);line-height:1.75">
+              <p style="margin-bottom:8px"><strong style="color:var(--t1)">Copyright:</strong> © 2026 Nishanth Kumar Kishore / Digital Infotech. All rights reserved.</p>
+              <p style="margin-bottom:8px"><strong style="color:var(--t1)">Third-Party Marks:</strong> Jira and Confluence are registered trademarks of Atlassian Corporation. Rally is a trademark of Broadcom Inc. Claude is a trademark of Anthropic PBC. Referenced nominatively for descriptive purposes only.</p>
+              <p><strong style="color:var(--t1)">Prior Art:</strong> The inventor represents the combination of features described constitutes novel subject matter not disclosed in any prior art as of the disclosure date.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /mc -->
+  </div><!-- /ab -->
+</div><!-- /s-app -->
+
+<!-- MODAL -->
+<div class="modal-ov" id="modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h4 id="modal-title">Report</h4>
+      <button class="modal-close" onclick="closeModal()">✕ Close</button>
+    </div>
+    <div class="modal-body"><pre class="modal-pre" id="modal-content"></pre></div>
+    <div class="modal-foot">
+      <button class="btn-close-r" onclick="closeModal()">Close</button>
+      <button class="btn-copy-r" onclick="copyModal()">Copy Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<script>
+'use strict';
+
+/* ══════════════════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════════════════ */
+const USERS = [
+  { username: 'nishanth.kishore', password: 'DI@2026!', name: 'Nishanth Kumar Kishore', role: 'Inventor', initials: 'NK' },
+  { username: 'admin',            password: 'Banking@2026', name: 'Administrator',       role: 'Admin',    initials: 'AD' }
+];
+
+/* ────────────────────────────────────────────────────────
+   Persistent user store
+   ────────────────────────────────────────────────────────
+   Accounts created via the sign-up flow are persisted in
+   localStorage under `di_users_v1` so the user can sign in
+   again after a tab/browser restart.
+
+   ⚠ This is a CLIENT-SIDE DEMO STORE. In production this
+   data would live in your backend with bcrypt/argon2 + TLS.
+   Here we at least hash the password with SHA-256 so the
+   plaintext is never written to localStorage.
+═══════════════════════════════════════════════════════ */
+const DI_USERS_KEY = 'di_users_v1';
+
+async function hashPassword(pwd){
+  if (!pwd) return '';
+  try {
+    const buf = new TextEncoder().encode('di-platform-v1::' + pwd);
+    const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  } catch (e) {
+    // Fallback if Web Crypto unavailable (rare on modern browsers / HTTPS)
+    let h = 5381; for (let i=0;i<pwd.length;i++) h = ((h<<5)+h) + pwd.charCodeAt(i);
+    return 'fb_' + Math.abs(h).toString(16);
+  }
+}
+
+function loadSavedUsers(){
+  try {
+    const raw = localStorage.getItem(DI_USERS_KEY);
+    return raw ? (JSON.parse(raw) || []) : [];
+  } catch (e) {
+    console.warn('User store read failed', e);
+    return [];
+  }
+}
+
+function saveAllUsers(arr){
+  try { localStorage.setItem(DI_USERS_KEY, JSON.stringify(arr || [])); }
+  catch (e) { console.warn('User store write failed', e); }
+}
+
+/* Look up a saved user by username / email / mobile (case-insensitive on email). */
+function findSavedUser(identifier){
+  if (!identifier) return null;
+  const id = String(identifier).trim();
+  const idLower = id.toLowerCase();
+  return loadSavedUsers().find(u =>
+    (u.username && u.username.toLowerCase() === idLower) ||
+    (u.email    && u.email.toLowerCase()    === idLower) ||
+    (u.mobile   && u.mobile  === id) ||
+    (u.mobileE164 && u.mobileE164 === id)
+  ) || null;
+}
+
+/* Persist a new account from the sign-up flow. Returns the stored record. */
+async function persistAccount(profile, plainPwd){
+  const users = loadSavedUsers();
+  const emailLower = (profile.email || '').toLowerCase();
+  // Replace if email already exists, otherwise append
+  const idx = users.findIndex(u => (u.email || '').toLowerCase() === emailLower);
+  const pwdHash = await hashPassword(plainPwd);
+  // Username defaults to the local-part of email so users can sign in with either
+  const username = (profile.email || '').split('@')[0] || profile.firstName || 'user';
+  const initials = ((profile.firstName||'').slice(0,1) + (profile.lastName||'').slice(0,1)).toUpperCase()
+                 || (profile.name||'NU').slice(0,2).toUpperCase();
+
+  const record = {
+    username,
+    email: profile.email || '',
+    mobile: profile.mobile || '',
+    mobileE164: profile.mobileE164 || '',
+    name: profile.name || '',
+    firstName: profile.firstName || '',
+    lastName:  profile.lastName  || '',
+    role:  profile.role  || (profile.roles && profile.roles[0]) || 'Platform User',
+    roles: profile.roles || [],
+    region: profile.region || '',
+    company: profile.company || '',
+    companyType: profile.companyType || '',
+    initials,
+    passwordHash: pwdHash,         // sha256("di-platform-v1::"+password)
+    createdAt: profile.createdAt || new Date().toISOString(),
+    lastSignInAt: null
+  };
+
+  if (idx >= 0) users[idx] = record; else users.push(record);
+  saveAllUsers(users);
+  return record;
+}
+
+/* Verify password against a saved record (returns true on match). */
+async function verifyPassword(savedRecord, plainPwd){
+  if (!savedRecord || !plainPwd) return false;
+  const candidate = await hashPassword(plainPwd);
+  return candidate === savedRecord.passwordHash;
+}
+
+let currentUser = null;
+let apiKey = '';
+
+function toggleKeyVis() {
+  const f = document.getElementById('app-apikey');
+  if (!f) return;
+  f.type = f.type === 'password' ? 'text' : 'password';
+}
+
+/* ─── EmailJS — real OTP delivery to user's inbox ─────
+   Public key is browser-safe (restricted by allowed origins on the EmailJS
+   dashboard). To rotate, just change the values below. */
+const EMAILJS_CFG = {
+  publicKey:  '-6Sg-7zDl7hqsjjqd',
+  serviceId:  'service_rfm1yug',
+  templateId: 'template_19bnwhf',
+  toVar:      'to_email'   // recipient variable name inside the template
+};
+
+/* Initialise once the SDK is loaded */
+(function initEmailJs(){
+  function tryInit(){
+    if (typeof window.emailjs === 'undefined') { return setTimeout(tryInit, 250); }
+    try { window.emailjs.init({ publicKey: EMAILJS_CFG.publicKey }); }
+    catch (e) { console.warn('EmailJS init failed', e); }
+  }
+  if (document.readyState === 'complete' || document.readyState === 'interactive') tryInit();
+  else document.addEventListener('DOMContentLoaded', tryInit);
+})();
+
+/* Send a real OTP email. Returns a Promise that resolves on success. */
+function sendEmailOtp(toEmail, code, opts){
+  opts = opts || {};
+  if (!window.emailjs) {
+    return Promise.reject(new Error('EmailJS SDK not loaded — check internet / ad-blocker.'));
+  }
+  if (!toEmail) return Promise.reject(new Error('No recipient email provided.'));
+  if (!code)    return Promise.reject(new Error('No OTP code generated.'));
+
+  // Send a maximalist parameter set so any reasonable EmailJS template
+  // variable name resolves. The template editor in EmailJS is forgiving —
+  // unused variables are ignored, missing variables render as empty strings.
+  const params = {};
+  params[EMAILJS_CFG.toVar] = toEmail;       // configured recipient variable
+  params.to_email          = toEmail;        // standard name
+  params.email             = toEmail;        // alternative
+  params.user_email        = toEmail;        // alternative
+  params.recipient         = toEmail;        // alternative
+  params.reply_to          = toEmail;        // some templates use this
+  params.otp_code          = code;
+  params.code              = code;
+  params.passcode          = code;
+  params.verification_code = code;
+  params.otp               = code;
+  params.expires_in        = (opts.expiresIn || '45 seconds');
+  params.app_name          = 'Digital Infotech Platform';
+  params.from_name         = 'Digital Infotech Platform';
+  params.user_name         = opts.userName  || 'there';
+  params.to_name           = opts.userName  || 'there';
+  params.name              = opts.userName  || 'there';
+  params.year              = String(new Date().getFullYear());
+
+  console.info('[EmailJS] sending', { to: toEmail, codeLength: code.length, service: EMAILJS_CFG.serviceId, template: EMAILJS_CFG.templateId });
+  return window.emailjs.send(EMAILJS_CFG.serviceId, EMAILJS_CFG.templateId, params)
+    .then(res => { console.info('[EmailJS] ✓ delivered', res); return res; });
+}
+
+/* Tiny helper — extract the most useful error message EmailJS can give us */
+function emailJsErrorText(err){
+  if (!err) return 'Unknown error';
+  if (typeof err === 'string') return err;
+  // EmailJS errors look like { status:400, text:'The recipient address is empty' }
+  if (err.status && err.text) return 'HTTP ' + err.status + ' — ' + err.text;
+  if (err.text)    return err.text;
+  if (err.message) return err.message;
+  try { return JSON.stringify(err); } catch (_) { return String(err); }
+}
+
+/* ─── Country-code helpers (Mobile OTP) ──────────────── */
+function updateMobilePlaceholder(){
+  const sel = document.getElementById('acc-cc');
+  const mob = document.getElementById('acc-mobile');
+  if (!sel || !mob) return;
+  const opt = sel.options[sel.selectedIndex];
+  const ph  = (opt && opt.dataset && opt.dataset.placeholder) || '';
+  if (ph) mob.placeholder = ph;
+  // Clear any prior value when switching countries so the user doesn't carry
+  // an India-formatted number into a US/Canada field
+  mob.value = '';
+}
+function getMobileCountry(){
+  const sel = document.getElementById('acc-cc');
+  if (!sel) return { code:'+91', country:'IN' };
+  const opt = sel.options[sel.selectedIndex] || sel.options[0];
+  return {
+    code:    sel.value || '+91',
+    country: (opt && opt.dataset && opt.dataset.country) || 'IN'
+  };
+}
+function validateMobile(country, raw){
+  const digits = (raw || '').replace(/\D/g,'');
+  if (country === 'IN') {
+    // India: 10 digits, starts 6-9
+    return /^[6-9]\d{9}$/.test(digits) ? { ok:true, digits } : { ok:false, msg:'Indian numbers must be 10 digits starting with 6, 7, 8 or 9.' };
+  }
+  if (country === 'US' || country === 'CA') {
+    // NANP: 10 digits, area code 2-9, exchange 2-9
+    if (digits.length === 11 && digits.startsWith('1')) { /* tolerate leading 1 */ return { ok:true, digits: digits.slice(1) }; }
+    return /^[2-9]\d{2}[2-9]\d{6}$/.test(digits)
+      ? { ok:true, digits }
+      : { ok:false, msg:'US / Canada numbers must be 10 digits (area code + 7-digit number).' };
+  }
+  return digits.length >= 6 ? { ok:true, digits } : { ok:false, msg:'Enter a valid mobile number.' };
+}
+function formatMobile(country, digits){
+  if (!digits) return '';
+  if (country === 'IN') {
+    return digits.length === 10 ? digits.slice(0,5) + ' ' + digits.slice(5) : digits;
+  }
+  if (country === 'US' || country === 'CA') {
+    return digits.length === 10 ? '(' + digits.slice(0,3) + ') ' + digits.slice(3,6) + '-' + digits.slice(6) : digits;
+  }
+  return digits;
+}
+
+/* ─── Toast notification helper ─────────────────────── */
+function showToast(opts){
+  const host = document.getElementById('toast-host');
+  if (!host) return;
+  const o = (typeof opts === 'string') ? { message: opts } : (opts || {});
+  const kind  = o.kind  || 'info';      // info | ok | warn | err
+  const title = o.title || ({info:'Notification',ok:'Success',warn:'Heads up',err:'Error'})[kind];
+  const msg   = o.message || '';
+  const dur   = o.duration || 4500;
+  const icon  = o.icon  || ({info:'ℹ',ok:'✓',warn:'⚠',err:'✕'})[kind];
+
+  const el = document.createElement('div');
+  el.className = 'toast ' + kind;
+  el.innerHTML =
+    '<div class="ic">' + icon + '</div>' +
+    '<div class="bd"><div class="tt">' + title + '</div><div class="ms">' + msg + '</div></div>' +
+    '<button class="cl" aria-label="Dismiss">×</button>';
+  el.querySelector('.cl').addEventListener('click', () => closeToast(el));
+  host.appendChild(el);
+  if (dur > 0) setTimeout(() => closeToast(el), dur);
+  return el;
+}
+function closeToast(el){
+  if (!el || !el.parentNode) return;
+  el.style.animation = 'toastOut .2s ease forwards';
+  setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 220);
+}
+
+/* ─── 4-step auth flow ───────────────────────────────── */
+let selectedRoles = [];
+function gotoStep(n){
+  document.querySelectorAll('#s-login .step').forEach((s,i)=>s.classList.toggle('active', i===n-1));
+  document.querySelectorAll('#s-login .stepper .stp').forEach((s,i)=>{
+    s.classList.remove('act','done');
+    if (i===n-1) s.classList.add('act');
+    else if (i<n-1) s.classList.add('done');
+  });
+  // Step 2 is the only wide step; others use the narrow 440px card
+  const grid = document.querySelector('#s-login .step-grid');
+  if (grid) grid.classList.toggle('is-wide', n === 2);
+  // Scroll the LOGIN SCREEN itself to the very top so the title, stepper, and
+  // first form field are always visible. We do NOT scrollIntoView the card —
+  // that landed mid-card on some screens and hid the top field (Name).
+  const loginScreen = document.getElementById('s-login');
+  if (loginScreen && typeof loginScreen.scrollTo === 'function') {
+    try { loginScreen.scrollTo({ top:0, behavior:'smooth' }); } catch(_) { loginScreen.scrollTop = 0; }
+  }
+  try { window.scrollTo({ top:0, behavior:'smooth' }); } catch(_) { window.scrollTo(0, 0); }
+  // Focus the first input of the new step (after the slide-in finishes)
+  setTimeout(() => {
+    const first = document.querySelector('#s-login .step.active input:not([type=checkbox]):not([type=hidden]):not([disabled])');
+    if (first) try { first.focus({ preventScroll:true }); } catch(_) { first.focus(); }
+  }, 380);
+  // Reset any leaked password visibility when leaving any step
+  ['ip','acc-pwd','acc-pwd2','m-ip'].forEach(id => {
+    const f = document.getElementById(id);
+    if (f) f.type = 'password';
+  });
+}
+function authTab(_w, btn){
+  const tabs = btn.parentElement.querySelectorAll('button');
+  tabs.forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+}
+/* Toggle the on-screen demo OTP banner. We only show it for the Mobile tab
+   because there is no live SMS gateway yet. The Email tab uses EmailJS for
+   real delivery, so the code never appears on screen there. */
+function setDemoBannerVisible(scope, visible){
+  const el = document.getElementById('otp-demo-' + scope);
+  if (el) el.classList.toggle('hidden', !visible);
+}
+
+/* Channel selector — Mobile vs Email — for Step 3 (and Step 4) OTP delivery */
+function otpTab(kind, btn){
+  authTab(kind, btn);
+  const profile = (() => { try { return JSON.parse(sessionStorage.getItem('di_account_profile')||'{}'); } catch(e){ return {}; } })();
+  const target = kind === 'email'
+    ? (profile.email  || 'you@company.com')
+    : (profile.mobile || 'your registered mobile');
+  const tEl = document.getElementById('otp-target');
+  if (tEl) tEl.textContent = target;
+  // Fresh code for the chosen channel
+  generateOtp('v', 45);
+  setDemoBannerVisible('v', kind === 'mobile');
+  deliverOtp('v', kind, target, profile);
+}
+function mfaTab(kind, btn){
+  authTab(kind, btn);
+  const profile = (() => { try { return JSON.parse(sessionStorage.getItem('di_account_profile')||'{}'); } catch(e){ return {}; } })();
+  const target = kind === 'email'
+    ? (profile.email  || 'you@company.com')
+    : (profile.mobile || 'your registered mobile');
+  const tEl = document.getElementById('otp-target-m');
+  if (tEl) tEl.textContent = target;
+  generateOtp('m', 45);
+  setDemoBannerVisible('m', kind === 'mobile');
+  deliverOtp('m', kind, target, profile);
+}
+
+/* Delivery dispatcher — real email via EmailJS for the Email tab,
+   demo-mode for the Mobile tab (banner shows the code on screen). */
+function deliverOtp(scope, kind, target, profile){
+  const code = (otpState[scope] && otpState[scope].code) || '';
+  if (kind === 'email') {
+    if (!target || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(target)) {
+      showToast({ kind:'err', title:'No valid email', message:'Your profile does not have a valid email address yet.' });
+      return;
+    }
+    showToast({ kind:'info', icon:'✉', title:'Sending email…', message:'Delivering a 6-digit code to ' + target + '.', duration:2200 });
+    sendEmailOtp(target, code, { userName: (profile && profile.firstName) || (profile && profile.name) || 'there', expiresIn:'45 seconds' })
+      .then(() => {
+        showToast({ kind:'ok', icon:'📬', title:'Email sent', message:'Check your inbox at ' + target + '. The code expires in 45 seconds.', duration:5500 });
+      })
+      .catch((err) => {
+        const detail = emailJsErrorText(err);
+        console.warn('[EmailJS] ✗ send failed', err, detail);
+        showToast({ kind:'err', icon:'✉', title:'Email send failed', message:'EmailJS error: ' + detail + '. Switch to Mobile (demo) or tap Resend. Full details in DevTools console.', duration:8500 });
+      });
+  } else {
+    // Mobile = demo. The on-screen banner shows the code; toast just announces it.
+    showToast({
+      kind:'warn', icon:'🧪',
+      title:'Demo SMS mode',
+      message:'No live SMS gateway yet — your 6-digit code is shown on the form (yellow banner).',
+      duration:5500
+    });
+  }
+}
+
+/* SSO / Forgot toast — clean, professional placeholder until backend is wired */
+function ssoToast(provider){
+  const map = {
+    sso:       { ic:'🛡',  tt:'SSO sign-in',         ms:'Enterprise SSO (SAML / OAuth / LDAP) connects in Phase 9. Use email + password for now.' },
+    google:    { ic:'🟢', tt:'Google sign-in',      ms:'Google OAuth connects in Phase 9. Use email + password for now.' },
+    microsoft: { ic:'🟦', tt:'Microsoft sign-in',    ms:'Microsoft Entra ID connects in Phase 9. Use email + password for now.' },
+    reset:     { ic:'🔑', tt:'Reset password',      ms:'A password reset link will be sent to your registered email or mobile (backend hookup pending).' },
+    terms:     { ic:'📄', tt:'Terms of Use',         ms:'The full Terms of Use document will open in a new tab once finalized by Legal.' },
+    privacy:   { ic:'🔒', tt:'Privacy Policy',       ms:'The full Privacy Policy will open in a new tab once finalized by Legal & Compliance.' }
+  };
+  const x = map[provider] || map.sso;
+  showToast({ kind:'info', icon:x.ic, title:x.tt, message:x.ms, duration:5500 });
+}
+/* ── OTP generation + countdown ─────────────────────── */
+const otpState = {
+  v: { code: null, timerId: null, secondsLeft: 0 },
+  m: { code: null, timerId: null, secondsLeft: 0 }
+};
+
+function generateOtp(scope, durationSec){
+  const dur = durationSec || 45;
+  // Random 6-digit code
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  otpState[scope].code = code;
+
+  const codeEl = document.getElementById('otp-demo-code-' + scope);
+  if (codeEl) codeEl.textContent = code;
+
+  // Clear any existing OTP input
+  const row = document.getElementById('otp-row-' + scope);
+  if (row) row.querySelectorAll('.otp-box').forEach(b => { b.value = ''; });
+
+  startOtpTimer(scope, dur);
+}
+
+function startOtpTimer(scope, seconds){
+  // Clear previous
+  if (otpState[scope].timerId) clearInterval(otpState[scope].timerId);
+  otpState[scope].secondsLeft = seconds;
+  const timerEl = document.getElementById(scope === 'v' ? 'otp-timer' : 'otp-timer-m');
+  const linkEl  = document.getElementById('otp-resend-link-' + scope);
+
+  function tick(){
+    const s = otpState[scope].secondsLeft;
+    if (timerEl) {
+      timerEl.textContent = String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+    }
+    if (s <= 0) {
+      clearInterval(otpState[scope].timerId);
+      otpState[scope].timerId = null;
+      if (timerEl) timerEl.textContent = '00:00';
+      if (linkEl)  { linkEl.style.color = '#C8921A'; linkEl.style.fontWeight = '700'; }
+      return;
+    }
+    otpState[scope].secondsLeft = s - 1;
+  }
+  tick();
+  otpState[scope].timerId = setInterval(tick, 1000);
+}
+
+function resendOtp(scope){
+  generateOtp(scope, 45);
+  const tgtEl = document.getElementById(scope === 'v' ? 'otp-target' : 'otp-target-m');
+  const target = (tgtEl && tgtEl.textContent) || 'your registered channel';
+  // Figure out which channel tab is currently active
+  const stepEl = document.getElementById(scope === 'v' ? 'step3' : 'step4');
+  const activeTab = stepEl ? stepEl.querySelector('.tabs2 button.act') : null;
+  const isEmail = activeTab && /email/i.test(activeTab.textContent);
+  const profile = (() => { try { return JSON.parse(sessionStorage.getItem('di_account_profile')||'{}'); } catch(e){ return {}; } })();
+  deliverOtp(scope, isEmail ? 'email' : 'mobile', target, profile);
+  // Focus first OTP box for fast entry
+  const first = document.querySelector('#otp-row-' + scope + ' .otp-box');
+  if (first) first.focus();
+}
+
+function otpNext(input, idx, scope){
+  // Move to next box, but also handle paste of full 6-digit code
+  if (input.value.length > 1) {
+    // Likely paste — distribute across boxes
+    const digits = input.value.replace(/\D/g,'').slice(0,6).split('');
+    const row = input.parentElement;
+    row.querySelectorAll('.otp-box').forEach((b,i)=>{ b.value = digits[i] || ''; });
+    return;
+  }
+  if (input.value && idx < 5) input.parentElement.children[idx+1].focus();
+}
+
+function autofillOtp(scope){
+  // Retained for compatibility but no longer surfaced in UI — the demo banner is hidden.
+  const code = otpState[scope].code;
+  if (!code) { showToast({ kind:'warn', title:'No active OTP', message:'Please re-enter the previous step to receive a fresh code.' }); return; }
+  const row = document.getElementById('otp-row-' + scope);
+  if (row) row.querySelectorAll('.otp-box').forEach((b,i)=>{ b.value = code[i] || ''; });
+}
+function addRole(role){
+  if (!role) return;
+  if (selectedRoles.includes(role)) return;
+  selectedRoles.push(role);
+  renderRoles();
+}
+function removeRole(role){
+  selectedRoles = selectedRoles.filter(r=>r!==role);
+  renderRoles();
+}
+function renderRoles(){
+  const c = document.getElementById('acc-roles');
+  if (!c) return;
+  c.innerHTML = selectedRoles.map(r => `<span class="chip">${r}<span class="x" onclick="removeRole('${r}')">×</span></span>`).join('');
+}
+
+/* ── Password helpers ─────────────────────────────────── */
+function togglePwdVis(fieldId, btn){
+  const f = document.getElementById(fieldId);
+  if (!f) return;
+  f.type = f.type === 'password' ? 'text' : 'password';
+  if (btn) btn.textContent = f.type === 'password' ? '👁' : '🙈';
+}
+
+function pwdScore(p){
+  if (!p) return 0;
+  let s = 0;
+  if (p.length >= 8)  s++;
+  if (p.length >= 12) s++;
+  if (/[A-Z]/.test(p) && /[a-z]/.test(p)) s++;
+  if (/\d/.test(p))   s++;
+  if (/[^A-Za-z0-9]/.test(p)) s++;
+  return Math.min(s, 4);
+}
+
+function checkPwdStrength(){
+  const p = document.getElementById('acc-pwd').value;
+  const wrap = document.getElementById('pwd-strength');
+  if (!wrap) return;
+  wrap.style.display = p ? 'block' : 'none';
+  const bars = wrap.querySelectorAll('.ps-bar');
+  const lbl = document.getElementById('pwd-strength-label');
+  const score = pwdScore(p);
+  const palette = ['#E2E7F1', '#FF4D6A', '#FF8030', '#E8AC38', '#0FD49A'];
+  const tags    = ['', 'Very weak', 'Weak', 'Good', 'Strong'];
+  bars.forEach((b, i) => { b.style.background = i < score ? palette[score] : '#E2E7F1'; });
+  if (lbl) {
+    if (p.length < 8) lbl.innerHTML = '<span style="color:#FF4D6A">Need at least 8 characters · ' + p.length + '/8</span>';
+    else lbl.innerHTML = 'Strength: <strong style="color:' + palette[score] + '">' + tags[score] + '</strong>';
+  }
+  checkPwdMatch();
+}
+
+function checkPwdMatch(){
+  const p1 = document.getElementById('acc-pwd').value;
+  const p2 = document.getElementById('acc-pwd2').value;
+  const out = document.getElementById('pwd-match');
+  if (!out) return;
+  if (!p2) { out.style.display = 'none'; return; }
+  out.style.display = 'block';
+  if (p1 === p2) out.innerHTML = '<span style="color:#0FD49A">✓ Passwords match</span>';
+  else           out.innerHTML = '<span style="color:#FF4D6A">✗ Passwords do not match</span>';
+}
+
+function doCreateAccount(){
+  const first = document.getElementById('acc-fname').value.trim();
+  const last  = document.getElementById('acc-lname').value.trim();
+  const name  = (first + ' ' + last).trim();
+  const email = document.getElementById('acc-email').value.trim();
+  const mobileRaw = document.getElementById('acc-mobile').value.trim();
+  const pwd  = document.getElementById('acc-pwd').value;
+  const pwd2 = document.getElementById('acc-pwd2').value;
+  const age  = document.getElementById('acc-age').checked;
+  const tc = document.getElementById('acc-tc').checked;
+  const pp = document.getElementById('acc-pp').checked;
+  const emailOK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const ccObj = getMobileCountry();        // { code:'+91', country:'IN' }
+
+  if (!first)            { showToast({ kind:'warn', title:'First name required', message:'Please enter your first name.' }); document.getElementById('acc-fname').focus(); return; }
+  if (!last)             { showToast({ kind:'warn', title:'Last name required', message:'Please enter your last name.' }); document.getElementById('acc-lname').focus(); return; }
+  if (!email || !emailOK){ showToast({ kind:'warn', title:'Valid email needed', message:'Enter a valid work email address (e.g. you@company.com).' }); document.getElementById('acc-email').focus(); return; }
+  if (!mobileRaw)       { showToast({ kind:'warn', title:'Mobile required', message:'Enter your mobile number — OTP will be sent there.' }); document.getElementById('acc-mobile').focus(); return; }
+  const mob = validateMobile(ccObj.country, mobileRaw);
+  if (!mob.ok) { showToast({ kind:'err', title:'Invalid mobile number', message:mob.msg }); document.getElementById('acc-mobile').focus(); return; }
+  if (!pwd)             { showToast({ kind:'warn', title:'Password required', message:'Please create a password (min 8 characters).' }); document.getElementById('acc-pwd').focus(); return; }
+  if (pwd.length < 8)   { showToast({ kind:'warn', title:'Password too short', message:'Password must be at least 8 characters. You have ' + pwd.length + '.' }); document.getElementById('acc-pwd').focus(); return; }
+  if (pwd !== pwd2)     { showToast({ kind:'err',  title:'Passwords do not match', message:'Re-enter both password fields so they match.' }); document.getElementById('acc-pwd2').focus(); return; }
+  if (!selectedRoles.length) { showToast({ kind:'warn', title:'Role required', message:'Select at least one role to continue.' }); document.getElementById('acc-role-pick').focus(); return; }
+  if (!age) { showToast({ kind:'warn', title:'Age confirmation required', message:'You must confirm you are 18 years or older to continue.' }); document.getElementById('acc-age').focus(); return; }
+  if (!tc || !pp) { showToast({ kind:'warn', title:'Acceptance needed', message:'Please accept the Terms of Use and Privacy Policy.' }); return; }
+
+  // Normalised mobile (digits only) and a pretty version for the OTP banner
+  const mobilePretty = ccObj.code + ' ' + formatMobile(ccObj.country, mob.digits);
+  const mobileE164   = ccObj.code + mob.digits;
+  // Region used by the post-login app shell — flagged from the chosen country
+  const inferredRegion = ccObj.country === 'IN' ? 'APAC — South Asia'
+                       : (ccObj.country === 'US' || ccObj.country === 'CA') ? 'North America'
+                       : 'North America';
+
+  // Stash for downstream (Nishi etc.)
+  // NOTE: password is stored only in sessionStorage for the current tab
+  // (cleared on close / logout). In a production deployment this would be
+  // hashed server-side; this is a demo flow.
+  const profile = {
+    firstName: first,
+    lastName: last,
+    name, email,
+    mobile: mobilePretty,                // e.g. "+1 (415) 555-0123" or "+91 98765 43210"
+    mobileE164,                          // e.g. "+14155550123"
+    mobileCountry: ccObj.country,        // IN | US | CA
+    mobileCountryCode: ccObj.code,       // +91 | +1
+    password: pwd,                       // demo only — see note above
+    passwordStrength: pwdScore(pwd),
+    roles: selectedRoles,
+    role: selectedRoles[0],
+    company: document.getElementById('acc-company').value.trim(),
+    companyType: document.getElementById('acc-ctype').value,
+    region: inferredRegion,
+    ageConfirmed: true,
+    termsAccepted: true,
+    privacyAccepted: true,
+    createdAt: new Date().toISOString()
+  };
+  sessionStorage.setItem('di_account_profile', JSON.stringify(profile));
+  // Persist the new account in localStorage so the user can sign in again later
+  // (also stamps the username derived from the email's local-part).
+  persistAccount(profile, pwd)
+    .then(rec => { profile.username = rec.username; sessionStorage.setItem('di_account_profile', JSON.stringify(profile)); })
+    .catch(err => console.warn('Account persist failed', err));
+  // Default the OTP channel to Email since that's our only LIVE delivery channel.
+  // Switch the Step 3 tab to Email so the user sees the right target line.
+  document.getElementById('otp-target').textContent = email;
+  generateOtp('v', 45);
+  setDemoBannerVisible('v', false);
+  // Flip the Step 3 tabs to Email visually
+  const eTab = document.getElementById('otp-tab-e');
+  const mTab = document.getElementById('otp-tab-m');
+  if (eTab && mTab) {
+    eTab.classList.add('act');
+    mTab.classList.remove('act');
+  }
+  gotoStep(3);
+  // Send the real email via EmailJS
+  showToast({ kind:'info', icon:'✉', title:'Sending email…', message:'Delivering a 6-digit code to ' + email + '.', duration:2400 });
+  sendEmailOtp(email, otpState.v.code, { userName: first || name || 'there', expiresIn:'45 seconds' })
+    .then(() => {
+      showToast({ kind:'ok', icon:'📬', title:'Check your inbox', message:'Code sent to ' + email + '. It expires in 45 seconds.', duration:6000 });
+    })
+    .catch((err) => {
+      const detail = emailJsErrorText(err);
+      console.warn('[EmailJS] ✗ send failed at account creation', err, detail);
+      // Fall back to Mobile demo mode so the user can still complete the flow
+      if (eTab && mTab) { eTab.classList.remove('act'); mTab.classList.add('act'); }
+      document.getElementById('otp-target').textContent = mobilePretty || email;
+      setDemoBannerVisible('v', true);
+      showToast({
+        kind:'err', icon:'⚠',
+        title:'Email gateway error',
+        message:'EmailJS says: "' + detail + '". Using demo SMS code instead (yellow banner). See DevTools console for full details.',
+        duration:9000
+      });
+    });
+}
+
+function doVerify(){
+  const boxes = document.querySelectorAll('#otp-row-v .otp-box');
+  const code = Array.from(boxes).map(b=>b.value).join('');
+  if (code.length !== 6) {
+    showToast({ kind:'warn', title:'Incomplete OTP', message:'Please enter the full 6-digit code.' });
+    return;
+  }
+  if (otpState.v.code && code !== otpState.v.code) {
+    // Clear the boxes so user can retry without seeing the wrong code linger
+    boxes.forEach(b => { b.value = ''; });
+    if (boxes[0]) boxes[0].focus();
+    showToast({ kind:'err', title:'Incorrect OTP', message:'That code is invalid or has expired. Tap Resend to get a new one.' });
+    return;
+  }
+  showToast({ kind:'ok', title:'Identity verified', message:'Signing you in now…' });
+  // New-account flow: skip the redundant Step 4 MFA card — go straight into the app
+  try {
+    const p = JSON.parse(sessionStorage.getItem('di_account_profile')||'{}');
+    const found = {
+      username: (p.email || '').split('@')[0] || 'user',
+      name: p.name || 'New User',
+      initials: (p.name || 'NU').split(/\s+/).slice(0,2).map(s=>s[0]||'').join('').toUpperCase() || 'NU',
+      email: p.email || '',
+      role: p.role || (p.roles && p.roles[0]) || 'Platform User',
+      region: p.region || 'North America'
+    };
+    finalizeLogin(found);
+  } catch (e) {
+    finalizeLogin({ username:'user', name:'New User', initials:'NU' });
+  }
+}
+
+function doMfaSignIn(){
+  const u = document.getElementById('m-iu').value.trim();
+  const code = Array.from(document.querySelectorAll('#otp-row-m .otp-box')).map(b=>b.value).join('');
+  if (!u) { showToast({ kind:'warn', title:'Missing identifier', message:'Enter your email or mobile to continue.' }); return; }
+  if (code.length !== 6) { showToast({ kind:'warn', title:'Incomplete OTP', message:'Please enter the full 6-digit code.' }); return; }
+  if (otpState.m.code && code !== otpState.m.code) {
+    showToast({ kind:'err', title:'Incorrect OTP', message:'That code is invalid or has expired. Tap Resend to get a new one.' });
+    return;
+  }
+  let found = USERS.find(x => x.username === u.split('@')[0] || x.email === u)
+           || findSavedUser(u);
+  if (!found) {
+    try {
+      const p = JSON.parse(sessionStorage.getItem('di_account_profile')||'{}');
+      found = { username: u, name: p.name || u, initials: (p.name||u).slice(0,2).toUpperCase(), email: p.email||u, role: p.role };
+    } catch (e) { found = { username: u, name: u, initials: u.slice(0,2).toUpperCase() }; }
+  }
+  showToast({ kind:'ok', title:'Authenticated', message:'Welcome, ' + (found.name || u) + '.' });
+  finalizeLogin(found);
+}
+
+async function doLogin() {
+  const u = document.getElementById('iu').value.trim();
+  const pField = document.getElementById('ip');
+  const p = pField ? pField.value : '';
+  const err = document.getElementById('lg-err');
+
+  function fail(msg){
+    err.classList.add('show');
+    if (pField) pField.type = 'password';
+    const eye = pField && pField.parentElement && pField.parentElement.querySelector('button');
+    if (eye) eye.textContent = '👁';
+    showToast({ kind:'err', title:'Sign-in failed', message: msg || 'The email/username or password is incorrect.' });
+  }
+  if (!u || !p) { fail('Enter your email/username and password.'); return; }
+
+  // 1) Check the hardcoded demo USERS first (Nishanth / admin)
+  const demo = USERS.find(x =>
+    (x.username && x.username.toLowerCase() === u.toLowerCase()) ||
+    (x.email    && x.email.toLowerCase()    === u.toLowerCase())
+  );
+  if (demo && demo.password === p) {
+    err.classList.remove('show');
+    showToast({ kind:'ok', title:'Welcome back', message:'Signed in as ' + (demo.name || u) + '.' });
+    finalizeLogin(demo);
+    return;
+  }
+
+  // 2) Check the localStorage-saved accounts (created via sign-up)
+  const saved = findSavedUser(u);
+  if (saved && await verifyPassword(saved, p)) {
+    err.classList.remove('show');
+    // Stamp last-sign-in time
+    try {
+      const all = loadSavedUsers();
+      const i = all.findIndex(x => x.email === saved.email);
+      if (i >= 0) { all[i].lastSignInAt = new Date().toISOString(); saveAllUsers(all); }
+    } catch (e) {}
+    showToast({ kind:'ok', title:'Welcome back', message:'Signed in as ' + (saved.name || u) + '.' });
+    finalizeLogin(saved);
+    return;
+  }
+
+  // 3) Neither matched — fail
+  fail();
+}
+
+function finalizeLogin(found){
+  currentUser = found;
+  // Recover API key from sessionStorage if previously saved
+  apiKey = sessionStorage.getItem('di_anthropic_key') || '';
+  // ── Build/refresh the session profile that downstream pages read ──
+  const profile = {
+    name:   found.name || 'User',
+    firstName: found.firstName || (found.name || 'User').split(' ')[0],
+    lastName:  found.lastName  || (found.name || '').split(' ').slice(1).join(' '),
+    initials:  found.initials  || (found.name || '??').slice(0,2).toUpperCase(),
+    email:  found.email  || '',
+    mobile: found.mobile || '',
+    role:   found.role   || 'Platform User',
+    roles:  found.roles  || (found.role ? [found.role] : []),
+    region: found.region || 'North America',
+    persona: found.persona || 'Banking modernization',
+    organization: 'Digital Infotech',
+    signedInAt: new Date().toISOString()
+  };
+  try { sessionStorage.setItem('di_account_profile', JSON.stringify(profile)); } catch (e) {}
+  // ── Phase 13: redirect to Nishi as the first landing ──
+  // Keep a small marker so Nishi knows to show the welcome flow
+  try { sessionStorage.setItem('di_from_login', '1'); } catch (e) {}
+  location.href = 'nishi-chatbot.html?from=login';
+}
+
+function refreshApiStatus(){
+  const statusBar = document.getElementById('api-status-bar');
+  if (!statusBar) return;
+  if (apiKey && apiKey.startsWith('sk-ant')) {
+    statusBar.innerHTML = '<span class="api-status api-status-ok" onclick="toggleApiDrawer()" style="cursor:pointer">🔑 AI Active</span>';
+  } else {
+    statusBar.innerHTML = '<span class="api-status api-status-none" onclick="toggleApiDrawer()" style="cursor:pointer">⚠ No API Key — click to add</span>';
+  }
+}
+
+function toggleApiDrawer(){
+  const d = document.getElementById('api-drawer');
+  if (!d) return;
+  d.classList.toggle('on');
+  if (d.classList.contains('on')) {
+    const f = document.getElementById('app-apikey');
+    if (f && apiKey) f.value = apiKey;
+    if (f) f.focus();
+  }
+}
+
+function saveApiKey(){
+  const f = document.getElementById('app-apikey');
+  const v = (f.value || '').trim();
+  if (!v.startsWith('sk-ant')) {
+    if (!confirm('That doesn\'t look like an Anthropic key (sk-ant-…). Save anyway?')) return;
+  }
+  apiKey = v;
+  sessionStorage.setItem('di_anthropic_key', v);
+  refreshApiStatus();
+  toggleApiDrawer();
+}
+
+function clearApiKey(){
+  apiKey = '';
+  sessionStorage.removeItem('di_anthropic_key');
+  const f = document.getElementById('app-apikey');
+  if (f) f.value = '';
+  refreshApiStatus();
+}
+
+function doLogout() {
+  currentUser = null;
+  apiKey = '';
+  document.getElementById('s-app').classList.remove('on');
+  document.getElementById('s-login').classList.add('on');
+  document.getElementById('iu').value = '';
+  document.getElementById('ip').value = '';
+  const ak = document.getElementById('app-apikey'); if (ak) ak.value='';
+  document.getElementById('api-status-bar').innerHTML = '';
+  gotoStep(1);
+  // ── Nishi cleanup ──
+  try {
+    sessionStorage.removeItem('di_account_profile');
+    if (window.Nishi && window.Nishi.context) window.Nishi.context.reset();
+  } catch (e) {}
+}
+
+/* ══════════════════════════════════════════════════════
+   MODULE SWITCHING
+══════════════════════════════════════════════════════ */
+function switchMod(mod, btn) {
+  document.querySelectorAll('.tb-tab').forEach(t => t.classList.remove('act'));
+  btn.classList.add('act');
+  document.querySelectorAll('.mod-panel').forEach(p => p.classList.remove('on'));
+  document.getElementById('mod-' + mod).classList.add('on');
+  const sb = document.getElementById('main-sb');
+  sb.style.display = mod === 'discovery' ? 'flex' : 'none';
+}
+
+/* ══════════════════════════════════════════════════════
+   PARTICLES (login screen)
+══════════════════════════════════════════════════════ */
+(function createParticles() {
+  const c = document.getElementById('particles');
+  const colours = ['rgba(200,146,26,.5)','rgba(61,142,255,.4)','rgba(0,201,200,.3)'];
+  for (let i = 0; i < 30; i++) {
+    const d = document.createElement('div');
+    const size = Math.random() * 4 + 1;
+    d.className = 'lg-dot';
+    d.style.cssText = `
+      left:${Math.random()*100}%;
+      width:${size}px;height:${size}px;
+      background:${colours[i%3]};
+      animation-duration:${8+Math.random()*12}s;
+      animation-delay:${-Math.random()*15}s`;
+    c.appendChild(d);
+  }
+})();
+
+/* ══════════════════════════════════════════════════════
+   DISCOVERY STUDIO DATA
+══════════════════════════════════════════════════════ */
+const MODULES = [
+  { id:'pay', icon:'💳', name:'Payments Processing', desc:'COBOL batch & real-time', issues:14, hours:320,
+    codes:[
+      {name:'PAYBATCH.cbl',type:'COBOL',lang:'ct-cobol',loc:'18,420',risk:'h',risk_lbl:'risk-h',complexity:'High',desc:'Core batch payment orchestrator'},
+      {name:'RTPAYMENT.cbl',type:'COBOL',lang:'ct-cobol',loc:'9,218',risk:'m',risk_lbl:'risk-m',complexity:'Medium',desc:'Real-time payment handler'},
+      {name:'PAYROUTE.java',type:'Java',lang:'ct-java',loc:'3,402',risk:'l',risk_lbl:'risk-l',complexity:'Low',desc:'Routing microservice wrapper'},
+      {name:'SWIFT_MSG.cbl',type:'COBOL',lang:'ct-cobol',loc:'6,105',risk:'h',risk_lbl:'risk-h',complexity:'High',desc:'SWIFT MT messaging encoder'},
+      {name:'PAY_AUDIT.sql',type:'SQL',lang:'ct-sql',loc:'2,340',risk:'l',risk_lbl:'risk-l',complexity:'Low',desc:'Audit trail stored procedures'},
+    ]},
+  { id:'acc', icon:'🏦', name:'Core Accounts & Ledger', desc:'General ledger & balances', issues:9, hours:280,
+    codes:[
+      {name:'ACCTMGMT.cbl',type:'COBOL',lang:'ct-cobol',loc:'22,100',risk:'h',risk_lbl:'risk-h',complexity:'High',desc:'Account master management'},
+      {name:'LEDGER.cbl',type:'COBOL',lang:'ct-cobol',loc:'15,600',risk:'h',risk_lbl:'risk-h',complexity:'High',desc:'Double-entry ledger engine'},
+      {name:'BAL_CHECK.rpg',type:'RPG',lang:'ct-rpg',loc:'4,800',risk:'m',risk_lbl:'risk-m',complexity:'Medium',desc:'Balance reconciliation RPG'},
+      {name:'ACCTSVC.java',type:'Java',lang:'ct-java',loc:'2,900',risk:'l',risk_lbl:'risk-l',complexity:'Low',desc:'Account REST API service'},
+    ]},
+  { id:'loa', icon:'📋', name:'Loans & Credit', desc:'Origination & servicing', issues:11, hours:195,
+    codes:[
+      {name:'LOANORG.cbl',type:'COBOL',lang:'ct-cobol',loc:'13,400',risk:'m',risk_lbl:'risk-m',complexity:'Medium',desc:'Loan origination engine'},
+      {name:'CREDITSC.cbl',type:'COBOL',lang:'ct-cobol',loc:'8,200',risk:'h',risk_lbl:'risk-h',complexity:'High',desc:'Credit scoring COBOL model'},
+      {name:'INTEREST.cbl',type:'COBOL',lang:'ct-cobol',loc:'5,600',risk:'m',risk_lbl:'risk-m',complexity:'Medium',desc:'Interest calculation batch'},
+      {name:'LOAN_API.java',type:'Java',lang:'ct-java',loc:'4,100',risk:'l',risk_lbl:'risk-l',complexity:'Low',desc:'Loan management REST API'},
+    ]},
+  { id:'com', icon:'📊', name:'Compliance & AML', desc:'Regulatory & sanctions screening', issues:7, hours:410,
+    codes:[
+      {name:'AML_SCRN.cbl',type:'COBOL',lang:'ct-cobol',loc:'11,800',risk:'h',risk_lbl:'risk-h',complexity:'High',desc:'AML transaction screener'},
+      {name:'SANCTIONS.cbl',type:'COBOL',lang:'ct-cobol',loc:'7,300',risk:'h',risk_lbl:'risk-h',complexity:'High',desc:'OFAC sanctions list checker'},
+      {name:'RPTGEN.rpg',type:'RPG',lang:'ct-rpg',loc:'3,200',risk:'m',risk_lbl:'risk-m',complexity:'Medium',desc:'Regulatory report generator'},
+      {name:'COMP_DB.sql',type:'SQL',lang:'ct-sql',loc:'1,900',risk:'l',risk_lbl:'risk-l',complexity:'Low',desc:'Compliance audit database'},
+    ]},
+  { id:'trd', icon:'📈', name:'Trade Finance', desc:'LC, guarantees & SWIFT', issues:6, hours:240,
+    codes:[
+      {name:'TRDFIN.cbl',type:'COBOL',lang:'ct-cobol',loc:'14,900',risk:'h',risk_lbl:'risk-h',complexity:'High',desc:'Trade finance orchestrator'},
+      {name:'LC_PROC.cbl',type:'COBOL',lang:'ct-cobol',loc:'8,700',risk:'m',risk_lbl:'risk-m',complexity:'Medium',desc:'Letter of credit processor'},
+      {name:'SWIFT_GEN.cbl',type:'COBOL',lang:'ct-cobol',loc:'5,400',risk:'h',risk_lbl:'risk-h',complexity:'High',desc:'SWIFT message generator'},
+      {name:'TRDSVC.java',type:'Java',lang:'ct-java',loc:'3,800',risk:'l',risk_lbl:'risk-l',complexity:'Low',desc:'Trade microservice layer'},
+    ]},
+  { id:'rep', icon:'📤', name:'Reporting & MIS', desc:'Batch reports & dashboards', issues:4, hours:130,
+    codes:[
+      {name:'BATCRPT.cbl',type:'COBOL',lang:'ct-cobol',loc:'9,200',risk:'m',risk_lbl:'risk-m',complexity:'Medium',desc:'Batch MIS report generator'},
+      {name:'MTHEND.cbl',type:'COBOL',lang:'ct-cobol',loc:'12,400',risk:'h',risk_lbl:'risk-h',complexity:'High',desc:'Month-end close processing'},
+      {name:'RPT_SVC.java',type:'Java',lang:'ct-java',loc:'2,100',risk:'l',risk_lbl:'risk-l',complexity:'Low',desc:'Report API microservice'},
+      {name:'RPT_DB.sql',type:'SQL',lang:'ct-sql',loc:'1,600',risk:'l',risk_lbl:'risk-l',complexity:'Low',desc:'Reporting stored procedures'},
+    ]},
+];
+
+let activeModuleId = 'pay';
+let codeActions = {};  // key: modId+'-'+codeIdx, value: 'opt'|'nop'|'dec'
+
+function initDiscovery() {
+  const sbl = document.getElementById('sbl');
+  sbl.innerHTML = '';
+  MODULES.forEach(m => {
+    const d = document.createElement('div');
+    d.className = 'sb-item' + (m.id === activeModuleId ? ' act' : '');
+    d.dataset.id = m.id;
+    d.innerHTML = `
+      <div class="sb-item-icon">${m.icon}</div>
+      <div class="sb-item-text">
+        <div class="sb-name">${m.name}</div>
+        <div class="sb-desc">${m.desc}</div>
+      </div>
+      <div class="sb-badge">${m.issues}</div>`;
+    d.onclick = () => loadModule(m.id);
+    sbl.appendChild(d);
+  });
+  updateTotals();
+  loadModule(activeModuleId);
+}
+
+function loadModule(id) {
+  activeModuleId = id;
+  document.querySelectorAll('.sb-item').forEach(el => el.classList.toggle('act', el.dataset.id === id));
+  const m = MODULES.find(x => x.id === id);
+  document.getElementById('ds-title').textContent = m.name;
+  document.getElementById('ds-meta').textContent = `${m.codes.length} code components · ${m.hours}h tech debt`;
+
+  const sec = document.getElementById('code-section');
+  sec.innerHTML = `
+    <div class="code-section-title">Code Components — ${m.name}</div>
+    <table class="code-table">
+      <thead><tr>
+        <th>Component</th><th>Type</th><th>Language</th><th>LOC</th>
+        <th>Region</th><th>Server</th><th>Risk</th><th>Action</th>
+      </tr></thead>
+      <tbody id="code-tbody"></tbody>
+    </table>`;
+
+  const tbody = document.getElementById('code-tbody');
+  m.codes.forEach((c, i) => {
+    const key = id + '-' + i;
+    const cur = codeActions[key] || '';
+    const region = document.getElementById('cfg-region').value.split('—')[0].trim();
+    const server = document.getElementById('cfg-server').value;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="code-name">${c.name}</span><div style="font-size:10px;color:var(--t3)">${c.desc}</div></td>
+      <td><span class="code-type ${c.lang}">${c.type}</span></td>
+      <td style="color:var(--t2);font-size:11.5px">${c.complexity}</td>
+      <td class="code-loc">${c.loc}</td>
+      <td style="font-size:11px;color:var(--t2)">${region}</td>
+      <td style="font-family:var(--f-mono);font-size:10.5px;color:var(--blue)">${server}</td>
+      <td><span class="code-risk ${c.risk_lbl}">${c.risk==='h'?'High':c.risk==='m'?'Medium':'Low'}</span></td>
+      <td>
+        <div class="action-sel">
+          <button class="act-btn opt${cur==='opt'?' sel':''}" onclick="setAction('${key}',this,'opt')">✓ Optimize</button>
+          <button class="act-btn nop${cur==='nop'?' sel':''}" onclick="setAction('${key}',this,'nop')">— No Action</button>
+          <button class="act-btn dec${cur==='dec'?' sel':''}" onclick="setAction('${key}',this,'dec')">✕ Decommission</button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  updateSelCounts();
+}
+
+function setAction(key, btn, action) {
+  const row = btn.closest('.action-sel');
+  row.querySelectorAll('.act-btn').forEach(b => b.classList.remove('sel'));
+  if (codeActions[key] === action) {
+    delete codeActions[key];
+  } else {
+    codeActions[key] = action;
+    btn.classList.add('sel');
+  }
+  updateSelCounts();
+}
+
+function updateSelCounts() {
+  const vals = Object.values(codeActions);
+  document.getElementById('cnt-opt').textContent = vals.filter(v=>v==='opt').length;
+  document.getElementById('cnt-nop').textContent = vals.filter(v=>v==='nop').length;
+  document.getElementById('cnt-dec').textContent = vals.filter(v=>v==='dec').length;
+}
+
+function updateTotals() {
+  const total = MODULES.reduce((s,m)=>s+m.codes.length,0);
+  const issues = MODULES.reduce((s,m)=>s+m.issues,0);
+  const hours = MODULES.reduce((s,m)=>s+m.hours,0);
+  document.getElementById('t-an').textContent = total;
+  document.getElementById('t-is').textContent = issues;
+  document.getElementById('t-hr').textContent = hours + 'h';
+}
+
+function updateSrvSummary() {
+  const r = document.getElementById('cfg-region').value;
+  const s = document.getElementById('cfg-server').value;
+  const t = document.getElementById('cfg-type').value;
+  const n = document.getElementById('cfg-count').value;
+  document.getElementById('sv-region').textContent = r.split('—')[0].trim();
+  document.getElementById('sv-server').textContent = s;
+  document.getElementById('sv-type').textContent = t.split('—')[0].trim();
+  document.getElementById('sv-count').textContent = n;
+  if (activeModuleId) loadModule(activeModuleId);
+}
+
+async function runDiscoveryAI() {
+  const m = MODULES.find(x => x.id === activeModuleId);
+  const btn = document.getElementById('ai-run-btn');
+  const body = document.getElementById('ai-body');
+  const region = document.getElementById('cfg-region').value;
+  const server = document.getElementById('cfg-server').value;
+  const stype = document.getElementById('cfg-type').value;
+  const count = document.getElementById('cfg-count').value;
+  const selected = m.codes.map((c,i)=>`${c.name} (${c.type}, ${c.loc} LOC, ${c.complexity} risk) → action: ${codeActions[activeModuleId+'-'+i]||'not set'}`).join('\n');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Analysing...';
+  body.innerHTML = '<div><span class="ai-spinner"></span>Running AI analysis on selected code components...</div>';
+
+  const prompt = `You are a legacy banking code modernisation expert. Analyse the following code components for the "${m.name}" module.
+
+Server context:
+- Region: ${region}
+- Server: ${server}
+- Type: ${stype}
+- Servers in scope: ${count}
+
+Code components and assigned actions:
+${selected}
+
+Provide a concise technical analysis (8-10 lines) covering:
+1. Which components to optimise and why (performance/maintainability gains)
+2. Which to decommission and the migration approach
+3. Technical debt estimate and recommended sprint plan
+4. Key risks and dependencies
+
+Format as clear paragraphs with ★ bullet points for recommendations. Be specific and use banking terminology.`;
+
+  try {
+    if (!apiKey) throw new Error('No API key entered. Please sign out and log in again with your Anthropic API key.');
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content?.find(b=>b.type==='text')?.text || 'No response received.';
+    body.innerHTML = formatAIText(text);
+  } catch(e) {
+    body.innerHTML = `<span style="color:var(--red)">⚠ ${e.message}</span>`;
+  }
+  btn.disabled = false;
+  btn.textContent = '▶ Analyse Selection';
+}
+
+function formatAIText(text) {
+  return text.replace(/\n/g,'<br/>').replace(/★/g,'<span style="color:var(--amber2)">★</span>');
+}
+
+function openSelReport() {
+  let report = `DIGITAL INFOTECH — CODE SELECTION REPORT\n`;
+  report += `Generated: ${new Date().toLocaleString()}\n`;
+  report += `Server: ${document.getElementById('cfg-server').value} | Region: ${document.getElementById('cfg-region').value}\n`;
+  report += `Type: ${document.getElementById('cfg-type').value} | Servers: ${document.getElementById('cfg-count').value}\n`;
+  report += `${'─'.repeat(60)}\n\n`;
+  MODULES.forEach(m => {
+    const hasActions = m.codes.some((_,i)=>codeActions[m.id+'-'+i]);
+    if (!hasActions) return;
+    report += `MODULE: ${m.name}\n`;
+    m.codes.forEach((c,i)=>{
+      const a = codeActions[m.id+'-'+i];
+      if (!a) return;
+      const label = a==='opt'?'OPTIMIZE':a==='dec'?'DECOMMISSION':'NO ACTION';
+      report += `  [${label}] ${c.name} (${c.type}, ${c.loc} LOC)\n`;
+    });
+    report += '\n';
+  });
+  if (report.indexOf('MODULE') === -1) {
+    report += 'No actions assigned yet. Use the action buttons on code components.';
+  }
+  document.getElementById('modal-title').textContent = '📋 Code Selection Report';
+  document.getElementById('modal-content').textContent = report;
+  document.getElementById('modal').classList.add('open');
+}
+
+/* ══════════════════════════════════════════════════════
+   REQUIREMENTS STUDIO
+══════════════════════════════════════════════════════ */
+const CAT_SUBTYPES = {
+  biz: ['Revenue Growth','Cost Reduction','Customer Experience','Market Expansion','Operational Efficiency','Risk Reduction','Regulatory Compliance','Digital Transformation'],
+  prod: ['Core Features','User Journey','Mobile Banking','API Integration','Notifications & Alerts','Self-Service','Product Catalogue','Onboarding Flow'],
+  arch: ['Microservices Migration','API Gateway','Event-Driven Architecture','Cloud Migration','Data Architecture','Security Architecture','Integration Layer','Performance Optimisation'],
+  debt: ['COBOL Modernisation','Legacy Database Migration','Dead Code Removal','Security Patching','Dependency Upgrades','Code Refactoring','Test Coverage','Documentation'],
+  reg: ['Basel III / IV','AML / KYC','GDPR / Privacy','Open Banking / PSD2','SOX Compliance','FATCA / CRS','Stress Testing','Consumer Duty']
+};
+
+let selectedCat = 'biz';
+let selectedSubs = new Set();
+
+function initRequirements() {
+  renderSubChips('biz');
+}
+
+function selectCat(el) {
+  document.querySelectorAll('.cat-chip').forEach(c=>c.classList.remove('act'));
+  el.classList.add('act');
+  selectedCat = el.dataset.cat;
+  selectedSubs.clear();
+  renderSubChips(selectedCat);
+}
+
+function renderSubChips(cat) {
+  const row = document.getElementById('sub-row');
+  row.innerHTML = '';
+  CAT_SUBTYPES[cat].forEach(sub => {
+    const c = document.createElement('div');
+    c.className = 'sub-chip';
+    c.textContent = sub;
+    c.onclick = () => {
+      if (selectedSubs.has(sub)) { selectedSubs.delete(sub); c.classList.remove('act'); }
+      else { selectedSubs.add(sub); c.classList.add('act'); }
+    };
+    row.appendChild(c);
+  });
+}
+
+function updateCharCount() {
+  const len = document.getElementById('rq-input').value.length;
+  document.getElementById('char-count').textContent = len.toLocaleString() + ' chars';
+}
+
+function setAgent(idx, state) {
+  const bubble = document.getElementById('ag'+idx);
+  const lbl = document.getElementById('al'+idx);
+  bubble.className = 'agent-bubble ' + state;
+  lbl.className = 'agent-lbl ' + state;
+}
+
+function resetAgents() {
+  for (let i=0;i<6;i++) setAgent(i,'');
+}
+
+async function runRequirementsAI() {
+  const input = document.getElementById('rq-input').value.trim();
+  const proj = document.getElementById('rq-proj').value.trim() || 'Project';
+  const key = document.getElementById('rq-key').value.trim().toUpperCase() || 'PROJ';
+  const plat = document.getElementById('rq-plat').value;
+  if (!input) { showNotif('Please paste discovery input notes first.', 'err'); return; }
+
+  const btn = document.getElementById('rq-run-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Running 6-Agent Pipeline...';
+  resetAgents();
+  document.getElementById('rq-results').innerHTML = '';
+
+  const agentNames = ['Discovery Parser','Epic Generator','Story Writer','Acceptance Criteria','Estimation Agent','Platform Mapper'];
+  const delays = [600,1200,2000,3000,4000,4800];
+
+  delays.forEach((d,i) => {
+    setTimeout(()=>setAgent(i,'running'), d);
+    if (i>0) setTimeout(()=>setAgent(i-1,'done'), d);
+  });
+
+  const catLabel = document.querySelector('.cat-chip.act')?.textContent || 'Business';
+  const subLabel = [...selectedSubs].join(', ') || 'General';
+
+  const prompt = `You are a 6-agent AI Requirements Engineering system. Generate a complete Agile backlog from the discovery input below.
+
+Project: ${proj} (Key: ${key})
+Category: ${catLabel}
+Sub-types: ${subLabel}
+Export target: ${plat}
+
+Discovery Input:
+"""
+${input}
+"""
+
+Respond ONLY with valid JSON (no markdown, no backticks) in this exact structure:
+{
+  "epics": [
+    {
+      "id": "E1",
+      "title": "Epic title",
+      "description": "Epic description 2 sentences",
+      "business_value": "Business value statement",
+      "priority": "High",
+      "component": "Component label",
+      "stories": [
+        {
+          "id": "S1.1",
+          "title": "Story title",
+          "story": "As a [specific persona], I want [specific action] so that [specific benefit]",
+          "points": 5,
+          "priority": "High",
+          "acceptance_criteria": [
+            "Given [context] When [action] Then [outcome]",
+            "Given [context] When [action] Then [outcome]",
+            "Given [context] When [action] Then [outcome]"
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+Generate 3-4 epics, each with 3-4 stories. Points from {1,2,3,5,8,13}. Priority from {Critical,High,Medium,Low}. Make everything specific to the discovery input domain.`;
+
+  try {
+    if (!apiKey) throw new Error('No API key entered. Please sign out and log in again with your Anthropic API key.');
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const rawText = data.content?.find(b=>b.type==='text')?.text || '{}';
+    setTimeout(()=>setAgent(5,'done'), 5200);
+
+    let parsed;
+    try {
+      const clean = rawText.replace(/```json|```/g,'').trim();
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      parsed = { epics: [] };
+    }
+
+    setTimeout(()=>{
+      btn.disabled = false;
+      btn.textContent = '🚀 Generate Requirements Backlog';
+      renderResults(parsed, key, plat);
+    }, 5400);
+
+  } catch(e) {
+    setTimeout(()=>{
+      btn.disabled = false;
+      btn.textContent = '🚀 Generate Requirements Backlog';
+      resetAgents();
+      document.getElementById('rq-results').innerHTML = `<div style="color:var(--red);padding:16px;background:rgba(255,77,106,.08);border:1px solid rgba(255,77,106,.2);border-radius:8px;font-size:13px">⚠ ${e.message}</div>`;
+    }, 1000);
+  }
+}
+
+function renderResults(data, key, plat) {
+  const container = document.getElementById('rq-results');
+  if (!data.epics || !data.epics.length) {
+    container.innerHTML = '<div style="color:var(--t3);padding:20px;text-align:center">No epics generated. Check your discovery input.</div>';
+    return;
+  }
+
+  let storyCount = data.epics.reduce((s,e)=>s+(e.stories?.length||0),0);
+  let html = `<div class="res-section">
+    <div class="res-hdr"><h3>Generated Backlog</h3><div class="res-count">${data.epics.length} Epics · ${storyCount} Stories</div></div>`;
+
+  data.epics.forEach((epic, ei) => {
+    const prioClass = {Critical:'p-critical',High:'p-high',Medium:'p-medium',Low:'p-low'}[epic.priority] || 'p-medium';
+    html += `<div class="epic-card">
+      <div class="epic-hdr" onclick="toggleEpic(${ei})">
+        <span class="epic-tag">${key}-EPIC-${ei+1}</span>
+        <span class="epic-title">${epic.title || 'Epic'}</span>
+        <span class="epic-prio ${prioClass}">${epic.priority || 'Medium'}</span>
+        <span class="epic-chevron" id="chev-${ei}">▼</span>
+      </div>
+      <div class="epic-body open" id="epic-body-${ei}">
+        <div class="epic-desc">${epic.description || ''}</div>`;
+
+    (epic.stories || []).forEach((story, si) => {
+      const sId = `${key}-${(ei+1)*100+(si+1)}`;
+      const sp = {Critical:'p-critical',High:'p-high',Medium:'p-medium',Low:'p-low'}[story.priority]||'p-medium';
+      html += `<div class="story-card">
+        <div class="story-id">${sId} · ${story.title || 'Story'}</div>
+        <div class="story-text">${story.story || ''}</div>
+        <div class="story-meta">
+          <span class="story-pts">SP: ${story.points || 3}</span>
+          <span class="epic-prio ${sp}" style="font-size:10px">${story.priority || 'Medium'}</span>
+        </div>`;
+      if (story.acceptance_criteria?.length) {
+        html += '<div class="ac-list">';
+        story.acceptance_criteria.forEach(ac => { html += `<div class="ac-item">${ac}</div>`; });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+
+  // Export buttons
+  const jiraExport = buildJiraJSON(data, key);
+  const rallyExport = buildRallyJSON(data, key);
+
+  html += `<div class="export-row">
+    <button class="exp-btn exp-jira" onclick='copyExport(${JSON.stringify(jiraExport)}, "Jira")'>📋 Copy Jira JSON</button>
+    <button class="exp-btn exp-rally" onclick='copyExport(${JSON.stringify(rallyExport)}, "Rally")'>📋 Copy Rally JSON</button>
+    <button class="exp-btn exp-copy" onclick="downloadBacklog()">⬇ Download Report</button>
+  </div>`;
+
+  container.innerHTML = html;
+  window._lastBacklog = data;
+}
+
+function toggleEpic(ei) {
+  const body = document.getElementById('epic-body-'+ei);
+  const chev = document.getElementById('chev-'+ei);
+  const open = body.classList.toggle('open');
+  body.style.display = open ? 'block' : 'none';
+  chev.textContent = open ? '▼' : '▶';
+}
+
+function buildJiraJSON(data, key) {
+  return {
+    projects: [{
+      key,
+      issues: data.epics.flatMap((epic, ei) => [
+        { summary: epic.title, issuetype: 'Epic', priority: epic.priority, description: epic.description, labels: [epic.component] },
+        ...(epic.stories||[]).map(s => ({
+          summary: s.title,
+          issuetype: 'Story',
+          description: s.story,
+          priority: s.priority,
+          story_points: s.points,
+          epic_link: epic.title,
+          acceptance_criteria: (s.acceptance_criteria||[]).join('\n')
+        }))
+      ])
+    }]
+  };
+}
+
+function buildRallyJSON(data, key) {
+  return {
+    features: data.epics.map(epic => ({
+      name: epic.title,
+      description: epic.description,
+      businessValue: epic.business_value,
+      priority: epic.priority,
+      user_stories: (epic.stories||[]).map(s => ({
+        name: s.title,
+        description: s.story,
+        planEstimate: s.points,
+        priority: s.priority,
+        notes: (s.acceptance_criteria||[]).join('\n')
+      }))
+    }))
+  };
+}
+
+function copyExport(obj, platform) {
+  const text = JSON.stringify(obj, null, 2);
+  navigator.clipboard.writeText(text).then(()=>showNotif(`${platform} JSON copied to clipboard!`,'ok')).catch(()=>{
+    document.getElementById('modal-title').textContent = `${platform} Export JSON`;
+    document.getElementById('modal-content').textContent = text;
+    document.getElementById('modal').classList.add('open');
+  });
+}
+
+function downloadBacklog() {
+  if (!window._lastBacklog) return;
+  let report = `DIGITAL INFOTECH — AI REQUIREMENTS BACKLOG\n`;
+  report += `Generated: ${new Date().toLocaleString()}\n`;
+  report += `Project: ${document.getElementById('rq-proj').value}\n`;
+  report += `${'─'.repeat(60)}\n\n`;
+  window._lastBacklog.epics.forEach((e,ei)=>{
+    report += `EPIC ${ei+1}: ${e.title}\n${e.description}\n\n`;
+    (e.stories||[]).forEach((s,si)=>{
+      report += `  Story ${ei+1}.${si+1}: ${s.title}\n  ${s.story}\n  Points: ${s.points} | Priority: ${s.priority}\n`;
+      (s.acceptance_criteria||[]).forEach(ac=>{ report += `    • ${ac}\n`; });
+      report += '\n';
+    });
+  });
+  const blob = new Blob([report],{type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'requirements-backlog.txt';
+  a.click();
+}
+
+/* ══════════════════════════════════════════════════════
+   MODAL & NOTIFICATIONS
+══════════════════════════════════════════════════════ */
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function copyModal() {
+  navigator.clipboard.writeText(document.getElementById('modal-content').textContent)
+    .then(()=>showNotif('Copied!','ok')).catch(()=>{});
+}
+
+function showNotif(msg, type='ok') {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.className = 'notif show notif-' + type;
+  setTimeout(()=>n.classList.remove('show'), 3000);
+}
+
+/* ══════════════════════════════════════════════════════
+   INIT — sidebar hidden in non-discovery modes
+══════════════════════════════════════════════════════ */
+document.getElementById('main-sb').style.display = 'flex';
+</script>
+<script>
+/* ══════════════════════════════════════════════════════
+   SWITCH MODES
+══════════════════════════════════════════════════════ */
+function switchMod(mod, el) {
+  document.querySelectorAll('.tb-tab').forEach(b => b.classList.remove('act'));
+  if (el && el.classList) el.classList.add('act');
+  document.querySelectorAll('[data-mod]').forEach(p => {
+    p.style.display = p.dataset.mod === mod ? '' : 'none';
+  });
+}
+
+// Initial state
+document.addEventListener('DOMContentLoaded', () => {
+  // No-op — login flow handles the rest
+});
+</script>
+
+<!-- API key drawer — opens from the top-bar status pill, lives inside the AI Discovery / app shell -->
+<div class="api-drawer" id="api-drawer">
+  <span class="status none" id="api-drawer-status">⚠ No key set</span>
+  <h4>Anthropic API Key</h4>
+  <div class="h-sub">Stored only in this session — never persisted to disk.</div>
+  <div class="row">
+    <input id="app-apikey" type="password" placeholder="sk-ant-api03-..." autocomplete="off" onkeydown="if(event.key==='Enter')saveApiKey()"/>
+    <button onclick="toggleKeyVis()" title="Show / hide">👁</button>
+  </div>
+  <div class="save-row">
+    <button class="primary" onclick="saveApiKey()">Save key</button>
+    <button class="secondary" onclick="clearApiKey()">Clear</button>
+    <button class="secondary" onclick="toggleApiDrawer()">Close</button>
+  </div>
+  <div class="hint">Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> → API Keys → Create Key. The key powers AI features in Discovery, Requirements, and Nishi's RAG mode (Phase 9).</div>
+</div>
+
+<script src="assets/nishi.js" defer></script>
+</body>
+</html>

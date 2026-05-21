@@ -1,0 +1,36 @@
+[
+  {
+    "payment_id": "PMT-2026-0001",
+    "amount": 1500.00,
+    "currency": "USD",
+    "source_account": "ACC-001-NA-EAST",
+    "destination_account": "ACC-902-EU-LON",
+    "status": "settled",
+    "rail": "SWIFT",
+    "initiated_at": "2026-05-10T08:14:23Z",
+    "settled_at": "2026-05-10T08:14:55Z"
+  },
+  {
+    "payment_id": "PMT-2026-0002",
+    "amount": 250.75,
+    "currency": "EUR",
+    "source_account": "ACC-441-EU-FRA",
+    "destination_account": "ACC-220-NA-WEST",
+    "status": "pending",
+    "rail": "SEPA",
+    "initiated_at": "2026-05-11T10:02:11Z",
+    "settled_at": null
+  },
+  {
+    "payment_id": "PMT-2026-0003",
+    "amount": 99999.00,
+    "currency": "GBP",
+    "source_account": "ACC-771-EU-LON",
+    "destination_account": "ACC-300-APAC-SG",
+    "status": "failed",
+    "rail": "CHAPS",
+    "failure_reason": "Insufficient funds",
+    "initiated_at": "2026-05-12T14:25:08Z",
+    "settled_at": null
+  }
+]

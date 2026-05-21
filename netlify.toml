@@ -1,0 +1,91 @@
+# ─────────────────────────────────────────────────────────────
+# DI-Platform · Netlify config — STATIC ONLY (no build)
+# ─────────────────────────────────────────────────────────────
+
+[build]
+  base    = "."
+  publish = "."
+  # No real build — just echo. Netlify still runs Python detection,
+  # but the root requirements.txt is an empty stub so pip installs nothing.
+  command = "echo 'DI-Platform static deploy — no build required.'"
+
+[build.environment]
+  # Pin a sane Python (Netlify's default 3.14 fails to build psycopg2).
+  PYTHON_VERSION = "3.11"
+  NODE_VERSION   = "20"
+  # Don't install ANY plugin dependencies.
+  NPM_FLAGS = "--no-audit --no-fund"
+  # Don't fetch unnecessary deps.
+  CI = "true"
+
+# ─── Global security & caching headers ───────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options       = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy       = "strict-origin-when-cross-origin"
+    Permissions-Policy    = "geolocation=(), microphone=(self), camera=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.anthropic.com; frame-ancestors 'self';"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ─── Friendly URL rewrites ───────────────────────────────────
+[[redirects]]
+  from = "/home"
+  to   = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/discovery"
+  to   = "/discovery-studio.html"
+  status = 200
+
+[[redirects]]
+  from = "/architecture"
+  to   = "/architecture-studio.html"
+  status = 200
+
+[[redirects]]
+  from = "/governance"
+  to   = "/program-governance.html"
+  status = 200
+
+[[redirects]]
+  from = "/questionnaire"
+  to   = "/questionnaire.html"
+  status = 200
+
+[[redirects]]
+  from = "/operations"
+  to   = "/operations.html"
+  status = 200
+
+[[redirects]]
+  from = "/q"
+  to   = "/questionnaire.html"
+  status = 200
+
+[[redirects]]
+  from = "/d"
+  to   = "/discovery-studio.html"
+  status = 200
+
+[[redirects]]
+  from = "/a"
+  to   = "/architecture-studio.html"
+  status = 200
+
+[[redirects]]
+  from = "/g"
+  to   = "/program-governance.html"
+  status = 200

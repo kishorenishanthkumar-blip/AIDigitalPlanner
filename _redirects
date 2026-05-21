@@ -1,0 +1,30 @@
+# DI Platform · clean URLs (works on Cloudflare Pages and Netlify)
+# Rewrites (200) keep the friendly URL in the address bar
+# Redirects (301) change the URL — use only for legacy paths
+
+# Friendly URLs → real files
+/home               /home.html                       200
+/nishi              /nishi-chatbot.html              200
+/discovery          /discovery-studio.html           200
+/architecture       /architecture-studio.html        200
+/governance         /program-governance.html         200
+/rfp                /rfp-questionnaire.html          200
+/questionnaire      /questionnaire.html              200
+/operations         /operations.html                 200
+
+# Feature-explainer with path parameter: /feature/rfp → /feature-explainer.html?feature=rfp
+/feature/:fid       /feature-explainer.html?feature=:fid   200
+
+# One-letter shortcuts (power users)
+/h                  /home.html                       200
+/n                  /nishi-chatbot.html              200
+/d                  /discovery-studio.html           200
+/a                  /architecture-studio.html        200
+/g                  /program-governance.html         200
+/q                  /questionnaire.html              200
+/o                  /operations.html                 200
+
+# Legacy redirects (old paths kept working)
+/login              /index.html                      301
+/signin             /index.html                      301
+/signup             /index.html                      301

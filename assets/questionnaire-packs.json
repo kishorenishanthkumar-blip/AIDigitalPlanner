@@ -1,0 +1,442 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "DI-Platform · Phase 2 Question Packs — role × region × domain scoped. Add new questions in the questions[] array.",
+    "schemaUrl": "/assets/questionnaire-schema.json"
+  },
+
+  "sections": [
+    { "id": "org",        "title": "Organization & Strategy",     "intro": "Set the strategic context: what business outcomes you're after, who is sponsoring, what risk appetite you operate with." },
+    { "id": "current",    "title": "Current State & Pain Points", "intro": "What you have today — tech stack, performance, manual workarounds, and the things keeping leadership awake." },
+    { "id": "future",     "title": "Future State & Outcomes",     "intro": "Where the platform needs to land — measurable outcomes, target architecture preferences, time horizon." },
+    { "id": "technical",  "title": "Technical Constraints",       "intro": "Existing dependencies, non-negotiable integrations, performance and resilience thresholds." },
+    { "id": "compliance", "title": "Compliance & Risk Posture",   "intro": "Regulatory commitments, audit cycle, classification of data the platform will handle." },
+    { "id": "governance", "title": "Program Governance",          "intro": "How decisions get made, who signs off, KPIs that prove the program is on track." }
+  ],
+
+  "roles": [
+    "CIO", "CTO", "CRO", "CFO", "CISO",
+    "Head of Architecture", "Head of Compliance",
+    "Business Owner", "Product Owner", "SRE Lead"
+  ],
+
+  "regions": ["North America", "Europe", "Asia Pacific", "South East Asia", "South Western Asia"],
+
+  "domains": [
+    "Core Banking — Payments", "Core Banking — Deposits", "Core Banking — Loans",
+    "Cards", "Trade Finance", "Treasury", "Wealth Management",
+    "Capital Markets", "Securities", "Risk & Compliance", "AML"
+  ],
+
+  "regionalRegulators": {
+    "North America":       { "primary": "OCC · FFIEC · OSFI",      "frameworks": ["SOX", "GLBA", "PCI-DSS 4.0", "FFIEC IT Examination", "OCC Bulletin 2013-29", "OSFI B-13", "PIPEDA"] },
+    "Europe":              { "primary": "EBA · ECB",                "frameworks": ["GDPR", "PSD2 / PSD3", "DORA", "MiCA", "EBA Outsourcing Guidelines", "EU AI Act"] },
+    "Asia Pacific":        { "primary": "RBI · MAS · APRA",         "frameworks": ["RBI Master Direction on Outsourcing", "MAS TRM Notice 644", "APRA CPS 234", "FSA Japan", "HKMA TM-G-1"] },
+    "South East Asia":     { "primary": "BNM · OJK · BSP",          "frameworks": ["BNM RMiT", "OJK POJK 38/2016", "BSP Circular 1019", "BoT Outsourcing", "SBV Circular 35"] },
+    "South Western Asia":  { "primary": "SAMA · CBUAE",             "frameworks": ["SAMA Cyber Framework", "CBUAE Outsourcing", "DFSA Conduct", "CBB Rulebook Vol 6", "QFCRA"] }
+  },
+
+  "questions": [
+
+    { "id": "Q-ORG-01",  "section": "org",        "type": "text",     "label": "What is the official project / program name?",
+      "required": true,  "mapsTo": ["discovery"],     "weight": 2,
+      "placeholder": "e.g. Payments Modernization 2026" },
+
+    { "id": "Q-ORG-02",  "section": "org",        "type": "single",   "label": "Executive sponsor?",
+      "options": ["CEO", "CIO", "CTO", "COO", "CFO", "CRO", "Business Unit Head"],
+      "required": true,  "mapsTo": ["discovery", "raid"],  "weight": 2 },
+
+    { "id": "Q-ORG-03",  "section": "org",        "type": "multi",    "label": "Top 3 business outcomes you're committing to",
+      "options": ["Reduce cost-to-serve", "Improve customer experience", "Real-time settlement", "Open new revenue streams",
+                  "Improve straight-through-processing", "Reduce manual reconciliation", "Cloud-native modernization", "Regulatory readiness"],
+      "required": true,  "mapsTo": ["requirement", "discovery"], "weight": 3 },
+
+    { "id": "Q-ORG-04",  "section": "org",        "type": "scale",    "label": "Risk appetite for this program (1 = very conservative, 5 = pioneer)",
+      "min": 1, "max": 5, "default": 3,
+      "minLabel": "Conservative", "maxLabel": "Pioneer",
+      "mapsTo": ["raid"], "weight": 2 },
+
+    { "id": "Q-ORG-05",  "section": "org",        "type": "single",   "label": "Total program budget (FY)",
+      "options": ["< $0.5M", "$0.5M–$1M", "$1M–$3M", "$3M–$5M", "$5M–$10M", "> $10M"],
+      "required": true,  "mapsTo": ["discovery"], "weight": 2 },
+
+    { "id": "Q-ORG-06",  "section": "org",        "type": "single",   "label": "Target completion horizon",
+      "options": ["< 6 months", "6–12 months", "12–18 months", "18–24 months", "24+ months"],
+      "required": true,  "mapsTo": ["discovery"], "weight": 2,
+      "roleScope": ["CIO", "CTO", "Business Owner", "Product Owner", "Head of Architecture"] },
+
+    { "id": "Q-ORG-07",  "section": "org",        "type": "longtext", "label": "What does success look like — in one paragraph?",
+      "help": "Write it the way you'd tell the board. Specific numbers welcome.",
+      "mapsTo": ["requirement"], "weight": 3 },
+
+    { "id": "Q-ORG-08",  "section": "org",        "type": "boolean",  "label": "Is this program already approved at the board level?",
+      "mapsTo": ["raid"], "weight": 2 },
+
+
+
+    { "id": "Q-CUR-01",  "section": "current",    "type": "multi",    "label": "Which legacy platforms are in scope?",
+      "options": ["IBM Mainframe z/OS", "IBM AS/400 / iSeries", "UNIX (AIX / Solaris)", "Windows Server 2012 / 2016",
+                  "Legacy Java EE (WebSphere / WebLogic)", "Custom COBOL", "Custom RPG", "Vendor packaged app", "Other"],
+      "required": true, "mapsTo": ["discovery"], "weight": 3 },
+
+    { "id": "Q-CUR-02",  "section": "current",    "type": "text",     "label": "Approximate lines-of-code in scope",
+      "placeholder": "e.g. 1.2M",
+      "mapsTo": ["discovery"], "weight": 2 },
+
+    { "id": "Q-CUR-03",  "section": "current",    "type": "scale",    "label": "How well-documented is the current system?",
+      "min": 1, "max": 5, "default": 2, "minLabel": "Tribal", "maxLabel": "Comprehensive",
+      "mapsTo": ["raid"], "weight": 2 },
+
+    { "id": "Q-CUR-04",  "section": "current",    "type": "longtext", "label": "Top 3 pain points keeping leadership awake",
+      "help": "One per line. Be specific (e.g. \"14-hour batch settlement\" rather than \"slow batches\").",
+      "mapsTo": ["requirement", "raid"], "weight": 3 },
+
+    { "id": "Q-CUR-05",  "section": "current",    "type": "single",   "label": "Current settlement / processing latency",
+      "options": ["< 1 second", "< 1 minute", "< 1 hour", "Same day batch", "Overnight batch (T+1)", "Multi-day"],
+      "mapsTo": ["requirement"], "weight": 3,
+      "domainScope": ["Core Banking — Payments", "Cards", "Treasury"] },
+
+    { "id": "Q-CUR-06",  "section": "current",    "type": "scale",    "label": "% of transactions requiring manual reconciliation",
+      "min": 0, "max": 25, "default": 5, "step": 1,
+      "minLabel": "0%", "maxLabel": "25%+",
+      "mapsTo": ["requirement"], "weight": 2 },
+
+    { "id": "Q-CUR-07",  "section": "current",    "type": "single",   "label": "Current DR posture",
+      "options": ["No formal DR", "Cold standby", "Warm standby", "Hot-hot multi-site", "Multi-region active-active"],
+      "mapsTo": ["raid", "compliance"], "weight": 3 },
+
+    { "id": "Q-CUR-08",  "section": "current",    "type": "boolean",  "label": "Has a recent (≤ 12 mo) penetration test been completed?",
+      "mapsTo": ["compliance"], "weight": 2,
+      "roleScope": ["CISO", "CRO", "Head of Compliance"] },
+
+    { "id": "Q-CUR-09",  "section": "current",    "type": "longtext", "label": "Any known regulator findings or audit observations?",
+      "help": "Brief context — closing date or current status helps.",
+      "mapsTo": ["compliance", "raid"], "weight": 3,
+      "roleScope": ["CRO", "CISO", "Head of Compliance"] },
+
+
+
+    { "id": "Q-FUT-01",  "section": "future",     "type": "multi",    "label": "Preferred deployment targets",
+      "options": ["Banking Private Data Center", "AWS", "Azure", "GCP", "Oracle Cloud (OCI)", "IBM Cloud", "Hybrid (Private + Hyperscaler)"],
+      "required": true, "mapsTo": ["discovery"], "weight": 3 },
+
+    { "id": "Q-FUT-02",  "section": "future",     "type": "single",   "label": "Target settlement latency",
+      "options": ["< 1 second (real-time)", "< 1 minute", "< 1 hour", "Same day (T+0)"],
+      "mapsTo": ["requirement"], "weight": 3,
+      "domainScope": ["Core Banking — Payments", "Cards", "Treasury"] },
+
+    { "id": "Q-FUT-03",  "section": "future",     "type": "scale",    "label": "Target straight-through-processing rate",
+      "min": 80, "max": 100, "default": 96, "step": 1,
+      "minLabel": "80%", "maxLabel": "100%",
+      "mapsTo": ["requirement"], "weight": 3 },
+
+    { "id": "Q-FUT-04",  "section": "future",     "type": "multi",    "label": "Modernization strategies you're open to (7R)",
+      "options": ["Retire", "Retain", "Rehost (lift-and-shift)", "Replatform", "Repurchase (SaaS)", "Refactor", "Rearchitect"],
+      "required": true, "mapsTo": ["discovery"], "weight": 3 },
+
+    { "id": "Q-FUT-05",  "section": "future",     "type": "boolean",  "label": "Open to blockchain / DLT adoption where appropriate?",
+      "mapsTo": ["discovery"], "weight": 2 },
+
+    { "id": "Q-FUT-06",  "section": "future",     "type": "boolean",  "label": "Plan to tokenize Real World Assets (RWA)?",
+      "mapsTo": ["discovery"], "weight": 2, "showIf": { "Q-FUT-05": "Yes" } },
+
+    { "id": "Q-FUT-07",  "section": "future",     "type": "ranked",   "label": "Rank the future-state priorities",
+      "options": ["Latency", "Cost", "Resilience", "Compliance", "Developer velocity", "Customer UX"],
+      "mapsTo": ["requirement"], "weight": 2 },
+
+    { "id": "Q-FUT-08",  "section": "future",     "type": "longtext", "label": "Any non-negotiables for the future state?",
+      "placeholder": "Vendor preferences, sovereignty, data residency, organisational policy...",
+      "mapsTo": ["raid"], "weight": 2 },
+
+
+
+    { "id": "Q-TEC-01",  "section": "technical",  "type": "multi",    "label": "Mandatory integrations the new platform must keep",
+      "options": ["Existing AML engine", "Core ledger", "CIF / Customer master", "Fraud engine", "Card scheme network",
+                  "SWIFT", "Domestic ACH", "Real-time rail (RTP / TIPS / SEPA Instant)", "Reg reporting hub"],
+      "mapsTo": ["requirement"], "weight": 3 },
+
+    { "id": "Q-TEC-02",  "section": "technical",  "type": "single",   "label": "Target p99 API latency",
+      "options": ["< 100ms", "< 250ms", "< 500ms", "< 1s", "< 3s"],
+      "mapsTo": ["requirement"], "weight": 2,
+      "roleScope": ["CTO", "Head of Architecture", "SRE Lead"] },
+
+    { "id": "Q-TEC-03",  "section": "technical",  "type": "single",   "label": "Target availability SLO",
+      "options": ["99.5%", "99.9%", "99.95%", "99.99%", "99.999%"],
+      "mapsTo": ["requirement"], "weight": 3 },
+
+    { "id": "Q-TEC-04",  "section": "technical",  "type": "multi",    "label": "Required messaging / event standards",
+      "options": ["ISO 20022", "SWIFT MT", "FIX (capital markets)", "Kafka (internal)", "AMQP / RabbitMQ", "GraphQL", "REST", "gRPC"],
+      "mapsTo": ["requirement"], "weight": 2 },
+
+    { "id": "Q-TEC-05",  "section": "technical",  "type": "single",   "label": "Containerization stance",
+      "options": ["All cloud-native containers", "Containers + select VMs", "VMs only", "Bare-metal where needed", "Undecided"],
+      "mapsTo": ["discovery"], "weight": 2,
+      "roleScope": ["CTO", "Head of Architecture", "SRE Lead"] },
+
+    { "id": "Q-TEC-06",  "section": "technical",  "type": "boolean",  "label": "Will the platform process card data (PAN / CVV)?",
+      "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-TEC-07",  "section": "technical",  "type": "longtext", "label": "Any technical debt that must be paid down first?",
+      "mapsTo": ["raid"], "weight": 2 },
+
+
+
+    { "id": "Q-COM-01",  "section": "compliance", "type": "multi",    "label": "Data classes the platform will handle",
+      "options": ["PCI cardholder data", "PII", "KYC documents", "AML watchlists", "Public market data", "Internal-only financials"],
+      "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-02",  "section": "compliance", "type": "single",   "label": "Data residency requirement",
+      "options": ["Strict — in-country only", "Region-bound (e.g. EU-only)", "Sovereign cloud OK", "Any geography acceptable"],
+      "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-03",  "section": "compliance", "type": "boolean",  "label": "Key management must use FIPS 140-2 L3+ HSMs?",
+      "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-04",  "section": "compliance", "type": "single",   "label": "Audit cycle cadence",
+      "options": ["Annual external", "Semi-annual", "Quarterly", "Continuous control monitoring"],
+      "mapsTo": ["compliance"], "weight": 2 },
+
+    { "id": "Q-COM-05",  "section": "compliance", "type": "longtext", "label": "Outstanding regulator commitments or remediation items",
+      "mapsTo": ["compliance", "raid"], "weight": 3,
+      "roleScope": ["CRO", "Head of Compliance", "CISO"] },
+
+    { "id": "Q-COM-NA-01", "section": "compliance", "type": "boolean", "label": "SOX 404(b) controls operationally tested in last cycle?",
+      "regulator": "SOX", "regionScope": ["North America"], "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-NA-02", "section": "compliance", "type": "boolean", "label": "PCI-DSS 4.0 attestation current?",
+      "regulator": "PCI-DSS 4.0", "regionScope": ["North America"], "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-EU-01", "section": "compliance", "type": "boolean", "label": "DORA ICT-risk register established?",
+      "regulator": "DORA", "regionScope": ["Europe"], "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-EU-02", "section": "compliance", "type": "single", "label": "GDPR DPO appointed and authority documented?",
+      "options": ["Yes — internal", "Yes — external", "In progress", "No"],
+      "regulator": "GDPR", "regionScope": ["Europe"], "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-EU-03", "section": "compliance", "type": "boolean", "label": "PSD3 Strong Customer Authentication patterns implemented?",
+      "regulator": "PSD3", "regionScope": ["Europe"], "mapsTo": ["compliance"], "weight": 2 },
+
+    { "id": "Q-COM-APAC-01", "section": "compliance", "type": "boolean", "label": "MAS TRM Notice 644 outsourcing assessment filed?",
+      "regulator": "MAS TRM 644", "regionScope": ["Asia Pacific"], "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-APAC-02", "section": "compliance", "type": "boolean", "label": "RBI Master Direction on Outsourcing complied with?",
+      "regulator": "RBI", "regionScope": ["Asia Pacific"], "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-APAC-03", "section": "compliance", "type": "boolean", "label": "APRA CPS 234 information-security obligations met?",
+      "regulator": "APRA CPS 234", "regionScope": ["Asia Pacific"], "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-SEA-01", "section": "compliance", "type": "boolean", "label": "BNM RMiT minimum control thresholds passed?",
+      "regulator": "BNM RMiT", "regionScope": ["South East Asia"], "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-SEA-02", "section": "compliance", "type": "boolean", "label": "OJK POJK 38/2016 IT-risk framework current?",
+      "regulator": "OJK POJK 38", "regionScope": ["South East Asia"], "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-SEA-03", "section": "compliance", "type": "single", "label": "BSP cyber-incident reporting maturity",
+      "options": ["Not started", "Documented only", "Tested in last drill", "Continuous monitoring"],
+      "regulator": "BSP Circular 1019", "regionScope": ["South East Asia"], "mapsTo": ["compliance"], "weight": 2 },
+
+    { "id": "Q-COM-SWA-01", "section": "compliance", "type": "boolean", "label": "SAMA Cyber Framework controls implemented?",
+      "regulator": "SAMA Cyber", "regionScope": ["South Western Asia"], "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-SWA-02", "section": "compliance", "type": "boolean", "label": "CBUAE outsourcing assessment filed?",
+      "regulator": "CBUAE", "regionScope": ["South Western Asia"], "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-COM-SWA-03", "section": "compliance", "type": "boolean", "label": "DFSA conduct-of-business rules mapped to your controls?",
+      "regulator": "DFSA", "regionScope": ["South Western Asia"], "mapsTo": ["compliance"], "weight": 2 },
+
+
+
+    { "id": "Q-GOV-01",  "section": "governance", "type": "single",   "label": "Steering committee cadence",
+      "options": ["Weekly", "Bi-weekly", "Monthly", "Quarterly", "Ad hoc"],
+      "mapsTo": ["discovery"], "weight": 2 },
+
+    { "id": "Q-GOV-02",  "section": "governance", "type": "multi",    "label": "KPIs you'll report to leadership",
+      "options": ["Schedule variance (SV)", "Cost variance (CV)", "Defect density", "Velocity (story points)",
+                  "MTTR", "MTBF", "Change-success rate", "Error budget burn", "Customer NPS", "Cost per transaction"],
+      "mapsTo": ["discovery"], "weight": 2 },
+
+    { "id": "Q-GOV-03",  "section": "governance", "type": "single",   "label": "Who has go/no-go authority for production cut-over?",
+      "options": ["Program Manager", "CIO", "CTO", "CRO", "Joint steering committee"],
+      "mapsTo": ["discovery"], "weight": 2 },
+
+    { "id": "Q-GOV-04",  "section": "governance", "type": "single",   "label": "Approved DR drill cadence",
+      "options": ["Monthly", "Quarterly", "Semi-annual", "Annual", "Not scheduled"],
+      "mapsTo": ["compliance"], "weight": 3 },
+
+    { "id": "Q-GOV-05",  "section": "governance", "type": "boolean",  "label": "Will the program use a single tool (Jira / Rally / Asana) as system-of-record?",
+      "mapsTo": ["discovery"], "weight": 2 },
+
+    { "id": "Q-GOV-06",  "section": "governance", "type": "longtext", "label": "Any program-governance constraints we should know about?",
+      "placeholder": "Procurement timelines, vendor master agreements, holiday freezes, regulator notification windows...",
+      "mapsTo": ["raid"], "weight": 2,
+      "roleScope": ["CFO", "CRO", "Business Owner"] },
+
+    { "id": "Q-GOV-07",  "section": "governance", "type": "scale",    "label": "Stakeholder change-readiness (1 = low, 5 = high)",
+      "min": 1, "max": 5, "default": 3,
+      "minLabel": "Low", "maxLabel": "High",
+      "mapsTo": ["raid"], "weight": 2 },
+
+
+
+    {  "id": "Q-ORG-09", "section": "org", "type": "text",
+       "label": "Program sponsor email (used for system-generated reports)",
+       "validate": { "regex": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", "errorMessage": "Enter a valid email address." },
+       "required": true, "mapsTo": ["discovery"], "weight": 2 },
+
+    {  "id": "Q-ORG-10", "section": "org", "type": "text",
+       "label": "Expected program go-live date",
+       "validate": { "regex": "^\\d{4}-\\d{2}-\\d{2}$", "errorMessage": "Use ISO date format YYYY-MM-DD." },
+       "placeholder": "2026-12-15", "mapsTo": ["discovery"], "weight": 2 },
+
+    {  "id": "Q-CUR-10", "section": "current", "type": "scale",
+       "label": "Average daily transaction volume (millions)",
+       "min": 0, "max": 100, "default": 10, "step": 1,
+       "minLabel": "0M", "maxLabel": "100M+",
+       "validate": { "min": 0, "max": 100 },
+       "mapsTo": ["discovery"], "weight": 2 },
+
+    {  "id": "Q-CUR-11", "section": "current", "type": "longtext",
+       "label": "Top 3 incidents in the last 12 months",
+       "validate": { "minLength": 20, "maxLength": 2000, "errorMessage": "Provide at least one sentence (20+ chars)." },
+       "help": "Briefly describe what happened, business impact, and root cause.",
+       "mapsTo": ["raid"], "weight": 3 },
+
+    {  "id": "Q-CUR-12", "section": "current", "type": "single",
+       "label": "Current vendor lock-in posture",
+       "options": ["Highly locked in (1 vendor)", "Moderate (2 vendors)", "Low (multi-vendor)", "Open-source first"],
+       "mapsTo": ["raid"], "weight": 2 },
+
+    {  "id": "Q-CUR-13", "section": "current", "type": "boolean",
+       "label": "Are there any active regulatory enforcement actions in scope?",
+       "mapsTo": ["raid", "compliance"], "weight": 3,
+       "roleScope": ["CRO", "CISO", "Head of Compliance", "CFO"] },
+
+
+
+    {  "id": "Q-DOM-CARDS-01", "section": "current", "type": "multi",
+       "label": "Card schemes currently supported",
+       "options": ["Visa", "Mastercard", "American Express", "Discover", "JCB", "UnionPay", "RuPay", "Local domestic scheme"],
+       "domainScope": ["Cards"], "mapsTo": ["requirement"], "weight": 3 },
+
+    {  "id": "Q-DOM-CARDS-02", "section": "current", "type": "boolean",
+       "label": "Tokenization (network or in-house) currently in production?",
+       "domainScope": ["Cards"], "mapsTo": ["requirement", "compliance"], "weight": 3 },
+
+    {  "id": "Q-DOM-CARDS-03", "section": "future", "type": "boolean",
+       "label": "Plan to add contactless / mobile wallet (Apple Pay / Google Pay)?",
+       "domainScope": ["Cards"], "mapsTo": ["requirement"], "weight": 2 },
+
+    {  "id": "Q-DOM-CM-01", "section": "current", "type": "multi",
+       "label": "Asset classes traded on the platform",
+       "options": ["Equities", "Fixed income", "FX", "Listed derivatives", "OTC derivatives", "Commodities", "Crypto / digital assets"],
+       "domainScope": ["Capital Markets"], "mapsTo": ["requirement"], "weight": 3 },
+
+    {  "id": "Q-DOM-CM-02", "section": "current", "type": "single",
+       "label": "Target order-management latency",
+       "options": ["< 1 ms", "< 10 ms", "< 50 ms", "< 200 ms", "Best-effort"],
+       "domainScope": ["Capital Markets"], "mapsTo": ["requirement"], "weight": 3 },
+
+    {  "id": "Q-DOM-CM-03", "section": "compliance", "type": "boolean",
+       "label": "MiFID II / FINRA transaction reporting controls in place?",
+       "domainScope": ["Capital Markets"], "mapsTo": ["compliance"], "weight": 3 },
+
+    {  "id": "Q-DOM-SEC-01", "section": "current", "type": "multi",
+       "label": "Securities services in scope",
+       "options": ["Custody", "Settlement", "Corporate actions", "Tax services", "Proxy voting"],
+       "domainScope": ["Securities"], "mapsTo": ["requirement"], "weight": 2 },
+
+    {  "id": "Q-DOM-WM-01", "section": "current", "type": "single",
+       "label": "Wealth advisory model",
+       "options": ["Human advisor only", "Robo-advisor only", "Hybrid (human + robo)", "Self-directed"],
+       "domainScope": ["Wealth Management"], "mapsTo": ["requirement"], "weight": 2 },
+
+    {  "id": "Q-DOM-AML-01", "section": "current", "type": "multi",
+       "label": "AML / sanctions data sources in use",
+       "options": ["OFAC", "EU consolidated list", "UN sanctions", "Local FIU watchlist", "World-Check / commercial vendor"],
+       "domainScope": ["AML"], "mapsTo": ["compliance"], "weight": 3 },
+
+    {  "id": "Q-DOM-AML-02", "section": "current", "type": "single",
+       "label": "Average alerts per day",
+       "options": ["< 50", "50–500", "500–5,000", "> 5,000"],
+       "domainScope": ["AML"], "mapsTo": ["requirement"], "weight": 2 },
+
+
+
+    {  "id": "Q-FUT-09", "section": "future", "type": "scale",
+       "label": "Target % reduction in cost-to-serve over 18 months",
+       "min": 0, "max": 60, "default": 30, "step": 5,
+       "minLabel": "0%", "maxLabel": "60%",
+       "validate": { "min": 0, "max": 60 },
+       "mapsTo": ["requirement"], "weight": 3 },
+
+    {  "id": "Q-FUT-10", "section": "future", "type": "multi",
+       "label": "AI / ML use-cases you'd evaluate first",
+       "options": ["Fraud detection", "Credit scoring", "Customer 360 / next-best-action", "Document understanding (KYC)",
+                   "Operational anomaly detection", "Generative AI for customer service", "Code modernization assistance"],
+       "mapsTo": ["requirement"], "weight": 2 },
+
+    {  "id": "Q-FUT-11", "section": "future", "type": "single",
+       "label": "Sustainability / carbon-footprint commitment",
+       "options": ["Not a priority", "Tracked but not optimised", "Carbon-aware workload placement", "Carbon-neutral cloud only"],
+       "mapsTo": ["discovery"], "weight": 1 },
+
+
+
+    {  "id": "Q-TEC-08", "section": "technical", "type": "single",
+       "label": "Preferred orchestration / runtime",
+       "options": ["Vanilla Kubernetes", "OpenShift", "AKS / EKS / GKE managed", "Serverless first", "VM-only"],
+       "mapsTo": ["discovery"], "weight": 2,
+       "roleScope": ["CTO", "Head of Architecture", "SRE Lead"] },
+
+    {  "id": "Q-TEC-09", "section": "technical", "type": "boolean",
+       "label": "Mandatory use of a service mesh (Istio / Linkerd / Consul) for mTLS?",
+       "mapsTo": ["requirement"], "weight": 2 },
+
+    {  "id": "Q-TEC-10", "section": "technical", "type": "multi",
+       "label": "Observability stack preference",
+       "options": ["Prometheus + Grafana", "Splunk", "Datadog", "Dynatrace", "New Relic", "OpenTelemetry-native (vendor-neutral)"],
+       "mapsTo": ["discovery"], "weight": 2 },
+
+    {  "id": "Q-TEC-11", "section": "technical", "type": "single",
+       "label": "Approved CI/CD platform",
+       "options": ["GitHub Actions", "GitLab CI", "Azure DevOps", "Jenkins", "Bitbucket Pipelines", "Other / TBD"],
+       "mapsTo": ["discovery"], "weight": 1 },
+
+
+
+    {  "id": "Q-COM-06", "section": "compliance", "type": "multi",
+       "label": "Encryption-at-rest cipher families allowed",
+       "options": ["AES-256-GCM", "AES-256-CBC", "ChaCha20-Poly1305", "RSA-OAEP", "Other (explain)"],
+       "mapsTo": ["compliance"], "weight": 3 },
+
+    {  "id": "Q-COM-07", "section": "compliance", "type": "boolean",
+       "label": "Has a privacy-impact assessment (PIA / DPIA) been completed?",
+       "mapsTo": ["compliance"], "weight": 3,
+       "roleScope": ["Head of Compliance", "CRO", "CISO"] },
+
+    {  "id": "Q-COM-08", "section": "compliance", "type": "text",
+       "label": "DPO / privacy officer email",
+       "validate": { "regex": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", "errorMessage": "Enter a valid email." },
+       "regionScope": ["Europe"], "mapsTo": ["compliance"], "weight": 2 },
+
+
+
+    {  "id": "Q-GOV-08", "section": "governance", "type": "ranked",
+       "label": "Rank the leadership reporting cadences by importance",
+       "options": ["Daily standup", "Weekly status", "Bi-weekly steering", "Monthly board update", "Quarterly business review"],
+       "mapsTo": ["discovery"], "weight": 2 },
+
+    {  "id": "Q-GOV-09", "section": "governance", "type": "single",
+       "label": "Vendor management maturity (CMMI-style)",
+       "options": ["Initial — ad-hoc", "Managed", "Defined", "Quantitatively Managed", "Optimizing"],
+       "mapsTo": ["raid"], "weight": 2,
+       "roleScope": ["CFO", "Head of Compliance", "Business Owner"] },
+
+    {  "id": "Q-GOV-10", "section": "governance", "type": "longtext",
+       "label": "Any other context the platform should know about?",
+       "validate": { "maxLength": 5000 },
+       "placeholder": "Mergers in flight, leadership change, pending audits, IPO timing, etc.",
+       "mapsTo": ["raid"], "weight": 1 }
+
+  ]
+}

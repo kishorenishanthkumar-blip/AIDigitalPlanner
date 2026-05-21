@@ -1,0 +1,66 @@
+{
+  "_meta": {
+    "description": "Sample profiles for Nishi Phase 1 testing. Load any one into sessionStorage under key 'di_account_profile' before page load, or use the test page.",
+    "version": "1.0.0",
+    "lastUpdated": "2026-05-19"
+  },
+  "profiles": [
+    {
+      "id": "exec-cto-na",
+      "name": "Nishanth Kumar Kishore",
+      "email": "nishanth.kishore@digitalinfotech.com",
+      "role": "CTO",
+      "region": "North America",
+      "persona": "Executive · technology decision-maker",
+      "organization": "Digital Infotech",
+      "preferences": { "voice": false, "speak": false, "theme": "dark" }
+    },
+    {
+      "id": "ba-eu",
+      "name": "Alex Müller",
+      "email": "alex.mueller@example.eu",
+      "role": "Business Analyst",
+      "region": "Europe",
+      "persona": "Requirements gathering · compliance focused",
+      "organization": "EuroBank AG"
+    },
+    {
+      "id": "arch-apac",
+      "name": "Yuki Tanaka",
+      "email": "yuki.tanaka@example.jp",
+      "role": "Architecture Lead",
+      "region": "Asia Pacific",
+      "persona": "Hands-on architect · cloud-native focus",
+      "organization": "Pacific Trust Bank"
+    },
+    {
+      "id": "risk-sea",
+      "name": "Aisha Rahman",
+      "email": "aisha.rahman@example.my",
+      "role": "Chief Risk Officer",
+      "region": "South East Asia",
+      "persona": "Regulator-facing · risk & compliance",
+      "organization": "Maybank Islamic"
+    },
+    {
+      "id": "ops-swa",
+      "name": "Omar Al-Saud",
+      "email": "omar.alsaud@example.sa",
+      "role": "Head of Operations",
+      "region": "South Western Asia",
+      "persona": "Production support · ops automation",
+      "organization": "Riyad Bank"
+    }
+  ],
+  "sampleQuestions": [
+    "hi",
+    "help",
+    "context show",
+    "my role is Program Manager",
+    "my region is Europe",
+    "regulations",
+    "show me the studios",
+    "tell me about architecture",
+    "thanks"
+  ]
+}

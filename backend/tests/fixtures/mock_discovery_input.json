@@ -1,0 +1,16 @@
+{
+  "project_name": "Payments Modernization 2026",
+  "project_key": "PAY",
+  "raw_notes": "Stakeholders want a faster cross-border settlement experience. Current mainframe COBOL job runs at 18:00 daily and causes a 14-hour latency for European customers. Need to migrate to a real-time rail (TIPS/SEPA Instant). Compliance team flagged AML screening must remain inline. CFO wants a 30% reduction in operational cost. Ops noted that 12% of failed payments require manual reconciliation.",
+  "personas": ["Retail Customer", "Treasury Operations Analyst", "Compliance Officer"],
+  "constraints": [
+    "Must integrate with existing AML engine v3.2",
+    "Cannot exceed $2M capital expenditure in FY26",
+    "Regulatory approval required before EU rollout"
+  ],
+  "expected_outcomes": [
+    "Settlement latency < 60 seconds",
+    "Manual reconciliation rate < 2%",
+    "Operational cost reduced by 30%"
+  ]
+}

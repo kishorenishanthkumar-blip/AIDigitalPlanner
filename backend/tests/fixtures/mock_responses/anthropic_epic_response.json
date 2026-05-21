@@ -1,0 +1,14 @@
+{
+  "id": "msg_mock_01",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-sonnet-4-6",
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"epics\":[{\"title\":\"Real-Time Cross-Border Settlement\",\"description\":\"Replace nightly COBOL batch with TIPS/SEPA Instant rails.\",\"business_value\":\"Reduce settlement latency from 14h to <60s.\",\"priority\":\"Critical\",\"components\":[\"payments-rail\",\"settlement-engine\"]},{\"title\":\"Inline AML Screening\",\"description\":\"Wire existing AML engine v3.2 into the new real-time flow.\",\"business_value\":\"Maintain regulatory compliance.\",\"priority\":\"High\",\"components\":[\"aml\",\"payments-rail\"]}]}"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "usage": { "input_tokens": 412, "output_tokens": 198 }
+}

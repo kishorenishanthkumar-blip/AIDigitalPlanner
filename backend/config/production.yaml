@@ -1,0 +1,31 @@
+app:
+  env: production
+  debug: false
+  reload: false
+
+logging:
+  level: WARNING
+  format: json
+
+agents:
+  discovery_parser:
+    max_input_chars: 200000
+    temperature: 0.1
+  epic_generator:
+    max_epics: 50
+    temperature: 0.2
+  story_writer:
+    max_stories_per_epic: 20
+    temperature: 0.3
+  estimation:
+    fibonacci_scale: [1, 2, 3, 5, 8, 13, 21]
+
+export:
+  jira_enabled: true
+  rally_enabled: true
+  batch_size: 200
+
+security:
+  enforce_https: true
+  cors_allow_origins:
+    - https://digital-platformplanner.netlify.app

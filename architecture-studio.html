@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Architecture Studio · DI Platform — Digital Infotech</title>
+<meta name="author" content="Nishanth Kumar Kishore" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root{
+  --void:#060B14; --deep:#090E1A; --navy:#0D1628; --panel:#101828;
+  --card:#14213A; --card2:#172845; --b1:#1C2E48; --b2:#243655; --b3:#2D4268;
+  --amber:#C8921A; --amber2:#E8AC38; --amber3:#FFD070; --aglow:rgba(200,146,26,.12);
+  --green:#0FD49A; --red:#FF4D6A; --blue:#3D8EFF; --purple:#9B72FF;
+  --orange:#FF8030; --teal:#00C9C8; --pink:#FF6BB5;
+  --t1:#EEF4FF; --t2:#8AA4C8; --t3:#4A6285; --t4:#2A3E5A;
+  --f-head:'Fraunces',Georgia,serif;
+  --f-ui:'Outfit',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Courier New',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{background:var(--void);color:var(--t1);font-family:var(--f-ui);font-size:13px;line-height:1.5}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* Top bar */
+.tb{height:54px;background:var(--panel);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 22px;gap:14px;position:sticky;top:0;z-index:50}
+.tb-logo{width:32px;height:32px;background:linear-gradient(135deg,var(--amber),var(--amber3));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--void)}
+.tb-brand{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1)}
+.tb-div{width:1px;height:24px;background:var(--b1)}
+.tb-crumb{font-size:12px;color:var(--t2);display:flex;align-items:center;gap:8px}
+.tb-crumb a{color:var(--t2);text-decoration:none;transition:.2s}
+.tb-crumb a:hover{color:var(--amber2)}
+.tb-crumb .sep{color:var(--t3)}
+.tb-r{margin-left:auto;display:flex;gap:10px;align-items:center}
+.tb-link{padding:6px 14px;background:transparent;border:1px solid var(--b2);border-radius:7px;color:var(--t2);font-size:12px;text-decoration:none;transition:.2s}
+.tb-link:hover{border-color:var(--amber);color:var(--amber2)}
+
+/* Hero */
+.hero{padding:48px 32px 24px;max-width:1280px;margin:0 auto}
+.hero-badge{display:inline-flex;gap:8px;align-items:center;padding:6px 14px;background:var(--aglow);border:1px solid rgba(200,146,26,.3);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber2);margin-bottom:18px}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--amber2);box-shadow:0 0 8px var(--amber2)}
+.hero h1{font-family:var(--f-head);font-size:clamp(34px,4.5vw,52px);font-weight:700;letter-spacing:-.02em;line-height:1.05;color:var(--t1);margin-bottom:14px}
+.hero h1 em{font-style:italic;color:var(--amber2)}
+.hero p{font-size:16px;color:var(--t2);max-width:780px;line-height:1.65}
+
+/* Toolbar (filters strip — mirrors screenshot pattern) */
+.toolbar{max-width:1280px;margin:32px auto 0;padding:0 32px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.tb-pill{display:flex;flex-direction:column;gap:4px}
+.tb-pill label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.tb-pill select{padding:9px 32px 9px 12px;background:var(--card);border:1px solid var(--b1);border-radius:7px;color:var(--t1);font-size:12px;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%238AA4C8' d='M0 0l5 6 5-6z'/></svg>");background-repeat:no-repeat;background-position:right 10px center;min-width:170px;cursor:pointer}
+.tb-pill select:focus{outline:none;border-color:var(--amber)}
+.toolbar .spacer{flex:1}
+.toolbar button{padding:9px 16px;background:var(--amber);border:none;border-radius:7px;color:var(--void);font-size:12px;font-weight:700;cursor:pointer;transition:.2s}
+.toolbar button:hover{background:var(--amber2)}
+
+/* KPI row */
+.kpi-row{max-width:1280px;margin:18px auto 0;padding:0 32px;display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media (max-width:1100px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--b1);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--amber))}
+.kpi .lbl{font-size:10px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.kpi .v{font-family:var(--f-head);font-size:28px;font-weight:700;color:var(--t1);margin-top:4px;line-height:1.1}
+.kpi .sub{font-size:10px;color:var(--t2);margin-top:2px}
+
+/* Target cards (the 6 deployment options) */
+.section-head{max-width:1280px;margin:36px auto 0;padding:0 32px;display:flex;align-items:end;justify-content:space-between;gap:16px}
+.section-head h2{font-family:var(--f-head);font-size:24px;font-weight:600;color:var(--t1);margin:0}
+.section-head .lead{font-size:13px;color:var(--t3)}
+.section-head .right{font-size:11px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase}
+
+.targets{max-width:1280px;margin:18px auto 0;padding:0 32px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media (max-width:960px){.targets{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.targets{grid-template-columns:1fr}}
+.target{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:22px;cursor:pointer;position:relative;overflow:hidden;transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+.target:hover{transform:translateY(-3px);border-color:var(--c,var(--amber));box-shadow:0 18px 40px -16px rgba(200,146,26,.4)}
+.target::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c,var(--amber))}
+.target.selected{border-color:var(--c,var(--amber));box-shadow:inset 0 0 0 1px var(--c,var(--amber)), 0 18px 40px -16px rgba(200,146,26,.5)}
+.target .top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.tg-badge{width:46px;height:46px;border-radius:11px;background:var(--c,var(--amber));display:flex;align-items:center;justify-content:center;font-family:var(--f-head);font-weight:700;font-size:18px;color:var(--void);flex-shrink:0}
+.target h3{font-family:var(--f-head);font-size:17px;font-weight:600;color:var(--t1);line-height:1.2}
+.target .sub{font-size:11px;color:var(--t3);margin-top:2px}
+.target p{font-size:12.5px;color:var(--t2);line-height:1.55;margin:8px 0 14px;min-height:50px}
+.target .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{font-size:10px;padding:3px 8px;background:rgba(255,255,255,.05);border:1px solid var(--b1);border-radius:999px;color:var(--t2);font-family:var(--f-mono)}
+.target .footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--b1);font-size:11px;color:var(--t3)}
+.target .cta{color:var(--c,var(--amber2));font-weight:600;font-size:11px;letter-spacing:.04em}
+
+/* Detail panel */
+.detail{max-width:1280px;margin:32px auto 0;padding:0 32px}
+.detail-inner{background:var(--card);border:1px solid var(--b1);border-radius:14px;overflow:hidden;display:none}
+.detail-inner.on{display:block;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.detail-head{padding:22px 26px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:14px;background:var(--card2)}
+.detail-head .badge-lg{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:var(--f-head);font-weight:700;font-size:20px;color:var(--void)}
+.detail-head h2{font-family:var(--f-head);font-size:20px;font-weight:600;color:var(--t1)}
+.detail-head .sub{font-size:12px;color:var(--t3)}
+.detail-head .spacer{flex:1}
+.detail-head .pill{padding:5px 12px;background:rgba(15,212,154,.12);border:1px solid rgba(15,212,154,.3);border-radius:999px;font-size:10px;font-weight:700;color:var(--green);letter-spacing:.08em;text-transform:uppercase}
+
+.detail-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:0}
+@media (max-width:900px){.detail-grid{grid-template-columns:1fr}}
+.detail-diagram{padding:26px;border-right:1px solid var(--b1)}
+.detail-side{padding:26px;background:var(--navy)}
+
+.diagram-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:14px}
+.arch-layer{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:8px}
+.arch-box{background:var(--panel);border:1.5px solid var(--b2);border-radius:10px;padding:10px 14px;min-width:140px;text-align:center;font-size:12px;color:var(--t1);transition:.25s}
+.arch-box.h{border-color:var(--c,var(--amber));background:linear-gradient(180deg,rgba(200,146,26,.12),transparent)}
+.arch-box .l{font-weight:600;display:block;margin-bottom:2px}
+.arch-box .s{font-size:10px;color:var(--t3);font-family:var(--f-mono)}
+.arch-arrow{display:flex;justify-content:center;height:24px;align-items:center}
+.arch-arrow::after{content:'';width:2px;height:24px;background:linear-gradient(180deg,var(--c,var(--amber)) 0%,transparent 100%);animation:flow 1.5s linear infinite}
+@keyframes flow{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
+
+.side-h{font-family:var(--f-head);font-size:14px;font-weight:600;color:var(--t1);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.side-h::before{content:'';width:3px;height:14px;background:var(--c,var(--amber));border-radius:2px}
+.comp-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--b1);font-size:12px}
+.comp-row:last-child{border-bottom:none}
+.comp-row .k{color:var(--t2)}
+.comp-row .v{color:var(--t1);font-family:var(--f-mono);font-size:11px}
+
+.detail-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:18px 26px;border-top:1px solid var(--b1);background:var(--card)}
+.meta-cell{}
+.meta-cell .ml{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);font-weight:600}
+.meta-cell .mv{font-family:var(--f-head);font-size:16px;color:var(--t1);margin-top:2px}
+
+.outcome-band{max-width:1280px;margin:28px auto 60px;padding:18px 26px;background:linear-gradient(90deg,rgba(15,212,154,.08) 0%,transparent 100%);border:1px solid rgba(15,212,154,.25);border-radius:10px;display:flex;align-items:center;gap:14px}
+.outcome-band .icon{width:30px;height:30px;border-radius:50%;background:rgba(15,212,154,.18);display:flex;align-items:center;justify-content:center;color:var(--green);font-weight:700;flex-shrink:0}
+.outcome-band .t{font-size:12px;color:var(--t1);font-weight:600}
+.outcome-band .d{font-size:11.5px;color:var(--t2);margin-top:2px}
+
+footer{text-align:center;padding:28px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1)}
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <div class="tb-logo">DI</div>
+  <div class="tb-brand">Digital Infotech Platform</div>
+  <div class="tb-div"></div>
+  <div class="tb-crumb">
+    <a href="home.html">Home</a>
+    <span class="sep">/</span>
+    <span>Architecture Studio</span>
+  </div>
+  <div class="tb-r">
+    <a href="home.html" class="tb-link">← Back to Platform</a>
+    <a href="program-governance.html" class="tb-link">Program Governance →</a>
+  </div>
+</div>
+
+<section class="hero">
+  <span class="hero-badge">Architecture Studio · Step 1 of 2</span>
+  <h1>Pick your <em>deployment target.</em></h1>
+  <p>Six pre-built reference architectures for banking workloads — one private and five public cloud. Each card maps the same DI-Platform components onto the target's native services. Select a target to expand its blueprint, components, and migration considerations.</p>
+</section>
+
+<div class="toolbar">
+  <div class="tb-pill">
+    <label>Workload</label>
+    <select id="f-workload">
+      <option>Core Banking · Payments</option>
+      <option>Core Banking · Deposits</option>
+      <option>Core Banking · Loans</option>
+      <option>Wealth Management</option>
+      <option>Treasury</option>
+      <option>Cards</option>
+      <option>Trade Finance</option>
+    </select>
+  </div>
+  <div class="tb-pill">
+    <label>Region</label>
+    <select>
+      <option>North America — East</option>
+      <option>North America — West</option>
+      <option>Europe — London</option>
+      <option>Europe — Frankfurt</option>
+      <option>Asia Pacific — Singapore</option>
+      <option>Asia Pacific — Sydney</option>
+    </select>
+  </div>
+  <div class="tb-pill">
+    <label>Compliance</label>
+    <select>
+      <option>PCI-DSS 4.0</option>
+      <option>SOX</option>
+      <option>GDPR</option>
+      <option>RBI · India</option>
+      <option>MAS · Singapore</option>
+      <option>OSFI · Canada</option>
+    </select>
+  </div>
+  <div class="tb-pill">
+    <label>Resilience</label>
+    <select>
+      <option>Multi-AZ Active-Active</option>
+      <option>Multi-Region Active-Passive</option>
+      <option>Single-AZ (Dev)</option>
+    </select>
+  </div>
+  <div class="spacer"></div>
+  <button onclick="document.querySelectorAll('.target').forEach(t=>t.classList.remove('selected'));document.getElementById('detail').classList.remove('on');document.getElementById('f-workload').value='Core Banking · Payments'">↻ Reset</button>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi" style="--c:var(--amber)">
+    <div class="lbl">Targets Available</div>
+    <div class="v">6</div>
+    <div class="sub">1 private · 5 public cloud</div>
+  </div>
+  <div class="kpi" style="--c:var(--green)">
+    <div class="lbl">Banking Modules</div>
+    <div class="v">14</div>
+    <div class="sub">Pre-mapped workloads</div>
+  </div>
+  <div class="kpi" style="--c:var(--blue)">
+    <div class="lbl">Reference Patterns</div>
+    <div class="v">42</div>
+    <div class="sub">Across the matrix</div>
+  </div>
+  <div class="kpi" style="--c:var(--purple)">
+    <div class="lbl">Avg. Migration</div>
+    <div class="v">9 mo</div>
+    <div class="sub">Discovery → cut-over</div>
+  </div>
+  <div class="kpi" style="--c:var(--orange)">
+    <div class="lbl">Cost Range</div>
+    <div class="v">$1.2–4.8M</div>
+    <div class="sub">FY indicative</div>
+  </div>
+  <div class="kpi" style="--c:var(--teal)">
+    <div class="lbl">SLA Target</div>
+    <div class="v">99.95%</div>
+    <div class="sub">Tier-1 workload</div>
+  </div>
+</div>
+
+<div class="section-head">
+  <div>
+    <h2>Choose a deployment target</h2>
+    <div class="lead">Click any card to view its full reference architecture, native components, and migration considerations.</div>
+  </div>
+  <div class="right">6 · Targets</div>
+</div>
+
+<div class="targets" id="targets"></div>
+
+<div class="detail">
+  <div class="detail-inner" id="detail"></div>
+</div>
+
+<div class="outcome-band">
+  <div class="icon">✓</div>
+  <div>
+    <div class="t">Outcome — Architecture blueprint selected</div>
+    <div class="d">Once you've picked a target, continue to <strong style="color:var(--amber2)">Program Governance</strong> to build the full plan: requirements, RAID log, timelines, cost, and MS Project output.</div>
+  </div>
+  <div class="spacer" style="flex:1"></div>
+  <a href="program-governance.html" class="tb-link" style="color:var(--green);border-color:var(--green)">Continue to Program Governance →</a>
+</div>
+
+<footer>
+  DI-Platform · Architecture Studio · IDD: DI-2026-NKK-0511-001 · © 2026 Nishanth Kumar Kishore / Digital Infotech
+</footer>
+
+<script>
+const TARGETS = [
+  {
+    key:"private", letter:"PD", color:"var(--amber)",
+    title:"Banking Private Data Center",
+    sub:"Containerization · On-prem · Air-gapped",
+    desc:"Kubernetes on bare-metal in your DC. Full control over data residency, key custody and network segmentation — ideal for Tier-1 regulated workloads.",
+    tags:["OpenShift / Rancher","VMware Tanzu","HashiCorp Vault","Calico SDN"],
+    avg:"12 mo", cost:"$3.2–4.8M", sla:"99.99%", footprint:"3 DCs",
+    layers:[
+      [{l:"Edge / WAF",s:"F5 BIG-IP · Citrix"}, {l:"Load Balancer",s:"NetScaler / NGINX+"}],
+      [{l:"Container Platform",s:"OpenShift 4.x",h:true}, {l:"Service Mesh",s:"Istio · mTLS"}],
+      [{l:"API Gateway",s:"Kong · Apigee"}, {l:"Identity",s:"PingFederate · LDAP"}],
+      [{l:"Postgres HA",s:"Patroni cluster"}, {l:"Cache",s:"Redis Enterprise"}, {l:"Object Store",s:"MinIO · NetApp"}],
+      [{l:"Observability",s:"Splunk · Dynatrace"}, {l:"Vault",s:"HashiCorp Vault HA"}],
+    ],
+    components:[
+      ["Compute","Bare-metal · KVM"],
+      ["Network","BGP · VXLAN"],
+      ["Storage","NetApp ONTAP · Pure"],
+      ["DR","Hot-warm · 3 sites"],
+      ["Key Mgmt","HSM (Thales nShield)"],
+      ["Backup","Veeam · Cohesity"],
+    ]
+  },
+  {
+    key:"aws", letter:"AW", color:"var(--orange)",
+    title:"AWS Architecture",
+    sub:"Multi-AZ · Well-Architected · FSI",
+    desc:"AWS landing zone with Control Tower, multi-account isolation, and FSI reference patterns. Native services for compute, data, and security with FedRAMP-aligned controls.",
+    tags:["EKS","Aurora Global","KMS","CloudTrail","GuardDuty"],
+    avg:"8 mo", cost:"$1.4–2.6M", sla:"99.95%", footprint:"3 AZ",
+    layers:[
+      [{l:"CloudFront + WAF",s:"OWASP · Bot Control"}, {l:"Route 53",s:"DNSSEC"}],
+      [{l:"Amazon EKS",s:"Fargate / EC2",h:true}, {l:"App Mesh",s:"Envoy proxies"}],
+      [{l:"API Gateway",s:"REST · WebSocket"}, {l:"Cognito",s:"Federation · MFA"}],
+      [{l:"Aurora PostgreSQL",s:"Global · Multi-AZ"}, {l:"ElastiCache",s:"Redis · Memcached"}, {l:"S3",s:"Object Lock · CRR"}],
+      [{l:"CloudWatch",s:"Logs · Metrics"}, {l:"KMS · Secrets Mgr",s:"CMK · rotated"}],
+    ],
+    components:[
+      ["Compute","EKS · Fargate · Lambda"],
+      ["Network","Transit Gateway · PrivateLink"],
+      ["Storage","S3 · EFS · FSx"],
+      ["DR","Multi-Region Active-Passive"],
+      ["Key Mgmt","AWS KMS · CloudHSM"],
+      ["Backup","AWS Backup · Vault Lock"],
+    ]
+  },
+  {
+    key:"azure", letter:"AZ", color:"var(--blue)",
+    title:"Azure Architecture",
+    sub:"Landing zones · Sovereign · CAF",
+    desc:"Azure Cloud Adoption Framework (CAF) landing zones with hub-and-spoke topology, Entra ID integration, and Confidential Compute for regulated banking workloads.",
+    tags:["AKS","Azure SQL","Key Vault","Defender","Sentinel"],
+    avg:"8 mo", cost:"$1.3–2.5M", sla:"99.95%", footprint:"3 AZ",
+    layers:[
+      [{l:"Front Door + WAF",s:"Premium · OWASP"}, {l:"Azure DNS",s:"Private Resolver"}],
+      [{l:"AKS",s:"Confidential nodes",h:true}, {l:"Service Mesh",s:"Open Service Mesh"}],
+      [{l:"API Management",s:"Premium · self-host"}, {l:"Entra ID",s:"B2C · CIAM"}],
+      [{l:"Azure SQL HA",s:"Business Critical"}, {l:"Cache for Redis",s:"Premium clustered"}, {l:"Blob Storage",s:"ADLS Gen2 · ZRS"}],
+      [{l:"Log Analytics",s:"Sentinel SIEM"}, {l:"Key Vault HSM",s:"FIPS 140-2 L3"}],
+    ],
+    components:[
+      ["Compute","AKS · Container Apps · Functions"],
+      ["Network","vWAN · Private Endpoints"],
+      ["Storage","Blob · Files · Disks"],
+      ["DR","Azure Site Recovery · GRS"],
+      ["Key Mgmt","Key Vault Managed HSM"],
+      ["Backup","Azure Backup · Immutable"],
+    ]
+  },
+  {
+    key:"gcp", letter:"GC", color:"var(--green)",
+    title:"GCP Architecture",
+    sub:"Anthos · Assured Workloads · CDS",
+    desc:"GCP with Anthos for hybrid container orchestration, Assured Workloads for compliance boundaries, and BigQuery for analytical workloads at banking scale.",
+    tags:["GKE","Cloud SQL","BigQuery","Cloud KMS","Chronicle"],
+    avg:"8 mo", cost:"$1.2–2.4M", sla:"99.95%", footprint:"3 Zones",
+    layers:[
+      [{l:"Cloud Armor + WAF",s:"Adaptive Protection"}, {l:"Cloud DNS",s:"DNSSEC · Private"}],
+      [{l:"GKE Enterprise",s:"Autopilot + Anthos",h:true}, {l:"Anthos Service Mesh",s:"mTLS · CA"}],
+      [{l:"Apigee X",s:"Edge gateway"}, {l:"Identity Platform",s:"OIDC · MFA"}],
+      [{l:"Cloud SQL HA",s:"PostgreSQL · regional"}, {l:"Memorystore",s:"Redis · HA"}, {l:"Cloud Storage",s:"Bucket Lock · CMEK"}],
+      [{l:"Cloud Logging",s:"Chronicle SIEM"}, {l:"Cloud KMS",s:"EKM · HSM-backed"}],
+    ],
+    components:[
+      ["Compute","GKE · Cloud Run · Functions"],
+      ["Network","VPC-SC · Private Service Connect"],
+      ["Storage","GCS · Filestore · Persistent Disk"],
+      ["DR","Multi-region + replication"],
+      ["Key Mgmt","Cloud HSM · EKM"],
+      ["Backup","Backup & DR Service"],
+    ]
+  },
+  {
+    key:"oci", letter:"OC", color:"var(--red)",
+    title:"OCI Architecture",
+    sub:"Exadata · OKE · Sovereign cloud",
+    desc:"Oracle Cloud Infrastructure with Exadata Cloud Service for sub-millisecond OLTP, OKE for containers, and the Dedicated Region for sovereign banking deployments.",
+    tags:["OKE","Exadata","Vault","WAF","Logging Analytics"],
+    avg:"10 mo", cost:"$1.6–3.0M", sla:"99.95%", footprint:"3 AD"
+,
+    layers:[
+      [{l:"OCI WAF",s:"PCI-DSS · OWASP"}, {l:"DNS Health Checks",s:"Steering policies"}],
+      [{l:"OKE",s:"Virtual Nodes",h:true}, {l:"Service Mesh",s:"Linkerd / Istio"}],
+      [{l:"API Gateway",s:"Native OCI"}, {l:"IAM Domains",s:"OAuth · SCIM"}],
+      [{l:"Exadata Cloud",s:"Autonomous TP"}, {l:"Cache",s:"Redis on OKE"}, {l:"Object Storage",s:"Versioning · WORM"}],
+      [{l:"Logging Analytics",s:"Centralized"}, {l:"Vault",s:"HSM-backed KMS"}],
+    ],
+    components:[
+      ["Compute","OKE · Functions · Bare metal"],
+      ["Network","FastConnect · Service Gateway"],
+      ["Storage","Block · Object · File Storage"],
+      ["DR","Cross-region async + Data Guard"],
+      ["Key Mgmt","Vault · OCI HSM"],
+      ["Backup","Recovery Service · ZRCV"],
+    ]
+  },
+  {
+    key:"ibm", letter:"IB", color:"var(--purple)",
+    title:"IBM Cloud Architecture",
+    sub:"FS Cloud · LinuxONE · Hyper Protect",
+    desc:"IBM Cloud for Financial Services with built-in controls, LinuxONE for sensitive workloads, and Hyper Protect Services for confidential compute backed by FIPS 140-2 Level 4 HSMs.",
+    tags:["IKS / OpenShift","Db2 · Cloudant","Key Protect","HPCS","QRadar"],
+    avg:"11 mo", cost:"$1.8–3.4M", sla:"99.95%", footprint:"MZR",
+    layers:[
+      [{l:"CIS WAF",s:"DDoS · Bot Mgmt"}, {l:"DNS Services",s:"Private DNS · GLB"}],
+      [{l:"OpenShift on IBM",s:"VPC Gen2",h:true}, {l:"Istio Service Mesh",s:"mTLS · Auth"}],
+      [{l:"API Connect",s:"Lifecycle · Analytics"}, {l:"App ID",s:"OIDC · MFA"}],
+      [{l:"Db2 on Cloud Pak",s:"HA / DR"}, {l:"Redis Enterprise",s:"On VPC"}, {l:"Cloud Object Storage",s:"WORM · Vault"}],
+      [{l:"Log Analysis",s:"QRadar SIEM"}, {l:"Hyper Protect Crypto",s:"FIPS 140-2 L4"}],
+    ],
+    components:[
+      ["Compute","ROKS · Code Engine · LinuxONE"],
+      ["Network","Direct Link · Transit Gateway"],
+      ["Storage","COS · Block · File"],
+      ["DR","MZR + Cross-region replication"],
+      ["Key Mgmt","Key Protect · HPCS (L4)"],
+      ["Backup","IBM Storage Defender"],
+    ]
+  }
+];
+
+const grid = document.getElementById('targets');
+const detail = document.getElementById('detail');
+
+TARGETS.forEach(t => {
+  const el = document.createElement('div');
+  el.className = 'target';
+  el.style.setProperty('--c', t.color);
+  el.innerHTML = `
+    <div class="top">
+      <div class="tg-badge" style="background:${t.color}">${t.letter}</div>
+      <div>
+        <h3>${t.title}</h3>
+        <div class="sub">${t.sub}</div>
+      </div>
+    </div>
+    <p>${t.desc}</p>
+    <div class="tags">${t.tags.map(x=>`<span class="tag">${x}</span>`).join('')}</div>
+    <div class="footer-row">
+      <span>Avg. migration ${t.avg} · SLA ${t.sla}</span>
+      <span class="cta">View blueprint →</span>
+    </div>
+  `;
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.target').forEach(x => x.classList.remove('selected'));
+    el.classList.add('selected');
+    renderDetail(t);
+    sessionStorage.setItem('diSelectedArch', JSON.stringify({ key: t.key, title: t.title, letter: t.letter, color: t.color }));
+  });
+  grid.appendChild(el);
+});
+
+function renderDetail(t) {
+  let layersHtml = '';
+  t.layers.forEach((layer, i) => {
+    layersHtml += `<div class="arch-layer">${layer.map(b => `
+      <div class="arch-box ${b.h?'h':''}" style="--c:${t.color}">
+        <span class="l">${b.l}</span>
+        <span class="s">${b.s}</span>
+      </div>`).join('')}</div>`;
+    if (i < t.layers.length - 1) layersHtml += `<div class="arch-arrow" style="--c:${t.color}"></div>`;
+  });
+
+  const compHtml = t.components.map(([k,v]) => `<div class="comp-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
+
+  detail.innerHTML = `
+    <div class="detail-head">
+      <div class="badge-lg" style="background:${t.color}">${t.letter}</div>
+      <div>
+        <h2>${t.title}</h2>
+        <div class="sub">${t.sub} · Reference blueprint</div>
+      </div>
+      <div class="spacer"></div>
+      <span class="pill">● Selected</span>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-diagram">
+        <div class="diagram-title">Reference Architecture · Top-down flow</div>
+        ${layersHtml}
+      </div>
+      <div class="detail-side">
+        <div class="side-h" style="--c:${t.color}">Native components</div>
+        ${compHtml}
+        <div class="side-h" style="--c:${t.color};margin-top:18px">Tagged services</div>
+        <div class="tags">${t.tags.map(x=>`<span class="tag">${x}</span>`).join('')}</div>
+      </div>
+    </div>
+    <div class="detail-meta">
+      <div class="meta-cell"><div class="ml">Avg. Migration</div><div class="mv">${t.avg}</div></div>
+      <div class="meta-cell"><div class="ml">Indicative Cost</div><div class="mv">${t.cost}</div></div>
+      <div class="meta-cell"><div class="ml">SLA target</div><div class="mv">${t.sla}</div></div>
+      <div class="meta-cell"><div class="ml">Footprint</div><div class="mv">${t.footprint}</div></div>
+    </div>
+  `;
+  detail.classList.add('on');
+  detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+
+<script src="assets/nishi.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+</body>
+</html>

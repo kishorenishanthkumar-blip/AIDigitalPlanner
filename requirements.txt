@@ -1,0 +1,9 @@
+# ─────────────────────────────────────────────────────────────
+# DI-Platform · STUB requirements.txt (intentional)
+# This file is intentionally empty of real dependencies.
+# The platform is a STATIC SITE — no Python is needed at deploy time.
+# This stub stops Netlify from looking elsewhere and prevents the
+# previous psycopg2-binary build failure.
+#
+# The real backend Python deps live in: backend/requirements.txt
+# ─────────────────────────────────────────────────────────────

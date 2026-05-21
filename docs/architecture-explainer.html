@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DI-Platform — Architecture Explainer</title>
+<style>
+  /* ─────────── Reset & base ─────────── */
+  *,
+  *::before,
+  *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-0: #0a0e1a;
+    --bg-1: #111729;
+    --bg-2: #1a2238;
+    --bg-3: #232d4e;
+    --line: #2a3556;
+    --text-0: #e8ecf7;
+    --text-1: #a7b1d1;
+    --text-2: #6b7699;
+    --accent: #6ea8ff;
+    --accent-2: #9b7dff;
+    --green: #5dd6a0;
+    --orange: #ffb86b;
+    --red: #ff7a8a;
+    --teal: #5be1d3;
+    --pink: #ff7ad6;
+    --yellow: #ffe16b;
+    --gradient: linear-gradient(135deg, #6ea8ff 0%, #9b7dff 100%);
+  }
+
+  html, body {
+    background: radial-gradient(ellipse at top, #0e1a36 0%, var(--bg-0) 60%);
+    color: var(--text-0);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─────────── Layout ─────────── */
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 60px 32px 120px;
+  }
+
+  /* ─────────── Header ─────────── */
+  header {
+    text-align: center;
+    margin-bottom: 80px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards;
+  }
+  .badge {
+    display: inline-block;
+    padding: 6px 14px;
+    background: rgba(110, 168, 255, 0.12);
+    border: 1px solid rgba(110, 168, 255, 0.3);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 14px;
+  }
+  h1 .grad {
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .sub {
+    color: var(--text-1);
+    font-size: 18px;
+    max-width: 680px;
+    margin: 0 auto 8px;
+  }
+  .meta {
+    color: var(--text-2);
+    font-size: 13px;
+    margin-top: 14px;
+  }
+
+  /* ─────────── Step navigation ─────────── */
+  .stepper {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 56px auto 48px;
+    padding: 0 8px;
+  }
+  .step-btn {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    color: var(--text-1);
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-weight: 500;
+    user-select: none;
+  }
+  .step-btn:hover {
+    border-color: var(--accent);
+    color: var(--text-0);
+    transform: translateY(-2px);
+  }
+  .step-btn.active {
+    background: var(--gradient);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 8px 24px -8px rgba(110, 168, 255, 0.6);
+  }
+  .step-btn .num {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    font-size: 11px;
+    text-align: center;
+    margin-right: 8px;
+    font-weight: 700;
+  }
+
+  /* ─────────── Sections ─────────── */
+  section.step {
+    background: rgba(26, 34, 56, 0.55);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 48px;
+    margin-bottom: 32px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  section.step.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  section.step h2 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--gradient);
+    color: white;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  section.step .lead {
+    color: var(--text-1);
+    margin-bottom: 32px;
+    max-width: 780px;
+  }
+
+  /* ─────────── Studios grid ─────────── */
+  .studios {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  .studio-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+  .studio-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+  }
+  .studio-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--gradient);
+  }
+  .studio-card .icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+  .studio-card h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  .studio-card p {
+    color: var(--text-1);
+    font-size: 14px;
+  }
+
+  /* ─────────── Architecture diagram ─────────── */
+  .diagram {
+    background: var(--bg-0);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 40px 30px;
+    margin-top: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .diagram-title {
+    text-align: center;
+    color: var(--text-2);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 28px;
+  }
+  .layer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .box {
+    background: var(--bg-2);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 22px;
+    min-width: 160px;
+    text-align: center;
+    position: relative;
+    transition: all 0.35s ease;
+    cursor: default;
+  }
+  .box:hover {
+    transform: translateY(-3px) scale(1.03);
+    border-color: var(--accent);
+    box-shadow: 0 10px 30px -10px rgba(110, 168, 255, 0.4);
+  }
+  .box.studio-discovery { border-color: rgba(91, 225, 211, 0.5); }
+  .box.studio-requirements { border-color: rgba(155, 125, 255, 0.5); }
+  .box.services { border-color: rgba(255, 184, 107, 0.5); background: rgba(255, 184, 107, 0.04); min-width: 380px; }
+  .box.infra { font-size: 13px; }
+  .box.export { background: rgba(91, 214, 160, 0.04); border-color: rgba(91, 214, 160, 0.5); }
+  .box-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .box-sub { color: var(--text-2); font-size: 11px; }
+
+  /* Animated connectors */
+  .arrow {
+    display: flex;
+    justify-content: center;
+    margin: -8px 0;
+    height: 30px;
+    align-items: center;
+  }
+  .arrow svg { overflow: visible; }
+  .arrow-line {
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-dasharray: 5;
+    animation: flow 1.5s linear infinite;
+  }
+  @keyframes flow {
+    to { stroke-dashoffset: -10; }
+  }
+
+  /* ─────────── Pipeline (6 agents) ─────────── */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+    position: relative;
+  }
+  @media (max-width: 900px) {
+    .pipeline { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 540px) {
+    .pipeline { grid-template-columns: repeat(2, 1fr); }
+  }
+  .agent {
+    background: var(--bg-2);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 12px;
+    text-align: center;
+    position: relative;
+    transition: all 0.35s ease;
+    overflow: hidden;
+  }
+  .agent::before {
+    content: attr(data-step);
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    font-size: 10px;
+    color: var(--text-2);
+    font-weight: 700;
+  }
+  .agent .emoji { font-size: 28px; margin-bottom: 8px; display: block; }
+  .agent .name { font-size: 12px; font-weight: 600; line-height: 1.3; }
+  .agent.active {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, rgba(110, 168, 255, 0.18), rgba(155, 125, 255, 0.08));
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px -10px rgba(110, 168, 255, 0.6);
+  }
+  .agent.active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    box-shadow: 0 0 0 2px var(--accent);
+    animation: pulse 1.4s ease-out infinite;
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 2px rgba(110, 168, 255, 0.8); }
+    100% { box-shadow: 0 0 0 12px rgba(110, 168, 255, 0); }
+  }
+  .pipeline-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .pipeline-controls button {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    color: var(--text-0);
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .pipeline-controls button:hover {
+    border-color: var(--accent);
+    background: var(--bg-3);
+  }
+  .pipeline-controls button.primary {
+    background: var(--gradient);
+    border-color: transparent;
+    font-weight: 600;
+  }
+  .pipeline-detail {
+    margin-top: 22px;
+    padding: 18px 22px;
+    background: rgba(110, 168, 255, 0.06);
+    border: 1px solid rgba(110, 168, 255, 0.2);
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--text-1);
+    min-height: 60px;
+    transition: opacity 0.3s ease;
+  }
+  .pipeline-detail strong { color: var(--text-0); }
+
+  /* ─────────── Layering table ─────────── */
+  .layer-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 900px) { .layer-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .layer-grid { grid-template-columns: 1fr; } }
+  .layer-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 16px;
+    transition: all 0.3s ease;
+    cursor: default;
+  }
+  .layer-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+  }
+  .layer-card .lname {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 4px;
+    color: var(--accent);
+  }
+  .layer-card .lpath {
+    font-family: ui-monospace, "JetBrains Mono", "Cascadia Code", monospace;
+    font-size: 11px;
+    color: var(--text-2);
+    margin-bottom: 10px;
+    word-break: break-all;
+  }
+  .layer-card .ldesc {
+    font-size: 13px;
+    color: var(--text-1);
+  }
+
+  /* ─────────── Config precedence ─────────── */
+  .precedence {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 600px;
+    margin: 16px auto 0;
+  }
+  .prec-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 22px;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  .prec-item:hover { border-color: var(--accent); transform: translateX(6px); }
+  .prec-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--gradient);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .prec-text {
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+  }
+  .prec-text small {
+    font-family: -apple-system, sans-serif;
+    color: var(--text-2);
+    margin-left: 10px;
+  }
+
+  /* ─────────── Dev loop ─────────── */
+  .devloop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 32px 16px;
+    background: var(--bg-0);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    margin-top: 16px;
+  }
+  .dev-step {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .dev-step.spotlight {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, rgba(110, 168, 255, 0.18), transparent);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px -8px rgba(110, 168, 255, 0.6);
+  }
+  .dev-arrow {
+    color: var(--accent);
+    font-size: 20px;
+    animation: nudge 1.4s ease-in-out infinite;
+  }
+  @keyframes nudge {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(4px); }
+  }
+
+  /* ─────────── Containers ─────────── */
+  .containers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 720px) { .containers { grid-template-columns: 1fr; } }
+  .container-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .container-card:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .container-card .ctype { font-size: 32px; margin-bottom: 8px; }
+  .container-card h4 { font-size: 16px; margin-bottom: 4px; }
+  .container-card .port {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 10px;
+    background: rgba(110, 168, 255, 0.12);
+    border-radius: 999px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .container-card .desc {
+    color: var(--text-1);
+    font-size: 13px;
+    margin-top: 8px;
+  }
+
+  /* ─────────── Testing ─────────── */
+  .tests {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 720px) { .tests { grid-template-columns: 1fr; } }
+  .test-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    position: relative;
+  }
+  .test-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 22px;
+    width: 40px; height: 3px;
+    border-radius: 0 0 4px 4px;
+  }
+  .test-card.unit::before { background: var(--green); }
+  .test-card.integration::before { background: var(--orange); }
+  .test-card.fixtures::before { background: var(--pink); }
+  .test-card h4 { font-size: 15px; margin: 14px 0 6px; }
+  .test-card .tpath {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--text-2);
+    margin-bottom: 10px;
+  }
+  .test-card .tdesc { font-size: 13px; color: var(--text-1); }
+
+  /* ─────────── Footer ─────────── */
+  footer {
+    text-align: center;
+    color: var(--text-2);
+    font-size: 12px;
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* ─────────── Animations ─────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- ─────────── Header ─────────── -->
+  <header>
+    <span class="badge">Architecture Explainer</span>
+    <h1>DI-Platform — <span class="grad">One platform, two studios</span></h1>
+    <p class="sub">A guided walkthrough of how the platform turns legacy banking discovery and unstructured stakeholder input into Agile-ready backlogs.</p>
+    <div class="meta">IDD: DI-2026-NKK-0511-001 · Inventor: Nishanth Kumar Kishore · Digital Infotech</div>
+  </header>
+
+  <!-- ─────────── Step navigation ─────────── -->
+  <nav class="stepper" id="stepper"></nav>
+
+  <!-- ─────────── Step 1: System overview ─────────── -->
+  <section class="step" id="step-1">
+    <h2><span class="step-num">1</span> System overview</h2>
+    <p class="lead">The platform exposes two integrated studios on a shared FastAPI backend — one for legacy code discovery, one for AI-driven requirements engineering.</p>
+
+    <div class="studios">
+      <div class="studio-card">
+        <div class="icon">⏱️</div>
+        <h3>Time Capsule Discovery Studio</h3>
+        <p>Analyzes legacy banking servers and classifies code components as Optimize / No Action / Decommission.</p>
+      </div>
+      <div class="studio-card">
+        <div class="icon">🤖</div>
+        <h3>AI Requirements Studio</h3>
+        <p>Transforms unstructured discovery input into Agile backlogs via a six-agent AI pipeline.</p>
+      </div>
+    </div>
+
+    <div class="diagram" style="margin-top:32px">
+      <div class="diagram-title">FastAPI Application</div>
+
+      <div class="layer">
+        <div class="box studio-discovery">
+          <div class="box-title">⏱ Discovery Studio API</div>
+          <div class="box-sub">Server analysis · Code classification</div>
+        </div>
+        <div class="box studio-requirements">
+          <div class="box-title">🤖 6-Agent Pipeline</div>
+          <div class="box-sub">Parser → Generator → Writer → AC → Estimate → Map</div>
+        </div>
+      </div>
+
+      <div class="arrow">
+        <svg width="40" height="30"><line class="arrow-line" x1="20" y1="0" x2="20" y2="28"/><polygon points="14,22 26,22 20,30" fill="var(--accent)"/></svg>
+      </div>
+
+      <div class="layer">
+        <div class="box services">
+          <div class="box-title">Services Layer</div>
+          <div class="box-sub">Orchestration · Validation · Persistence</div>
+        </div>
+      </div>
+
+      <div class="arrow">
+        <svg width="40" height="30"><line class="arrow-line" x1="20" y1="0" x2="20" y2="28"/><polygon points="14,22 26,22 20,30" fill="var(--accent)"/></svg>
+      </div>
+
+      <div class="layer">
+        <div class="box infra">🐘 Postgres</div>
+        <div class="box infra">🔴 Redis</div>
+        <div class="box infra">🧠 Anthropic API</div>
+      </div>
+
+      <div class="arrow">
+        <svg width="40" height="30"><line class="arrow-line" x1="20" y1="0" x2="20" y2="28"/><polygon points="14,22 26,22 20,30" fill="var(--green)"/></svg>
+      </div>
+
+      <div class="layer">
+        <div class="box export">📋 Jira Export</div>
+        <div class="box export">🎯 Rally Export</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── Step 2: Six-agent pipeline ─────────── -->
+  <section class="step" id="step-2">
+    <h2><span class="step-num">2</span> The six-agent pipeline</h2>
+    <p class="lead">Click <strong>Play</strong> to watch the pipeline execute. Each agent hands its output to the next, transforming raw discovery notes into a complete backlog.</p>
+
+    <div class="pipeline" id="pipeline">
+      <div class="agent" data-step="01" data-detail="<strong>Discovery Parser</strong> — Extracts themes, entities, pain points, business goals, and technical constraints from unstructured input using LLM inference.">
+        <span class="emoji">🔍</span>
+        <div class="name">Discovery<br>Parser</div>
+      </div>
+      <div class="agent" data-step="02" data-detail="<strong>Epic Generator</strong> — Produces epics with title, description, business value, priority {Critical, High, Medium, Low}, and component labels.">
+        <span class="emoji">📦</span>
+        <div class="name">Epic<br>Generator</div>
+      </div>
+      <div class="agent" data-step="03" data-detail="<strong>Story Writer</strong> — Generates user stories in canonical format: 'As a [persona], I want [action] so that [benefit]' with domain-specific personas.">
+        <span class="emoji">✍️</span>
+        <div class="name">Story<br>Writer</div>
+      </div>
+      <div class="agent" data-step="04" data-detail="<strong>Acceptance Criteria</strong> — Produces Given/When/Then criteria per story, contextually specific to domain, persona, and action.">
+        <span class="emoji">✅</span>
+        <div class="name">Acceptance<br>Criteria</div>
+      </div>
+      <div class="agent" data-step="05" data-detail="<strong>Estimation Agent</strong> — Assigns Fibonacci story points {1,2,3,5,8,13} using domain-context-aware inference on complexity and technical risk.">
+        <span class="emoji">🎯</span>
+        <div class="name">Estimation<br>Agent</div>
+      </div>
+      <div class="agent" data-step="06" data-detail="<strong>Platform Mapper</strong> — Simultaneously emits Jira Cloud JSON (projects[].issues[]) and Rally Agile Central Feature/UserStory bulk upload JSON.">
+        <span class="emoji">🗺️</span>
+        <div class="name">Platform<br>Mapper</div>
+      </div>
+    </div>
+
+    <div class="pipeline-controls">
+      <button id="play-btn" class="primary">▶ Play pipeline</button>
+      <button id="pause-btn">⏸ Pause</button>
+      <button id="reset-btn">↻ Reset</button>
+    </div>
+
+    <div class="pipeline-detail" id="pipeline-detail">
+      Click an agent (or press Play) to see its responsibility.
+    </div>
+  </section>
+
+  <!-- ─────────── Step 3: Layering ─────────── -->
+  <section class="step" id="step-3">
+    <h2><span class="step-num">3</span> Layering — clean separation of concerns</h2>
+    <p class="lead">Each module in <code>src/di_platform/</code> owns a single responsibility, making the codebase easy to navigate, test, and extend.</p>
+
+    <div class="layer-grid">
+      <div class="layer-card"><div class="lname">API</div><div class="lpath">src/di_platform/api/</div><div class="ldesc">HTTP routes, request/response shapes.</div></div>
+      <div class="layer-card"><div class="lname">Services</div><div class="lpath">src/di_platform/services/</div><div class="ldesc">Orchestrate agents, persist results.</div></div>
+      <div class="layer-card"><div class="lname">Agents</div><div class="lpath">src/di_platform/agents/</div><div class="ldesc">One module per AI agent.</div></div>
+      <div class="layer-card"><div class="lname">Models</div><div class="lpath">src/di_platform/models/</div><div class="ldesc">Pydantic schemas + SQLAlchemy models.</div></div>
+      <div class="layer-card"><div class="lname">Utils</div><div class="lpath">src/di_platform/utils/</div><div class="ldesc">Logging, IDs, time helpers.</div></div>
+    </div>
+  </section>
+
+  <!-- ─────────── Step 4: Configuration ─────────── -->
+  <section class="step" id="step-4">
+    <h2><span class="step-num">4</span> Configuration precedence</h2>
+    <p class="lead">Settings resolve top-down — values higher in the list override lower ones. Secrets stay in <code>.env</code>; environment-specific tunables live in YAML; defaults are baked into Python.</p>
+
+    <div class="precedence">
+      <div class="prec-item">
+        <div class="prec-num">1</div>
+        <div class="prec-text">.env / environment variables<small>highest priority — secrets only</small></div>
+      </div>
+      <div class="prec-item">
+        <div class="prec-num">2</div>
+        <div class="prec-text">config/&lt;environment&gt;.yaml<small>dev / staging / prod tunables</small></div>
+      </div>
+      <div class="prec-item">
+        <div class="prec-num">3</div>
+        <div class="prec-text">src/di_platform/config.py<small>built-in defaults — safe fallbacks</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── Step 5: Local dev loop ─────────── -->
+  <section class="step" id="step-5">
+    <h2><span class="step-num">5</span> Local dev loop</h2>
+    <p class="lead">Fast feedback — edit, test, reload, repeat. Uvicorn's auto-reload watches <code>src/</code> so saving a file refreshes the server in milliseconds.</p>
+
+    <div class="devloop" id="devloop">
+      <div class="dev-step" data-i="0">edit src/</div>
+      <span class="dev-arrow">→</span>
+      <div class="dev-step" data-i="1">pytest</div>
+      <span class="dev-arrow">→</span>
+      <div class="dev-step" data-i="2">uvicorn (reload)</div>
+      <span class="dev-arrow">→</span>
+      <div class="dev-step" data-i="3">iterate</div>
+    </div>
+  </section>
+
+  <!-- ─────────── Step 6: Container topology ─────────── -->
+  <section class="step" id="step-6">
+    <h2><span class="step-num">6</span> Container topology</h2>
+    <p class="lead">A single <code>docker-compose up</code> spins the entire local stack — app, database, and cache — wired together via the compose network.</p>
+
+    <div class="containers">
+      <div class="container-card">
+        <div class="ctype">🚀</div>
+        <h4>app</h4>
+        <span class="port">:8000</span>
+        <div class="desc">FastAPI + uvicorn</div>
+      </div>
+      <div class="container-card">
+        <div class="ctype">🐘</div>
+        <h4>db</h4>
+        <span class="port">:5432</span>
+        <div class="desc">Postgres 16</div>
+      </div>
+      <div class="container-card">
+        <div class="ctype">⚡</div>
+        <h4>redis</h4>
+        <span class="port">:6379</span>
+        <div class="desc">Redis 7 — cache & queue</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── Step 7: Testing strategy ─────────── -->
+  <section class="step" id="step-7">
+    <h2><span class="step-num">7</span> Testing strategy</h2>
+    <p class="lead">Three categories, each with a clear role. Fixtures keep tests deterministic and offline — no real Anthropic calls during CI.</p>
+
+    <div class="tests">
+      <div class="test-card unit">
+        <h4>Unit</h4>
+        <div class="tpath">tests/unit/</div>
+        <div class="tdesc">Pure-function tests. No database, no network. Fast — runs in milliseconds.</div>
+      </div>
+      <div class="test-card integration">
+        <h4>Integration</h4>
+        <div class="tpath">tests/integration/</div>
+        <div class="tdesc">FastAPI TestClient + spun-up Postgres & Redis. Validates wiring end-to-end.</div>
+      </div>
+      <div class="test-card fixtures">
+        <h4>Fixtures</h4>
+        <div class="tpath">tests/fixtures/</div>
+        <div class="tdesc">JSON snapshots used as inputs and mocked Anthropic responses — so tests don't burn API credits.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    DI-Platform Architecture Explainer · © 2026 Nishanth Kumar Kishore / Digital Infotech<br>
+    Built as an interactive companion to <code>docs/architecture.md</code>
+  </footer>
+</div>
+
+<script>
+  // ─────────── Step navigation ───────────
+  const steps = [
+    { id: 'step-1', label: 'System overview' },
+    { id: 'step-2', label: '6-Agent Pipeline' },
+    { id: 'step-3', label: 'Layering' },
+    { id: 'step-4', label: 'Configuration' },
+    { id: 'step-5', label: 'Dev loop' },
+    { id: 'step-6', label: 'Containers' },
+    { id: 'step-7', label: 'Testing' }
+  ];
+  const stepper = document.getElementById('stepper');
+  steps.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'step-btn';
+    btn.innerHTML = `<span class="num">${i + 1}</span>${s.label}`;
+    btn.addEventListener('click', () => {
+      document.getElementById(s.id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    stepper.appendChild(btn);
+  });
+
+  // ─────────── Reveal-on-scroll ───────────
+  const sections = document.querySelectorAll('section.step');
+  const stepButtons = document.querySelectorAll('.step-btn');
+  const io = new IntersectionObserver(
+    entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in-view');
+          const idx = Array.from(sections).indexOf(e.target);
+          stepButtons.forEach((b, i) => b.classList.toggle('active', i === idx));
+        }
+      });
+    },
+    { threshold: 0.35 }
+  );
+  sections.forEach(s => io.observe(s));
+
+  // ─────────── Pipeline animation ───────────
+  const agents = document.querySelectorAll('.agent');
+  const detail = document.getElementById('pipeline-detail');
+  const playBtn = document.getElementById('play-btn');
+  const pauseBtn = document.getElementById('pause-btn');
+  const resetBtn = document.getElementById('reset-btn');
+  let pipelineTimer = null;
+  let pipelineIdx = 0;
+
+  function activateAgent(i) {
+    agents.forEach((a, idx) => a.classList.toggle('active', idx === i));
+    detail.innerHTML = agents[i].dataset.detail;
+    detail.style.opacity = 0;
+    requestAnimationFrame(() => { detail.style.opacity = 1; });
+  }
+  function playPipeline() {
+    clearInterval(pipelineTimer);
+    pipelineTimer = setInterval(() => {
+      activateAgent(pipelineIdx);
+      pipelineIdx = (pipelineIdx + 1) % agents.length;
+    }, 1400);
+  }
+  function pausePipeline() {
+    clearInterval(pipelineTimer);
+    pipelineTimer = null;
+  }
+  function resetPipeline() {
+    clearInterval(pipelineTimer);
+    pipelineTimer = null;
+    pipelineIdx = 0;
+    agents.forEach(a => a.classList.remove('active'));
+    detail.innerHTML = 'Click an agent (or press Play) to see its responsibility.';
+  }
+  agents.forEach((a, i) => a.addEventListener('click', () => { pausePipeline(); pipelineIdx = i; activateAgent(i); }));
+  playBtn.addEventListener('click', playPipeline);
+  pauseBtn.addEventListener('click', pausePipeline);
+  resetBtn.addEventListener('click', resetPipeline);
+
+  // Auto-play when pipeline section becomes visible
+  const pipelineSection = document.getElementById('step-2');
+  let pipelineStarted = false;
+  const pipelineIo = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !pipelineStarted) {
+        pipelineStarted = true;
+        setTimeout(playPipeline, 600);
+      }
+    });
+  }, { threshold: 0.5 });
+  pipelineIo.observe(pipelineSection);
+
+  // ─────────── Dev-loop spotlight ───────────
+  const devSteps = document.querySelectorAll('.dev-step');
+  let devIdx = 0;
+  setInterval(() => {
+    devSteps.forEach((s, i) => s.classList.toggle('spotlight', i === devIdx));
+    devIdx = (devIdx + 1) % devSteps.length;
+  }, 1100);
+</script>
+
+</body>
+</html>

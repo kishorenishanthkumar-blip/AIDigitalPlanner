@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nishi · DI Platform AI Assistant — Digital Infotech</title>
+<link rel="stylesheet" href="assets/theme.css">
+<script src="assets/toasts.js" defer></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+:root{
+  /* Phase 13 — light theme */
+  --void:#F4F6FA;--deep:#F8FAFD;--navy:#FFFFFF;--panel:#FFFFFF;
+  --card:#FFFFFF;--card2:#F8FAFD;--b1:#E2E7F1;--b2:#D9DFEB;
+  --amber:#C8921A;--amber2:#E8AC38;--amber3:#FFD070;--aglow:rgba(200,146,26,.10);
+  --green:#0FD49A;--red:#FF4D6A;--blue:#3D8EFF;--purple:#9B72FF;--orange:#FF8030;--teal:#00C9C8;--pink:#FF6BB5;
+  --t1:#1A2238;--t2:#5B6B8A;--t3:#9AA6BE;
+  --f-head:'Fraunces',Georgia,serif;--f-ui:'Outfit',system-ui,sans-serif;--f-mono:'JetBrains Mono','Courier New',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:linear-gradient(180deg,#F8FAFD,#EEF2F8);color:var(--t1);font-family:var(--f-ui);font-size:13px;line-height:1.5;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+
+.tb{height:54px;background:var(--panel);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 22px;gap:14px;flex-shrink:0}
+.tb-logo{width:32px;height:32px;background:linear-gradient(135deg,var(--amber),var(--amber3));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--void)}
+.tb-brand{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1)}
+.tb-div{width:1px;height:24px;background:var(--b1)}
+.tb-crumb{font-size:12px;color:var(--t2);display:flex;gap:8px;align-items:center}
+.tb-crumb a{color:var(--t2);text-decoration:none}.tb-crumb a:hover{color:var(--amber2)}.tb-crumb .sep{color:var(--t3)}
+.tb-r{margin-left:auto;display:flex;gap:8px}
+.tb-link{padding:6px 14px;background:transparent;border:1px solid var(--b2);border-radius:7px;color:var(--t2);font-size:12px;text-decoration:none;transition:.2s;cursor:pointer;font-family:var(--f-ui)}
+.tb-link:hover{border-color:var(--amber);color:var(--amber2)}
+.tb-link.active{background:var(--amber);color:var(--void);border-color:var(--amber);font-weight:700}
+
+/* Main shell */
+.shell{flex:1;display:grid;grid-template-columns:240px 1fr 280px;min-height:0;height:calc(100vh - 54px)}
+@media (max-width:1200px){.shell{grid-template-columns:1fr 280px}.shell .side{display:none}}
+@media (max-width:900px) {.shell{grid-template-columns:1fr}.shell .side,.shell .ctx{display:none}}
+
+/* Sidebar */
+.side{background:var(--panel);border-right:1px solid var(--b1);padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.side .suggest{display:none}  /* Phase 13.1: suggested prompts moved to dropdown inside composer */
+.side .suggest-old-h{display:none}
+.side h3{font-family:var(--f-head);font-size:13px;font-weight:600;color:var(--t1);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.side h3::before{content:'';width:3px;height:11px;background:var(--amber);border-radius:2px}
+.suggest{display:flex;flex-direction:column;gap:6px}
+.suggest button{text-align:left;padding:9px 11px;background:var(--card);border:1px solid var(--b1);border-radius:7px;color:var(--t2);font-size:12px;cursor:pointer;font-family:var(--f-ui);transition:.2s;line-height:1.4}
+.suggest button:hover{border-color:var(--amber);color:var(--t1);background:var(--card2)}
+.session{padding:11px;background:var(--card);border:1px solid var(--b1);border-radius:8px}
+.session .row{display:flex;justify-content:space-between;font-size:11px;color:var(--t2);padding:3px 0}
+.session .row strong{color:var(--t1);font-family:var(--f-mono)}
+
+/* Chat area */
+.chat{display:flex;flex-direction:column;background:var(--deep);min-width:0;min-height:0;overflow:hidden}
+.chat-head{padding:14px 22px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:12px;flex-shrink:0;background:var(--panel)}
+.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--amber),var(--pink));display:flex;align-items:center;justify-content:center;color:var(--void);font-weight:900;font-family:var(--f-head);font-size:16px;flex-shrink:0;position:relative}
+.avatar::after{content:'';position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--panel)}
+.chat-head h2{font-family:var(--f-head);font-size:18px;font-weight:600;color:var(--t1)}
+.chat-head .sub{font-size:11px;color:var(--t3)}
+.chat-head .mode-toggle{margin-left:auto;display:flex;gap:4px;background:var(--card);border:1px solid var(--b1);border-radius:7px;padding:3px}
+.mt-btn{padding:5px 12px;background:transparent;border:none;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;border-radius:5px;font-family:var(--f-ui)}
+.mt-btn.act{background:var(--amber);color:var(--void)}
+
+.messages{flex:1;overflow-y:auto;padding:22px 28px;display:flex;flex-direction:column;gap:18px;min-height:0}
+.msg{display:flex;gap:12px;align-items:flex-start;animation:slide .3s ease}
+@keyframes slide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.msg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;font-family:var(--f-head)}
+.msg.bot .msg-av{background:linear-gradient(135deg,var(--amber),var(--pink));color:var(--void)}
+.msg.user .msg-av{background:var(--blue);color:var(--void)}
+.msg.system .msg-av{background:var(--t3);color:var(--void);font-size:10px}
+.msg-body{max-width:78%;background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:11px 15px;font-size:13px;color:var(--t1);line-height:1.6;white-space:pre-wrap;word-wrap:break-word}
+.msg.user .msg-body{background:rgba(61,142,255,.1);border-color:rgba(61,142,255,.3)}
+.msg.system .msg-body{background:transparent;border:1px dashed var(--b1);color:var(--t3);font-size:11.5px;font-family:var(--f-mono)}
+.msg-body code{background:var(--navy);padding:1px 5px;border-radius:3px;font-family:var(--f-mono);font-size:12px;color:var(--amber2)}
+.msg-body pre{background:var(--navy);padding:10px 12px;border-radius:7px;margin:6px 0;font-family:var(--f-mono);font-size:11.5px;overflow-x:auto;border:1px solid var(--b1)}
+.msg .time{font-size:9.5px;color:var(--t3);margin-top:4px;font-family:var(--f-mono)}
+
+/* CLI mode */
+.cli-body{font-family:var(--f-mono);font-size:12px;background:#000;border:1px solid var(--b1);max-width:none;width:100%}
+.cli-prompt{color:var(--green);font-weight:600}
+
+.input-bar{padding:12px 18px 14px;border-top:1px solid var(--b1);background:#fff;flex-shrink:0;box-shadow:0 -8px 24px -8px rgba(20,33,58,.08);position:relative;z-index:5}
+.prompts-bar{display:flex;align-items:center;gap:8px;margin-bottom:9px;position:relative}
+.prompts-trigger{flex:1;background:#F8FAFD;border:1px solid var(--b1);border-radius:9px;padding:8px 13px;font-size:12.5px;color:var(--t1);cursor:pointer;text-align:left;font-family:var(--f-ui);display:flex;align-items:center;justify-content:space-between;transition:.2s}
+.prompts-trigger:hover{border-color:var(--amber);background:#FFFCF4}
+.prompts-trigger .lbl{font-weight:600;color:var(--t1);display:flex;align-items:center;gap:7px}
+.prompts-trigger .lbl::before{content:'💡';font-size:13px}
+.prompts-trigger .caret{color:var(--t2);font-size:10px;transition:.2s}
+.prompts-trigger.open .caret{transform:rotate(180deg)}
+.prompts-menu{display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--b1);border-radius:11px;padding:6px;box-shadow:0 18px 38px -10px rgba(20,33,58,.22);z-index:10;max-height:240px;overflow-y:auto}
+.prompts-menu.open{display:block;animation:promptIn .2s ease}
+.prompts-menu button{display:block;width:100%;text-align:left;padding:9px 12px;background:transparent;border:none;border-radius:7px;color:var(--t1);font-size:12.5px;cursor:pointer;font-family:var(--f-ui);line-height:1.4;margin-bottom:2px}
+.prompts-menu button:hover{background:#FFF7E6;color:var(--t1)}
+.prompts-menu button strong{color:var(--amber)}
+@keyframes promptIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.input-row{display:flex;gap:8px;align-items:flex-end}
+.mic-btn{width:44px;height:44px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#FF4D6A,#FF6B8C);border:none;color:#fff;font-size:18px;cursor:pointer;box-shadow:0 4px 12px -4px rgba(255,77,106,.4);transition:.18s;display:flex;align-items:center;justify-content:center}
+.mic-btn:hover{transform:scale(1.05)}
+.mic-btn.recording{background:linear-gradient(135deg,#FF1F44,#FF4D6A);animation:micPulse 1.2s ease-in-out infinite}
+.mic-btn:active{transform:scale(.95)}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,77,106,.55)}50%{box-shadow:0 0 0 12px rgba(255,77,106,0)}}
+.input-row textarea{flex:1;padding:11px 14px;background:#F8FAFD;border:1.5px solid var(--b1);border-radius:12px;color:var(--t1);font-family:var(--f-ui);font-size:13px;resize:none;min-height:44px;max-height:140px;outline:none;line-height:1.45}
+.input-row textarea:focus{border-color:var(--amber);background:#FFFCF4}
+.input-row textarea::placeholder{color:var(--t3)}
+.send-btn{padding:11px 18px;background:var(--amber);border:none;border-radius:9px;color:var(--void);font-weight:700;font-size:13px;cursor:pointer;transition:.2s;font-family:var(--f-ui)}
+.send-btn:hover{background:var(--amber2)}
+.send-btn:disabled{opacity:.5;cursor:not-allowed}
+.hint{font-size:10.5px;color:var(--t3);margin-top:6px;display:flex;justify-content:space-between;gap:8px}
+
+/* Context panel */
+.ctx{background:var(--panel);border-left:1px solid var(--b1);padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.ctx h3{font-family:var(--f-head);font-size:13px;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:8px}
+.ctx h3::before{content:'';width:3px;height:11px;background:var(--pink);border-radius:2px}
+.cap-card{background:var(--card);border:1px solid var(--b1);border-radius:9px;padding:11px}
+.cap-card .ct{font-size:11.5px;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.cap-card .cd{font-size:11px;color:var(--t2);line-height:1.45}
+.cap-card .badge{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:999px;background:var(--aglow);color:var(--amber2);margin-left:auto;letter-spacing:.04em}
+.cap-card .badge.live{background:rgba(15,212,154,.12);color:var(--green)}
+.cap-card .badge.soon{background:rgba(255,128,48,.12);color:var(--orange)}
+
+.profile{padding:14px;background:var(--card);border:1px solid var(--b1);border-radius:9px}
+.profile .nm{font-family:var(--f-head);font-size:14px;color:var(--t1)}
+.profile .rl{font-size:10.5px;color:var(--amber2);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-top:2px}
+.profile .row{display:flex;justify-content:space-between;font-size:11px;color:var(--t2);padding:4px 0;border-top:1px dashed var(--b1);margin-top:8px}
+.profile .row:nth-child(3){border-top:none;margin-top:6px}
+
+.typing{display:inline-flex;gap:3px;align-items:center}
+.typing span{width:5px;height:5px;border-radius:50%;background:var(--amber2);animation:bounce 1.2s ease-in-out infinite}
+.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.5}40%{transform:scale(1);opacity:1}}
+
+/* API key panel (in case key missing) */
+.api-panel{display:none;padding:10px 12px;background:#FFF7E6;border:1px dashed var(--amber);border-radius:9px;margin-bottom:8px}
+.api-panel.show{display:block}
+.api-panel.hide{display:none}
+.api-panel h4{font-size:12px;color:var(--orange);margin-bottom:6px}
+.api-panel input{width:100%;padding:8px 10px;background:var(--card);border:1px solid var(--b1);border-radius:6px;color:var(--t1);font-family:var(--f-mono);font-size:11px;margin:6px 0}
+.api-panel button{padding:6px 12px;background:var(--orange);border:none;border-radius:6px;color:var(--void);font-weight:700;font-size:11px;cursor:pointer}
+.api-panel small{font-size:10px;color:var(--t3);display:block;margin-top:4px;line-height:1.45}
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <div class="tb-logo">DI</div>
+  <div class="tb-brand">Digital Infotech Platform</div>
+  <div class="tb-div"></div>
+  <div class="tb-crumb">
+    <a href="home.html">Home</a><span class="sep">/</span><span>Nishi · AI Assistant</span>
+  </div>
+  <div class="tb-r">
+    <a href="home.html" class="tb-link" style="background:var(--amber);color:#fff;border-color:var(--amber);font-weight:700">🏠 Home</a>
+    <a href="discovery-studio.html" class="tb-link">Discovery Studio</a>
+    <a href="architecture-studio.html" class="tb-link">Architecture</a>
+    <a href="program-governance.html" class="tb-link">Governance</a>
+    <a href="questionnaire.html" class="tb-link">RFP</a>
+    <a href="operations.html" class="tb-link">Operations</a>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <div>
+      <h3 class="suggest-old-h">Suggested prompts</h3>
+      <div class="suggest" id="suggest">
+        <button onclick="sendSuggested('Start an RFP-style questionnaire for me — I am a Solution Architect for a Tier-1 retail bank in Singapore.')">Start RFP-style questionnaire (Solution Architect, MAS/Singapore)</button>
+        <button onclick="sendSuggested('Generate a discovery summary for the Core Payments module on AWS, target FY26 H2.')">Discovery summary · Core Payments · AWS</button>
+        <button onclick="sendSuggested('What are the regulatory must-haves for a Treasury workload in the EU (London + Frankfurt)?')">Regulatory must-haves · Treasury · EU</button>
+        <button onclick="sendSuggested('Compare AWS, Azure, GCP for a banking workload with 99.99% SLA.')">Compare AWS / Azure / GCP · 99.99% SLA</button>
+        <button onclick="sendSuggested('Draft a 7R migration plan for our legacy COBOL Core Banking on z/OS.')">7R migration plan · COBOL on z/OS</button>
+        <button onclick="sendSuggested('Outline a blockchain + Real World Asset tokenization roadmap for our cards portfolio.')">Blockchain + RWA tokenization · Cards</button>
+        <button onclick="sendSuggested('Show me last week’s outstanding RAID items I should escalate.')">Escalation digest · last week</button>
+      </div>
+    </div>
+    <div>
+      <h3>Session</h3>
+      <div class="session">
+        <div class="row"><span>Mode</span><strong id="mode-label">Chat</strong></div>
+        <div class="row"><span>Model</span><strong>claude-sonnet-4-6</strong></div>
+        <div class="row"><span>Messages</span><strong id="msg-count">0</strong></div>
+        <div class="row"><span>Tokens (≈)</span><strong id="tok-count">0</strong></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CHAT -->
+  <main class="chat">
+    <div class="chat-head">
+      <div class="avatar">N</div>
+      <div>
+        <h2>Nishi</h2>
+        <div class="sub">Your platform AI assistant · powered by Claude</div>
+      </div>
+      <div class="mode-toggle">
+        <button class="mt-btn act" id="mt-chat" onclick="setMode('chat')">Chat</button>
+        <button class="mt-btn" id="mt-cli" onclick="setMode('cli')">CLI</button>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="msg system"><div class="msg-av">i</div><div class="msg-body">Session started · ${sess.now} · Welcome, Nishanth. Account context loaded from sign-in (role: Inventor / Architect · region: NA-East). Try a suggested prompt or type below.</div></div>
+    </div>
+
+    <div class="input-bar">
+      <div id="api-panel" class="api-panel">
+        <h4>Anthropic API key required for live answers</h4>
+        <input id="api-key" type="password" placeholder="sk-ant-api03-..." />
+        <button onclick="saveKey()">Save key · session only</button>
+        <small>Key is held in memory for this tab only — never persisted, never transmitted anywhere except api.anthropic.com.</small>
+      </div>
+
+      <!-- Suggested prompts dropdown -->
+      <div class="prompts-bar">
+        <button class="prompts-trigger" id="prompts-trigger" onclick="togglePrompts()" aria-haspopup="true">
+          <span class="lbl">Suggested prompts</span>
+          <span class="caret">▾</span>
+        </button>
+        <div class="prompts-menu" id="prompts-menu" role="menu">
+          <button onclick="pickPrompt('Start an RFP-style questionnaire for me — I am a Solution Architect for a Tier-1 retail bank in Singapore.')"><strong>📝 RFP</strong> · Start RFP-style questionnaire (Solution Architect · MAS / Singapore)</button>
+          <button onclick="pickPrompt('Generate a discovery summary for the Core Payments module on AWS, target FY26 H2.')"><strong>🔍 Discovery</strong> · Core Payments summary · AWS</button>
+          <button onclick="pickPrompt('What are the regulatory must-haves for a Treasury workload in the EU (London + Frankfurt)?')"><strong>📋 Regulatory</strong> · Treasury must-haves · EU</button>
+          <button onclick="pickPrompt('Compare AWS, Azure, GCP for a banking workload with 99.99% SLA.')"><strong>🏗 Architecture</strong> · Compare AWS / Azure / GCP · 99.99% SLA</button>
+          <button onclick="pickPrompt('Draft a 7R migration plan for our legacy COBOL Core Banking on z/OS.')"><strong>🛠 Migration</strong> · 7R plan · COBOL on z/OS</button>
+          <button onclick="pickPrompt('Outline a blockchain + Real World Asset tokenization roadmap for our cards portfolio.')"><strong>🪙 Blockchain</strong> · RWA tokenization · Cards</button>
+          <button onclick="pickPrompt('Show me last week’s outstanding RAID items I should escalate.')"><strong>⚠ RAID</strong> · Escalation digest · last week</button>
+        </div>
+      </div>
+
+      <div class="input-row">
+        <button class="mic-btn" id="mic-btn" title="Hold to talk · release to send"
+                onmousedown="micDown()" onmouseup="micUp()" onmouseleave="micUp()"
+                ontouchstart="micDown();event.preventDefault();" ontouchend="micUp()">🎤</button>
+        <textarea id="ta" rows="1" placeholder="Ask Nishi anything — or hold the 🎤 mic to speak" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+        <button class="send-btn" id="send" onclick="sendMessage()">Send ↵</button>
+      </div>
+      <div class="hint">
+        <span><code style="background:var(--card2);padding:1px 5px;border-radius:3px;color:var(--amber);border:1px solid var(--b1)">Enter</code> send · <code style="background:var(--card2);padding:1px 5px;border-radius:3px;color:var(--amber);border:1px solid var(--b1)">Shift+Enter</code> newline · <strong>Hold 🎤 to talk</strong></span>
+        <span id="status-text">Ready</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- CONTEXT -->
+  <aside class="ctx">
+    <div class="profile">
+      <div class="nm">Nishanth K. Kishore</div>
+      <div class="rl">Inventor · Solution Architect</div>
+      <div class="row"><span>Org</span><strong style="color:var(--t1)">Digital Infotech</strong></div>
+      <div class="row"><span>Region</span><strong style="color:var(--t1)">NA-East</strong></div>
+      <div class="row"><span>Last sign-in</span><strong style="color:var(--t1)">May 20, 10:30</strong></div>
+    </div>
+
+    <div>
+      <h3>Recent conversations</h3>
+      <div style="font-size:10.5px;color:var(--t3);margin:-2px 0 8px">Resume any thread · auto-saved this session</div>
+      <div id="recent-convos" style="display:flex;flex-direction:column;gap:6px">
+        <div class="cap-card" style="cursor:pointer"><div class="ct" style="display:flex;justify-content:space-between"><span>Cards · Tokenization patterns</span><span style="font-size:10px;color:var(--t3)">2 min ago</span></div><div class="cd">"Outline a blockchain + RWA tokenization roadmap…"</div></div>
+        <div class="cap-card" style="cursor:pointer"><div class="ct" style="display:flex;justify-content:space-between"><span>Discovery summary · Payments</span><span style="font-size:10px;color:var(--t3)">14 min</span></div><div class="cd">"Generate a discovery summary for the Core Payments…"</div></div>
+        <div class="cap-card" style="cursor:pointer"><div class="ct" style="display:flex;justify-content:space-between"><span>EU Treasury regulators</span><span style="font-size:10px;color:var(--t3)">1 h</span></div><div class="cd">"What are the regulatory must-haves for Treasury in EU?"</div></div>
+        <div class="cap-card" style="cursor:pointer"><div class="ct" style="display:flex;justify-content:space-between"><span>7R Migration · z/OS</span><span style="font-size:10px;color:var(--t3)">Yesterday</span></div><div class="cd">"Draft a 7R migration plan for our legacy COBOL…"</div></div>
+      </div>
+      <div style="font-size:10.5px;color:var(--t3);margin-top:10px;padding-top:10px;border-top:1px dashed var(--b1);display:flex;justify-content:space-between">
+        <span>Looking for features?</span>
+        <a href="home.html" style="color:var(--amber);font-weight:700;text-decoration:none">Features ▾ in top bar</a>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+const sess = {
+  start: new Date(),
+  msgs: 0,
+  tokens: 0,
+  mode: 'chat',
+  get now(){ return this.start.toLocaleString(); }
+};
+
+// API key handling — never stored persistently
+let apiKey = null;
+function saveKey(){
+  const v = document.getElementById('api-key').value.trim();
+  if (!v.startsWith('sk-ant-')) { alert('That does not look like an Anthropic API key. Should start with "sk-ant-".'); return; }
+  apiKey = v;
+  document.getElementById('api-panel').classList.add('hide');
+  document.getElementById('api-panel').classList.remove('show');
+  appendSystem('API key accepted · live answers enabled');
+}
+
+/* ─── Phase 13.1 — Prompts dropdown + Mic (hold-to-talk) ─── */
+function togglePrompts(){
+  const trig = document.getElementById('prompts-trigger');
+  const menu = document.getElementById('prompts-menu');
+  const open = menu.classList.toggle('open');
+  trig.classList.toggle('open', open);
+}
+document.addEventListener('click', function(e){
+  const menu = document.getElementById('prompts-menu');
+  const trig = document.getElementById('prompts-trigger');
+  if (!menu || !trig) return;
+  if (!menu.contains(e.target) && !trig.contains(e.target)) {
+    menu.classList.remove('open');
+    trig.classList.remove('open');
+  }
+});
+function pickPrompt(text){
+  const ta = document.getElementById('ta');
+  if (ta) { ta.value = text; ta.focus(); }
+  // close dropdown
+  const menu = document.getElementById('prompts-menu');
+  const trig = document.getElementById('prompts-trigger');
+  if (menu) menu.classList.remove('open');
+  if (trig) trig.classList.remove('open');
+  // auto-send
+  if (typeof sendMessage === 'function') sendMessage();
+}
+
+/* ── Web Speech API · hold-to-talk ── */
+let _recog = null, _recogActive = false;
+function ensureRecog(){
+  if (_recog) return _recog;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  _recog = new SR();
+  _recog.continuous = false;
+  _recog.interimResults = true;
+  _recog.lang = (navigator.language || 'en-US');
+  _recog.onresult = function(ev){
+    let txt = '';
+    for (let i = ev.resultIndex; i < ev.results.length; i++) txt += ev.results[i][0].transcript;
+    const ta = document.getElementById('ta');
+    if (ta) ta.value = txt.trim();
+  };
+  _recog.onerror = function(e){
+    console.warn('Speech recognition error', e);
+    const status = document.getElementById('status-text');
+    if (status) status.textContent = 'Mic error: ' + (e.error || 'unknown');
+    micUp();
+  };
+  _recog.onend = function(){ _recogActive = false; };
+  return _recog;
+}
+function micDown(){
+  const r = ensureRecog();
+  if (!r) {
+    alert('Speech recognition is not available in this browser. Try Chrome or Edge on desktop.');
+    return;
+  }
+  if (_recogActive) return;
+  try {
+    _recogActive = true;
+    r.start();
+    const btn = document.getElementById('mic-btn');
+    if (btn) btn.classList.add('recording');
+    const status = document.getElementById('status-text');
+    if (status) status.textContent = '🎤 Listening… release to send';
+  } catch (e) { _recogActive = false; }
+}
+function micUp(){
+  const btn = document.getElementById('mic-btn');
+  if (btn) btn.classList.remove('recording');
+  const status = document.getElementById('status-text');
+  if (status) status.textContent = 'Ready';
+  if (_recog && _recogActive) {
+    try { _recog.stop(); } catch (e) {}
+    _recogActive = false;
+    // Auto-send after a tiny delay so the final transcript settles in the textarea
+    setTimeout(function(){
+      const ta = document.getElementById('ta');
+      if (ta && ta.value.trim() && typeof sendMessage === 'function') sendMessage();
+    }, 350);
+  }
+}
+
+function setMode(m){
+  sess.mode = m;
+  document.getElementById('mt-chat').classList.toggle('act', m==='chat');
+  document.getElementById('mt-cli').classList.toggle('act', m==='cli');
+  document.getElementById('mode-label').textContent = m === 'cli' ? 'CLI' : 'Chat';
+  if (m === 'cli') {
+    appendSystem('--- entering CLI mode --- type "/help" for commands ---');
+  } else {
+    appendSystem('--- chat mode ---');
+  }
+}
+
+function appendUser(text){
+  const div = document.createElement('div');
+  div.className = 'msg user';
+  div.innerHTML = `<div class="msg-av">${(navigator.userAgentData?.platform?.[0] || 'U').toUpperCase()}</div><div class="msg-body${sess.mode==='cli'?' cli-body':''}">${escapeHtml(text)}<div class="time">${nowStr()}</div></div>`;
+  document.getElementById('messages').appendChild(div);
+  scrollToBot();
+}
+
+function appendBot(text){
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.innerHTML = `<div class="msg-av">N</div><div class="msg-body${sess.mode==='cli'?' cli-body':''}">${renderMd(text)}<div class="time">${nowStr()}</div></div>`;
+  document.getElementById('messages').appendChild(div);
+  scrollToBot();
+}
+
+function appendSystem(text){
+  const div = document.createElement('div');
+  div.className = 'msg system';
+  div.innerHTML = `<div class="msg-av">i</div><div class="msg-body">${escapeHtml(text)}</div>`;
+  document.getElementById('messages').appendChild(div);
+  scrollToBot();
+}
+
+function appendTyping(){
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.id = 'typing-bubble';
+  div.innerHTML = `<div class="msg-av">N</div><div class="msg-body"><span class="typing"><span></span><span></span><span></span></span></div>`;
+  document.getElementById('messages').appendChild(div);
+  scrollToBot();
+}
+
+function removeTyping(){
+  document.getElementById('typing-bubble')?.remove();
+}
+
+function scrollToBot(){
+  const el = document.getElementById('messages');
+  el.scrollTop = el.scrollHeight;
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderMd(s){
+  // very small markdown renderer: code, bold, italic, headers, lists, prompt
+  let h = escapeHtml(s);
+  h = h.replace(/```([\s\S]*?)```/g, (m,c) => `<pre>${c}</pre>`);
+  h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
+  h = h.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/^### (.*$)/gim, '<h4 style="margin:6px 0 4px;font-family:var(--f-head);font-size:13px;color:var(--amber2)">$1</h4>');
+  h = h.replace(/^## (.*$)/gim, '<h3 style="margin:8px 0 4px;font-family:var(--f-head);font-size:14px;color:var(--t1)">$1</h3>');
+  h = h.replace(/^\* (.*$)/gim, '• $1');
+  h = h.replace(/^(\d+)\. (.*$)/gim, '$1. $2');
+  h = h.replace(/^\$ (.+)$/gm, '<span class="cli-prompt">$</span> $1');
+  return h;
+}
+
+function nowStr(){
+  return new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+function bumpCount(text){
+  sess.msgs += 1;
+  sess.tokens += Math.ceil(text.length / 4);
+  document.getElementById('msg-count').textContent = sess.msgs;
+  document.getElementById('tok-count').textContent = sess.tokens.toLocaleString();
+}
+
+// ─── Send message ──────────────────────────────────────────
+async function sendMessage(){
+  const ta = document.getElementById('ta');
+  const text = ta.value.trim();
+  if (!text) return;
+  appendUser(text);
+  bumpCount(text);
+  ta.value = '';
+
+  // CLI mode local commands
+  if (sess.mode === 'cli' && text.startsWith('/')) {
+    handleCliCommand(text);
+    return;
+  }
+
+  if (!apiKey) {
+    // Local fallback responses if no API key
+    appendTyping();
+    setTimeout(() => {
+      removeTyping();
+      const offline = generateOfflineResponse(text);
+      appendBot(offline);
+      bumpCount(offline);
+    }, 600);
+    return;
+  }
+
+  // Live Claude call
+  appendTyping();
+  document.getElementById('status-text').textContent = 'Calling Claude...';
+  try {
+    const reply = await callClaude(text);
+    removeTyping();
+    appendBot(reply);
+    bumpCount(reply);
+    document.getElementById('status-text').textContent = 'Ready';
+  } catch (e) {
+    removeTyping();
+    appendSystem('Error from Anthropic: ' + e.message);
+    appendBot(generateOfflineResponse(text));
+    document.getElementById('status-text').textContent = 'Error · fell back to offline mode';
+  }
+}
+
+function sendSuggested(prompt){
+  document.getElementById('ta').value = prompt;
+  sendMessage();
+}
+
+async function callClaude(userText){
+  const systemPrompt = `You are Nishi, the AI assistant inside the DI-Platform (Digital Infotech) by Nishanth Kumar Kishore.
+You help banking IT leaders with: discovery, AI requirements, architecture design (AWS/Azure/GCP/OCI/IBM/Private DC),
+program governance, RFP-style questionnaires, 7R migration strategies, blockchain & RWA tokenization, and operations support.
+You speak concisely and use markdown (headers, bullets, code blocks).
+The user signed in as Nishanth Kumar Kishore (Solution Architect, NA-East).
+Today is ${new Date().toLocaleDateString()}.`;
+  const messages = [{ role: 'user', content: userText }];
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages
+    })
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`HTTP ${res.status} — ${t.slice(0,200)}`);
+  }
+  const data = await res.json();
+  return (data.content || []).map(c => c.text || '').join('\n').trim() || '(empty response)';
+}
+
+// ─── Offline fallback (rules-based) ─────────────────────────
+function generateOfflineResponse(q){
+  const Q = q.toLowerCase();
+  if (Q.includes('rfp') || Q.includes('questionnaire')) {
+    return `### Starting an RFP-style questionnaire
+
+I'll generate a role-based, region-aware questionnaire. Click below to open the dedicated builder:
+
+[Open RFP Questionnaire →](rfp-questionnaire.html)
+
+A typical sequence for a **Solution Architect in Singapore (MAS)**:
+1. Business goals & success criteria
+2. In-scope banking modules
+3. Regulatory framework (MAS TRM, PDPA, Basel III)
+4. Resilience targets (RTO/RPO/SLA)
+5. Existing tech footprint
+6. Integration & data residency constraints
+
+Want me to draft the first section now? Just say *"yes, draft section 1"*.`;
+  }
+  if (Q.includes('discovery') || Q.includes('current') || Q.includes('payments')) {
+    return `### Discovery summary · Core Payments
+
+Based on the most recent run, here are the headline numbers:
+
+* **Current state:** COBOL on IBM z/OS, 14h settlement latency, 84% STP
+* **Future state:** FastAPI + K8s on chosen cloud, <60s TIPS/SEPA, 96% STP
+* **Migration strategy:** Rearchitect (R7) — 9 months adjusted for AWS
+* **Cost:** $5.6M/yr → $3.2M/yr (−43%), $2.8M one-time migration
+* **Payback:** ~11 months
+
+Open the **Discovery Studio · Executive Briefing** for the full drill-down:
+[discovery-studio.html](discovery-studio.html)`;
+  }
+  if (Q.includes('regulatory') || Q.includes('eu') || Q.includes('treasury')) {
+    return `### Regulatory must-haves · Treasury · EU
+
+* **PSD2 / PSD3** — strong customer auth + open banking APIs
+* **GDPR** — data minimization, right-to-erasure, DPIA documentation
+* **DORA (Jan 2025)** — operational resilience, ICT risk register, third-party oversight
+* **MiFID II** — trade reporting + best-execution proofs
+* **EBA Guidelines on outsourcing** — exit strategies for cloud
+* **Basel III/IV** — capital adequacy + counterparty risk reporting
+
+Data residency: London + Frankfurt should keep customer + transactional data in-region. Use **PrivateLink / Private Endpoint** to avoid public-internet traversal.`;
+  }
+  if (Q.includes('compare') || Q.includes('aws') || Q.includes('azure') || Q.includes('gcp')) {
+    return `### Cloud comparison · 99.99% SLA banking workload
+
+|              | AWS | Azure | GCP |
+|--------------|-----|-------|-----|
+| Compute      | EKS · Fargate | AKS · Container Apps | GKE Autopilot |
+| Database HA  | Aurora Global | Azure SQL Business Critical | Cloud SQL HA |
+| Key custody  | KMS · CloudHSM | Key Vault Managed HSM (FIPS 140-2 L3) | Cloud HSM · EKM |
+| FSI ref      | AWS for FSI | CAF for FSI | Assured Workloads |
+| Avg. cost    | $1.4–2.6M / yr | $1.3–2.5M / yr | $1.2–2.4M / yr |
+
+For full breakdowns and per-target blueprints, open the **Architecture Studio**:
+[architecture-studio.html](architecture-studio.html)`;
+  }
+  if (Q.includes('7r') || Q.includes('migration') || Q.includes('cobol')) {
+    return `### 7R migration plan · COBOL on z/OS
+
+Recommended sequence:
+1. **Retire** — 3 dormant batch jobs (2 mo, $0.4M/yr saved)
+2. **Retain** — Mainframe wrapped behind APIs for hybrid use (3 mo)
+3. **Replatform** — Less-critical workloads to OpenShift or AKS (6 mo)
+4. **Refactor** — Core payment routing → Java/Kotlin services (9 mo)
+5. **Rearchitect** — Settlement & ledger → event-driven microservices (12 mo)
+6. **Repurchase** — Branch-locator → SaaS (3 mo)
+7. **Rehost** — Reporting batch → cloud VMs as bridge (4 mo)
+
+Total adjusted duration: ~13 months for full cut-over with parallel streams.`;
+  }
+  if (Q.includes('blockchain') || Q.includes('tokenization') || Q.includes('rwa')) {
+    return `### Blockchain + RWA tokenization roadmap · Cards portfolio
+
+**Phase 1 — Foundations (3 mo):** Wallet infra (custodial first), KYC/AML integration, choice of L1 (Ethereum mainnet) + L2 (Base or Polygon zkEVM) for cost.
+
+**Phase 2 — Pilot (4 mo):** Tokenize a single rewards program (closed-loop), prove redemption flows, audit smart contracts (OpenZeppelin patterns).
+
+**Phase 3 — RWA (6+ mo):** Tokenized prepaid balances, fractional treasury exposure for high-net-worth customers, on-chain settlement via stablecoin rails (USDC).
+
+**Regulatory:** MiCA in EU (live), SEC framework in US (still evolving), MAS DPT in Singapore. Engage compliance early — the smart-contract logic should encode the rules.`;
+  }
+  if (Q.includes('escalation') || Q.includes('raid')) {
+    return `### Outstanding RAID items to escalate
+
+* **RSK-001 · Critical · Open** — Vendor lock-in to chosen hyperscaler. *Action: quarterly portability test, CNCF-aligned services.*
+* **RSK-003 · High · Open** — EU regulator slow to approve. *Action: pre-engage; dossier 90 days ahead.*
+* **DEP-001 · Critical · Open** — Reg dossier from central bank. *Critical path · 90-day SLA.*
+* **ISS-001 · High · Open** — COBOL scheduler lacks observability hooks.
+
+Want me to draft an escalation email to the steering committee?`;
+  }
+  // generic
+  return `I heard: *"${escapeHtml(q)}"*
+
+Here are some things I can help with:
+* RFP-style questionnaires (role & region aware)
+* Discovery summaries for any banking module
+* Architecture comparison across AWS / Azure / GCP / OCI / IBM / Private DC
+* 7R migration planning
+* Program governance, RAID, cost & PAT tracking
+* Blockchain & RWA tokenization roadmaps
+* Operations / SRE topics
+
+Provide your **Anthropic API key** above for live answers, or pick a suggested prompt on the left.`;
+}
+
+// ─── CLI commands ──────────────────────────────────────────
+function handleCliCommand(cmd){
+  const [c, ...args] = cmd.slice(1).split(' ');
+  switch (c) {
+    case 'help':
+      appendBot(`### CLI Commands
+\`\`\`
+/help                       Show this help
+/whoami                     Show signed-in profile
+/discovery <module>         Open Discovery for a module
+/arch <target>              Open Architecture Studio for a target
+/governance                 Open Program Governance
+/rfp                        Open RFP Questionnaire builder
+/ops                        Open Operations dashboard
+/clear                      Clear the chat
+/key <sk-ant-...>           Set Anthropic API key
+/export json|md             Export the conversation
+\`\`\``); break;
+    case 'whoami':
+      appendBot(`### Profile
+* **Name:** Nishanth Kumar Kishore
+* **Role:** Solution Architect / Inventor
+* **Org:** Digital Infotech
+* **Region:** NA-East
+* **Sign-in:** May 20, 10:30
+* **IDD:** DI-2026-NKK-0511-001`); break;
+    case 'discovery':
+      window.location.href = 'discovery-studio.html'; break;
+    case 'arch':
+      window.location.href = 'architecture-studio.html'; break;
+    case 'governance':
+      window.location.href = 'program-governance.html'; break;
+    case 'rfp':
+      window.location.href = 'rfp-questionnaire.html'; break;
+    case 'ops':
+      window.location.href = 'operations.html'; break;
+    case 'clear':
+      document.getElementById('messages').innerHTML = ''; appendSystem('--- cleared ---'); break;
+    case 'key':
+      apiKey = args.join(' ').trim();
+      if (apiKey.startsWith('sk-ant-')) { document.getElementById('api-panel').classList.add('hide'); appendSystem('API key set'); }
+      else appendBot('Key must start with sk-ant-...'); break;
+    case 'export':
+      const fmt = args[0] || 'md';
+      const msgs = [...document.querySelectorAll('.msg')].map(m => {
+        const role = m.classList.contains('user') ? 'user' : (m.classList.contains('bot') ? 'nishi' : 'system');
+        return { role, text: m.querySelector('.msg-body')?.innerText || '' };
+      });
+      const blob = fmt === 'json'
+        ? new Blob([JSON.stringify(msgs, null, 2)], { type: 'application/json' })
+        : new Blob([msgs.map(m => `**${m.role}**\n${m.text}\n\n`).join('---\n\n')], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `nishi-conversation.${fmt}`; a.click();
+      URL.revokeObjectURL(url);
+      appendSystem(`Exported as nishi-conversation.${fmt}`); break;
+    default:
+      appendBot(`Unknown command: \`${c}\`. Try \`/help\`.`);
+  }
+}
+
+// Boot — greeting
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    appendBot(`Hi Nishanth — I'm **Nishi**, your AI assistant inside the DI-Platform.
+
+Based on your sign-in profile (**Solution Architect · NA-East**), here are a few starting points:
+
+* Want me to *generate an RFP-style questionnaire* for your next discovery session?
+* Or *summarize the current state* of one of your banking modules?
+* Or *compare cloud targets* for a workload you have in mind?
+
+Pick one from the **Suggested prompts** panel on the left, or just type your question. Add your **Anthropic API key** below to get live answers; otherwise I'll respond from the built-in playbook.`);
+  }, 400);
+});
+</script>
+
+</body>
+</html>

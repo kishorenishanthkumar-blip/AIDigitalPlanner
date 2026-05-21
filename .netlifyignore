@@ -1,0 +1,35 @@
+# DI-Platform · .netlifyignore
+# Belt-and-braces. Netlify must NOT see backend/ Python files.
+
+backend/
+backend/**
+backend/.venv/
+backend/.mypy_cache/
+backend/.pytest_cache/
+backend/__pycache__/
+
+# Other non-publish artifacts
+.git/
+.vscode/
+.gitignore
+.python-version
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+*.tmp
+
+# Caches
+__pycache__/
+node_modules/
+
+# Secrets — must never deploy
+*.env
+*.env.*
+.env
+.env.*
+*.key
+*.pem
+*API*Key*

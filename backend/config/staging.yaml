@@ -1,0 +1,26 @@
+app:
+  env: staging
+  debug: false
+  reload: false
+
+logging:
+  level: INFO
+  format: json
+
+agents:
+  discovery_parser:
+    max_input_chars: 100000
+    temperature: 0.2
+  epic_generator:
+    max_epics: 20
+    temperature: 0.3
+  story_writer:
+    max_stories_per_epic: 12
+    temperature: 0.4
+  estimation:
+    fibonacci_scale: [1, 2, 3, 5, 8, 13, 21]
+
+export:
+  jira_enabled: true
+  rally_enabled: true
+  batch_size: 100

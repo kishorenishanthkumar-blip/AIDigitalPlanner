@@ -1,0 +1,64 @@
+# ── Secrets / Env ────────────────────────────────────────
+.env
+.env.local
+*.key
+*.pem
+DI-Platform API Key.txt
+
+# ── Python ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ── Virtual environments ─────────────────────────────────
+venv/
+env/
+.venv/
+.env/
+
+# ── Testing / Coverage ───────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# ── Type checking / Linting ──────────────────────────────
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+
+# ── IDE ──────────────────────────────────────────────────
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+# Keep shared VSCode workspace config:
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ── Logs / Runtime ───────────────────────────────────────
+*.log
+logs/
+*.pid
+
+# ── Data ─────────────────────────────────────────────────
+data/*.db
+data/*.sqlite
+data/raw/
+
+# ── Docker ───────────────────────────────────────────────
+docker-compose.override.yml

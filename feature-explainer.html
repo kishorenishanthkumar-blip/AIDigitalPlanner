@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Feature explainer — DI Platform</title>
+<link rel="stylesheet" href="assets/theme.css">
+<script src="assets/toasts.js" defer></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+:root{
+  --canvas:#F8FAFD;--canvas2:#EEF2F8;
+  --card:#FFFFFF;--ink:#1A2238;--ink2:#5B6B8A;--ink3:#9AA6BE;
+  --border:#E2E7F1;--border2:#D9DFEB;
+  --gold:#C8921A;--gold2:#E8AC38;--gold3:#FFD070;--aglow:#FFF7E6;
+  --green:#0FD49A;--red:#FF4D6A;--blue:#3D8EFF;--purple:#9B72FF;--pink:#FF6BB5;
+  --shadow:0 18px 38px -16px rgba(20,33,58,.18);
+  --f-head:'Fraunces',Georgia,serif;--f-ui:'Outfit',system-ui,sans-serif;--f-mono:'JetBrains Mono','Courier New',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+a{color:var(--gold);text-decoration:none}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+
+/* Top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 24px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+.tb-left{display:flex;align-items:center;gap:24px}
+.tb-brand{display:flex;align-items:center;gap:10px}
+.tb-logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold3));color:var(--ink);font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center}
+.tb-name{font-size:14px;font-weight:700}
+.tb-name .muted{color:var(--ink2);font-weight:400}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-btn{background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-size:12px;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:5px;text-decoration:none}
+.tb-btn:hover{border-color:var(--gold);color:var(--gold);background:#FFFCF4}
+.tb-btn.primary{background:var(--aglow);border-color:var(--gold2);color:var(--ink);font-weight:700}
+.tb-btn.primary:hover{background:var(--gold3)}
+
+/* Hero */
+.exp{max-width:1100px;margin:0 auto;padding:30px 26px 40px}
+.exp-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);margin-bottom:14px;cursor:pointer;text-decoration:none}
+.exp-back:hover{color:var(--gold)}
+.exp-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+.exp-h1{font-family:var(--f-head);font-size:30px;font-weight:600;color:var(--ink);line-height:1.18}
+.exp-h1 em{font-style:italic;color:var(--gold)}
+.exp-sub{font-size:14px;color:var(--ink2);margin-top:10px;max-width:740px;line-height:1.6}
+
+/* Two-col content */
+.exp-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;margin-top:28px;align-items:start}
+.exp-stage{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow);min-height:420px;display:flex;flex-direction:column}
+.exp-stage-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.exp-stage-head .tag{display:inline-flex;align-items:center;gap:6px;background:var(--aglow);border:1px solid var(--gold2);border-radius:99px;padding:3px 10px;font-size:10.5px;font-weight:700;color:var(--gold);letter-spacing:.06em}
+.exp-stage-head .ctrl{display:flex;gap:6px}
+.exp-stage-head .ctrl button{background:#F8FAFD;border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:11.5px;color:var(--ink)}
+.exp-stage-head .ctrl button:hover{border-color:var(--gold);color:var(--gold)}
+.exp-anim{flex:1;background:linear-gradient(180deg,#FBFCFE,#F4F6FA);border-radius:12px;border:1px solid var(--border);padding:14px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.exp-anim svg{max-width:100%;height:auto}
+.exp-step{margin-top:14px;display:flex;align-items:center;gap:10px;background:var(--aglow);border:1px solid var(--gold2);border-radius:9px;padding:9px 12px;font-size:12.5px;color:var(--ink)}
+.exp-step .num{width:24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.exp-step .lbl{flex:1;font-weight:600}
+.exp-step .nav{display:flex;gap:5px}
+.exp-step .nav button{background:#fff;border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;color:var(--ink)}
+.exp-step .nav button:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+.exp-step .nav button:disabled{opacity:.4;cursor:not-allowed}
+
+.exp-info{display:flex;flex-direction:column;gap:14px}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:0 4px 12px -4px rgba(20,33,58,.06)}
+.info-card h3{font-family:var(--f-head);font-size:15px;font-weight:600;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.info-card h3::before{content:'';width:3px;height:14px;background:var(--gold);border-radius:2px}
+.info-card ul{list-style:none;padding:0;margin:0}
+.info-card ul li{font-size:12.5px;color:var(--ink);line-height:1.55;padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+.info-card ul li::before{content:'✓';color:var(--green);font-weight:800;flex-shrink:0}
+.info-card .steps li::before{content:counter(s);counter-increment:s;color:var(--gold);font-weight:800;background:var(--aglow);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px}
+.info-card .steps{counter-reset:s}
+.info-card .cta{display:flex;gap:8px;margin-top:14px}
+.info-card .cta a{flex:1;text-align:center;background:var(--gold);color:#fff;border-radius:9px;padding:10px;font-size:13px;font-weight:700;text-decoration:none}
+.info-card .cta a:hover{background:var(--gold2)}
+.info-card .cta a.secondary{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.info-card .cta a.secondary:hover{border-color:var(--gold);color:var(--gold)}
+
+/* Animations */
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes slide-in{from{transform:translateX(-20px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes pop{0%{transform:scale(0)}80%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes flow{from{stroke-dashoffset:600}to{stroke-dashoffset:0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.anim-fade{animation:fadeUp .6s ease both}
+.anim-pulse{animation:pulse 2s ease-in-out infinite}
+
+@media (max-width:900px){.exp-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="tb-left">
+    <a href="home.html" class="tb-brand" style="text-decoration:none;color:inherit">
+      <div class="tb-logo">DI</div>
+      <div class="tb-name">Digital Infotech <span class="muted">· Platform</span></div>
+    </a>
+  </div>
+  <div class="tb-right">
+    <a href="home.html" class="tb-btn">🏠 Home</a>
+    <a href="nishi-chatbot.html" class="tb-btn primary">🤖 Back to Nishi</a>
+  </div>
+</header>
+
+<main class="exp">
+  <a href="#" onclick="history.back();return false" class="exp-back">← Back</a>
+  <div class="exp-eyebrow" id="eyebrow">FEATURE WALKTHROUGH</div>
+  <h1 class="exp-h1" id="title">Loading…</h1>
+  <p class="exp-sub" id="subtitle"></p>
+
+  <div class="exp-grid">
+    <div class="exp-stage">
+      <div class="exp-stage-head">
+        <span class="tag">▶ Animated walkthrough</span>
+        <div class="ctrl">
+          <button id="btn-play">▶ Play</button>
+          <button id="btn-restart">↻ Restart</button>
+        </div>
+      </div>
+      <div class="exp-anim" id="anim"></div>
+      <div class="exp-step">
+        <div class="num" id="step-num">1</div>
+        <div class="lbl" id="step-label">Step 1 of 4</div>
+        <div class="nav">
+          <button id="step-prev" onclick="stepPrev()" disabled>← Prev</button>
+          <button id="step-next" onclick="stepNext()">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="exp-info">
+      <div class="info-card">
+        <h3>What it does</h3>
+        <p id="desc-long" style="font-size:13px;color:var(--ink);line-height:1.6"></p>
+      </div>
+      <div class="info-card">
+        <h3>Benefits</h3>
+        <ul id="benefits"></ul>
+      </div>
+      <div class="info-card">
+        <h3>How to use it</h3>
+        <ul class="steps" id="how-steps"></ul>
+        <div class="cta">
+          <a id="cta-open" href="#">Try it now →</a>
+          <a class="secondary" href="nishi-chatbot.html">Ask Nishi</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ── Feature content registry ── */
+const FEATURES = {
+  rfp: {
+    title: 'RFP-style Q&A',
+    titleEm: 'questionnaire that adapts to your role',
+    subtitle: 'An adaptive 88-question RFP that scopes itself to your role, region and banking domain.',
+    color: '#A0357A', accent: '#FFD9EE',
+    desc: 'Nishi tailors the RFP questionnaire based on your role (Solution Architect / CTO / Risk Officer), region (NA / EU / APAC / SEA / SWA) and the banking domain you are addressing. Questions branch dynamically — if you say "we run cards in the EU", the regulator pack switches to EBA + PSD3 automatically. Exports to JSON, Markdown, or directly into your favourite governance tool.',
+    benefits: [
+      '88 questions adapt in real time based on prior answers',
+      'Built-in regulator packs for NA, EU, APAC, SEA, SWA',
+      'Branching engine validated by 61/61 automated tests',
+      'Exports JSON / Markdown for hand-off to legal & finance'
+    ],
+    steps: [
+      'Open the questionnaire from Home or the Nishi suggested-prompts dropdown',
+      'Pick your role and region — the question set narrows immediately',
+      'Answer questions; branching follow-ups appear as you go',
+      'Export to JSON or Markdown when complete'
+    ],
+    openHref: 'questionnaire.html',
+    anim: 'rfp'
+  },
+  requirements: {
+    title: 'AI Requirements drafting',
+    titleEm: 'four lenses in one click',
+    subtitle: 'Drafts Technical, Business, Product and Regulatory requirements with role-mapped responsibilities.',
+    color: '#5C3DB8', accent: '#E2D5FF',
+    desc: 'You describe the change in plain English; Nishi produces four requirement views (Technical · Business · Product · Regulatory) along with the roles responsible for each. Useful when a single stakeholder needs to brief multiple teams from one source of truth.',
+    benefits: [
+      'Four perspectives generated from one input',
+      'Each item carries a role pin (PM / Eng / Risk / Compliance)',
+      'Compatible with Jira / Rally / MS Project exports',
+      'Citations link back to your own discovery boards'
+    ],
+    steps: [
+      'Open Discovery Studio or paste raw notes into Nishi',
+      'Click "Draft requirements" — Nishi outputs four views',
+      'Edit inline; each line is independently editable',
+      'Export to your tool of choice'
+    ],
+    openHref: 'discovery-studio.html',
+    anim: 'requirements'
+  },
+  discovery: {
+    title: 'Discovery autofill',
+    titleEm: 'dropdowns that learn',
+    subtitle: 'Suggests dropdown values that evolve as you reuse them — text typed today becomes an option tomorrow.',
+    color: '#C8921A', accent: '#FFE7B3',
+    desc: 'Every time you type something into a free-text field, Discovery Studio remembers it. On the next form, the same field offers it as an autocomplete suggestion. Over a week, your common modules, owners, vendors and tags become first-class dropdown options without you ever defining a schema.',
+    benefits: [
+      'No manual taxonomy maintenance',
+      'Suggestions surface across teams using the same platform',
+      'Catches typos by clustering near-duplicates',
+      'Exports the final taxonomy as a JSON schema'
+    ],
+    steps: [
+      'Open Discovery Studio',
+      'Fill in a free-text field as normal',
+      'Watch your value appear in dropdowns elsewhere',
+      'Promote frequent typed values to formal taxonomy with one click'
+    ],
+    openHref: 'discovery-studio.html',
+    anim: 'discovery'
+  },
+  architecture: {
+    title: 'Architecture design',
+    titleEm: '7R-aligned across six clouds',
+    subtitle: 'Reference architectures aligned to the 7R modernization framework, instantly comparable across six deployment targets.',
+    color: '#1A4D99', accent: '#D9E9FF',
+    desc: 'Nishi maps every workload to one of Rehost, Replatform, Refactor, Rearchitect, Rebuild, Replace or Retain. For each, she sketches a reference architecture on AWS, Azure, GCP, OCI, IBM Cloud and a private data centre — so you can compare deployment options side-by-side before committing.',
+    benefits: [
+      'One workload, six target diagrams instantly',
+      'Each diagram carries its 7R category badge',
+      'Bill-of-materials with rough TCO included',
+      'Exports as PNG / Lucid / Draw.io compatible XML'
+    ],
+    steps: [
+      'Open Architecture Studio from Home',
+      'Drop a module name or paste from Discovery',
+      'Pick which deployment targets to compare',
+      'Export the chosen diagram or share by link'
+    ],
+    openHref: 'architecture-studio.html',
+    anim: 'architecture'
+  },
+  blockchain: {
+    title: 'Blockchain & RWA tokenization',
+    titleEm: 'cards portfolio meets on-chain settlement',
+    subtitle: 'Patterns for tokenizing real-world assets and settling banking flows on permissioned blockchains.',
+    color: '#0A8462', accent: '#C7F4E2',
+    desc: 'Outlines reference patterns for RWA tokenization (cards receivables, trade finance, treasury bonds) on permissioned chains like Hyperledger Fabric or R3 Corda, plus settlement adapters into SWIFT / ISO 20022. Currently in Beta — output is design-only, not transactional.',
+    benefits: [
+      'Pre-built patterns for receivables, treasury and trade',
+      'ISO 20022 + SWIFT bridge designs included',
+      'Compliance overlay for AML / sanctions screening',
+      'Sample smart contracts in Solidity / Chaincode'
+    ],
+    steps: [
+      'Open Architecture Studio → Blockchain layer',
+      'Pick the asset class (cards / trade / treasury)',
+      'Nishi generates a pattern diagram + sample contracts',
+      'Export to your DLT engineering team'
+    ],
+    openHref: 'architecture-studio.html',
+    anim: 'blockchain'
+  },
+  knowledge: {
+    title: 'Knowledge artifacts',
+    titleEm: 'exceptions become a library',
+    subtitle: 'Every exception, learning and decision is captured into a RAG-backed vector store you can search later.',
+    color: '#3D8EFF', accent: '#D9E9FF',
+    desc: 'Each conversation Nishi has, each RAID item logged, each exception raised — they all get embedded into a vector store. Six months later you can ask "have we ever migrated CICS in the EU?" and Nishi will pull the exact prior project, owner and outcome. Beta.',
+    benefits: [
+      'Searchable institutional memory',
+      'Connects RAID, RFP, Discovery and Nishi chats',
+      'Per-tenant store — your data stays yours',
+      'Export to JSONL for fine-tuning your own model'
+    ],
+    steps: [
+      'Use the platform normally — Nishi captures as you go',
+      'Ask a retrospective question in Nishi chat',
+      'Nishi cites the prior artifact with a link',
+      'Optional: export the store for your own RAG'
+    ],
+    openHref: 'nishi-chatbot.html',
+    anim: 'knowledge'
+  },
+  export: {
+    title: 'Export reports',
+    titleEm: 'one click, every format',
+    subtitle: 'Convert any conversation, board or artifact into Markdown, JSON, MS Project XML or a DR runbook.',
+    color: '#FF8030', accent: '#FFE7CC',
+    desc: 'Every screen in the platform has a single "Export" button that emits four formats simultaneously: human-readable Markdown for emails, structured JSON for downstream tools, MS Project XML for Gantt views, and a DR runbook template if the artifact is operational. No copy-paste, no manual reformatting.',
+    benefits: [
+      'Four formats from one click',
+      'Citations and links preserved across formats',
+      'Compatible with Jira, Rally, Asana, MS Project',
+      'DR runbook template auto-fills owner + RTO / RPO'
+    ],
+    steps: [
+      'Open any artifact (RAID, RFP, Discovery, etc.)',
+      'Click the Export button in the top right',
+      'Pick one or all four formats',
+      'Send via email or drop into your tool'
+    ],
+    openHref: 'program-governance.html',
+    anim: 'export'
+  }
+};
+
+/* ── Animations (lightweight inline SVG with CSS keyframes) ── */
+const ANIM = {
+  rfp: function(){
+    return `
+    <svg viewBox="0 0 520 320" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="30" width="180" height="260" rx="12" fill="#FFF7E6" stroke="#E8AC38"/>
+      <text x="110" y="55" text-anchor="middle" font-size="13" font-weight="700" fill="#1A2238">Role: Solution Arch.</text>
+      <text x="110" y="73" text-anchor="middle" font-size="11" fill="#5B6B8A">Region: SEA</text>
+      <g>
+        <rect x="36" y="92"  width="148" height="26" rx="6" fill="#fff" stroke="#E2E7F1" class="anim-fade" style="animation-delay:.2s"/>
+        <text x="44" y="109" font-size="10" fill="#1A2238">Q1: Compliance scope</text>
+        <rect x="36" y="124" width="148" height="26" rx="6" fill="#fff" stroke="#E2E7F1" class="anim-fade" style="animation-delay:.4s"/>
+        <text x="44" y="141" font-size="10" fill="#1A2238">Q2: Cloud target</text>
+        <rect x="36" y="156" width="148" height="26" rx="6" fill="#fff" stroke="#E2E7F1" class="anim-fade" style="animation-delay:.6s"/>
+        <text x="44" y="173" font-size="10" fill="#1A2238">Q3: 7R mapping</text>
+        <rect x="36" y="188" width="148" height="26" rx="6" fill="#fff" stroke="#E2E7F1" class="anim-fade" style="animation-delay:.8s"/>
+        <text x="44" y="205" font-size="10" fill="#1A2238">Q4: SLAs</text>
+      </g>
+      <path d="M 200 160 Q 260 160 320 160" stroke="#C8921A" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 6" fill="none"/>
+      <polygon points="320,154 332,160 320,166" fill="#C8921A"/>
+      <rect x="340" y="60" width="160" height="200" rx="12" fill="#1A2238"/>
+      <text x="420" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#FFD070">ADAPTIVE ENGINE</text>
+      <text x="420" y="116" text-anchor="middle" font-size="10" fill="#C8D2E2">Branching logic</text>
+      <text x="420" y="135" text-anchor="middle" font-size="10" fill="#C8D2E2">Regional packs</text>
+      <text x="420" y="154" text-anchor="middle" font-size="10" fill="#C8D2E2">Validators</text>
+      <circle cx="420" cy="200" r="22" fill="#C8921A" class="anim-pulse"/>
+      <text x="420" y="206" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">88</text>
+      <text x="420" y="240" text-anchor="middle" font-size="9" fill="#FFD070">QUESTIONS</text>
+    </svg>`;
+  },
+  requirements: function(){
+    return `
+    <svg viewBox="0 0 520 320" xmlns="http://www.w3.org/2000/svg">
+      <rect x="200" y="130" width="120" height="60" rx="10" fill="#1A2238"/>
+      <text x="260" y="158" text-anchor="middle" font-size="11" font-weight="700" fill="#FFD070">PLAIN ENGLISH</text>
+      <text x="260" y="174" text-anchor="middle" font-size="10" fill="#C8D2E2">"Migrate cards"</text>
+      <g class="anim-fade" style="animation-delay:.4s">
+        <rect x="20" y="40" width="120" height="60" rx="10" fill="#F4F0FF" stroke="#9B72FF"/>
+        <text x="80" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#5C3DB8">TECHNICAL</text>
+        <text x="80" y="83" text-anchor="middle" font-size="10" fill="#1A2238">12 user stories</text>
+      </g>
+      <g class="anim-fade" style="animation-delay:.7s">
+        <rect x="380" y="40" width="120" height="60" rx="10" fill="#E8FBF4" stroke="#0FD49A"/>
+        <text x="440" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#0A8462">BUSINESS</text>
+        <text x="440" y="83" text-anchor="middle" font-size="10" fill="#1A2238">ROI · KPIs</text>
+      </g>
+      <g class="anim-fade" style="animation-delay:1s">
+        <rect x="20" y="220" width="120" height="60" rx="10" fill="#FFF0F8" stroke="#FF6BB5"/>
+        <text x="80" y="245" text-anchor="middle" font-size="11" font-weight="700" fill="#A0357A">PRODUCT</text>
+        <text x="80" y="263" text-anchor="middle" font-size="10" fill="#1A2238">UX flows</text>
+      </g>
+      <g class="anim-fade" style="animation-delay:1.3s">
+        <rect x="380" y="220" width="120" height="60" rx="10" fill="#FFF7E6" stroke="#E8AC38"/>
+        <text x="440" y="245" text-anchor="middle" font-size="11" font-weight="700" fill="#C8921A">REGULATORY</text>
+        <text x="440" y="263" text-anchor="middle" font-size="10" fill="#1A2238">EBA · PSD3</text>
+      </g>
+      <path d="M 200 150 L 140 70" stroke="#9B72FF" stroke-width="2" stroke-dasharray="4 4"/>
+      <path d="M 320 150 L 380 70" stroke="#0FD49A" stroke-width="2" stroke-dasharray="4 4"/>
+      <path d="M 200 180 L 140 250" stroke="#FF6BB5" stroke-width="2" stroke-dasharray="4 4"/>
+      <path d="M 320 180 L 380 250" stroke="#E8AC38" stroke-width="2" stroke-dasharray="4 4"/>
+    </svg>`;
+  },
+  discovery: function(){
+    return `
+    <svg viewBox="0 0 520 320" xmlns="http://www.w3.org/2000/svg">
+      <text x="40" y="40" font-size="11" font-weight="700" fill="#5B6B8A">DAY 1</text>
+      <rect x="40" y="55" width="180" height="36" rx="8" fill="#fff" stroke="#E2E7F1"/>
+      <text x="50" y="78" font-size="11" fill="#1A2238">Owner: <tspan fill="#C8921A" font-weight="700">_______ (type)</tspan></text>
+      <text x="40" y="115" font-size="11" font-weight="700" fill="#5B6B8A">DAY 7</text>
+      <rect x="40" y="130" width="180" height="36" rx="8" fill="#FFFCF4" stroke="#E8AC38" class="anim-fade" style="animation-delay:.4s"/>
+      <text x="50" y="153" font-size="11" fill="#1A2238">Owner: <tspan fill="#C8921A" font-weight="700">Nishanth K ▾</tspan></text>
+      <text x="40" y="190" font-size="11" font-weight="700" fill="#5B6B8A">DAY 30</text>
+      <rect x="40" y="205" width="180" height="36" rx="8" fill="#FFF7E6" stroke="#C8921A" class="anim-fade" style="animation-delay:.8s"/>
+      <text x="50" y="228" font-size="11" fill="#1A2238">Owner: <tspan fill="#C8921A" font-weight="700">Nishanth K ▾ + 4 more</tspan></text>
+      <g class="anim-fade" style="animation-delay:1.2s">
+        <rect x="280" y="80" width="200" height="160" rx="14" fill="#1A2238"/>
+        <text x="380" y="108" text-anchor="middle" font-size="11" font-weight="700" fill="#FFD070">LEARNED VALUES</text>
+        <text x="380" y="135" text-anchor="middle" font-size="11" fill="#fff">▸ Nishanth K · 17×</text>
+        <text x="380" y="156" text-anchor="middle" font-size="11" fill="#fff">▸ Alex Müller · 9×</text>
+        <text x="380" y="177" text-anchor="middle" font-size="11" fill="#fff">▸ Priya Iyer · 6×</text>
+        <text x="380" y="198" text-anchor="middle" font-size="11" fill="#fff">▸ Sam Tang · 3×</text>
+        <text x="380" y="225" text-anchor="middle" font-size="10" fill="#FFD070">→ Promoted to dropdown</text>
+      </g>
+    </svg>`;
+  },
+  architecture: function(){
+    return `
+    <svg viewBox="0 0 520 320" xmlns="http://www.w3.org/2000/svg">
+      <rect x="200" y="20" width="120" height="50" rx="10" fill="#1A2238"/>
+      <text x="260" y="42" text-anchor="middle" font-size="11" font-weight="700" fill="#FFD070">WORKLOAD</text>
+      <text x="260" y="60" text-anchor="middle" font-size="10" fill="#C8D2E2">Core Payments</text>
+      <g class="anim-fade" style="animation-delay:.3s"><rect x="20"  y="120" width="76" height="60" rx="8" fill="#FFF7E6" stroke="#C8921A"/><text x="58" y="148" text-anchor="middle" font-size="11" font-weight="700" fill="#C8921A">AWS</text><text x="58" y="166" text-anchor="middle" font-size="9" fill="#7A5F10">Replatform</text></g>
+      <g class="anim-fade" style="animation-delay:.45s"><rect x="106" y="120" width="76" height="60" rx="8" fill="#F0F7FF" stroke="#3D8EFF"/><text x="144" y="148" text-anchor="middle" font-size="11" font-weight="700" fill="#1A4D99">AZURE</text><text x="144" y="166" text-anchor="middle" font-size="9" fill="#1A4D99">Rehost</text></g>
+      <g class="anim-fade" style="animation-delay:.6s"><rect x="192" y="120" width="76" height="60" rx="8" fill="#E8FBF4" stroke="#0FD49A"/><text x="230" y="148" text-anchor="middle" font-size="11" font-weight="700" fill="#0A8462">GCP</text><text x="230" y="166" text-anchor="middle" font-size="9" fill="#0A8462">Refactor</text></g>
+      <g class="anim-fade" style="animation-delay:.75s"><rect x="278" y="120" width="76" height="60" rx="8" fill="#F4F0FF" stroke="#9B72FF"/><text x="316" y="148" text-anchor="middle" font-size="11" font-weight="700" fill="#5C3DB8">OCI</text><text x="316" y="166" text-anchor="middle" font-size="9" fill="#5C3DB8">Rearchitect</text></g>
+      <g class="anim-fade" style="animation-delay:.9s"><rect x="364" y="120" width="76" height="60" rx="8" fill="#FFF0F8" stroke="#FF6BB5"/><text x="402" y="148" text-anchor="middle" font-size="11" font-weight="700" fill="#A0357A">IBM</text><text x="402" y="166" text-anchor="middle" font-size="9" fill="#A0357A">Rebuild</text></g>
+      <g class="anim-fade" style="animation-delay:1.05s"><rect x="450" y="120" width="60" height="60" rx="8" fill="#fff" stroke="#5B6B8A"/><text x="480" y="148" text-anchor="middle" font-size="10" font-weight="700" fill="#1A2238">PRIVATE DC</text><text x="480" y="166" text-anchor="middle" font-size="9" fill="#5B6B8A">Retain</text></g>
+      <text x="260" y="220" text-anchor="middle" font-size="11" font-weight="700" fill="#5B6B8A">7R category badge on every option</text>
+      <g class="anim-fade" style="animation-delay:1.3s">
+        <rect x="100" y="240" width="320" height="56" rx="10" fill="#1A2238"/>
+        <text x="260" y="262" text-anchor="middle" font-size="11" font-weight="700" fill="#FFD070">BILL OF MATERIALS</text>
+        <text x="260" y="282" text-anchor="middle" font-size="10" fill="#C8D2E2">est. $42K / mo · 99.99% SLA · 6-week migration</text>
+      </g>
+    </svg>`;
+  },
+  blockchain: function(){
+    return `
+    <svg viewBox="0 0 520 320" xmlns="http://www.w3.org/2000/svg">
+      <g><rect x="20" y="40" width="120" height="60" rx="10" fill="#E8FBF4" stroke="#0FD49A"/><text x="80" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#0A8462">REAL-WORLD ASSET</text><text x="80" y="83" text-anchor="middle" font-size="10" fill="#1A2238">Cards receivables</text></g>
+      <path d="M 140 70 L 200 70" stroke="#0A8462" stroke-width="3" stroke-dasharray="5 5"/>
+      <polygon points="200,64 212,70 200,76" fill="#0A8462"/>
+      <g class="anim-fade" style="animation-delay:.4s"><rect x="212" y="40" width="120" height="60" rx="10" fill="#1A2238"/><text x="272" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#FFD070">TOKEN MINT</text><text x="272" y="83" text-anchor="middle" font-size="10" fill="#C8D2E2">ERC-3643 / Fabric</text></g>
+      <path d="M 332 70 L 392 70" stroke="#FFD070" stroke-width="3" stroke-dasharray="5 5"/>
+      <polygon points="392,64 404,70 392,76" fill="#FFD070"/>
+      <g class="anim-fade" style="animation-delay:.8s"><rect x="392" y="40" width="108" height="60" rx="10" fill="#FFF7E6" stroke="#C8921A"/><text x="446" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#C8921A">SETTLEMENT</text><text x="446" y="83" text-anchor="middle" font-size="10" fill="#1A2238">ISO 20022 · SWIFT</text></g>
+      <g class="anim-fade" style="animation-delay:1.2s">
+        <rect x="80" y="160" width="360" height="120" rx="14" fill="#FFFCF4" stroke="#E8AC38"/>
+        <text x="260" y="186" text-anchor="middle" font-size="11" font-weight="700" fill="#C8921A">PERMISSIONED CHAIN</text>
+        <circle cx="140" cy="220" r="14" fill="#C8921A"/>
+        <circle cx="200" cy="220" r="14" fill="#C8921A"/>
+        <circle cx="260" cy="220" r="14" fill="#C8921A"/>
+        <circle cx="320" cy="220" r="14" fill="#C8921A"/>
+        <circle cx="380" cy="220" r="14" fill="#C8921A"/>
+        <line x1="140" y1="220" x2="380" y2="220" stroke="#7A5F10" stroke-width="1.5"/>
+        <text x="260" y="260" text-anchor="middle" font-size="10" fill="#7A5F10">AML · sanctions · audit overlay</text>
+      </g>
+    </svg>`;
+  },
+  knowledge: function(){
+    return `
+    <svg viewBox="0 0 520 320" xmlns="http://www.w3.org/2000/svg">
+      <g class="anim-fade"><rect x="20"  y="40" width="120" height="50" rx="8" fill="#FFF7E6" stroke="#E8AC38"/><text x="80"  y="62" text-anchor="middle" font-size="10" font-weight="700" fill="#C8921A">RAID item</text><text x="80"  y="78" text-anchor="middle" font-size="9" fill="#7A5F10">R-014 · latency</text></g>
+      <g class="anim-fade" style="animation-delay:.2s"><rect x="20"  y="100" width="120" height="50" rx="8" fill="#F4F0FF" stroke="#9B72FF"/><text x="80"  y="122" text-anchor="middle" font-size="10" font-weight="700" fill="#5C3DB8">RFP answer</text><text x="80"  y="138" text-anchor="middle" font-size="9" fill="#5C3DB8">SEA · MAS</text></g>
+      <g class="anim-fade" style="animation-delay:.4s"><rect x="20"  y="160" width="120" height="50" rx="8" fill="#E8FBF4" stroke="#0FD49A"/><text x="80"  y="182" text-anchor="middle" font-size="10" font-weight="700" fill="#0A8462">Discovery note</text><text x="80"  y="198" text-anchor="middle" font-size="9" fill="#0A8462">PMTPROC.cbl</text></g>
+      <g class="anim-fade" style="animation-delay:.6s"><rect x="20"  y="220" width="120" height="50" rx="8" fill="#FFF0F8" stroke="#FF6BB5"/><text x="80"  y="242" text-anchor="middle" font-size="10" font-weight="700" fill="#A0357A">Nishi chat</text><text x="80"  y="258" text-anchor="middle" font-size="9" fill="#A0357A">May 18 session</text></g>
+      <path d="M 140 70 Q 200 100 280 160" stroke="#5B6B8A" stroke-width="2" stroke-dasharray="3 3" fill="none"/>
+      <path d="M 140 125 Q 200 140 280 160" stroke="#5B6B8A" stroke-width="2" stroke-dasharray="3 3" fill="none"/>
+      <path d="M 140 185 Q 200 180 280 160" stroke="#5B6B8A" stroke-width="2" stroke-dasharray="3 3" fill="none"/>
+      <path d="M 140 245 Q 200 220 280 160" stroke="#5B6B8A" stroke-width="2" stroke-dasharray="3 3" fill="none"/>
+      <g class="anim-fade" style="animation-delay:.9s"><circle cx="340" cy="160" r="60" fill="#1A2238"/><text x="340" y="155" text-anchor="middle" font-size="11" font-weight="700" fill="#FFD070">VECTOR</text><text x="340" y="172" text-anchor="middle" font-size="11" font-weight="700" fill="#FFD070">STORE</text></g>
+      <path d="M 400 160 L 460 160" stroke="#C8921A" stroke-width="3" stroke-dasharray="6 6"/>
+      <polygon points="460,154 472,160 460,166" fill="#C8921A"/>
+      <g class="anim-fade" style="animation-delay:1.2s"><rect x="380" y="240" width="130" height="60" rx="10" fill="#FFF7E6" stroke="#C8921A"/><text x="445" y="266" text-anchor="middle" font-size="11" font-weight="700" fill="#C8921A">SEARCH NISHI</text><text x="445" y="284" text-anchor="middle" font-size="9" fill="#7A5F10">"CICS in EU?"</text></g>
+    </svg>`;
+  },
+  export: function(){
+    return `
+    <svg viewBox="0 0 520 320" xmlns="http://www.w3.org/2000/svg">
+      <rect x="200" y="40" width="120" height="60" rx="10" fill="#1A2238"/>
+      <text x="260" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#FFD070">ARTIFACT</text>
+      <text x="260" y="83" text-anchor="middle" font-size="10" fill="#C8D2E2">RAID · RFP · Disc.</text>
+      <circle cx="260" cy="140" r="22" fill="#C8921A" class="anim-pulse"/>
+      <text x="260" y="146" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">⬇</text>
+      <text x="260" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#5B6B8A">EXPORT</text>
+      <g class="anim-fade" style="animation-delay:.4s"><rect x="20"  y="220" width="110" height="70" rx="10" fill="#fff" stroke="#E2E7F1"/><text x="75"  y="244" text-anchor="middle" font-size="11" font-weight="700" fill="#1A2238">.md</text><text x="75"  y="262" text-anchor="middle" font-size="9" fill="#5B6B8A">Markdown</text><text x="75"  y="278" text-anchor="middle" font-size="9" fill="#5B6B8A">for emails</text></g>
+      <g class="anim-fade" style="animation-delay:.6s"><rect x="148" y="220" width="110" height="70" rx="10" fill="#fff" stroke="#E2E7F1"/><text x="203" y="244" text-anchor="middle" font-size="11" font-weight="700" fill="#1A2238">.json</text><text x="203" y="262" text-anchor="middle" font-size="9" fill="#5B6B8A">Structured</text><text x="203" y="278" text-anchor="middle" font-size="9" fill="#5B6B8A">for APIs</text></g>
+      <g class="anim-fade" style="animation-delay:.8s"><rect x="276" y="220" width="110" height="70" rx="10" fill="#fff" stroke="#E2E7F1"/><text x="331" y="244" text-anchor="middle" font-size="11" font-weight="700" fill="#1A2238">.xml</text><text x="331" y="262" text-anchor="middle" font-size="9" fill="#5B6B8A">MS Project</text><text x="331" y="278" text-anchor="middle" font-size="9" fill="#5B6B8A">Gantt views</text></g>
+      <g class="anim-fade" style="animation-delay:1s"><rect x="404" y="220" width="110" height="70" rx="10" fill="#fff" stroke="#E2E7F1"/><text x="459" y="244" text-anchor="middle" font-size="11" font-weight="700" fill="#1A2238">DR runbook</text><text x="459" y="262" text-anchor="middle" font-size="9" fill="#5B6B8A">RTO / RPO</text><text x="459" y="278" text-anchor="middle" font-size="9" fill="#5B6B8A">auto-filled</text></g>
+      <path d="M 260 162 L 75 220" stroke="#C8921A" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <path d="M 260 162 L 203 220" stroke="#C8921A" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <path d="M 260 162 L 331 220" stroke="#C8921A" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <path d="M 260 162 L 459 220" stroke="#C8921A" stroke-width="1.5" stroke-dasharray="4 4"/>
+    </svg>`;
+  }
+};
+
+/* ── Wiring ── */
+function getParam(name){
+  const m = new RegExp('[?&]' + name + '=([^&#]*)').exec(location.search);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+const fid = getParam('feature') || 'rfp';
+const f = FEATURES[fid] || FEATURES.rfp;
+
+document.getElementById('eyebrow').textContent = (f.title || 'FEATURE').toUpperCase() + ' · WALKTHROUGH';
+document.title = f.title + ' · DI Platform';
+document.getElementById('title').innerHTML = f.title + ' — <em>' + (f.titleEm || '') + '</em>';
+document.getElementById('subtitle').textContent = f.subtitle;
+document.getElementById('desc-long').textContent = f.desc;
+document.getElementById('benefits').innerHTML = f.benefits.map(b => '<li>' + b + '</li>').join('');
+document.getElementById('how-steps').innerHTML = f.steps.map(s => '<li>' + s + '</li>').join('');
+document.getElementById('cta-open').href = f.openHref || 'home.html';
+
+let currentStep = 0;
+const maxStep = f.steps.length;
+function renderAnim(){
+  const host = document.getElementById('anim');
+  host.innerHTML = (ANIM[f.anim] || ANIM.rfp)();
+}
+function updateStepUI(){
+  document.getElementById('step-num').textContent = (currentStep + 1);
+  document.getElementById('step-label').textContent = 'Step ' + (currentStep + 1) + ' of ' + maxStep + ' · ' + f.steps[currentStep];
+  document.getElementById('step-prev').disabled = currentStep === 0;
+  document.getElementById('step-next').disabled = currentStep === maxStep - 1;
+}
+function stepPrev(){ if (currentStep > 0) { currentStep--; updateStepUI(); renderAnim(); } }
+function stepNext(){ if (currentStep < maxStep - 1) { currentStep++; updateStepUI(); renderAnim(); } }
+document.getElementById('btn-restart').onclick = function(){ currentStep = 0; updateStepUI(); renderAnim(); };
+document.getElementById('btn-play').onclick = function(){
+  // auto-advance every 2.5s
+  const total = maxStep - currentStep;
+  for (let i = 1; i <= total; i++) {
+    setTimeout(stepNext, i * 2500);
+  }
+};
+
+renderAnim();
+updateStepUI();
+</script>
+
+</body>
+</html>
