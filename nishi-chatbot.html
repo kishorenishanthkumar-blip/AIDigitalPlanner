@@ -530,6 +530,107 @@ Today is ${new Date().toLocaleDateString()}.`;
 // ─── Offline fallback (rules-based) ─────────────────────────
 function generateOfflineResponse(q){
   const Q = q.toLowerCase();
+
+  /* ─── Operations intents (Phase 19) ───────────────── */
+  if (Q.includes('batch') && (Q.includes('fail') || Q.includes('last week'))) {
+    return `### Last week's batch failures · sample fixtures
+
+I pulled this from the Operations dashboard:
+
+| Date | Batch | Module | Failure | Recovery |
+|------|-------|--------|---------|----------|
+| May 14 · 03:42 | EOD Payments settle | Core Payments | DB connection pool exhausted at peak | Manual rerun 06:15 (success) |
+| May 15 · 02:18 | AML overnight screening | AML | New rule triggered 14× false-positive spike | Rule reverted, batch rerun 04:02 |
+| May 18 · 23:14 | Treasury ETL | Treasury | Postgres autovacuum locked source tables | Job restarted after vacuum, 41 min delay |
+
+**Trend:** 3 failures vs prior week's 1. The Payments settle failure is a recurring pattern (4× this quarter). Recommend opening a RAID risk in **Program Governance · RAID Register** to track root cause.
+
+Want me to open the RAID register or pull the Payments settle incident timeline?`;
+  }
+
+  if ((Q.includes('rds') || Q.includes('aws')) && (Q.includes('spike') || Q.includes('why') || Q.includes('14%') || Q.includes('cost'))) {
+    return `### AWS RDS cost spike · investigation
+
+Cards · Auth cluster jumped <strong>+$14,200/mo</strong> over the past 7 days. Root cause:
+
+1. On <strong>May 18</strong>, the Auth team upsized the primary instance class from <code>r6g.large</code> → <code>r6g.xlarge</code> to handle a planned launch.
+2. The launch was deferred, but the upsize stayed in place.
+3. Current utilisation: <strong>41%</strong> at peak hour — way under-utilised at the new size.
+
+**Recommended action:** downsize back to <code>r6g.large</code> with a 1-year Reserved Instance commitment. That brings the bill back down and locks in a further 7% discount. Net change: <strong>−$22,400/mo</strong> over the next 12 months.
+
+Open <a href="architecture-studio.html">Architecture Studio</a> → re-run pricing with the new size to confirm the savings.`;
+  }
+
+  if (Q.includes('forecast') && (Q.includes('eod') || Q.includes('batch') || Q.includes('tonight'))) {
+    return `### Tonight's overnight batch forecast
+
+Based on the last 30 nights of telemetry:
+
+| Batch | Predicted finish | Confidence | Notes |
+|-------|-----------------|-----------|-------|
+| EOD Payments settle | 01:14 AM | High (94%) | Slightly over baseline — month-end volumes |
+| Card transaction settlement | 02:58 AM | High (97%) | On track |
+| AML screening | 05:41 AM | Medium (78%) | Watch for rule revisions deployed today |
+| BCBS 239 regulatory report | 08:02 AM | High (96%) | On track |
+| Loyalty point accrual | 05:58 AM | High (99%) | On track |
+
+**Predicted to miss SLA tonight:** None at current confidence.
+**Risk:** AML may breach its SLA if the new rule deployed at 18:30 triggers high false-positive volume. Watch the SLO burn rate after 03:00 AM.
+
+I'll alert you if anything starts trending red.`;
+  }
+
+  if (Q.includes('slo') && (Q.includes('trend') || Q.includes('in or out'))) {
+    return `### SLO trends · last 30 days
+
+| SLO | Current burn | Trend | Verdict |
+|-----|-------------|-------|---------|
+| Payments authorisation success > 99.95% | 1.8% / month | ↓ improving | <strong style="color:#0A8462">IN</strong> |
+| MTTR < 25 min | 22 min average | ↓ improving | <strong style="color:#0A8462">IN</strong> |
+| Batch SLA > 99.5% | 99.62% | → flat | <strong style="color:#0A8462">IN</strong> · narrow margin |
+| Card auth p95 < 800ms | 920ms | ↑ degrading | <strong style="color:#FF4D6A">OUT</strong> |
+
+**The one that needs attention:** Card auth p95 latency. It crept from 720ms → 920ms over the past 14 days, coinciding with the RDS upsize that didn't help (in fact made it slightly worse due to network round-trip). Tied to the cost anomaly above.
+
+**Recommended:** open <a href="program-governance.html">Program Governance</a> → add a P2 incident for Card auth latency → assign to the Auth team owner.`;
+  }
+
+  if (Q.includes('incident') && (Q.includes('trend') || Q.includes('top') || Q.includes('this month'))) {
+    return `### Incident trends · this month
+
+Top 3 modules by incident count (May 1 - 21):
+
+1. <strong>Cards · Authorization</strong> — 14 incidents (5 P2, 9 P3)
+2. <strong>AML / Fraud</strong> — 9 incidents (1 P1, 3 P2, 5 P3)
+3. <strong>Core Payments</strong> — 6 incidents (2 P1, 2 P2, 2 P3)
+
+**Pattern:** Card Auth incidents are mostly latency-related (10 of 14). AML incidents are mostly false-positive driven (6 of 9). Core Payments incidents are settlement-related batch issues.
+
+**Suggested next step:** the Discovery 7R map identifies Card Auth as a <strong>REFACT</strong> candidate. Accelerating that wave by 6-8 weeks would mitigate ~70% of these incidents.
+
+Open <a href="discovery-studio.html">Discovery Studio</a> to revisit the verdict.`;
+  }
+
+  if (Q.includes('forecast') && (Q.includes('budget') || Q.includes('q3') || Q.includes('q4') || Q.includes('cloud bill'))) {
+    return `### Cloud bill forecast · Q3 (Jul-Sep 2026)
+
+Based on current run-rate + planned modernization waves + 3-yr Savings Plan kicking in:
+
+| Service area | Q2 actual | Q3 forecast | Δ |
+|--------------|-----------|-------------|---|
+| Core Payments (AWS) | $54k | $48k | −11% (SP discount applied) |
+| Cards (Azure + AWS) | $42k | $58k | +38% (Card Mgmt refactor lands Q3) |
+| Risk & Compliance (AWS) | $11k | $34k | +209% (new Snowflake spend) |
+| Treasury (OCI) | $22k | $19k | −14% |
+| Other | $18k | $20k | +11% |
+| <strong>TOTAL</strong> | <strong>$147k</strong> | <strong>$179k</strong> | <strong>+22%</strong> |
+
+**Risk:** Risk & Compliance Snowflake spend is the wildcard — it can vary ±50% based on query patterns. Suggest a Q3 review at +60 days to recalibrate.
+
+Open <a href="program-governance.html">Program Governance · Cost Model</a> for the per-capability breakdown.`;
+  }
+
   if (Q.includes('rfp') || Q.includes('questionnaire')) {
     return `### Starting an RFP-style questionnaire
 
@@ -697,18 +798,43 @@ function handleCliCommand(cmd){
   }
 }
 
-// Boot — greeting
+// Boot — greeting + Phase 19 intent handoff
 window.addEventListener('DOMContentLoaded', () => {
+  // Phase 19 · Read ?q= URL param and/or sessionStorage prompt set by other pages
+  // (e.g. Operations dashboard chips, Discovery deep-links).
+  function getQuery() {
+    try {
+      const url = new URL(location.href);
+      const q = url.searchParams.get('q');
+      if (q) return decodeURIComponent(q);
+    } catch (e) {}
+    try {
+      const s = sessionStorage.getItem('di_nishi_prompt');
+      if (s) { sessionStorage.removeItem('di_nishi_prompt'); return s; }
+    } catch (e) {}
+    return null;
+  }
+  const incoming = getQuery();
+  const fromParam = (() => { try { return new URL(location.href).searchParams.get('from'); } catch (e) { return null; } })();
+
   setTimeout(() => {
-    appendBot(`Hi Nishanth — I'm **Nishi**, your AI assistant inside the DI-Platform.
+    // Tailor the greeting based on where the user came from
+    let greeting = 'Hi Nishanth — I\'m **Nishi**, your AI assistant inside the DI-Platform.';
+    if (fromParam === 'operations') greeting += '\n\nYou arrived from the **Operations dashboard**. I\'ve picked up your question and will answer it in a moment.';
+    else if (fromParam === 'discovery') greeting += '\n\nYou arrived from **Discovery Studio**. Let me know what you\'d like to drill into.';
+    else if (fromParam === 'architecture') greeting += '\n\nYou arrived from **Architecture Studio**. I can explain any verdict, cloud choice, or cost number on that page.';
+    else if (fromParam === 'governance') greeting += '\n\nYou arrived from **Program Governance**. Want a RAID summary or a wave-by-wave timeline view?';
+    else greeting += '\n\nBased on your sign-in profile (**Solution Architect · NA-East**), here are a few starting points:\n\n* Want me to *generate an RFP-style questionnaire* for your next discovery session?\n* Or *summarize the current state* of one of your banking modules?\n* Or *compare cloud targets* for a workload you have in mind?\n\nPick one from the **Suggested prompts** dropdown above the composer, or just type your question. Add your **Anthropic API key** below to get live answers; otherwise I\'ll respond from the built-in playbook.';
 
-Based on your sign-in profile (**Solution Architect · NA-East**), here are a few starting points:
+    appendBot(greeting);
 
-* Want me to *generate an RFP-style questionnaire* for your next discovery session?
-* Or *summarize the current state* of one of your banking modules?
-* Or *compare cloud targets* for a workload you have in mind?
-
-Pick one from the **Suggested prompts** panel on the left, or just type your question. Add your **Anthropic API key** below to get live answers; otherwise I'll respond from the built-in playbook.`);
+    // If we received an incoming prompt, auto-fill + auto-send after the greeting
+    if (incoming) {
+      setTimeout(() => {
+        const ta = document.getElementById('ta');
+        if (ta) { ta.value = incoming; sendMessage(); }
+      }, 700);
+    }
   }, 400);
 });
 </script>

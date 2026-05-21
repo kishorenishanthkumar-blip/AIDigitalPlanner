@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="assets/theme.css">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
+<script src="assets/pricing.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -316,28 +317,54 @@ function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(saveSt
 
 /* ── 7R rules engine ────────────────────────────────── */
 function compute7R() {
-  // Use the per-capability default verdict as the baseline.
-  // Adjustments from inventory data could be added here later.
+  // Phase 15e.1 — factor in cost from the shared pricing library.
+  // Each capability's rationale now mentions monthly cost + savings vs legacy.
+  const hasPricing = !!(window.DI && window.DI.pricing);
+  const fmt = n => {
+    if (!isFinite(n)) return '$?';
+    if (Math.abs(n) >= 1000000) return '$' + (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M';
+    if (Math.abs(n) >= 1000)    return '$' + Math.round(n/1000) + 'K';
+    return '$' + Math.round(n);
+  };
+
   const results = STATE.selected.map(id => {
     const cap = CAPS.find(c => c.id === id);
     if (!cap) return null;
     const verdictKey = cap.verdict;
     const meta = VERDICT_META[verdictKey];
-    // Compose rationale based on critical flag + complexity
     const det = (STATE.detail[id] && STATE.detail[id].infra) || DEFAULT_DETAIL.infra;
     const cx = det.complexity || 'moderate';
+
+    // Get pricing if library is loaded
+    let monthlyFut = 0, monthlyLeg = 0, savings3yr = 0;
+    if (hasPricing) {
+      try {
+        const stackMap = { AWS:'AWS', AZURE:'AZURE', GCP:'GCP', OCI:'OCI', IBM:'IBM', 'SaaS':'AWS', 'PRIVATE-DC':'PRIVATE-DC' };
+        const cloud = stackMap[cap.stack] || 'AWS';
+        const all = window.DI.pricing.estimate({ capabilityId: id, verdict: verdictKey }, { components: ['compute','storage','egress','support'] });
+        monthlyFut = (all[cloud] && all[cloud].total) || 0;
+        const legacy = window.DI.pricing.legacyTco([{ id, name:cap.name, verdict:verdictKey }]);
+        monthlyLeg = (legacy[0] && legacy[0].monthly) || 0;
+        savings3yr = (monthlyLeg - monthlyFut) * 36;
+      } catch (e) {}
+    }
+
+    // Compose rationale — now with $ savings woven in
     let why = '';
-    if (verdictKey === 'REARCH')  why = 'Critical workload, declining skills, regulatory pressure. Rehost would not unlock the new capability.';
-    if (verdictKey === 'REPLAT')  why = 'Stable, well-documented, vendor pattern available. Modest effort for big OPEX reduction.';
-    if (verdictKey === 'REFACT')  why = 'Codebase is cloud-friendly; needs event-driven backbone. Big agility win.';
-    if (verdictKey === 'REHOST')  why = 'Quick win — port to containers. Buys time while bigger systems modernize.';
-    if (verdictKey === 'REPLACE') why = 'Tech is unsupported. Building in-house would burn budget; SaaS players are mature.';
-    if (verdictKey === 'REBUILD') why = 'Existing system has structural defects beyond refactor. Cleaner to rebuild on a modern stack.';
+    const moneyHint = (savings3yr > 0) ? ' Saves <strong>' + fmt(savings3yr) + '</strong> over 3 years vs current.' : '';
+    if (verdictKey === 'REARCH')  why = 'Critical workload, declining skills, regulatory pressure. Rehost would not unlock the new capability.' + moneyHint;
+    if (verdictKey === 'REPLAT')  why = 'Stable, well-documented, vendor pattern available. Modest effort for big OPEX reduction.' + moneyHint;
+    if (verdictKey === 'REFACT')  why = 'Codebase is cloud-friendly; needs event-driven backbone. Big agility win.' + moneyHint;
+    if (verdictKey === 'REHOST')  why = 'Quick win — port to containers. Buys time while bigger systems modernize.' + (savings3yr > 0 ? ' Only ' + fmt(savings3yr) + ' over 3 years, but unblocks next waves.' : '');
+    if (verdictKey === 'REPLACE') why = 'Tech is unsupported. Building in-house would burn budget; SaaS players are mature.' + moneyHint;
+    if (verdictKey === 'REBUILD') why = 'Existing system has structural defects beyond refactor. Cleaner to rebuild on a modern stack.' + moneyHint;
     if (verdictKey === 'RETAIN')  why = 'Recently modernized or low business impact. Defer modernization.';
+
     return {
       id, name: cap.name, current: cap.current, future: cap.future,
       verdict: verdictKey, verdictName: meta.name, color: meta.color, risk: meta.risk, eff: meta.eff,
       stack: cap.stack, why,
+      monthly: monthlyFut, monthlyLegacy: monthlyLeg, savings3yr,
       complexity: cx, critical: !!cap.critical
     };
   }).filter(Boolean);
@@ -755,7 +782,9 @@ function renderResult() {
   }, 0);
   const peakEffort = Math.max(...r.capabilities.map(c => parseInt((VERDICT_META[c.verdict].eff.match(/\d+/g) || ['6']).pop()) || 6));
   const totalDuration = Math.max(12, Math.min(24, Math.round(effortMonths * 0.35)));  // parallelized
-  const savings = Math.round(r.capabilities.length * 340);   // $K per cap rough estimate
+  // Phase 15e.1 — use real pricing instead of rough estimate
+  const realSavings = r.capabilities.reduce((sum, c) => sum + (c.savings3yr || 0), 0);
+  const savings = realSavings > 0 ? Math.round(realSavings / 1000) : Math.round(r.capabilities.length * 340);   // $K
   const risk = r.capabilities.filter(c => c.risk === 'High').length;
 
   const mixOrder = ['REHOST','REPLAT','REFACT','REARCH','REBUILD','REPLACE','RETAIN'];
@@ -780,12 +809,13 @@ function renderResult() {
   // Cards grid
   html += '<div class="ds-7r-grid">';
   r.capabilities.forEach(c => {
+    const monthlyStr = c.monthly ? '$' + Math.round(c.monthly/1000) + 'K/mo' : '';
     html += '<div class="ds-7r-card" style="--c:' + c.color + '">' +
       '<div class="head">' +
         '<div><div class="name">' + c.name + '</div><div class="stack">' + c.current + ' → ' + c.future + '</div></div>' +
         '<span class="verdict">' + c.verdictName.toUpperCase() + '</span>' +
       '</div>' +
-      '<div class="stats"><span>Target: <strong>' + c.stack + '</strong></span><span>Risk: <strong>' + c.risk + '</strong></span><span>Effort: <strong>' + c.eff + '</strong></span></div>' +
+      '<div class="stats"><span>Target: <strong>' + c.stack + '</strong></span><span>Risk: <strong>' + c.risk + '</strong></span><span>Effort: <strong>' + c.eff + '</strong></span>' + (monthlyStr ? '<span>Cloud cost: <strong style="color:var(--gold)">' + monthlyStr + '</strong></span>' : '') + '</div>' +
       '<div class="why"><strong>Why ' + c.verdictName + ':</strong> ' + c.why + '</div>' +
     '</div>';
   });
