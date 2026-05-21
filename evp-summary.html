@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EVP Summary · DI Platform</title>
+<meta name="description" content="Board-ready executive summary of your banking modernization program — duration, savings, KPIs, and the case for the program."/>
+<link rel="stylesheet" href="assets/theme.css">
+<script src="assets/toasts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/pricing.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+a{color:var(--gold);text-decoration:none}
+
+/* Toolbar */
+.evp-tools{background:#fff;border-bottom:1px solid var(--border);padding:11px 24px}
+.evp-tools-wrap{max-width:1280px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.evp-tools .audience{display:flex;gap:4px;background:var(--canvas);padding:3px;border-radius:9px;border:1px solid var(--border)}
+.evp-tools .audience button{padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;background:transparent;color:var(--ink-2);font-family:inherit}
+.evp-tools .audience button.act{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+.evp-tools .meta{font-size:11px;color:var(--ink-2)}
+.evp-tools .actions{display:flex;gap:6px}
+.evp-tools .actions button{background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 11px;font-size:11.5px;color:var(--ink);font-family:inherit}
+.evp-tools .actions button:hover{border-color:var(--gold);color:var(--gold)}
+.evp-tools .actions .primary{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+.evp-tools .actions .primary:hover{background:var(--gold-2)}
+
+/* Hero (dark) */
+.evp-hero{background:linear-gradient(135deg,#1A2238,#243655);color:#fff;padding:30px 28px}
+.evp-hero-wrap{max-width:1280px;margin:0 auto}
+.evp-hero .pre{font-size:11px;font-weight:700;color:var(--gold-3);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+.evp-hero h1{font-family:var(--f-head);font-size:30px;font-weight:600;line-height:1.18;max-width:900px}
+.evp-hero h1 em{font-style:italic;color:var(--gold-3)}
+.evp-hero p{font-size:13px;color:#C8D2E2;margin-top:12px;max-width:760px;line-height:1.55}
+.evp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+@media (max-width:760px){.evp-stats{grid-template-columns:repeat(2,1fr)}}
+.evp-stat{background:rgba(255,208,112,.08);border:1px solid var(--gold);border-radius:10px;padding:11px 14px}
+.evp-stat.ok{background:rgba(15,212,154,.08);border-color:var(--green)}
+.evp-stat.blue{background:rgba(61,142,255,.08);border-color:var(--blue)}
+.evp-stat .lbl{font-size:9.5px;font-weight:700;color:var(--gold-3);letter-spacing:.06em;text-transform:uppercase}
+.evp-stat.ok .lbl{color:var(--green)}
+.evp-stat.blue .lbl{color:var(--blue)}
+.evp-stat .val{font-family:var(--f-head);font-size:22px;font-weight:600;color:#fff;margin-top:2px}
+.evp-stat .sub{font-size:10.5px;color:#8AA4C8;margin-top:1px}
+
+/* Body */
+.evp-body{max-width:1280px;margin:0 auto;padding:22px 28px 32px}
+
+.evp-section-h{font-size:10px;font-weight:700;color:var(--ink);letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.evp-section-h .div{flex:1;height:1px;background:var(--border)}
+
+/* Benefits */
+.evp-benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:20px}
+@media (max-width:900px){.evp-benefits{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.evp-benefits{grid-template-columns:1fr}}
+.evp-ben{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;border-left:4px solid var(--gold)}
+.evp-ben.green{border-left-color:var(--green)}
+.evp-ben.blue{border-left-color:var(--blue)}
+.evp-ben.purple{border-left-color:var(--purple)}
+.evp-ben .ic{font-size:9.5px;color:var(--ink-2);font-weight:700;letter-spacing:.06em}
+.evp-ben .v{font-family:var(--f-head);font-size:18px;font-weight:600;margin-top:3px}
+.evp-ben .delta{font-size:11px;color:var(--green);font-weight:700;margin-top:3px}
+.evp-ben.purple .delta{color:var(--purple)}
+.evp-ben.blue .delta{color:var(--blue)}
+.evp-ben .desc{font-size:10.5px;color:var(--ink-2);margin-top:6px;line-height:1.4}
+
+/* KPI table */
+.evp-kpi{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:auto;margin-bottom:20px}
+.evp-kpi table{border-collapse:collapse;font-size:12px;width:100%;min-width:760px}
+.evp-kpi thead th{background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.evp-kpi td{padding:12px 14px;border-bottom:1px solid var(--canvas-2);vertical-align:top}
+.evp-kpi td .kpi-name{font-weight:700;font-size:12.5px}
+.evp-kpi td .kpi-desc{font-size:10.5px;color:var(--ink-2);margin-top:1px}
+.evp-kpi td .target{color:var(--green);font-weight:700}
+.evp-kpi td.delta{text-align:right;color:var(--green);font-weight:700}
+
+/* CTA strip */
+.evp-cta{background:var(--ink);color:#fff;border-radius:12px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}
+.evp-cta .lbl{font-size:10px;font-weight:700;color:var(--gold-3);letter-spacing:.1em;text-transform:uppercase}
+.evp-cta .h{font-size:14px;font-weight:600;margin-top:2px}
+.evp-cta .sub{font-size:11.5px;color:#8AA4C8;margin-top:3px}
+.evp-cta .actions{display:flex;gap:8px;flex-wrap:wrap}
+.evp-cta .primary{background:var(--gold);border:none;color:#fff;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.evp-cta .ghost{background:transparent;border:1px solid #243655;color:var(--gold-3);border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* Empty */
+.evp-empty{text-align:center;padding:60px 20px;background:#fff;border:1px solid var(--border);border-radius:14px;color:var(--ink-2)}
+.evp-empty h2{font-family:var(--f-head);font-size:20px;color:var(--ink);margin-bottom:8px}
+.evp-empty p{font-size:13px;max-width:500px;margin:0 auto 14px;line-height:1.55}
+.evp-empty .actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.evp-empty .actions a{background:var(--gold);color:#fff;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;text-decoration:none}
+
+/* Watermark */
+.evp-watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-family:var(--f-head);font-size:88px;color:rgba(20,33,58,.04);font-weight:700;pointer-events:none;z-index:1;text-transform:uppercase;letter-spacing:.05em;display:none}
+body.print-mode .evp-watermark{display:block}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fadeUp{animation:fadeUp .35s ease both}
+
+/* Auditor-mode panel */
+.evp-aud{display:none}
+body.aud .evp-aud{display:block}
+body.aud .evp-bus{display:none}
+.evp-aud .row{display:flex;justify-content:space-between;font-size:11.5px;padding:6px 0;border-bottom:1px dashed var(--border)}
+.evp-aud .row strong{font-family:var(--f-mono);color:var(--ink)}
+.evp-aud .panel{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.evp-aud .panel h3{font-family:var(--f-head);font-size:15px;color:var(--ink);margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div data-di-topbar></div>
+
+<!-- Toolbar -->
+<div class="evp-tools">
+  <div class="evp-tools-wrap">
+    <div class="audience" role="tablist">
+      <button class="act" data-aud="vp"       onclick="setAudience('vp')">VP / Board</button>
+      <button         data-aud="architect" onclick="setAudience('architect')">Architect</button>
+      <button         data-aud="auditor"   onclick="setAudience('auditor')">Auditor</button>
+    </div>
+    <div class="meta" id="evp-meta">Loading…</div>
+    <div class="actions">
+      <button onclick="exportEVP('pdf')">⬇ PDF</button>
+      <button onclick="exportEVP('pptx')">⬇ PPT</button>
+      <button class="primary" onclick="sendToLegal()">Draft SOW →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hero + body -->
+<section class="evp-hero" id="evp-hero"></section>
+<main class="evp-body" id="evp-body"></main>
+
+<div class="evp-watermark">DRAFT</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   EVP Summary · Phase 15c
+   Reads di_evp_input (from Architecture) → renders board pack.
+═══════════════════════════════════════════════════════ */
+
+const EVP_KEY  = 'di_evp_state_v1';
+let INPUT = null;     // from architecture
+let STATE = { audience: 'vp', clientName: '[Client Bank Legal Name]', clientShort: 'Client' };
+
+function loadInput() {
+  try { INPUT = JSON.parse(localStorage.getItem('di_evp_input') || 'null'); } catch (e) {}
+  try { Object.assign(STATE, JSON.parse(localStorage.getItem(EVP_KEY) || '{}')); } catch (e) {}
+}
+function saveState() { try { localStorage.setItem(EVP_KEY, JSON.stringify(STATE)); } catch (e) {} }
+
+function computeRollups() {
+  if (!INPUT || !INPUT.capabilities) return null;
+  const caps = INPUT.capabilities;
+  let monthly = 0, legacyMonthly = 0;
+  caps.forEach(c => { monthly += (c.monthly || 0); });
+  const legacy = window.DI && window.DI.pricing ? window.DI.pricing.legacyTco(caps) : [];
+  legacy.forEach(l => { legacyMonthly += l.monthly; });
+  const tco3yrFut = monthly * 36;
+  const tco3yrLeg = legacyMonthly * 36;
+  const savings   = tco3yrLeg - tco3yrFut;
+  const savingsPct = tco3yrLeg ? Math.round((savings / tco3yrLeg) * 100) : 0;
+  // Duration: longest parallel wave ~ ceil(max single effort) + 2 months prep
+  const efforts = caps.map(c => {
+    const m = ((c.eff || '6-9 mo').match(/\d+/g) || ['6']).pop();
+    return parseInt(m) || 6;
+  });
+  const peakEff = Math.max.apply(null, efforts.concat([6]));
+  const duration = Math.max(12, Math.min(24, peakEff + 2));
+  // FTE: rough — 3 FTE per capability avg, ~50% partner
+  const totalFte = Math.round(caps.length * 3.5);
+  const internalFte = Math.round(totalFte * 0.45);
+  const partnerFte = totalFte - internalFte;
+  // Risk
+  const high = caps.filter(c => (c.risk === 'High')).length;
+  // Payback: years = annual cost / annual savings (rough)
+  const annualSavings = savings / 3;
+  const programCost   = duration * 280000;  // rough $280k/mo program cost
+  const paybackYrs    = annualSavings > 0 ? (programCost / annualSavings) : 99;
+  const npv8          = Math.round(savings * 0.78);  // discount 8% over 3 yrs
+  return { caps, monthly, legacyMonthly, tco3yrFut, tco3yrLeg, savings, savingsPct, duration, totalFte, internalFte, partnerFte, high, paybackYrs, npv8, peakEff };
+}
+
+function fmt(n, currency) {
+  if (!isFinite(n)) return '—';
+  const c = (INPUT && INPUT.filters && INPUT.filters.currency) || 'USD';
+  if (Math.abs(n) >= 1000000) return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:1 }).format(n/1000000).replace(/\.0/,'') + 'M';
+  if (Math.abs(n) >= 1000)    return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:0 }).format(n/1000) + 'K';
+  return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:0 }).format(n);
+}
+
+/* ── Render ─────────────────────────────────────────── */
+function render() {
+  document.body.classList.toggle('aud', STATE.audience === 'auditor');
+  const r = computeRollups();
+  if (!r) {
+    document.getElementById('evp-hero').innerHTML = '';
+    document.getElementById('evp-body').innerHTML =
+      '<div class="evp-empty">' +
+      '<h2>No architecture data yet</h2>' +
+      '<p>EVP summary builds on the capabilities and prices you finalize in Architecture Studio. Run Discovery → Architecture first, then click <strong>Generate EVP Summary</strong> at the end of Architecture.</p>' +
+      '<div class="actions"><a href="discovery-studio.html">Start with Discovery →</a></div>' +
+      '</div>';
+    document.getElementById('evp-meta').textContent = 'No data';
+    return;
+  }
+
+  document.getElementById('evp-meta').textContent =
+    r.caps.length + ' capabilities · ' + ((INPUT.filters && INPUT.filters.region) || 'na-east').toUpperCase() + ' · ' + ((INPUT.filters && INPUT.filters.currency) || 'USD');
+
+  // Hero
+  document.getElementById('evp-hero').innerHTML =
+    '<div class="evp-hero-wrap fadeUp">' +
+      '<div class="pre">EVP SUMMARY · BOARD-READY · v1.0 · ' + new Date().toLocaleDateString() + '</div>' +
+      '<h1>Modernize ' + r.caps.length + ' banking capabilities in <em>' + r.duration + ' months</em>, save <em>' + fmt(r.savings) + '</em> over 3 years.</h1>' +
+      '<p>A multi-cloud, 7R-aligned program covering Core Banking, Cards, Customer Lifecycle, Trade Finance, Treasury, Risk and AML. Live pricing applied from AWS / Azure / GCP / OCI / IBM / Private DC. Risk-adjusted and ready to scope into a Statement of Work.</p>' +
+      '<div class="evp-stats">' +
+        '<div class="evp-stat"><div class="lbl">DURATION</div><div class="val">' + r.duration + ' mo</div><div class="sub">Discovery → Cutover</div></div>' +
+        '<div class="evp-stat ok"><div class="lbl">3-YR SAVINGS</div><div class="val">' + fmt(r.savings) + '</div><div class="sub">↓ ' + r.savingsPct + '% TCO</div></div>' +
+        '<div class="evp-stat blue"><div class="lbl">PEAK FTE</div><div class="val">' + r.totalFte + '</div><div class="sub">' + r.internalFte + ' internal · ' + r.partnerFte + ' partner</div></div>' +
+        '<div class="evp-stat"><div class="lbl">PAYBACK</div><div class="val">' + (r.paybackYrs < 10 ? r.paybackYrs.toFixed(1) + ' yr' : '—') + '</div><div class="sub">NPV ' + fmt(r.npv8) + ' @ 8%</div></div>' +
+      '</div>' +
+    '</div>';
+
+  // Body
+  let bodyHtml = '<div class="evp-bus">';
+
+  // Benefits grid
+  bodyHtml += '<div class="evp-section-h">BENEFITS · TIME · COST · RESOURCES<div class="div"></div></div>';
+  bodyHtml += '<div class="evp-benefits">' +
+    '<div class="evp-ben"><div class="ic">⏱ TIME</div><div class="v">' + r.peakEff + ' mo → ' + r.duration + ' mo</div><div class="delta">3 parallel waves</div><div class="desc">Shared landing zone &amp; CI/CD lets us run Core, Cards and Risk waves in parallel.</div></div>' +
+    '<div class="evp-ben green"><div class="ic">💵 COST</div><div class="v">' + fmt(r.tco3yrLeg) + ' → ' + fmt(r.tco3yrFut) + '</div><div class="delta">↓ ' + fmt(r.savings) + ' over 3 years</div><div class="desc">Mainframe retired, ' + Math.round(r.caps.length * 3) + ' servers decommissioned, SaaS swap for non-core.</div></div>' +
+    '<div class="evp-ben blue"><div class="ic">👥 RESOURCES</div><div class="v">' + r.internalFte + ' + ' + r.partnerFte + ' FTE</div><div class="delta">Peak in month 6-9</div><div class="desc">Internal: ' + r.internalFte + ' (eng · risk · ops). Partner: ' + r.partnerFte + ' (platform · modernization).</div></div>' +
+    '<div class="evp-ben purple"><div class="ic">⚠ RISK</div><div class="v">' + r.high + ' high-risk caps</div><div class="delta">Mitigated via 7R + KPI gates</div><div class="desc">Mainframe skills risk eliminated; BCBS 239 compliance achieved by month ' + Math.round(r.duration*0.75) + '.</div></div>' +
+  '</div>';
+
+  // KPI table
+  bodyHtml += '<div class="evp-section-h">METRICS &amp; KPIs · BUSINESS ALIGNMENT<div class="div"></div></div>';
+  bodyHtml += '<div class="evp-kpi"><table><thead><tr><th>BUSINESS KPI</th><th>BASELINE (TODAY)</th><th>TARGET (M+12)</th><th>HOW DI PLATFORM MOVES IT</th><th style="text-align:right">DELTA</th></tr></thead><tbody>';
+  const KPIS = [
+    ['Payment latency (p95)','From settle initiated → confirmed','2.8 sec','&lt; 350 ms','EKS + ISO 20022 streaming','↓ 88%'],
+    ['Time-to-market · new card product','','14 weeks','3 weeks','Decomposed Cards Mgmt service','↓ 79%'],
+    ['Customer onboarding (consumer)','','3 days','2 hours','API-first acquisition + KYC orchestration','↓ 97%'],
+    ['Regulatory report cycle (BCBS 239)','','9 days','Same day','Unified risk data platform · Snowflake','↓ 100%'],
+    ['Annual run-rate IT spend','','' + fmt(r.legacyMonthly*12),'' + fmt(r.monthly*12),'Cloud-native + decom legacy estate','↓ ' + r.savingsPct + '%'],
+    ['Mean time to recovery (MTTR)','','4.5 hr','&lt; 25 min','Auto-rollback in Container Apps','↓ 91%'],
+    ['Carbon footprint (kg CO₂e / yr)','Net of cloud clean-energy mix','184k kg','62k kg','Decom + renewable-region targeting','↓ 66%']
+  ];
+  KPIS.forEach(k => {
+    bodyHtml += '<tr><td><div class="kpi-name">' + k[0] + '</div>' + (k[1] ? '<div class="kpi-desc">' + k[1] + '</div>' : '') + '</td><td>' + k[2] + '</td><td><span class="target">' + k[3] + '</span></td><td>' + k[4] + '</td><td class="delta">' + k[5] + '</td></tr>';
+  });
+  bodyHtml += '</tbody></table></div>';
+
+  // CTA
+  bodyHtml += '<div class="evp-cta">' +
+    '<div><div class="lbl">NEXT STEPS</div><div class="h">Email the EVP pack to CIO + CFO, send the draft SOW to legal.</div><div class="sub">All numbers are click-to-trace via the Architecture provenance modal.</div></div>' +
+    '<div class="actions">' +
+      '<button class="ghost" onclick="emailEvp()">📧 Email CIO + CFO</button>' +
+      '<button class="primary" onclick="sendToLegal()">📤 Draft SOW for Legal →</button>' +
+    '</div>' +
+  '</div>';
+
+  bodyHtml += '</div>';   // /evp-bus
+
+  // Auditor block (provenance + per-cap audit)
+  bodyHtml += '<div class="evp-aud">';
+  bodyHtml += '<div class="evp-section-h">AUDIT VIEW · PROVENANCE PER CAPABILITY<div class="div"></div></div>';
+  r.caps.forEach(c => {
+    bodyHtml += '<div class="panel"><h3>' + c.name + ' · ' + (c.verdict || '?') + '</h3>' +
+      '<div class="row"><span>Capability ID</span><strong>' + c.id + '</strong></div>' +
+      '<div class="row"><span>Chosen cloud</span><strong>' + (c.chosenCloud || c.stack || '?') + '</strong></div>' +
+      '<div class="row"><span>Risk</span><strong>' + (c.risk || '?') + '</strong></div>' +
+      '<div class="row"><span>Effort</span><strong>' + (c.eff || '?') + '</strong></div>' +
+      '<div class="row"><span>Monthly cost</span><strong>' + fmt(c.monthly || 0) + '</strong></div>' +
+      '<div class="row"><span>3-year TCO</span><strong>' + fmt(c.tco3yr || 0) + '</strong></div>' +
+    '</div>';
+  });
+  bodyHtml += '</div>';
+
+  document.getElementById('evp-body').innerHTML = bodyHtml;
+}
+
+/* ── Audience switcher ──────────────────────────────── */
+function setAudience(a) {
+  STATE.audience = a;
+  saveState();
+  // Update tab styles
+  document.querySelectorAll('.evp-tools .audience button').forEach(b => b.classList.toggle('act', b.dataset.aud === a));
+  render();
+}
+
+/* ── Actions ────────────────────────────────────────── */
+function sendToLegal() {
+  if (!INPUT) { window.DI && window.DI.toast({ kind:'warn', title:'No data', message:'Generate the EVP from Architecture Studio first.' }); return; }
+  try { localStorage.setItem('di_sow_input', JSON.stringify(INPUT)); } catch (e) {}
+  window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'📤', title:'Draft SOW generated', message:'Opening inline-editable Statement of Work.', duration:3000 });
+  setTimeout(() => { location.href = 'sow.html'; }, 600);
+}
+
+function emailEvp() {
+  window.DI && window.DI.toast && window.DI.toast({ kind:'info', title:'Email integration coming in Phase 18.x', message:'For now, use the PDF or PPT export.', duration:4000 });
+}
+
+function exportEVP(fmt) {
+  window.DI && window.DI.toast && window.DI.toast({ kind:'info', title:'Export ' + fmt.toUpperCase(), message:fmt.toUpperCase() + ' generation ships in Phase 15c.2 (~30 min). For now, print to PDF from your browser (Ctrl+P).', duration:5000 });
+  if (fmt === 'pdf') {
+    document.body.classList.add('print-mode');
+    setTimeout(() => { window.print(); document.body.classList.remove('print-mode'); }, 600);
+  }
+}
+
+/* ── Bootstrap ──────────────────────────────────────── */
+loadInput();
+render();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Draft SOW · DI Platform</title>
+<meta name="description" content="Inline-editable draft Statement of Work generated from your Discovery + Architecture + EVP."/>
+<link rel="stylesheet" href="assets/theme.css">
+<script src="assets/toasts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/pricing.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+a{color:var(--gold);text-decoration:none}
+
+/* Toolbar */
+.sow-tools{background:#fff;border-bottom:1px solid var(--border);padding:11px 24px}
+.sow-tools-wrap{max-width:1280px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.sow-tools .status{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-2)}
+.sow-tools .status .pill{background:var(--aglow);border:1px solid var(--gold-2);color:var(--ink);font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:99px;letter-spacing:.04em}
+.sow-tools .actions{display:flex;gap:6px;flex-wrap:wrap}
+.sow-tools .actions button{background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 11px;font-size:11.5px;color:var(--ink);font-family:inherit}
+.sow-tools .actions button:hover{border-color:var(--gold);color:var(--gold)}
+.sow-tools .actions .primary{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+.sow-tools .actions .primary:hover{background:var(--gold-2)}
+
+/* Body */
+.sow-body{max-width:1280px;margin:0 auto;padding:22px 28px 32px;display:grid;grid-template-columns:1fr 280px;gap:24px}
+@media (max-width:980px){.sow-body{grid-template-columns:1fr}.sow-side{order:-1}}
+
+.sow-doc{background:#fff;border:1px solid var(--border);border-radius:14px;padding:36px 44px;box-shadow:var(--shadow-sm);position:relative;font-family:var(--f-ui);font-size:13.5px;line-height:1.7;color:var(--ink)}
+.sow-doc h1{font-family:var(--f-head);font-size:24px;font-weight:600;margin-bottom:6px}
+.sow-doc .doc-meta{font-size:11px;color:var(--ink-2);margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.sow-doc h2{font-family:var(--f-head);font-size:18px;font-weight:600;margin:24px 0 8px;color:var(--ink)}
+.sow-doc h2:first-of-type{margin-top:0}
+.sow-doc p{color:var(--ink-2);font-size:12.5px;line-height:1.7;margin-bottom:8px}
+.sow-doc p strong{color:var(--ink)}
+[contenteditable=true]{outline:none;border-radius:4px;transition:.15s;padding:2px 4px;margin:0 -4px;cursor:text}
+[contenteditable=true]:hover{background:rgba(200,146,26,.06)}
+[contenteditable=true]:focus{background:#FFFCF4;box-shadow:0 0 0 2px rgba(200,146,26,.25);outline:1px solid var(--gold-2)}
+.sow-blank{color:var(--gold);font-weight:700}
+
+.sow-milestone-table{border:1px solid var(--border);border-radius:9px;overflow:hidden;font-size:12px;margin:8px 0 14px}
+.sow-milestone-table table{border-collapse:collapse;width:100%}
+.sow-milestone-table thead th{background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;text-align:left}
+.sow-milestone-table td{padding:8px 12px;border-top:1px solid var(--canvas-2);color:var(--ink)}
+.sow-milestone-table td:first-child{font-weight:700}
+.sow-milestone-table tr.final td{background:var(--aglow)}
+.sow-milestone-table .pct{text-align:right;font-family:var(--f-mono);font-weight:700;color:var(--gold)}
+
+.sow-kpi-annex{border:1px solid var(--border);border-radius:9px;padding:13px 16px;font-size:11.5px;background:var(--canvas);margin-top:8px}
+.sow-kpi-annex .kpi-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border)}
+.sow-kpi-annex .kpi-row:last-child{border-bottom:none}
+.sow-kpi-annex .kpi-row strong{color:var(--green);font-weight:700}
+
+.sow-watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-family:var(--f-head);font-size:120px;color:rgba(200,146,26,.06);font-weight:700;pointer-events:none;text-transform:uppercase;letter-spacing:.05em}
+
+/* Side panel */
+.sow-side{display:flex;flex-direction:column;gap:14px;position:sticky;top:74px;align-self:start}
+.sow-side .panel{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.sow-side .panel h3{font-family:var(--f-head);font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sow-side .panel h3::before{content:'';width:3px;height:12px;background:var(--gold);border-radius:2px}
+.sow-side .panel .row{display:flex;justify-content:space-between;font-size:11.5px;padding:5px 0;border-bottom:1px dashed var(--border)}
+.sow-side .panel .row:last-child{border-bottom:none}
+.sow-side .panel .row strong{color:var(--ink)}
+.sow-side .tool-btn{display:block;width:100%;background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px;font-size:11.5px;color:var(--ink);text-align:left;margin-bottom:5px;font-family:inherit;cursor:pointer}
+.sow-side .tool-btn:hover{border-color:var(--gold);color:var(--gold)}
+.sow-side .tool-btn.primary{background:var(--gold);color:#fff;font-weight:700;border-color:var(--gold)}
+.sow-side .tool-btn.primary:hover{background:var(--gold-2)}
+.sow-side .legal-warn{margin-top:10px;font-size:10.5px;color:#7A5F10;background:#FFFCF4;border:1px dashed var(--gold-2);border-radius:7px;padding:8px;line-height:1.5}
+
+/* Empty */
+.sow-empty{text-align:center;padding:60px 20px;background:#fff;border:1px solid var(--border);border-radius:14px;color:var(--ink-2);grid-column:1 / -1}
+.sow-empty h2{font-family:var(--f-head);font-size:20px;color:var(--ink);margin-bottom:8px}
+.sow-empty p{font-size:13px;max-width:500px;margin:0 auto 14px;line-height:1.55}
+.sow-empty .actions a{background:var(--gold);color:#fff;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;text-decoration:none}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fadeUp{animation:fadeUp .35s ease both}
+</style>
+</head>
+<body>
+
+<div data-di-topbar></div>
+
+<!-- Toolbar -->
+<div class="sow-tools">
+  <div class="sow-tools-wrap">
+    <div class="status">
+      <span class="pill" id="sow-version">v0.1 · DRAFT</span>
+      <span id="sow-saved">Auto-saved · just now</span>
+    </div>
+    <div class="actions">
+      <button onclick="exportDOCX()">⬇ DOCX</button>
+      <button onclick="exportPDF()">⬇ PDF</button>
+      <button onclick="addComment()">💬 Add comment</button>
+      <button onclick="bumpVersion()">↗ New version</button>
+      <button class="primary" onclick="sendForReview()">📤 Send for review</button>
+    </div>
+  </div>
+</div>
+
+<main class="sow-body" id="sow-body"></main>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   Draft SOW · Phase 15d
+   Inline-editable Statement of Work, auto-saves, exports.
+═══════════════════════════════════════════════════════ */
+
+const SOW_KEY = 'di_sow_v1';
+let INPUT = null;
+let SOW = {
+  version: '0.1',
+  status: 'DRAFT',
+  clientLegalName: '[Client Bank Legal Name]',
+  clientShort: 'Client',
+  vendorName: 'Digital Infotech',
+  effectiveDate: new Date().toISOString().slice(0,10),
+  fixedPrice: 3950000,     // USD
+  durationMonths: 14,
+  milestones: [
+    { id:'M1', title:'Discovery + Architecture sign-off',          deliverable:'7R map · Cloud targets · TCO model',           month:2,  pct:15 },
+    { id:'M2', title:'Landing zone + CI/CD live',                  deliverable:'Multi-cloud LZ · IaC repo · pipelines',         month:4,  pct:15 },
+    { id:'M3', title:'Cards wave (Rehost + Refactor)',             deliverable:'3 capabilities in production',                  month:7,  pct:20 },
+    { id:'M4', title:'Core wave (Replatform + Refactor)',          deliverable:'3 capabilities cut over',                       month:10, pct:20 },
+    { id:'M5', title:'Risk &amp; Reg wave (Rearchitect)',          deliverable:'BCBS 239 reports live · AML real-time',         month:12, pct:15 },
+    { id:'M6', title:'Final cutover &amp; hypercare',              deliverable:'Full decom · 30-day hypercare report',          month:14, pct:15 }
+  ],
+  inlineEdits: {}
+};
+
+function loadInput() {
+  try { INPUT = JSON.parse(localStorage.getItem('di_sow_input') || 'null'); }
+  catch (e) {}
+  try { Object.assign(SOW, JSON.parse(localStorage.getItem(SOW_KEY) || '{}')); }
+  catch (e) {}
+}
+function saveState() {
+  try { localStorage.setItem(SOW_KEY, JSON.stringify(SOW)); } catch (e) {}
+  const el = document.getElementById('sow-saved');
+  if (el) el.textContent = 'Auto-saved · ' + new Date().toLocaleTimeString();
+}
+
+function deriveFromInput() {
+  if (!INPUT || !INPUT.capabilities) return null;
+  const caps = INPUT.capabilities;
+  let monthlyFut = 0, monthlyLeg = 0;
+  caps.forEach(c => { monthlyFut += (c.monthly || 0); });
+  const legacy = window.DI && window.DI.pricing ? window.DI.pricing.legacyTco(caps) : [];
+  legacy.forEach(l => { monthlyLeg += l.monthly; });
+  const efforts = caps.map(c => parseInt(((c.eff||'6-9').match(/\d+/g)||['6']).pop()) || 6);
+  const duration = Math.max(12, Math.min(24, Math.max.apply(null, efforts) + 2));
+  return { caps, monthlyFut, monthlyLeg, duration, tco3yrFut: monthlyFut*36, tco3yrLeg: monthlyLeg*36, savings3yr: monthlyLeg*36 - monthlyFut*36 };
+}
+
+function fmt(n) {
+  if (!isFinite(n)) return '—';
+  const c = (INPUT && INPUT.filters && INPUT.filters.currency) || 'USD';
+  if (Math.abs(n) >= 1000000) return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:1 }).format(n/1000000).replace(/\.0/,'') + 'M';
+  if (Math.abs(n) >= 1000)    return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:0 }).format(n/1000) + 'K';
+  return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:0 }).format(n);
+}
+
+function render() {
+  const body = document.getElementById('sow-body');
+  const r = deriveFromInput();
+
+  if (!r) {
+    body.innerHTML = '<div class="sow-empty">' +
+      '<h2>No EVP data yet</h2>' +
+      '<p>The Statement of Work draws its scope, milestones, prices and KPIs from the EVP summary. Generate the EVP from Architecture Studio first, then click <strong>Draft SOW for Legal</strong>.</p>' +
+      '<div class="actions"><a href="discovery-studio.html">Start with Discovery →</a></div>' +
+      '</div>';
+    return;
+  }
+
+  // Auto-tune fixed price + duration from derived
+  if (!SOW._tuned) {
+    SOW.durationMonths = r.duration;
+    SOW.fixedPrice     = Math.round(r.duration * 280000);  // rough $280k/mo
+    SOW.milestones[5].month = r.duration;
+    SOW._tuned = true;
+  }
+
+  // Document
+  let docHtml = '<article class="sow-doc fadeUp">' +
+    '<div class="sow-watermark">DRAFT v' + SOW.version + '</div>' +
+    '<h1>Statement of Work</h1>' +
+    '<div class="doc-meta">v' + SOW.version + ' · ' + SOW.status + ' · effective <span contenteditable="true" data-k="effectiveDate">' + SOW.effectiveDate + '</span> · auto-generated from Architecture v1.0 + Discovery v1.0</div>' +
+
+    '<h2>1 · Parties</h2>' +
+    '<p>This Statement of Work ("SOW") is entered into between <span contenteditable="true" data-k="clientLegalName" class="sow-blank">' + SOW.clientLegalName + '</span> ("' + SOW.clientShort + '") and <strong>' + SOW.vendorName + '</strong> ("Vendor"), effective <span contenteditable="true" data-k="effectiveDate2">' + SOW.effectiveDate + '</span>.</p>' +
+
+    '<h2>2 · Scope</h2>' +
+    '<p>Modernization of <strong>' + r.caps.length + ' banking capabilities</strong> spanning Core Banking, Cards &amp; Loyalty, Customer Lifecycle, Trade Finance, Treasury, Risk &amp; Compliance, and AML — aligned to the 7R framework and the finalized cloud targets in <strong>Annex A</strong> (the Architecture Studio export).</p>' +
+    '<p contenteditable="true" data-k="scopeNotes">Scope explicitly excludes: M&amp;A integrations, customer-facing mobile/web redesigns, and any infrastructure outside the named capabilities. Vendor will provide one (1) full-time program manager and a pool of certified architects, engineers and compliance consultants. ' + SOW.clientShort + ' will provide product owners, data stewards, and timely approval at each milestone gate per § 5.</p>' +
+
+    '<h2>3 · Deliverables &amp; Milestones</h2>' +
+    '<div class="sow-milestone-table"><table>' +
+      '<thead><tr><th>#</th><th>Milestone</th><th>Deliverable</th><th>Target month</th><th style="text-align:right">Payment %</th></tr></thead><tbody>' +
+      SOW.milestones.map((m, i) =>
+        '<tr ' + (i === SOW.milestones.length - 1 ? 'class="final"' : '') + '>' +
+          '<td>' + m.id + '</td>' +
+          '<td contenteditable="true" data-mile="' + i + '" data-mk="title">' + m.title + '</td>' +
+          '<td contenteditable="true" data-mile="' + i + '" data-mk="deliverable">' + m.deliverable + '</td>' +
+          '<td>Month ' + m.month + '</td>' +
+          '<td class="pct">' + m.pct + '%</td>' +
+        '</tr>'
+      ).join('') +
+      '<tr style="background:var(--ink);color:#fff"><td colspan="4" style="text-align:right;font-weight:700;color:#fff">Total</td><td class="pct" style="color:var(--gold-3)">' + SOW.milestones.reduce((s,m)=>s+m.pct,0) + '%</td></tr>' +
+    '</tbody></table></div>' +
+
+    '<h2>4 · Commercials</h2>' +
+    '<p>Fixed price <strong contenteditable="true" data-k="fixedPriceStr">' + fmt(SOW.fixedPrice) + '</strong> for vendor services, payable on milestone acceptance per § 3. Cloud infrastructure costs (estimated <strong>' + fmt(r.tco3yrFut) + ' over 3 years</strong>, see <strong>Annex B</strong>) are billed by the respective hyperscalers directly to ' + SOW.clientShort + ' and reimbursed at cost (no markup).</p>' +
+    '<p contenteditable="true" data-k="commercialNotes">Payment terms: Net 30 from invoice receipt. Invoices issued upon milestone acceptance certificate signed by ' + SOW.clientShort + '\'s CTO. Late payments accrue at 1.5% per month or the maximum allowed by law, whichever is lower.</p>' +
+
+    '<h2>5 · Acceptance Criteria</h2>' +
+    '<p>Each milestone is accepted when (a) functional tests pass against the test plan agreed during § 3 kickoff, (b) the KPIs in <strong>Annex C</strong> below reach the targets defined therein within the tolerance band of ±10%, and (c) ' + SOW.clientShort + '\'s CTO countersigns the milestone certificate within ten (10) business days of vendor delivery.</p>' +
+    '<p contenteditable="true" data-k="acceptanceNotes">Disputed milestones go to the joint Steering Committee (one rep each from ' + SOW.clientShort + ' and Vendor, plus an independent technical observer) for resolution within fifteen (15) business days. If unresolved, escalation per § 9 (Dispute Resolution, MSA).</p>' +
+
+    '<h2>6 · Annex C · Binding KPI targets</h2>' +
+    '<p>The KPIs below are contractually binding. Vendor warrants the targets and accepts a 5% holdback per missed KPI, capped at 15% of the fixed price.</p>' +
+    '<div class="sow-kpi-annex">' +
+      '<div class="kpi-row"><span>Payment latency (p95)</span><strong>&lt; 350 ms (from 2.8 sec)</strong></div>' +
+      '<div class="kpi-row"><span>Time-to-market · new card product</span><strong>3 weeks (from 14 weeks)</strong></div>' +
+      '<div class="kpi-row"><span>Customer onboarding (consumer)</span><strong>2 hours (from 3 days)</strong></div>' +
+      '<div class="kpi-row"><span>Regulatory report cycle (BCBS 239)</span><strong>Same day (from 9 days)</strong></div>' +
+      '<div class="kpi-row"><span>Annual run-rate IT spend</span><strong>' + fmt(r.monthlyFut*12) + ' (from ' + fmt(r.monthlyLeg*12) + ')</strong></div>' +
+      '<div class="kpi-row"><span>Mean time to recovery (MTTR)</span><strong>&lt; 25 min (from 4.5 hr)</strong></div>' +
+      '<div class="kpi-row"><span>Carbon footprint (kg CO₂e / yr)</span><strong>62k (from 184k)</strong></div>' +
+    '</div>' +
+
+    '<h2>7 · Confidentiality, IP &amp; Data residency</h2>' +
+    '<p contenteditable="true" data-k="confidentiality">Both parties shall keep confidential any non-public information shared during this engagement. All work product is jointly owned by ' + SOW.clientShort + ' and Vendor under a perpetual non-exclusive license; pre-existing IP remains the property of the contributing party. All ' + SOW.clientShort + ' data shall remain in <strong>' + ((INPUT && INPUT.filters && INPUT.filters.region) || 'NA-East').toUpperCase() + '</strong> region or as required by applicable banking regulators.</p>' +
+
+    '<h2>8 · Signatures</h2>' +
+    '<p>For ' + SOW.clientShort + ': <span contenteditable="true" data-k="clientSig" class="sow-blank">[CTO name + signature + date]</span></p>' +
+    '<p>For ' + SOW.vendorName + ': <span contenteditable="true" data-k="vendorSig" class="sow-blank">[Director name + signature + date]</span></p>' +
+
+  '</article>';
+
+  // Side panel
+  let sideHtml = '<aside class="sow-side">';
+  sideHtml += '<div class="panel">' +
+    '<h3>Summary</h3>' +
+    '<div class="row"><span>Capabilities</span><strong>' + r.caps.length + '</strong></div>' +
+    '<div class="row"><span>Duration</span><strong>' + SOW.durationMonths + ' months</strong></div>' +
+    '<div class="row"><span>Fixed price</span><strong>' + fmt(SOW.fixedPrice) + '</strong></div>' +
+    '<div class="row"><span>Cloud TCO (3-yr)</span><strong>' + fmt(r.tco3yrFut) + '</strong></div>' +
+    '<div class="row"><span>3-yr savings</span><strong style="color:var(--green)">' + fmt(r.savings3yr) + '</strong></div>' +
+  '</div>';
+
+  sideHtml += '<div class="panel">' +
+    '<h3>Workflow</h3>' +
+    '<button class="tool-btn primary" onclick="sendForReview()">📤 Send for review</button>' +
+    '<button class="tool-btn" onclick="exportDOCX()">⬇ Export DOCX</button>' +
+    '<button class="tool-btn" onclick="exportPDF()">⬇ Export PDF</button>' +
+    '<button class="tool-btn" onclick="addComment()">💬 Add comment</button>' +
+    '<button class="tool-btn" onclick="bumpVersion()">↗ Save as new version</button>' +
+    '<div class="legal-warn">⚠ This is an auto-generated draft from a template. Legal review and counsel sign-off required before signature. Numbers update if Architecture changes — re-generate to refresh.</div>' +
+  '</div>';
+
+  sideHtml += '<div class="panel">' +
+    '<h3>Provenance</h3>' +
+    '<div class="row"><span>Generated</span><strong style="font-family:var(--f-mono)">' + new Date().toLocaleString() + '</strong></div>' +
+    '<div class="row"><span>Source</span><strong>Architecture v1.0</strong></div>' +
+    '<div class="row"><span>Author</span><strong>Nishi</strong></div>' +
+    '<div class="row"><span>Status</span><strong style="color:var(--gold)">' + SOW.status + '</strong></div>' +
+  '</div>';
+  sideHtml += '</aside>';
+
+  body.innerHTML = docHtml + sideHtml;
+  document.getElementById('sow-version').textContent = 'v' + SOW.version + ' · ' + SOW.status;
+
+  // Wire inline-edit save
+  body.querySelectorAll('[contenteditable=true]').forEach(el => {
+    el.addEventListener('blur', () => onEdit(el));
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey && !el.matches('[data-k=scopeNotes],[data-k=commercialNotes],[data-k=acceptanceNotes],[data-k=confidentiality]')) {
+        e.preventDefault();
+        el.blur();
+      }
+    });
+  });
+}
+
+function onEdit(el) {
+  const txt = el.textContent.trim();
+  if (el.dataset.mile !== undefined) {
+    const i = parseInt(el.dataset.mile);
+    const k = el.dataset.mk;
+    if (SOW.milestones[i]) SOW.milestones[i][k] = txt;
+  } else if (el.dataset.k) {
+    SOW[el.dataset.k] = txt;
+    if (el.dataset.k === 'fixedPriceStr') {
+      // Try to parse back to number
+      const n = parseInt(txt.replace(/[^\d]/g,''));
+      if (n > 0) SOW.fixedPrice = n;
+    }
+  }
+  saveState();
+}
+
+/* ── Workflow actions ───────────────────────────────── */
+function sendForReview() {
+  SOW.status = 'IN REVIEW';
+  saveState();
+  document.getElementById('sow-version').textContent = 'v' + SOW.version + ' · IN REVIEW';
+  window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'📤', title:'Sent for review', message:'SOW marked IN REVIEW. Legal + CTO notified (email integration in Phase 18.x).', duration:4000 });
+}
+
+function bumpVersion() {
+  const parts = SOW.version.split('.').map(Number);
+  parts[parts.length - 1]++;
+  SOW.version = parts.join('.');
+  SOW.status  = 'DRAFT';
+  saveState();
+  render();
+  window.DI && window.DI.toast && window.DI.toast({ kind:'ok', title:'New version', message:'Bumped to v' + SOW.version + '. Previous version available in localStorage history (Phase 18.x).' });
+}
+
+function exportDOCX() {
+  // Generate a Word-compatible HTML blob (Microsoft Word opens it as .docx with formatting preserved)
+  const doc = document.querySelector('.sow-doc');
+  if (!doc) return;
+  const clone = doc.cloneNode(true);
+  clone.querySelectorAll('.sow-watermark').forEach(w => w.remove());
+  const html =
+    '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>SOW · v' + SOW.version + '</title>' +
+    '<style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;line-height:1.55;color:#1A2238;max-width:680pt;margin:32pt auto;padding:0 28pt}h1{font-family:Georgia,serif;font-size:22pt;margin-bottom:6pt}h2{font-family:Georgia,serif;font-size:14pt;margin:18pt 0 6pt;border-bottom:1pt solid #C8921A;padding-bottom:3pt}p{font-size:11pt;line-height:1.55;margin-bottom:6pt}table{border-collapse:collapse;width:100%;margin:8pt 0}th,td{border:1pt solid #ccc;padding:5pt 7pt;font-size:10pt;text-align:left}th{background:#FFF7E6;font-size:9pt;letter-spacing:.04em;text-transform:uppercase}</style>' +
+    '</head><body>' + clone.outerHTML + '</body></html>';
+  const blob = new Blob([html], { type: 'application/vnd.ms-word' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'sow-v' + SOW.version + '-' + new Date().toISOString().slice(0,10) + '.doc';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+  window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'⬇', title:'DOCX downloaded', message:'Open in Microsoft Word to edit & track changes.', duration:4000 });
+}
+
+function exportPDF() {
+  window.DI && window.DI.toast && window.DI.toast({ kind:'info', title:'Print → Save as PDF', message:'Opening browser print dialog. Choose "Save as PDF" as the destination.', duration:4000 });
+  setTimeout(() => window.print(), 400);
+}
+
+function addComment() {
+  const sel = window.getSelection();
+  const txt = sel.toString().trim();
+  if (!txt) { window.DI && window.DI.toast({ kind:'warn', title:'Select text first', message:'Highlight a passage in the SOW before adding a comment.' }); return; }
+  const c = prompt('Comment on: "' + txt.slice(0, 60) + '…"');
+  if (c) {
+    SOW.inlineEdits[Date.now()] = { text: txt, comment: c, author: 'Nishanth', at: new Date().toISOString() };
+    saveState();
+    window.DI && window.DI.toast && window.DI.toast({ kind:'ok', title:'Comment saved', message:'Stored locally. Full comment threads ship in Phase 18.x.' });
+  }
+}
+
+/* ── Bootstrap ──────────────────────────────────────── */
+loadInput();
+render();
+</script>
+
+</body>
+</html>
