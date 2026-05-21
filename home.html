@@ -10,6 +10,7 @@
 <script src="assets/toasts.js" defer></script>
 <script src="assets/audit.js" defer></script>
 <script src="assets/cmdk.js" defer></script>
+<script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,400&family=Outfit:wght@300;400;500;600;700&display=swap');
@@ -106,6 +107,29 @@ button{font-family:var(--f-ui);cursor:pointer}
 .tile.featured .tile-cta{color:var(--gold3)}
 .tile.featured:hover{box-shadow:0 18px 38px -8px rgba(200,146,26,.4)}
 
+/* Pin star (Phase 18.4) */
+.tile-pin{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--ink-3);font-size:16px;cursor:pointer;padding:4px;line-height:1;border-radius:6px;transition:.18s}
+.tile-pin:hover{color:var(--gold);background:var(--aglow)}
+.tile-pin.pinned{color:var(--gold)}
+.tile.featured .tile-pin{color:var(--gold-3)}
+.tile.featured .tile-pin:hover{background:rgba(255,208,112,.12)}
+.tile.pinned-on{outline:1px dashed var(--gold-2);outline-offset:-1px}
+.tile.featured.pinned-on{outline-color:var(--gold-3)}
+
+/* Recent items strip (Phase 18.4) */
+.recent-strip{padding:18px 28px 0;max-width:1200px;margin:0 auto}
+.recent-h{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--ink);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.recent-h .div{flex:1;height:1px;background:var(--border)}
+.recent-h .clear{font-size:10px;color:var(--gold);font-weight:700;cursor:pointer;text-transform:none;letter-spacing:0}
+.recent-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+@media (max-width:900px){.recent-row{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:540px){.recent-row{grid-template-columns:1fr}}
+.recent-item{background:#fff;border:1px solid var(--border);border-radius:10px;padding:11px 13px;cursor:pointer;transition:.2s;text-decoration:none;color:inherit;display:block}
+.recent-item:hover{border-color:var(--gold-2);transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.recent-item .tag{font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em}
+.recent-item .ttl{font-size:12.5px;font-weight:600;margin-top:3px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.recent-item .ts{font-size:10.5px;color:var(--ink-2);margin-top:3px}
+
 .icon-gold{background:linear-gradient(135deg,#FFF7E6,#FFE7B3);color:var(--gold)}
 .icon-blue{background:linear-gradient(135deg,#F0F7FF,#D9E9FF);color:#1A4D99}
 .icon-purple{background:linear-gradient(135deg,#F4F0FF,#E2D5FF);color:#5C3DB8}
@@ -165,41 +189,53 @@ button{font-family:var(--f-ui);cursor:pointer}
   </div>
 </section>
 
+<!-- Recent items strip (Phase 18.4) -->
+<section class="recent-strip" id="recent-strip" style="display:none">
+  <div class="recent-h">Recently opened<div class="div"></div><a class="clear" onclick="clearRecent()">Clear</a></div>
+  <div class="recent-row" id="recent-row"></div>
+</section>
+
 <section class="section">
   <div class="section-h">Feature workspaces</div>
-  <div class="tiles">
+  <div class="tiles" id="tiles-grid">
 
-    <a class="tile" href="discovery-studio.html">
+    <a class="tile" data-tile-id="discovery" href="discovery-studio.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Discovery Studio" onclick="togglePin('discovery',event)">★</button>
       <div class="tile-head"><div class="tile-icon icon-gold">🔍</div><div class="tile-name">Discovery Studio</div></div>
       <div class="tile-desc">Time-Capsule view of your legacy estate. Risk-ranks COBOL / Java / SQL and builds your modernization backlog.</div>
       <div class="tile-foot"><span class="tile-status ok">Ready · 38 artifacts</span><span class="tile-cta">Open →</span></div>
     </a>
 
-    <a class="tile" href="architecture-studio.html">
+    <a class="tile" data-tile-id="architecture" href="architecture-studio.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Architecture Studio" onclick="togglePin('architecture',event)">★</button>
       <div class="tile-head"><div class="tile-icon icon-blue">🏗</div><div class="tile-name">Architecture Studio</div></div>
       <div class="tile-desc">Design your To-Be platform across six targets — Private DC, AWS, Azure, GCP, OCI, IBM Cloud.</div>
       <div class="tile-foot"><span class="tile-status ok">Ready</span><span class="tile-cta">Open →</span></div>
     </a>
 
-    <a class="tile" href="program-governance.html">
+    <a class="tile" data-tile-id="governance" href="program-governance.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Program Governance" onclick="togglePin('governance',event)">★</button>
       <div class="tile-head"><div class="tile-icon icon-purple">📋</div><div class="tile-name">Program Governance</div></div>
       <div class="tile-desc">RAID register, 7-R timeline, cost model, MS Project export, runlog. Control tower for your migration.</div>
       <div class="tile-foot"><span class="tile-status err">4 RAID open</span><span class="tile-cta">Open →</span></div>
     </a>
 
-    <a class="tile" href="questionnaire.html">
+    <a class="tile" data-tile-id="rfp" href="questionnaire.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin RFP" onclick="togglePin('rfp',event)">★</button>
       <div class="tile-head"><div class="tile-icon icon-pink">📝</div><div class="tile-name">RFP Questionnaire</div></div>
       <div class="tile-desc">88-question adaptive RFP. Scoped by role · region · domain. Exports JSON / Markdown.</div>
       <div class="tile-foot"><span class="tile-status ok">61/61 tests</span><span class="tile-cta">Open →</span></div>
     </a>
 
-    <a class="tile" href="operations.html">
+    <a class="tile" data-tile-id="operations" href="operations.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Operations" onclick="togglePin('operations',event)">★</button>
       <div class="tile-head"><div class="tile-icon icon-green">📈</div><div class="tile-name">Operations</div></div>
       <div class="tile-desc">Live post-go-live KPIs — incident MTTR, SLO burn rate, batch SLAs, FinOps signals.</div>
       <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
     </a>
 
-    <a class="tile featured" href="nishi-chatbot.html">
+    <a class="tile featured" data-tile-id="nishi" href="nishi-chatbot.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Nishi" onclick="togglePin('nishi',event)">★</button>
       <div class="tile-head"><div class="tile-icon">🤖</div><div class="tile-name">Nishi Chatbot</div></div>
       <div class="tile-desc">Talk or chat. Nishi explains every feature, drafts requirements, reads replies aloud.</div>
       <div class="tile-foot"><span class="tile-status ok">Online</span><span class="tile-cta">Open →</span></div>
@@ -227,8 +263,7 @@ button{font-family:var(--f-ui);cursor:pointer}
 </div>
 
 <script>
-/* Populate hero greeting from sessionStorage profile.
-   (User pill + avatar are now handled by the shared top bar in assets/top-bar.js.) */
+/* Populate hero greeting + pinned tiles + recent items strip (Phase 18.4) */
 (function(){
   let profile = null;
   try { profile = JSON.parse(sessionStorage.getItem('di_account_profile') || 'null'); } catch(_){}
@@ -238,6 +273,86 @@ button{font-family:var(--f-ui);cursor:pointer}
   const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const greetEl = document.getElementById('hero-greet');
   if (greetEl) greetEl.textContent = (greet + ', ' + first).toUpperCase();
+
+  /* Pinned tiles */
+  const PIN_KEY = 'di_pinned_tiles_v1';
+  const pinned = (() => { try { return JSON.parse(localStorage.getItem(PIN_KEY) || '[]'); } catch (e) { return []; } })();
+
+  // Apply pinned state + reorder tiles
+  const grid = document.getElementById('tiles-grid');
+  if (grid) {
+    pinned.forEach(id => {
+      const tile = grid.querySelector('[data-tile-id="' + id + '"]');
+      if (tile) {
+        tile.classList.add('pinned-on');
+        const btn = tile.querySelector('.tile-pin');
+        if (btn) btn.classList.add('pinned');
+      }
+    });
+    // Move pinned tiles to the top in pinned-array order
+    pinned.slice().reverse().forEach(id => {
+      const tile = grid.querySelector('[data-tile-id="' + id + '"]');
+      if (tile) grid.insertBefore(tile, grid.firstChild);
+    });
+  }
+
+  window.togglePin = function (id, ev) {
+    if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+    let arr = pinned.slice();
+    if (arr.includes(id)) arr = arr.filter(x => x !== id);
+    else arr.unshift(id);
+    try { localStorage.setItem(PIN_KEY, JSON.stringify(arr)); } catch (e) {}
+    if (window.DI && window.DI.audit) window.DI.audit.log('home', arr.includes(id) ? 'pin-tile' : 'unpin-tile', { id });
+    if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'★', title: arr.includes(id) ? 'Pinned' : 'Unpinned', message: id, duration: 1500 });
+    location.reload();
+  };
+
+  /* Recent items strip — pulls from various localStorage artifacts */
+  const recent = [];
+  function addRecent(src, tag, title, href, ts) { if (title) recent.push({ src, tag, title, href, ts: ts || new Date().toISOString() }); }
+  try {
+    const disc = JSON.parse(localStorage.getItem('di_discovery_v1') || 'null');
+    if (disc && disc.selected && disc.selected.length) addRecent('discovery', 'Discovery', disc.selected.length + ' caps · ' + (disc.mode || 'wizard'), 'discovery-studio.html', disc.updatedAt);
+  } catch (e) {}
+  try {
+    const arch = JSON.parse(localStorage.getItem('di_architecture_v1') || 'null');
+    if (arch && arch.capabilities && arch.capabilities.length) addRecent('architecture', 'Architecture', arch.capabilities.length + ' caps · ' + (arch.region || 'na-east').toUpperCase(), 'architecture-studio.html');
+  } catch (e) {}
+  try {
+    const sow = JSON.parse(localStorage.getItem('di_sow_v1') || 'null');
+    if (sow && sow.version) addRecent('sow', 'SOW', 'v' + sow.version + ' · ' + (sow.status || 'DRAFT'), 'sow.html');
+  } catch (e) {}
+  try {
+    const gov = JSON.parse(localStorage.getItem('di_governance_v1') || 'null');
+    if (gov && gov.raid && gov.raid.length) addRecent('governance', 'Governance', gov.raid.length + ' RAID · ' + (gov.raid.filter(r => r.status === 'Open').length) + ' open', 'program-governance.html');
+  } catch (e) {}
+  try {
+    const audit = (window.DI && window.DI.audit && window.DI.audit.getAll()) || [];
+    if (audit.length) addRecent('audit', 'Audit', audit.length + ' events logged', '#');
+  } catch (e) {}
+
+  if (recent.length) {
+    const strip = document.getElementById('recent-strip');
+    const row   = document.getElementById('recent-row');
+    if (strip && row) {
+      strip.style.display = 'block';
+      row.innerHTML = recent.slice(0, 5).map(r =>
+        '<a class="recent-item" href="' + r.href + '">' +
+          '<div class="tag">' + r.tag + '</div>' +
+          '<div class="ttl">' + r.title + '</div>' +
+          '<div class="ts">' + (r.ts ? new Date(r.ts).toLocaleString() : 'just now') + '</div>' +
+        '</a>'
+      ).join('');
+    }
+  }
+
+  window.clearRecent = function () {
+    if (!confirm('Clear the Recently opened list? Each artifact stays — only the list is cleared.')) return;
+    // We don't store the list separately; just dismiss visually
+    const strip = document.getElementById('recent-strip');
+    if (strip) strip.style.display = 'none';
+    if (window.DI && window.DI.toast) window.DI.toast({ kind: 'info', title: 'Recent list hidden', message: 'Will reappear when you next change Discovery, Architecture, or any other artifact.', duration: 3500 });
+  };
 })();
 </script>
 

@@ -89,3 +89,33 @@
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after { animation-duration:.001s !important; transition-duration:.001s !important; }
 }
+
+/* ─── Skeleton loaders (Phase 18.3) ─── */
+.di-skel {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #EEF2F8 0%, #F8FAFD 50%, #EEF2F8 100%);
+  background-size: 200% 100%;
+  animation: di-skel-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+  color: transparent;
+  user-select: none;
+}
+.di-skel-line { height: 12px; margin: 6px 0; }
+.di-skel-line.lg { height: 18px; }
+.di-skel-line.sm { height: 9px; }
+.di-skel-card { height: 120px; border-radius: 14px; }
+.di-skel-circle { width: 32px; height: 32px; border-radius: 50%; display: inline-block; }
+
+@keyframes di-skel-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Visible focus rings (Phase 18.4 a11y) ─── */
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
