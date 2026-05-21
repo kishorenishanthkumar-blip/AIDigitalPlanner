@@ -6,7 +6,13 @@
     "enabled": true
   },
   "assets": {
-    "directory": "."
+    "directory": ".",
+    /* Strip the .html extension from URLs automatically:
+       /home → home.html · /nishi-chatbot → nishi-chatbot.html, etc. */
+    "html_handling": "auto-trailing-slash",
+    /* When a route doesn't exist, fall back to index.html (sign-in screen)
+       instead of Cloudflare's default 404 page. */
+    "not_found_handling": "single-page-application"
   },
   "compatibility_flags": [
     "nodejs_compat"
