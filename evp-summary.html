@@ -262,6 +262,9 @@ function render() {
   });
   bodyHtml += '</tbody></table></div>';
 
+  /* Phase 20.4 — Skillset & effort breakdown by phase */
+  bodyHtml += renderSkillsBreakdown(r);
+
   // CTA
   bodyHtml += '<div class="evp-cta">' +
     '<div><div class="lbl">NEXT STEPS</div><div class="h">Email the EVP pack to CIO + CFO, send the draft SOW to legal.</div><div class="sub">All numbers are click-to-trace via the Architecture provenance modal.</div></div>' +
@@ -289,6 +292,82 @@ function render() {
   bodyHtml += '</div>';
 
   document.getElementById('evp-body').innerHTML = bodyHtml;
+}
+
+/* Phase 20.4 — Skillset & effort breakdown across Dev / Test / Prod rollout
+   Derives per-discipline FTE-months from the capability mix. */
+function renderSkillsBreakdown(r) {
+  const caps = r.caps || [];
+  if (!caps.length) return '';
+  // Effort heuristic per verdict (FTE-months per capability)
+  const effortMap = {
+    REHOST:  { dev:2,  test:1,  ops:1  },
+    REPLAT:  { dev:5,  test:2,  ops:1.5},
+    REFACT:  { dev:9,  test:4,  ops:2  },
+    REARCH:  { dev:14, test:6,  ops:3  },
+    REBUILD: { dev:18, test:7,  ops:4  },
+    REPLACE: { dev:5,  test:5,  ops:2.5},
+    RETAIN:  { dev:0,  test:0,  ops:0.5}
+  };
+  let devM = 0, testM = 0, opsM = 0;
+  caps.forEach(c => {
+    const e = effortMap[c.verdict] || effortMap.REPLAT;
+    devM += e.dev; testM += e.test; opsM += e.ops;
+  });
+  const totalM = devM + testM + opsM;
+
+  // Skillset roll-up — which skills are heavily loaded
+  const skills = [];
+  const has = v => caps.some(c => c.verdict === v);
+  const verdictCount = v => caps.filter(c => c.verdict === v).length;
+  // Dynamic skill stack based on capability mix
+  if (has('REARCH') || has('REFACT'))   skills.push({ name:'Cloud architects',          fte: Math.max(2, Math.round(verdictCount('REARCH')*0.8 + verdictCount('REFACT')*0.5)), role:'Lead the To-Be design + 7R per workload' });
+  if (caps.some(c => /cobol|mainframe/i.test(c.current || ''))) skills.push({ name:'COBOL / mainframe engineers',    fte: Math.max(2, caps.filter(c => /cobol|mainframe/i.test(c.current||'')).length), role:'Decode legacy logic + cut-over plans (skill-replacement risk)' });
+  if (has('REPLAT') || has('REHOST'))   skills.push({ name:'DevOps + SRE engineers',     fte: Math.max(3, Math.round(verdictCount('REPLAT')*0.6 + verdictCount('REHOST')*0.4)), role:'Landing zones, IaC, CI/CD, GitOps' });
+  if (has('REFACT') || has('REBUILD'))  skills.push({ name:'Java / Spring / Node engineers', fte: Math.max(4, Math.round(verdictCount('REFACT')*0.9 + verdictCount('REBUILD')*1.2)), role:'Microservices implementation + API surface' });
+  if (has('REARCH'))                    skills.push({ name:'Event-streaming engineers',  fte: Math.max(1, Math.round(verdictCount('REARCH')*0.4)), role:'Kafka / EventBridge / Pub-Sub' });
+  if (caps.some(c => /risk|aml|compliance|audit/i.test(c.name || ''))) skills.push({ name:'Risk & compliance analysts', fte:2, role:'BCBS 239 alignment + regulator engagement' });
+  if (caps.some(c => /payment|card/i.test(c.name || '')))           skills.push({ name:'Payments / cards specialists', fte:2, role:'ISO 20022 / SWIFT / TIPS / SEPA expertise' });
+  skills.push({ name:'QA / test automation', fte: Math.max(3, Math.round(testM/4)), role:'Functional + non-functional + chaos testing' });
+  skills.push({ name:'Product owners',  fte:2, role:'Per-capability roadmap + acceptance' });
+  skills.push({ name:'Program manager', fte:1, role:'RAID + governance + steering committee' });
+
+  const totalFte = skills.reduce((s, x) => s + x.fte, 0);
+
+  let html = '<div class="evp-section-h">SKILLSET &amp; EFFORT BREAKDOWN <span style="font-weight:400;color:var(--ink-2);font-size:10.5px;letter-spacing:0;text-transform:none;margin-left:8px">· dev / test / production rollout</span><div class="div"></div></div>';
+
+  // Effort split row
+  const devPct  = totalM ? Math.round((devM / totalM) * 100) : 0;
+  const testPct = totalM ? Math.round((testM / totalM) * 100) : 0;
+  const opsPct  = totalM ? Math.round((opsM / totalM) * 100) : 0;
+  html += '<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:14px">' +
+    '<div style="font-size:10px;font-weight:700;color:var(--ink);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Effort split across phases · ' + Math.round(totalM) + ' FTE-months total</div>' +
+    '<div style="display:flex;height:34px;border-radius:9px;overflow:hidden;font-size:11px;font-weight:700;color:#fff;margin-top:4px">' +
+      '<div style="background:#3D8EFF;width:' + devPct + '%;display:flex;align-items:center;justify-content:center">DEV · ' + Math.round(devM) + ' FTE-mo (' + devPct + '%)</div>' +
+      '<div style="background:#FF8030;width:' + testPct + '%;display:flex;align-items:center;justify-content:center">TEST · ' + Math.round(testM) + ' FTE-mo (' + testPct + '%)</div>' +
+      '<div style="background:#0FD49A;width:' + opsPct + '%;display:flex;align-items:center;justify-content:center">PROD ROLLOUT · ' + Math.round(opsM) + ' FTE-mo (' + opsPct + '%)</div>' +
+    '</div>' +
+    '<div style="margin-top:8px;font-size:11px;color:var(--ink-2)">Calculated from per-capability 7R verdict using the standard effort heuristic (REHOST: 4 FTE-mo · REPLAT: 8.5 · REFACT: 15 · REARCH: 23 · REPLACE: 12.5).</div>' +
+  '</div>';
+
+  // Skills table
+  html += '<div style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px">' +
+    '<table style="border-collapse:collapse;width:100%;font-size:12px">' +
+      '<thead><tr>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)">Skillset needed</th>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;text-align:center;border-bottom:1px solid var(--border);width:90px">Peak FTE</th>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)">Role / responsibility</th>' +
+      '</tr></thead><tbody>' +
+      skills.map(s =>
+        '<tr><td style="padding:10px 14px;border-bottom:1px solid var(--canvas-2);font-weight:700">' + s.name + '</td>' +
+        '<td style="padding:10px 14px;border-bottom:1px solid var(--canvas-2);text-align:center;font-family:var(--f-mono);color:var(--gold);font-weight:700">' + s.fte + '</td>' +
+        '<td style="padding:10px 14px;border-bottom:1px solid var(--canvas-2);color:var(--ink-2);font-size:11.5px">' + s.role + '</td></tr>'
+      ).join('') +
+      '<tr style="background:var(--aglow);font-weight:700"><td style="padding:11px 14px">TOTAL · peak headcount</td><td style="padding:11px 14px;text-align:center;font-family:var(--f-mono);font-size:14px;color:var(--gold)">' + totalFte + '</td><td style="padding:11px 14px;font-size:11.5px;color:var(--ink-2)">Internal + partner blend (typically 45 / 55 split)</td></tr>' +
+    '</tbody></table>' +
+  '</div>';
+
+  return html;
 }
 
 /* ── Audience switcher ──────────────────────────────── */

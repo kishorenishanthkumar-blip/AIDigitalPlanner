@@ -530,9 +530,102 @@ Today is ${new Date().toLocaleDateString()}.`;
   return (data.content || []).map(c => c.text || '').join('\n').trim() || '(empty response)';
 }
 
+/* Phase 20.4 — Wrap-up summary of everything the user captured this session */
+function generateSessionWrapUp() {
+  const parts = [];
+  parts.push("### Session wrap-up");
+  parts.push("");
+
+  // Profile
+  let profile = null;
+  try { profile = JSON.parse(sessionStorage.getItem('di_account_profile') || 'null'); } catch (e) {}
+  if (profile && profile.name) {
+    parts.push(`**Signed in as:** ${profile.name} · ${profile.role || 'Platform User'} · ${profile.region || 'NA'}`);
+    parts.push("");
+  }
+
+  // RFP responses
+  let qOut = null;
+  try { qOut = JSON.parse(sessionStorage.getItem('di_questionnaire_output') || 'null'); } catch (e) {}
+  if (qOut && qOut.responses && qOut.responses.length) {
+    parts.push(`**RFP questionnaire:** ${qOut.responses.length} questions answered · ${qOut.progress ? qOut.progress.pct : '?'}% complete`);
+    if (qOut.derivedArtifacts) {
+      const d = qOut.derivedArtifacts;
+      parts.push(`· ${d.requirements.length} requirements derived · ${d.complianceChecklist.length} compliance items · ${d.raidItems.length} RAID items`);
+    }
+    parts.push("");
+  }
+
+  // Discovery state
+  let disc = null;
+  try { disc = JSON.parse(localStorage.getItem('di_discovery_v1') || 'null'); } catch (e) {}
+  if (disc && disc.selected && disc.selected.length) {
+    parts.push(`**Discovery Studio:** ${disc.selected.length} capabilities in scope · ${(disc.mode||'wizard').toUpperCase()} mode`);
+    if (disc.results && disc.results.capabilities) {
+      const mix = {};
+      disc.results.capabilities.forEach(c => { mix[c.verdict] = (mix[c.verdict] || 0) + 1; });
+      parts.push("· 7R mix: " + Object.keys(mix).map(k => `${mix[k]} ${k}`).join(' · '));
+    }
+    parts.push("");
+  }
+
+  // Architecture state
+  let arch = null;
+  try { arch = JSON.parse(localStorage.getItem('di_architecture_v1') || 'null'); } catch (e) {}
+  if (arch && arch.capabilities && arch.capabilities.length) {
+    parts.push(`**Architecture Studio:** ${arch.capabilities.length} capabilities priced · region ${(arch.region||'?').toUpperCase()} · ${arch.model||'?'} · ${arch.currency||'USD'} · ${arch.discount||0}% discount`);
+    parts.push("");
+  }
+
+  // EVP / SOW
+  let evpInput = null, sow = null;
+  try { evpInput = JSON.parse(localStorage.getItem('di_evp_input') || 'null'); } catch (e) {}
+  try { sow = JSON.parse(localStorage.getItem('di_sow_v1') || 'null'); } catch (e) {}
+  if (evpInput) parts.push(`**EVP Summary:** generated for ${evpInput.capabilities.length} capabilities`);
+  if (sow) parts.push(`**SOW:** v${sow.version || '0.1'} · ${sow.status || 'DRAFT'} · fixed price ${sow.fixedPrice ? '$' + Math.round(sow.fixedPrice/1000)+'K' : 'TBD'}`);
+  if (evpInput || sow) parts.push("");
+
+  // Governance
+  let gov = null;
+  try { gov = JSON.parse(localStorage.getItem('di_governance_v1') || 'null'); } catch (e) {}
+  if (gov && gov.raid && gov.raid.length) {
+    const open = gov.raid.filter(r => r.status === 'Open').length;
+    const high = gov.raid.filter(r => r.sev === 'high' && r.status === 'Open').length;
+    parts.push(`**Program Governance:** ${gov.raid.length} RAID items · ${open} open · ${high} high-severity open`);
+    parts.push("");
+  }
+
+  // Audit
+  let auditCount = 0;
+  try { auditCount = (window.DI && window.DI.audit && window.DI.audit.getAll() || []).length; } catch (e) {}
+  if (auditCount) {
+    parts.push(`**Audit log:** ${auditCount} events captured · view via the 🔔 bell in the top bar`);
+    parts.push("");
+  }
+
+  // Suggested next steps
+  parts.push("---");
+  parts.push("**Suggested next steps:**");
+  if (!disc || !disc.selected || !disc.selected.length) parts.push("· Open Discovery Studio to pick your capabilities");
+  else if (!arch || !arch.capabilities || !arch.capabilities.length) parts.push("· Send your 7R map to Architecture Studio to get cloud pricing");
+  else if (!evpInput) parts.push("· Generate the EVP Summary from Architecture");
+  else if (!sow) parts.push("· Draft the SOW from the EVP");
+  else parts.push("· Send the SOW to Legal for review");
+  parts.push("· Export any artifact at any time via the ⬇ buttons on each page");
+  parts.push("");
+  parts.push("Thank you for using the platform. Everything is saved locally in your browser — your data never leaves this device.");
+
+  return parts.join('\n');
+}
+
 // ─── Offline fallback (rules-based) ─────────────────────────
 function generateOfflineResponse(q){
   const Q = q.toLowerCase();
+
+  /* ─── Session wrap-up (Phase 20.4) ────────────────── */
+  if (Q.includes('wrap') || Q.includes('summarize') || Q.includes('session summary') || Q.includes('what did i do') || Q === 'wrap up' || Q === '/wrap') {
+    return generateSessionWrapUp();
+  }
 
   /* ─── Operations intents (Phase 19) ───────────────── */
   if (Q.includes('batch') && (Q.includes('fail') || Q.includes('last week'))) {
@@ -755,6 +848,7 @@ function handleCliCommand(cmd){
 /governance                 Open Program Governance
 /rfp                        Open RFP Questionnaire builder
 /ops                        Open Operations dashboard
+/wrap                       Session summary — everything captured this session
 /clear                      Clear the chat
 /key <sk-ant-...>           Set Anthropic API key
 /export json|md             Export the conversation
@@ -777,6 +871,8 @@ function handleCliCommand(cmd){
       window.location.href = 'rfp-questionnaire.html'; break;
     case 'ops':
       window.location.href = 'operations.html'; break;
+    case 'wrap':
+      appendBot(generateSessionWrapUp()); break;
     case 'clear':
       document.getElementById('messages').innerHTML = ''; appendSystem('--- cleared ---'); break;
     case 'key':

@@ -88,6 +88,13 @@
     'aml':               1.20,
     'audit':             0.45,
     'branch':            0.65,
+    /* Phase 20.5 — Capital Markets & Securities (heavier footprints due to low-latency + regulatory) */
+    'equities':          1.55,
+    'fx-mm':             0.95,
+    'derivatives':       1.10,
+    'custody':           1.40,
+    'settlement':        1.35,
+    'invest-advis':      0.55,
     /* default if unknown */
     '_default':          0.80
   };

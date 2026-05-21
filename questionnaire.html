@@ -245,11 +245,47 @@ function showDone(out) {
   `;
   // Save to sessionStorage so Discovery / Governance pages can ingest
   try { sessionStorage.setItem('di_questionnaire_output', JSON.stringify(out)); } catch (e) {}
+
+  /* Phase 20.2 — Build a Discovery-shaped handoff so the wizard can pre-populate
+     from the RFP answers without the user re-entering anything. */
+  try {
+    const answers = {};
+    (out.responses || []).forEach(r => { answers[r.id] = r.value; });
+    const handoff = {
+      sentAt: new Date().toISOString(),
+      source: 'questionnaire',
+      profile: {
+        role:   document.getElementById('i-role').value,
+        region: document.getElementById('i-region').value,
+        domain: document.getElementById('i-domain').value
+      },
+      // Map a few high-signal questionnaire answers to Discovery wizard hints
+      hints: {
+        legacyPlatforms:    answers['Q-CUR-01'],   // Which legacy platforms in scope
+        locInScope:         answers['Q-CUR-02'],   // Approx LoC
+        currentLatency:     answers['Q-CUR-05'],   // Settlement / processing latency
+        drPosture:          answers['Q-CUR-07'],   // DR posture
+        complexityScale:    answers['Q-CUR-03'],   // Doc / tribal scale
+        riskAppetite:       answers['Q-ORG-04'],   // 1-5
+        budget:             answers['Q-ORG-05'],
+        horizon:            answers['Q-ORG-06'],
+        outcomes:           answers['Q-ORG-03'],
+        residency:          answers['Q-COM-02']
+      },
+      requirements:    out.derivedArtifacts && out.derivedArtifacts.requirements || [],
+      complianceItems: out.derivedArtifacts && out.derivedArtifacts.complianceChecklist || [],
+      raidItems:       out.derivedArtifacts && out.derivedArtifacts.raidItems || []
+    };
+    localStorage.setItem('di_handoff_from_questionnaire', JSON.stringify(handoff));
+    if (window.DI && window.DI.audit) window.DI.audit.log('questionnaire', 'sent-to-discovery', { responses: out.responses.length });
+  } catch (e) { console.warn('handoff save failed', e); }
+
   document.getElementById('qe-done').classList.add('on');
 }
 
 function goToDiscovery() {
-  window.location.href = 'discovery-studio.html';
+  if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'📥', title:'Carrying RFP answers to Discovery', message:'Your RFP responses will pre-populate the wizard.' });
+  setTimeout(() => { window.location.href = 'discovery-studio.html?from=questionnaire'; }, 600);
 }
 
 (async function boot() {

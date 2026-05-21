@@ -251,14 +251,23 @@ const CAPS = [
   { g:'risk',  id:'risk-comp',       name:'Risk & Compliance',      critical:true,    current:'Mix · Excel + SQL Server',             future:'Unified risk data platform', stack:'AWS', verdict:'REARCH' },
   { g:'risk',  id:'aml',             name:'AML / Fraud',           critical:true,     current:'Vendor v3.2 · Batch screening',         future:'Async event-driven · Real-time', stack:'AWS', verdict:'REARCH' },
   { g:'risk',  id:'audit',           name:'Audit & regulatory reporting',              current:'Manual Excel + DW',                    future:'Snowflake + dbt', stack:'AZURE', verdict:'REPLAT' },
-  { g:'risk',  id:'branch',          name:'Branch & ATM ops',                          current:'On-prem servers',                      future:'Edge + cloud control plane', stack:'AZURE', verdict:'REPLAT' }
+  { g:'risk',  id:'branch',          name:'Branch & ATM ops',                          current:'On-prem servers',                      future:'Edge + cloud control plane', stack:'AZURE', verdict:'REPLAT' },
+
+  /* Phase 20.5 — Capital Markets & Securities (banking industry taxonomy) */
+  { g:'markets', id:'equities',     name:'Equities trading',                          current:'Solaris · C++ · FIX gateway',          future:'Java 21 · Kafka · low-latency edge', stack:'AWS', verdict:'REFACT' },
+  { g:'markets', id:'fx-mm',        name:'FX & money markets',                        current:'Vendor v4 · on-prem',                   future:'API hub + ISO 20022', stack:'AWS', verdict:'REPLAT' },
+  { g:'markets', id:'derivatives',  name:'Derivatives & structured products',         current:'Excel + custom C#',                     future:'Risk-aware microservices', stack:'AZURE', verdict:'REARCH' },
+  { g:'markets', id:'custody',      name:'Securities custody',         critical:true, current:'Legacy mainframe',                       future:'Hybrid · core retained + cloud APIs', stack:'AWS', verdict:'REPLAT' },
+  { g:'markets', id:'settlement',   name:'Settlement & clearing',                     current:'COBOL batch · 3-day T+3',               future:'Event-driven · T+1 ready', stack:'AWS', verdict:'REARCH' },
+  { g:'markets', id:'invest-advis', name:'Investment advisory',                       current:'Spreadsheet-driven',                     future:'AI-assisted advisor portal', stack:'AZURE', verdict:'REBUILD' }
 ];
 
 const GROUPS = {
-  core:  { name:'Banking Core',         icon:'🏦' },
-  cards: { name:'Cards & Loyalty',      icon:'💳' },
-  cust:  { name:'Customer Lifecycle',   icon:'👥' },
-  risk:  { name:'Risk · Compliance · Ops', icon:'⚠' }
+  core:    { name:'Consumer & Corporate Banking', icon:'🏦' },
+  cards:   { name:'Cards & Payments',             icon:'💳' },
+  cust:    { name:'Customer Lifecycle',           icon:'👥' },
+  risk:    { name:'Risk · Compliance · Operations', icon:'⚠' },
+  markets: { name:'Capital Markets & Securities', icon:'📈' }
 };
 
 const VERDICT_META = {
@@ -809,20 +818,32 @@ function renderResult() {
     '<div style="margin-top:14px"><div class="ds-eyebrow">YOUR 7R MIX</div><div class="ds-mix-bar">' + mixHtml + '</div><div class="ds-mix-legend">' + legendHtml + '</div></div>' +
   '</div>';
 
-  // Cards grid
-  html += '<div class="ds-7r-grid">';
-  r.capabilities.forEach(c => {
-    const monthlyStr = c.monthly ? '$' + Math.round(c.monthly/1000) + 'K/mo' : '';
-    html += '<div class="ds-7r-card" style="--c:' + c.color + '">' +
-      '<div class="head">' +
-        '<div><div class="name">' + c.name + '</div><div class="stack">' + c.current + ' → ' + c.future + '</div></div>' +
-        '<span class="verdict">' + c.verdictName.toUpperCase() + '</span>' +
-      '</div>' +
-      '<div class="stats"><span>Target: <strong>' + c.stack + '</strong></span><span>Risk: <strong>' + c.risk + '</strong></span><span>Effort: <strong>' + c.eff + '</strong></span>' + (monthlyStr ? '<span>Cloud cost: <strong style="color:var(--gold)">' + monthlyStr + '</strong></span>' : '') + '</div>' +
-      '<div class="why"><strong>Why ' + c.verdictName + ':</strong> ' + c.why + '</div>' +
-    '</div>';
-  });
-  html += '</div>';
+  // View toggle (Phase 20.1)
+  const view = STATE.resultView || 'cards';
+  html += '<div style="display:flex;gap:6px;margin-bottom:14px;background:#fff;padding:4px;border:1px solid var(--border);border-radius:10px;width:fit-content;font-family:var(--f-ui)">' +
+    '<button class="ds-view-toggle ' + (view === 'cards' ? 'act' : '') + '" onclick="setView(\'cards\')" style="padding:7px 13px;border:none;border-radius:7px;font-size:12px;cursor:pointer;background:' + (view === 'cards' ? 'var(--aglow)' : 'transparent') + ';color:var(--ink);font-weight:' + (view === 'cards' ? '700' : '500') + ';font-family:inherit">🎯 7R Cards</button>' +
+    '<button class="ds-view-toggle ' + (view === 'compare' ? 'act' : '') + '" onclick="setView(\'compare\')" style="padding:7px 13px;border:none;border-radius:7px;font-size:12px;cursor:pointer;background:' + (view === 'compare' ? 'var(--aglow)' : 'transparent') + ';color:var(--ink);font-weight:' + (view === 'compare' ? '700' : '500') + ';font-family:inherit">📊 Current vs Future</button>' +
+  '</div>';
+
+  if (view === 'cards') {
+    // Cards grid (original)
+    html += '<div class="ds-7r-grid">';
+    r.capabilities.forEach(c => {
+      const monthlyStr = c.monthly ? '$' + Math.round(c.monthly/1000) + 'K/mo' : '';
+      html += '<div class="ds-7r-card" style="--c:' + c.color + '">' +
+        '<div class="head">' +
+          '<div><div class="name">' + c.name + '</div><div class="stack">' + c.current + ' → ' + c.future + '</div></div>' +
+          '<span class="verdict">' + c.verdictName.toUpperCase() + '</span>' +
+        '</div>' +
+        '<div class="stats"><span>Target: <strong>' + c.stack + '</strong></span><span>Risk: <strong>' + c.risk + '</strong></span><span>Effort: <strong>' + c.eff + '</strong></span>' + (monthlyStr ? '<span>Cloud cost: <strong style="color:var(--gold)">' + monthlyStr + '</strong></span>' : '') + '</div>' +
+        '<div class="why"><strong>Why ' + c.verdictName + ':</strong> ' + c.why + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  } else {
+    // Current vs Future detailed comparison table (Phase 20.1)
+    html += renderCurrentVsFuture(r);
+  }
 
   // CTA strip
   html += '<div class="ds-cta-strip">' +
@@ -841,6 +862,83 @@ function renderResult() {
       '<button class="ghost" onclick="gotoStep(\'detail\')">← Edit detail</button>' +
       '<button class="ghost" onclick="gotoStep(\'scope\')">← Edit capabilities</button>' +
       '<button class="danger" onclick="resetState()">Reset everything</button>' +
+    '</div>' +
+  '</div>';
+
+  return html;
+}
+
+function setView(v) {
+  STATE.resultView = v;
+  saveState();
+  render();
+}
+
+/* Phase 20.1 — Current vs Future side-by-side detailed transformation map */
+function renderCurrentVsFuture(r) {
+  const fmt = n => {
+    if (!isFinite(n) || !n) return '—';
+    if (Math.abs(n) >= 1000000) return '$' + (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M';
+    if (Math.abs(n) >= 1000)    return '$' + Math.round(n/1000) + 'K';
+    return '$' + Math.round(n);
+  };
+
+  // Compute transformation pattern callouts
+  const patterns = {
+    cobolRetire: r.capabilities.filter(c => /cobol|mainframe|z\/os/i.test(c.current || '')).length,
+    saasAdopt:   r.capabilities.filter(c => c.verdict === 'REPLACE').length,
+    apiModern:   r.capabilities.filter(c => c.verdict === 'REFACT' || c.verdict === 'REARCH').length,
+    quickWins:   r.capabilities.filter(c => c.verdict === 'REHOST').length
+  };
+  const totalSavings = r.capabilities.reduce((s, c) => s + (c.savings3yr || 0), 0);
+
+  let html = '<div style="background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px">' +
+    '<div style="padding:14px 18px;background:linear-gradient(180deg,#FFFCF4,#fff);border-bottom:1px solid var(--border)">' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase">DETAILED TRANSFORMATION MAP</div>' +
+      '<div style="font-family:var(--f-head);font-size:18px;font-weight:600;color:var(--ink);margin-top:3px">Current systems vs <em style="color:var(--gold);font-style:italic">future state.</em></div>' +
+      '<div style="font-size:11.5px;color:var(--ink-2);margin-top:4px">Designed for VP / EVP / Board · every row is drillable in Architecture Studio.</div>' +
+    '</div>' +
+    '<div style="overflow-x:auto">' +
+    '<table style="border-collapse:collapse;width:100%;min-width:980px;font-size:12px">' +
+      '<thead><tr>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);width:42px">#</th>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)">Capability</th>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)">Current system</th>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:center;border-bottom:1px solid var(--border);width:30px">→</th>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)">Future system</th>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:center;border-bottom:1px solid var(--border)">7R</th>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:center;border-bottom:1px solid var(--border)">Risk</th>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:center;border-bottom:1px solid var(--border)">Effort</th>' +
+        '<th style="background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:right;border-bottom:1px solid var(--border)">3-yr savings</th>' +
+      '</tr></thead><tbody>';
+
+  r.capabilities.forEach((c, i) => {
+    const riskColor = c.risk === 'High' ? 'var(--red)' : c.risk === 'Med' ? 'var(--orange)' : 'var(--green)';
+    const isCritical = c.critical;
+    html += '<tr style="' + (isCritical ? 'background:#FFFCF4;' : '') + '">' +
+      '<td style="padding:11px 12px;border-bottom:1px solid var(--canvas-2);font-family:var(--f-mono);color:var(--ink-2);font-size:11px">' + (i + 1) + (isCritical ? '<span style="color:var(--red);font-weight:700;margin-left:4px">●</span>' : '') + '</td>' +
+      '<td style="padding:11px 12px;border-bottom:1px solid var(--canvas-2);font-weight:700;font-size:12px">' + c.name + '</td>' +
+      '<td style="padding:11px 12px;border-bottom:1px solid var(--canvas-2);color:var(--ink-2);font-size:11.5px;line-height:1.45">' + c.current + '</td>' +
+      '<td style="padding:11px 12px;border-bottom:1px solid var(--canvas-2);text-align:center;color:var(--gold);font-weight:700">→</td>' +
+      '<td style="padding:11px 12px;border-bottom:1px solid var(--canvas-2);color:var(--ink);font-size:11.5px;font-weight:600;line-height:1.45">' + c.future + '</td>' +
+      '<td style="padding:11px 12px;border-bottom:1px solid var(--canvas-2);text-align:center"><span style="display:inline-block;padding:3px 9px;border-radius:99px;color:#fff;font-size:9px;font-weight:700;background:' + c.color + '">' + c.verdictName.toUpperCase() + '</span></td>' +
+      '<td style="padding:11px 12px;border-bottom:1px solid var(--canvas-2);text-align:center;color:' + riskColor + ';font-weight:700;font-size:11px">' + c.risk + '</td>' +
+      '<td style="padding:11px 12px;border-bottom:1px solid var(--canvas-2);text-align:center;font-family:var(--f-mono);font-size:11px;color:var(--ink)">' + c.eff + '</td>' +
+      '<td style="padding:11px 12px;border-bottom:1px solid var(--canvas-2);text-align:right;font-family:var(--f-mono);font-size:12px;color:var(--gold);font-weight:700">' + fmt(c.savings3yr) + '</td>' +
+    '</tr>';
+  });
+  html += '<tr style="background:var(--aglow);font-weight:700"><td colspan="8" style="padding:12px;text-align:right;font-size:12px">3-year savings total · ' + r.capabilities.length + ' capabilities</td>' +
+    '<td style="padding:12px;text-align:right;font-family:var(--f-mono);font-size:14px;color:var(--gold)">' + fmt(totalSavings) + '</td></tr>';
+  html += '</tbody></table></div></div>';
+
+  // Transformation patterns callout
+  html += '<div style="background:var(--ink);color:#fff;border-radius:14px;padding:18px 22px;margin-bottom:14px">' +
+    '<div style="font-size:10px;font-weight:700;color:var(--gold-3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px">KEY TRANSFORMATION PATTERNS DETECTED</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">' +
+      '<div><div style="font-family:var(--f-head);font-size:24px;font-weight:600;color:var(--gold-3)">' + patterns.cobolRetire + '</div><div style="font-size:11px;color:#C8D2E2;margin-top:2px">Mainframe / COBOL workloads modernized</div></div>' +
+      '<div><div style="font-family:var(--f-head);font-size:24px;font-weight:600;color:#0FD49A">' + patterns.saasAdopt + '</div><div style="font-size:11px;color:#C8D2E2;margin-top:2px">SaaS replacements (vendor-managed)</div></div>' +
+      '<div><div style="font-family:var(--f-head);font-size:24px;font-weight:600;color:#3D8EFF">' + patterns.apiModern + '</div><div style="font-size:11px;color:#C8D2E2;margin-top:2px">API-first / event-driven refactors</div></div>' +
+      '<div><div style="font-family:var(--f-head);font-size:24px;font-weight:600;color:#FF8030">' + patterns.quickWins + '</div><div style="font-size:11px;color:#C8D2E2;margin-top:2px">Quick-win rehosts</div></div>' +
     '</div>' +
   '</div>';
 
@@ -887,9 +985,82 @@ function render() {
   else if (STATE.step === 'result')  el.innerHTML = renderResult();
 }
 
+/* Phase 20.2 — Consume questionnaire handoff (if user came from RFP) */
+function consumeQuestionnaireHandoff() {
+  try {
+    const raw = localStorage.getItem('di_handoff_from_questionnaire');
+    if (!raw) return false;
+    const h = JSON.parse(raw);
+    // Only apply if Discovery hasn't been started yet (don't override existing work)
+    if (STATE.selected && STATE.selected.length > 0) return false;
+
+    // Map RFP hints onto Discovery defaults
+    const hints = h.hints || {};
+    const platforms = Array.isArray(hints.legacyPlatforms) ? hints.legacyPlatforms : [];
+    // Pick capabilities based on legacy platforms mentioned
+    const presetSelected = [];
+    const has = s => platforms.some(p => (p || '').toLowerCase().indexOf(s) >= 0);
+    if (has('mainframe') || has('cobol') || has('z/os')) presetSelected.push('core-payments','core-deposits','trade-finance');
+    if (has('as/400') || has('rpg'))                     presetSelected.push('core-deposits','card-mgmt');
+    if (has('unix') || has('aix') || has('solaris'))     presetSelected.push('core-loans','treasury');
+    if (has('java ee') || has('websphere'))              presetSelected.push('account-mgmt','acq-consumer');
+    if (has('windows'))                                   presetSelected.push('card-fulfill');
+    // Fallback if no clear signal
+    if (presetSelected.length === 0) {
+      presetSelected.push('core-payments','core-deposits','core-loans','risk-comp','aml');
+    }
+
+    STATE.selected = Array.from(new Set(presetSelected));
+    STATE.mode = 'detailed';
+    STATE.createdAt = new Date().toISOString();
+
+    // Map complexity rating from questionnaire (1-5 scale) to per-capability default
+    const complexityRating = parseInt(hints.complexityScale) || 3;
+    const complexity = complexityRating <= 2 ? 'simple' : complexityRating === 3 ? 'moderate' : complexityRating === 4 ? 'complex' : 'highly';
+    STATE.selected.forEach(id => {
+      STATE.detail[id] = STATE.detail[id] || {};
+      STATE.detail[id].infra = Object.assign({}, DEFAULT_DETAIL.infra, { complexity });
+    });
+
+    // Remember where the user came from
+    STATE._fromQuestionnaire = true;
+    STATE._handoffSnapshot = {
+      role: h.profile && h.profile.role,
+      region: h.profile && h.profile.region,
+      domain: h.profile && h.profile.domain,
+      requirementsCount: (h.requirements || []).length,
+      complianceCount:   (h.complianceItems || []).length,
+      raidCount:         (h.raidItems || []).length
+    };
+    saveState();
+
+    // Clear the handoff so re-running Discovery doesn't keep importing
+    try { localStorage.removeItem('di_handoff_from_questionnaire'); } catch (e) {}
+
+    if (window.DI && window.DI.audit) window.DI.audit.log('discovery', 'imported-questionnaire', STATE._handoffSnapshot);
+    return true;
+  } catch (e) { console.warn('Questionnaire handoff failed', e); return false; }
+}
+
 /* ── Bootstrap ─────────────────────────────────────── */
 loadState();
+const fromQuestionnaire = consumeQuestionnaireHandoff();
 render();
+
+if (fromQuestionnaire) {
+  setTimeout(() => {
+    if (window.DI && window.DI.toast) {
+      window.DI.toast({
+        kind: 'ok', icon: '📥',
+        title: 'RFP answers imported',
+        message: STATE.selected.length + ' capabilities pre-selected from your RFP. Review and adjust before continuing.',
+        duration: 5500
+      });
+    }
+    // Jump straight to the scope step so user sees their pre-selected capabilities
+    gotoStep('scope');
+  }, 600);
+}
 // Periodic save indicator update so users see "5s ago" style hints
 setInterval(() => {
   if (STATE.updatedAt) {
