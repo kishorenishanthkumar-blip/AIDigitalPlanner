@@ -160,6 +160,37 @@
       catch (e) { return null; }
     }
 
+    /* Phase 18.1 · session info helpers */
+    function detectBrowser() {
+      const ua = navigator.userAgent || '';
+      if (/Edg\//.test(ua))      return 'Edge';
+      if (/Chrome\//.test(ua))   return 'Chrome';
+      if (/Firefox\//.test(ua))  return 'Firefox';
+      if (/Safari\//.test(ua))   return 'Safari';
+      return 'Browser';
+    }
+    function detectOS() {
+      const ua = navigator.userAgent || '';
+      if (/Windows/.test(ua))    return 'Windows';
+      if (/Mac OS X/.test(ua))   return 'macOS';
+      if (/Linux/.test(ua))      return 'Linux';
+      if (/Android/.test(ua))    return 'Android';
+      if (/iPhone|iPad/.test(ua)) return 'iOS';
+      return 'OS';
+    }
+    function detectRegion() {
+      try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local'; }
+      catch (e) { return 'Local'; }
+    }
+    function timeSince(iso) {
+      if (!iso) return 'now';
+      const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+      if (s < 60)    return s + 's ago';
+      if (s < 3600)  return Math.floor(s/60) + ' min ago';
+      if (s < 86400) return Math.floor(s/3600) + ' h ago';
+      return Math.floor(s/86400) + ' d ago';
+    }
+
     function buildTopbar() {
       const profile = readProfile();
       const first = (profile && profile.firstName) || (profile && profile.name && profile.name.split(' ')[0]) || 'Guest';
@@ -171,6 +202,9 @@
                           : (profile && profile.name ? profile.name.slice(0,2).toUpperCase() : '?'));
 
       const userHref = profile ? 'home.html' : 'index.html';
+      const sessionSub = profile
+        ? (timeSince(profile.signedInAt || profile.createdAt) + ' · ' + detectBrowser())
+        : 'Not signed in';
 
       const tb = document.createElement('header');
       tb.className = 'di-tb';
@@ -183,10 +217,10 @@
           '<button type="button" class="di-tb-search" title="Global search (Phase 18.2)">🔍 Search anything <kbd>⌘K</kbd></button>' +
           '<button type="button" class="di-tb-bell" title="Notifications">🔔<span class="dot"></span></button>' +
           '<a class="di-tb-nishi" href="nishi-chatbot.html">🤖 Nishi</a>' +
-          '<a class="di-tb-user" href="' + userHref + '">' +
-            '<div class="di-tb-user-meta"><div class="di-tb-user-name">' + escapeHTML(name) + '</div><div class="di-tb-user-sub">' + escapeHTML(role) + '</div></div>' +
+          '<button type="button" class="di-tb-user" id="di-tb-user-btn" title="Session info">' +
+            '<div class="di-tb-user-meta"><div class="di-tb-user-name">' + escapeHTML(name) + '</div><div class="di-tb-user-sub">' + escapeHTML(sessionSub) + '</div></div>' +
             '<div class="di-tb-avatar">' + escapeHTML(initials) + '</div>' +
-          '</a>' +
+          '</button>' +
         '</div>';
       return tb;
     }
@@ -225,24 +259,99 @@
           });
         }
 
-        // Wire search button (placeholder — full ⌘K palette is Phase 18.2)
+        // Wire search button → ⌘K command palette (Phase 18.2)
         const searchBtn = bar.querySelector('.di-tb-search');
         if (searchBtn) searchBtn.addEventListener('click', function () {
-          if (window.DI && window.DI.toast) {
-            window.DI.toast({ kind:'info', title:'Search', message:'Global search (⌘K) ships in Phase 18.2.' });
+          if (window.DI && window.DI.cmdk && window.DI.cmdk.open) {
+            window.DI.cmdk.open();
+          } else if (window.DI && window.DI.toast) {
+            window.DI.toast({ kind:'warn', title:'Loading…', message:'Command palette is still loading. Try again in a moment.' });
           }
         });
 
-        // Bell placeholder
+        // Bell → audit log viewer (Phase 18.1)
         const bell = bar.querySelector('.di-tb-bell');
         if (bell) bell.addEventListener('click', function () {
-          if (window.DI && window.DI.toast) {
-            window.DI.toast({ kind:'info', title:'Notifications', message:'Activity feed ships with Phase 18.4.' });
+          if (window.DI && window.DI.audit && window.DI.audit.show) {
+            window.DI.audit.show();
+          } else if (window.DI && window.DI.toast) {
+            window.DI.toast({ kind:'info', title:'Audit log', message:'Audit library not loaded on this page yet.' });
+          }
+        });
+
+        // User pill → session info modal (Phase 18.1)
+        const userBtn = bar.querySelector('#di-tb-user-btn');
+        if (userBtn) userBtn.addEventListener('click', function () {
+          showSessionModal();
+        });
+
+        // Keyboard shortcut: Ctrl+K / Cmd+K opens command palette
+        document.addEventListener('keydown', function (e) {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            if (window.DI && window.DI.cmdk && window.DI.cmdk.open) window.DI.cmdk.open();
           }
         });
       });
     }
 
     mount();
+
+    /* ── Session info modal (Phase 18.1) ──────────────────── */
+    function showSessionModal() {
+      const profile = readProfile();
+      let host = document.getElementById('di-session-modal');
+      if (host) host.remove();
+      host = document.createElement('div');
+      host.id = 'di-session-modal';
+      host.innerHTML =
+        '<style>' +
+        '#di-session-modal{position:fixed;inset:0;background:rgba(20,33,58,.45);display:flex;align-items:center;justify-content:center;z-index:99970;font-family:\'Outfit\',system-ui,sans-serif}' +
+        '#di-session-modal .box{background:#fff;border-radius:14px;max-width:440px;width:92vw;padding:22px 26px;box-shadow:0 32px 80px -16px rgba(20,33,58,.4)}' +
+        '#di-session-modal h3{font-family:\'Fraunces\',Georgia,serif;font-size:17px;color:#1A2238;font-weight:600;margin-bottom:6px}' +
+        '#di-session-modal .sub{font-size:11.5px;color:#5B6B8A;margin-bottom:14px}' +
+        '#di-session-modal .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #E2E7F1;font-size:12px}' +
+        '#di-session-modal .row strong{font-family:JetBrains Mono,monospace;color:#1A2238;font-size:11.5px}' +
+        '#di-session-modal .row .key{color:#5B6B8A}' +
+        '#di-session-modal .pill-ok{background:#E8FBF4;color:#0A8462;font-size:9.5px;font-weight:700;padding:2px 9px;border-radius:99px;letter-spacing:.04em}' +
+        '#di-session-modal .pill-warn{background:#FFFCF4;color:#C8921A;font-size:9.5px;font-weight:700;padding:2px 9px;border-radius:99px;letter-spacing:.04em;border:1px solid #E8AC38}' +
+        '#di-session-modal .actions{margin-top:14px;display:flex;gap:6px;justify-content:flex-end}' +
+        '#di-session-modal .actions button{padding:8px 14px;font-size:12px;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;border:none}' +
+        '#di-session-modal .actions .ghost{background:#fff;border:1px solid #E2E7F1;color:#1A2238}' +
+        '#di-session-modal .actions .primary{background:#C8921A;color:#fff}' +
+        '#di-session-modal .actions .danger{background:#fff;border:1px solid #FF4D6A;color:#FF4D6A}' +
+        '</style>' +
+        '<div class="box">' +
+          '<h3>Session info</h3>' +
+          '<div class="sub">' + (profile ? 'You\'re signed in. All session data is stored locally in this browser.' : 'No session active.') + '</div>' +
+          (profile ? (
+            '<div class="row"><span class="key">Name</span><strong>' + escapeHTML(profile.name || '?') + '</strong></div>' +
+            '<div class="row"><span class="key">Email</span><strong>' + escapeHTML(profile.email || '?') + '</strong></div>' +
+            '<div class="row"><span class="key">Role</span><strong>' + escapeHTML(profile.role || '?') + '</strong></div>' +
+            '<div class="row"><span class="key">Region</span><strong>' + escapeHTML(profile.region || 'NA') + '</strong></div>' +
+            '<div class="row"><span class="key">Signed in</span><strong>' + (profile.signedInAt ? new Date(profile.signedInAt).toLocaleString() + ' (' + timeSince(profile.signedInAt) + ')' : 'unknown') + '</strong></div>' +
+            '<div class="row"><span class="key">Browser</span><strong>' + detectBrowser() + ' on ' + detectOS() + '</strong></div>' +
+            '<div class="row"><span class="key">Timezone</span><strong>' + detectRegion() + '</strong></div>' +
+            '<div class="row"><span class="key">Data residency</span><span class="pill-ok">🔒 LOCAL · this browser only</span></div>' +
+            '<div class="row"><span class="key">Server transmission</span><span class="pill-ok">NONE</span></div>' +
+            '<div class="row"><span class="key">Audit events</span><strong>' + ((window.DI && window.DI.audit && window.DI.audit.getAll()) || []).length + '</strong></div>'
+          ) : '<div class="sub" style="color:#1A2238;font-size:13px">Click <a href="index.html" style="color:#C8921A;font-weight:700">Sign in</a> to access the platform.</div>') +
+          '<div class="actions">' +
+            (profile ? '<button class="ghost" onclick="window.DI.audit&&window.DI.audit.show();document.getElementById(\'di-session-modal\').remove()">📜 View audit log</button>' : '') +
+            (profile ? '<button class="danger" onclick="signOutNow()">Sign out</button>' : '') +
+            '<button class="primary" onclick="document.getElementById(\'di-session-modal\').remove()">Close</button>' +
+          '</div>' +
+        '</div>';
+      host.addEventListener('click', e => { if (e.target === host) host.remove(); });
+      document.body.appendChild(host);
+    }
+
+    // Global sign-out helper
+    window.signOutNow = function () {
+      if (!confirm('Sign out now? Local data is preserved; you can sign back in.')) return;
+      try { sessionStorage.removeItem('di_account_profile'); } catch (e) {}
+      if (window.DI && window.DI.audit) window.DI.audit.log('auth', 'sign-out', {});
+      location.href = 'index.html';
+    };
   });
 })();
