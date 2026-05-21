@@ -62,3 +62,9 @@ data/raw/
 
 # ── Docker ───────────────────────────────────────────────
 docker-compose.override.yml
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
