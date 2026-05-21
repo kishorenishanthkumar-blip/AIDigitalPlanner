@@ -11,6 +11,7 @@
 <script src="assets/cmdk.js" defer></script>
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
+<script src="assets/export.js" defer></script>
 <script src="assets/pricing.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
 <style>
@@ -852,6 +853,7 @@ function renderResult() {
       '<button class="primary" onclick="sendTo(\'architecture\')">Send to Architecture →</button>' +
       '<button class="ghost" onclick="sendTo(\'governance\')">Send to Governance →</button>' +
       '<button class="ghost" onclick="exportJSON()">⬇ Export JSON</button>' +
+      '<button class="ghost" onclick="exportXLSX()">⬇ Excel</button>' +
     '</div>' +
   '</div>';
 
@@ -961,6 +963,21 @@ function sendTo(where) {
     duration: 4000
   });
   setTimeout(() => { location.href = where === 'architecture' ? 'architecture-studio.html?from=discovery' : 'program-governance.html?from=discovery'; }, 800);
+}
+
+function exportXLSX() {
+  if (!(window.DI && window.DI.export)) { window.DI && window.DI.toast && window.DI.toast({ kind:'err', title:'Export', message:'Excel exporter not loaded — refresh and retry.' }); return; }
+  const r = STATE.results;
+  if (!r || !r.capabilities) { window.DI.toast({ kind:'warn', title:'Nothing to export', message:'Generate the 7R map first.' }); return; }
+  const rows = r.capabilities.map(c => ({
+    Capability: c.name, Verdict: c.verdictName, Current: c.current, Future: c.future,
+    Stack: c.stack, Risk: c.risk, Effort: c.eff,
+    'Cloud $ / mo': c.monthly || 0, 'Why': c.why, 'Savings 3yr': c.savings3yr || 0
+  }));
+  const stamp = new Date().toISOString().slice(0,10);
+  window.DI.export.workbook('discovery-7r-' + stamp + '.xlsx', [
+    { name:'Discovery·7R', rows, colWidths:[26, 12, 22, 28, 26, 8, 8, 14, 60, 14] }
+  ]);
 }
 
 function exportJSON() {

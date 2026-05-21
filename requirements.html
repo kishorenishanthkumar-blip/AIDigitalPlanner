@@ -11,6 +11,7 @@
 <script src="assets/cmdk.js" defer></script>
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
+<script src="assets/export.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -370,6 +371,7 @@ function renderList() {
       '<button onclick="regenerate()">↻ Regenerate from Discovery + RFP</button>' +
       '<button onclick="exportRequirements(\'json\')">⬇ JSON</button>' +
       '<button onclick="exportRequirements(\'csv\')">⬇ CSV</button>' +
+      '<button onclick="exportRequirements(\'xlsx\')">⬇ Excel</button>' +
       '<button class="primary" onclick="location.href=\'actions.html\'">Generate actions →</button>' +
     '</div></div>';
 
@@ -395,13 +397,33 @@ function renderList() {
 }
 
 function exportRequirements(fmt) {
+  const stamp = new Date().toISOString().slice(0,10);
   if (fmt === 'json') {
     const blob = new Blob([JSON.stringify(STATE.requirements, null, 2)], { type:'application/json' });
-    download(blob, 'requirements-' + new Date().toISOString().slice(0,10) + '.json');
+    download(blob, 'requirements-' + stamp + '.json');
+  } else if (fmt === 'xlsx') {
+    if (!(window.DI && window.DI.export)) {
+      if (window.DI && window.DI.toast) window.DI.toast({ kind:'err', title:'Export', message:'Excel exporter not loaded — refresh and retry.' });
+      return;
+    }
+    const rows = STATE.requirements.map(r => ({
+      ID: r.id,
+      Capability: r.capId,
+      Lens: r.lens,
+      Title: r.title,
+      Description: r.desc,
+      Roles: (r.roles || []).join('; '),
+      Regulators: (r.regs || []).join('; '),
+      Priority: r.priority,
+      Source: r.source
+    }));
+    window.DI.export.workbook('requirements-' + stamp + '.xlsx', [
+      { name:'Requirements', rows, colWidths:[10, 14, 8, 36, 60, 28, 28, 10, 22] }
+    ]);
   } else {
     const csv = 'ID,Capability,Lens,Title,Description,Roles,Regulators,Priority,Source\n' +
       STATE.requirements.map(r => [r.id, r.capId, r.lens, '"'+r.title.replace(/"/g,'""')+'"', '"'+r.desc.replace(/"/g,'""')+'"', '"'+(r.roles||[]).join('; ')+'"', '"'+(r.regs||[]).join('; ')+'"', r.priority, r.source].join(',')).join('\n');
-    download(new Blob([csv],{type:'text/csv'}), 'requirements-' + new Date().toISOString().slice(0,10) + '.csv');
+    download(new Blob([csv],{type:'text/csv'}), 'requirements-' + stamp + '.csv');
   }
 }
 function download(blob, name) {

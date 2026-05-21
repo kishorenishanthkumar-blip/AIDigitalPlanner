@@ -11,6 +11,7 @@
 <script src="assets/cmdk.js" defer></script>
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
+<script src="assets/export.js" defer></script>
 <script src="assets/pricing.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
 <style>
@@ -131,6 +132,7 @@ body.aud .evp-bus{display:none}
     <div class="actions">
       <button onclick="exportEVP('pdf')">⬇ PDF</button>
       <button onclick="exportEVP('pptx')">⬇ PPT</button>
+      <button onclick="exportEVPXlsx()">⬇ Excel</button>
       <button class="primary" onclick="sendToLegal()">Draft SOW →</button>
     </div>
   </div>
@@ -427,6 +429,27 @@ function exportEVP(fmt) {
     document.body.classList.add('print-mode');
     setTimeout(() => { window.print(); document.body.classList.remove('print-mode'); }, 600);
   }
+}
+
+function exportEVPXlsx() {
+  if (!(window.DI && window.DI.export)) { window.DI && window.DI.toast && window.DI.toast({ kind:'err', title:'Export', message:'Excel exporter not loaded — refresh and retry.' }); return; }
+  const r = INPUT || {};
+  const caps = (r.capabilities || []).map(c => ({
+    Capability: c.name, Verdict: c.verdictName || c.verdict || '', Cloud: c.cloud || '',
+    'Monthly $': c.monthly || 0, 'Risk': c.risk || '', 'Effort': c.effort || c.eff || ''
+  }));
+  const summary = [
+    { Metric:'Total capabilities', Value: (r.capabilities || []).length },
+    { Metric:'Region',             Value: r.region || '' },
+    { Metric:'Currency',           Value: r.currency || 'USD' },
+    { Metric:'Discount %',         Value: r.discount || 0 },
+    { Metric:'Total monthly $',    Value: (r.capabilities || []).reduce((s,c)=>s+(c.monthly||0),0) }
+  ];
+  const stamp = new Date().toISOString().slice(0,10);
+  window.DI.export.workbook('evp-summary-' + stamp + '.xlsx', [
+    { name:'Summary',      rows: summary, colWidths:[26, 22] },
+    { name:'Capabilities', rows: caps,    colWidths:[26, 12, 12, 14, 8, 8] }
+  ]);
 }
 
 /* ── Bootstrap ──────────────────────────────────────── */

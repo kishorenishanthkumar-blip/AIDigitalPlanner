@@ -11,6 +11,7 @@
 <script src="assets/cmdk.js" defer></script>
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
+<script src="assets/export.js" defer></script>
 <script src="assets/pricing.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
 <style>
@@ -154,6 +155,9 @@ a{color:var(--gold);text-decoration:none}
       <button data-p="90d">90 days</button>
     </div>
     <div class="meta" id="op-meta">7-day window · 168 samples per KPI</div>
+    <div class="actions" style="margin-left:auto;display:flex;gap:6px">
+      <button onclick="exportOperationsXLSX()" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--ink);cursor:pointer;font-family:inherit">⬇ Excel</button>
+    </div>
   </div>
 </div>
 
@@ -347,6 +351,151 @@ function renderNishi() {
   '</div>';
 }
 
+function exportOperationsXLSX() {
+  if (!(window.DI && window.DI.export)) {
+    window.DI && window.DI.toast && window.DI.toast({ kind:'err', title:'Export', message:'Excel exporter not loaded — refresh and retry.' });
+    return;
+  }
+  const doraRows = (typeof DORA !== 'undefined') ? DORA.map(d => ({ Metric:d.label, Value:d.value, Target:d.target, Trend:d.trend, Description:d.desc })) : [];
+  const sloRows  = (typeof SLOS !== 'undefined') ? SLOS.map(s => ({ SLO:s.label, Target:s.target, Actual:s.actual, 'Error Budget Used %':s.errorBudgetUsed, Window:s.window })) : [];
+  const ticketRows = (typeof TICKETS !== 'undefined') ? TICKETS.map(t => ({ Tier:t.tier, Queue:t.queue, Open:t.open, MTTR:t.mttr, SLA:t.sla, 'Closed Today':t.closedToday })) : [];
+  const kpiRows = KPIS.map(k => ({
+    KPI:      k.label,
+    'Latest': k.series[k.series.length - 1],
+    'Average': Math.round(k.series.reduce((s,v)=>s+v,0) / k.series.length * 100) / 100,
+    'Target': k.target || '',
+    'Unit':   k.unit || ''
+  }));
+  const incRows = INCIDENTS.map(i => ({
+    'When':     i.when,
+    'Severity': i.sev,
+    'Module':   i.mod,
+    'Summary':  i.t,
+    'MTTR':     i.mttr || '',
+    'Status':   i.status || ''
+  }));
+  const batchRows = BATCHES.map(b => ({
+    'Batch':    b.t,
+    'Last Run': b.last,
+    'Duration': b.dur,
+    'Status':   b.status,
+    'Records':  b.records || ''
+  }));
+  const stamp = new Date().toISOString().slice(0,10);
+  window.DI.export.workbook('operations-' + stamp + '.xlsx', [
+    { name:'KPIs',      rows: kpiRows,    colWidths:[24, 12, 12, 12, 10] },
+    { name:'DORA',      rows: doraRows,   colWidths:[26, 16, 18, 12, 36] },
+    { name:'SLOs',      rows: sloRows,    colWidths:[40, 10, 10, 18, 24] },
+    { name:'Tickets',   rows: ticketRows, colWidths:[8, 18, 8, 10, 10, 14] },
+    { name:'Incidents', rows: incRows,    colWidths:[18, 12, 18, 50, 12, 14] },
+    { name:'Batches',   rows: batchRows,  colWidths:[26, 18, 12, 14, 14] }
+  ]);
+}
+
+
+/* Phase 22.3 — DORA 4 metrics + error budget + L1-L4 tickets */
+const DORA = [
+  { id:'lt',  label:'Lead Time for Changes', value:'1.2 days',  target:'< 1 day',     trend:'-18%', good:false, desc:'Commit → prod median' },
+  { id:'df',  label:'Deployment Frequency',  value:'14 / week', target:'On demand',   trend:'+22%', good:true,  desc:'Across all services' },
+  { id:'cfr', label:'Change Fail Rate',      value:'5.8%',      target:'< 15%',       trend:'-0.4pp', good:true, desc:'Rollbacks + incidents' },
+  { id:'mttr',label:'MTTR (Sev1 / Sev2)',    value:'42 / 96 m', target:'< 60 / 120 m',trend:'-6m',  good:true,  desc:'Sev1 = customer-impacting' }
+];
+
+const SLOS = [
+  { id:'auth-api', label:'Auth API · 99.95% availability', target:99.95, actual:99.978, errorBudgetUsed:36, window:'30-day rolling' },
+  { id:'payments', label:'Payments API · 99.9% availability', target:99.9, actual:99.92, errorBudgetUsed:74, window:'30-day rolling' },
+  { id:'eod-batch',label:'EOD batch · cut-off T+1 by 06:30', target:99.5, actual:99.91, errorBudgetUsed:18, window:'30-day rolling' }
+];
+
+const COST_PER_TX = { current:0.024, target:0.018, currency:'USD', monthlyVolume:142_000_000, monthlySpend:3_408_000 };
+
+const TICKETS = [
+  { tier:'L1', queue:'Service Desk',  open:42, mttr:'8 m',   sla:'15 m',  closedToday:78, samples:[ { id:'INC-21847', t:'Password reset · branch user', sev:'Low' }, { id:'INC-21849', t:'VPN slow · Mumbai office', sev:'Low' } ] },
+  { tier:'L2', queue:'App Ops',       open:18, mttr:'34 m',  sla:'2 h',   closedToday:24, samples:[ { id:'INC-21842', t:'Loan calc returning 500 · 2% of requests', sev:'Med' }, { id:'INC-21838', t:'EOD reconciliation timing out', sev:'Med' } ] },
+  { tier:'L3', queue:'Engineering',   open:6,  mttr:'4.2 h', sla:'8 h',   closedToday:3,  samples:[ { id:'INC-21805', t:'Payments throughput degraded · Kafka consumer lag', sev:'High' }, { id:'INC-21812', t:'Aurora replica lag spike · 8 sec', sev:'High' } ] },
+  { tier:'L4', queue:'Vendor / SRE',  open:2,  mttr:'14 h',  sla:'1 d',   closedToday:1,  samples:[ { id:'INC-21798', t:'AWS RDS provider escalation · maintenance window', sev:'Crit' } ] }
+];
+
+function renderDoraStrip() {
+  let html = '<div class="op-section-h">DORA · 4 KEY METRICS<div class="div"></div><span class="right" onclick="askNishi(\'DORA trends\')">Ask Nishi about DORA →</span></div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px">';
+  DORA.forEach(d => {
+    const colour = d.good ? '#0A8462' : '#C8921A';
+    html += '<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:13px 15px;border-left:4px solid ' + colour + '">' +
+      '<div style="font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase">' + d.label + '</div>' +
+      '<div style="font-family:var(--f-head);font-size:21px;font-weight:600;color:var(--ink);margin-top:2px">' + d.value + '</div>' +
+      '<div style="font-size:10.5px;color:var(--ink-2);margin-top:3px">Target: <strong style="color:' + colour + '">' + d.target + '</strong> · ' + d.trend + '</div>' +
+      '<div style="font-size:10px;color:var(--ink-3);margin-top:3px">' + d.desc + '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderSloGauges() {
+  let html = '<div class="op-section-h">SLO ERROR BUDGETS · CURRENT WINDOW<div class="div"></div><span class="right">Burn rate alerts in PagerDuty</span></div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:18px">';
+  SLOS.forEach(s => {
+    const used = s.errorBudgetUsed;
+    const band = used > 80 ? '#D93B36' : used > 50 ? '#C8921A' : '#0A8462';
+    html += '<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:13px 15px">' +
+      '<div style="font-size:11px;font-weight:700;color:var(--ink)">' + s.label + '</div>' +
+      '<div style="font-size:10.5px;color:var(--ink-2);margin-top:2px">Actual ' + s.actual + '% · ' + s.window + '</div>' +
+      '<div style="margin-top:9px;height:8px;background:#EEF2F7;border-radius:4px;overflow:hidden">' +
+        '<div style="width:' + used + '%;height:100%;background:' + band + ';transition:.4s"></div>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--ink-2)">' +
+        '<span>Error budget used</span><strong style="color:' + band + '">' + used + '%</strong>' +
+      '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderCostPerTx() {
+  const c = COST_PER_TX;
+  const delta = ((c.current - c.target) / c.target * 100).toFixed(1);
+  return '<div class="op-section-h">COST PER TRANSACTION<div class="div"></div><span class="right" onclick="askNishi(\'cost per transaction\')">Drill into FinOps →</span></div>' +
+    '<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;gap:18px;align-items:center;flex-wrap:wrap">' +
+      '<div><div style="font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase">CURRENT</div>' +
+        '<div style="font-family:var(--f-head);font-size:24px;font-weight:600;color:var(--ink)">$' + c.current.toFixed(4) + '</div>' +
+        '<div style="font-size:10.5px;color:var(--ink-2)">per transaction · ' + c.currency + '</div></div>' +
+      '<div style="border-left:1px solid var(--border);padding-left:18px"><div style="font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase">TARGET</div>' +
+        '<div style="font-family:var(--f-head);font-size:24px;font-weight:600;color:#0A8462">$' + c.target.toFixed(4) + '</div>' +
+        '<div style="font-size:10.5px;color:#0A8462;font-weight:700">' + delta + '% above target</div></div>' +
+      '<div style="border-left:1px solid var(--border);padding-left:18px"><div style="font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase">MONTHLY VOLUME</div>' +
+        '<div style="font-family:var(--f-head);font-size:24px;font-weight:600;color:var(--ink)">' + (c.monthlyVolume/1_000_000).toFixed(0) + 'M txns</div>' +
+        '<div style="font-size:10.5px;color:var(--ink-2)">$' + (c.monthlySpend/1_000_000).toFixed(2) + 'M / month</div></div>' +
+      '<div style="margin-left:auto;font-size:10.5px;color:var(--ink-2);max-width:280px;line-height:1.5">Pulled from FinOps tags · denominator = txn count from API GW · refresh daily 04:00 UTC</div>' +
+    '</div>';
+}
+
+function renderTickets() {
+  let html = '<div class="op-section-h">L1 → L4 TICKET WORKFLOW · LIVE<div class="div"></div><span class="right" onclick="askNishi(\'L3 escalations\')">Why are L3 tickets aging? →</span></div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px">';
+  TICKETS.forEach((t, i) => {
+    const tone = t.tier === 'L1' ? '#3D8EFF' : t.tier === 'L2' ? '#0A8462' : t.tier === 'L3' ? '#C8921A' : '#D93B36';
+    html += '<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:13px 15px;border-top:4px solid ' + tone + '">' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
+        '<span style="font-family:var(--f-head);font-size:18px;font-weight:600;color:' + tone + '">' + t.tier + '</span>' +
+        '<span style="font-size:10px;color:var(--ink-2);font-weight:700">' + t.queue + '</span>' +
+      '</div>' +
+      '<div style="display:flex;gap:14px;margin-top:9px">' +
+        '<div><div style="font-size:9px;letter-spacing:.06em;color:var(--ink-2);font-weight:700;text-transform:uppercase">OPEN</div><div style="font-family:var(--f-head);font-size:18px;font-weight:600">' + t.open + '</div></div>' +
+        '<div><div style="font-size:9px;letter-spacing:.06em;color:var(--ink-2);font-weight:700;text-transform:uppercase">MTTR</div><div style="font-family:var(--f-head);font-size:18px;font-weight:600">' + t.mttr + '</div></div>' +
+        '<div><div style="font-size:9px;letter-spacing:.06em;color:var(--ink-2);font-weight:700;text-transform:uppercase">SLA</div><div style="font-family:var(--f-head);font-size:18px;font-weight:600">' + t.sla + '</div></div>' +
+      '</div>' +
+      '<div style="margin-top:9px;font-size:10.5px;color:var(--ink-2);border-top:1px dashed var(--border);padding-top:7px">' +
+        '<div style="font-weight:700;color:var(--ink);margin-bottom:3px">Recent · ' + t.closedToday + ' closed today</div>' +
+        t.samples.map(s => '<div style="margin-top:2px"><span style="font-family:var(--f-mono);color:' + tone + '">' + s.id + '</span> · ' + s.t + ' <span style="opacity:.7">(' + s.sev + ')</span></div>').join('') +
+      '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
 /* ── Dispatcher → opens Nishi with pre-filled prompt ─ */
 function askNishi(prompt) {
   /* Phase 19 will parse this in Nishi. For now, set a flag so Nishi can pick it up. */
@@ -360,7 +509,11 @@ function render() {
   const main = document.getElementById('op-main');
   main.innerHTML =
     renderKpiTiles() +
+    renderDoraStrip() +
+    renderSloGauges() +
+    renderCostPerTx() +
     '<div class="op-grid-2"><div>' + renderIncidents() + '</div><div>' + renderFinOps() + '</div></div>' +
+    renderTickets() +
     renderBatches() +
     renderNishi();
 }
@@ -368,19 +521,4 @@ function render() {
 /* ── Period picker wiring (regenerate data) ─────────── */
 document.querySelectorAll('.op-period .picker button').forEach(b => {
   b.addEventListener('click', () => {
-    document.querySelectorAll('.op-period .picker button').forEach(x => x.classList.remove('act'));
-    b.classList.add('act');
-    const p = b.dataset.p;
-    const samples = { '1d':24, '7d':168, '30d':720, '90d':2160 }[p] || 168;
-    const labelMap = { '1d':'24 hr', '7d':'7-day', '30d':'30-day', '90d':'90-day' };
-    KPIS.forEach(k => { k.series = genSeries(samples, k.base, k.base * 0.4, k.id === 'mttr' ? -3 : 0); });
-    document.getElementById('op-meta').textContent = labelMap[p] + ' window · ' + samples + ' samples per KPI';
-    render();
-  });
-});
-
-render();
-</script>
-
-</body>
-</html>
+   

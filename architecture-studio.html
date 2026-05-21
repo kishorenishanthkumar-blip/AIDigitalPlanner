@@ -11,6 +11,7 @@
 <script src="assets/cmdk.js" defer></script>
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
+<script src="assets/export.js" defer></script>
 <script src="assets/pricing.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
 <style>
@@ -388,6 +389,7 @@ function render() {
         '<span class="pick" onclick="pickCloud(\'' + r.cap.id + '\',\'' + c + '\')"><span class="pick-text">pick</span></span>' +
         '<span class="pick" style="margin-top:0" onclick="event.stopPropagation();showProvenance(\'' + r.cap.id + '\',\'' + c + '\')" title="Source of this number">⋯ source</span>' +
         '<span class="pick" style="margin-top:0" onclick="event.stopPropagation();showBlueprint(\'' + r.cap.id + '\',\'' + c + '\')" title="Architecture blueprint">🗺 blueprint</span>' +
+        '<span class="pick" style="margin-top:0" onclick="event.stopPropagation();showSpecs(\'' + r.cap.id + '\',\'' + c + '\')" title="9-layer infra spec">🔧 specs</span>' +
       '</td>';
     });
     html += '</tr>';
@@ -419,11 +421,57 @@ function render() {
     '<div class="actions">' +
       '<button class="primary" onclick="generateEvp()">Generate EVP Summary →</button>' +
       '<button class="ghost" onclick="sendToGovernance()">Send to Governance →</button>' +
+      '<button class="ghost" onclick="exportArchitectureXLSX()">⬇ Excel</button>' +
       '<button class="ghost" onclick="goBackToDiscovery()">↺ Back to Discovery</button>' +
     '</div>' +
   '</div>';
 
   main.innerHTML = html;
+}
+
+function exportArchitectureXLSX() {
+  if (!(window.DI && window.DI.export)) {
+    window.DI && window.DI.toast && window.DI.toast({ kind:'err', title:'Export', message:'Excel exporter not loaded — refresh and retry.' });
+    return;
+  }
+  const disc = (function(){ try { return JSON.parse(localStorage.getItem('di_discovery_v1')||'null'); } catch(e){ return null; } })();
+  const caps = (disc && disc.results && disc.results.capabilities) || [];
+  const CLOUDS = ['aws','azure','gcp','oci','ibm','private'];
+  const rows = caps.map(c => {
+    const row = { Capability:c.name, Verdict:c.verdictName, Picked:(STATE.picks||{})[c.id] || '' };
+    CLOUDS.forEach(cl => {
+      try {
+        const p = window.DI.pricing && window.DI.pricing.cost(c.id, cl, c.verdict, STATE.discount || 0);
+        row[cl.toUpperCase()] = p ? Math.round(p.monthly) : '';
+      } catch(e) { row[cl.toUpperCase()] = ''; }
+    });
+    return row;
+  });
+  const stamp = new Date().toISOString().slice(0,10);
+  window.DI.export.workbook('architecture-' + stamp + '.xlsx', [
+    { name:'Architecture', rows, colWidths:[26, 12, 10, 12, 12, 12, 12, 12, 12] }
+  ]);
+}
+
+function exportArchitectureXLSX() {
+  if (!(window.DI && window.DI.export)) { window.DI && window.DI.toast && window.DI.toast({ kind:'err', title:'Export', message:'Excel exporter not loaded — refresh and retry.' }); return; }
+  const disc = (function(){ try { return JSON.parse(localStorage.getItem('di_discovery_v1')||'null'); } catch(e){ return null; } })();
+  const caps = (disc && disc.results && disc.results.capabilities) || [];
+  const CLOUDS = ['aws','azure','gcp','oci','ibm','private'];
+  const rows = caps.map(c => {
+    const row = { Capability:c.name, Verdict:c.verdictName, Picked:(STATE.picks||{})[c.id] || '' };
+    CLOUDS.forEach(cl => {
+      try {
+        const p = window.DI.pricing && window.DI.pricing.cost(c.id, cl, c.verdict, STATE.discount || 0);
+        row[cl.toUpperCase()] = p ? Math.round(p.monthly) : '';
+      } catch(e) { row[cl.toUpperCase()] = ''; }
+    });
+    return row;
+  });
+  const stamp = new Date().toISOString().slice(0,10);
+  window.DI.export.workbook('architecture-' + stamp + '.xlsx', [
+    { name:'Architecture', rows, colWidths:[26, 12, 10, 12, 12, 12, 12, 12, 12] }
+  ]);
 }
 
 /* ── Cell actions ───────────────────────────────────── */
@@ -460,6 +508,123 @@ function showProvenance(capId, cloud) {
   document.getElementById('as-modal-bg').classList.add('open');
 }
 function closeModal() { document.getElementById('as-modal-bg').classList.remove('open'); }
+
+
+/* Phase 22.2 — 9-layer infrastructure spec modal */
+function showSpecs(capId, cloud) {
+  const cap = (function(){
+    try {
+      const disc = JSON.parse(localStorage.getItem('di_discovery_v1')||'null');
+      return (disc && disc.results && disc.results.capabilities || []).find(x => x.id === capId);
+    } catch(e) { return null; }
+  })();
+  if (!cap) return;
+  const verdict = cap.verdict || 'REPLAT';
+
+  const services = (window.DI && window.DI.pricing && typeof window.DI.pricing.services === 'function')
+    ? (window.DI.pricing.services(cloud, verdict) || {})
+    : {};
+
+  // 9-layer specification — each layer lists primary services per cloud, with sizing assumptions
+  const cloudName = ({ aws:'AWS', azure:'Azure', gcp:'GCP', oci:'OCI', ibm:'IBM Cloud', private:'Private DC' })[cloud] || cloud.toUpperCase();
+  const SPEC = [
+    { layer:'1 · Compute',        ic:'🖥', svc: pickSvc(cloud, ['compute','aws':'EC2 m6i.2xlarge + Auto Scaling','azure':'Azure VMs D8s v5 + VMSS','gcp':'Compute Engine n2-standard-8 + MIG','oci':'OCI VM.Standard3.Flex','ibm':'IBM Virtual Server bx2.8x32','private':'VMware vSphere 8 + DRS']),
+      sizing:'8 vCPU · 32GB RAM per node · 6 nodes (3 AZ × 2)',
+      notes:'Auto-scaled by CPU 60% target · spot/preemptible 30% blend in non-prod' },
+    { layer:'2 · Networking',     ic:'🔌', svc: pickSvc(cloud, ['network','aws':'VPC + ALB + Transit Gateway + Route53','azure':'VNet + Application Gateway + Front Door + Private DNS','gcp':'VPC + Cloud Load Balancing + Cloud DNS','oci':'VCN + Flexible LB + DNS','ibm':'VPC + Application LB + IBM Cloud DNS','private':'F5 BIG-IP + BGP + Infoblox DNS']),
+      sizing:'10 Gbps inter-AZ · sub-2 ms p99 latency',
+      notes:'WAF in front · TLS 1.3 only · IPv6 dual-stack' },
+    { layer:'3 · Database',       ic:'🗄', svc: pickSvc(cloud, ['db','aws':'Aurora PostgreSQL r6g.2xlarge · 3 AZ','azure':'Azure SQL Hyperscale GP_Gen5_8','gcp':'Cloud SQL PostgreSQL HA 8 vCPU','oci':'Autonomous DB 8 OCPU','ibm':'Db2 on Cloud Enterprise 16 vCPU','private':'PostgreSQL 16 on bare metal + Patroni HA']),
+      sizing:'500 GB primary · 2 read replicas · PITR 35d',
+      notes:'Encrypted at rest (CMK) · Column-level encryption for PII' },
+    { layer:'4 · Security',       ic:'🔐', svc: pickSvc(cloud, ['security','aws':'IAM + KMS + GuardDuty + Security Hub + WAF','azure':'Entra ID + Key Vault + Defender + Sentinel','gcp':'IAM + KMS + Security Command Center','oci':'IAM + Vault + Cloud Guard','ibm':'IAM + Key Protect + QRadar on Cloud','private':'CyberArk + Thales HSM + Splunk SIEM']),
+      sizing:'FIPS 140-2 L3 HSM · 90-day key rotation',
+      notes:'Zero trust · mTLS · OAuth 2.1 + OIDC · just-in-time admin via PAM' },
+    { layer:'5 · Containers',     ic:'📦', svc: pickSvc(cloud, ['containers','aws':'EKS 1.30 + Karpenter + Fargate Spot','azure':'AKS 1.30 + Virtual Nodes (ACI)','gcp':'GKE Autopilot 1.30','oci':'OKE 1.30 + Virtual Nodes','ibm':'IKS / Red Hat OpenShift on IBM','private':'OpenShift 4.16 on RHEL / vSphere']),
+      sizing:'3 control plane · 6 worker pools · GitOps via Argo CD',
+      notes:'Service mesh (Istio) for mTLS · OPA Gatekeeper policies' },
+    { layer:'6 · AI / ML',        ic:'🧠', svc: pickSvc(cloud, ['ai','aws':'Bedrock + SageMaker + Comprehend','azure':'Azure AI Foundry + Azure OpenAI + ML Studio','gcp':'Vertex AI + Gemini + Document AI','oci':'OCI Generative AI + Data Science','ibm':'watsonx.ai + watsonx.governance','private':'NVIDIA Triton + Kubeflow + on-prem GPU pool']),
+      sizing:'A100 / H100 GPUs for inference · vector store 32 GB',
+      notes:'Model evals · PII redaction in prompts · audit trail of LLM calls' },
+    { layer:'7 · Web apps',       ic:'🌐', svc: pickSvc(cloud, ['web','aws':'CloudFront + S3 + Lambda@Edge','azure':'Azure Front Door + Static Web Apps + CDN','gcp':'Cloud CDN + Cloud Storage + Cloud Run','oci':'OCI CDN + Object Storage + Functions','ibm':'IBM CDN + Cloud Object Storage + Code Engine','private':'NGINX + Varnish + on-prem object store']),
+      sizing:'Global PoPs · TLS termination at edge · HTTP/3',
+      notes:'CSP + SRI · Subresource integrity · Strict-Transport-Security' },
+    { layer:'8 · Desktop apps',   ic:'🖱', svc: pickSvc(cloud, ['desktop','aws':'WorkSpaces + AppStream 2.0','azure':'Windows 365 Cloud PC + Azure Virtual Desktop','gcp':'Chrome Enterprise + Cameyo','oci':'Citrix on OCI','ibm':'Citrix Cloud on IBM','private':'Citrix XenApp + VMware Horizon']),
+      sizing:'200 concurrent users · 4 vCPU · 16 GB / session',
+      notes:'CISO-approved gold image · MFA at session start · DLP enforced' },
+    { layer:'9 · Legacy apps',    ic:'🏛', svc: pickSvc(cloud, ['legacy','aws':'Mainframe Modernization + AppStream + DMS','azure':'Heirloom on Azure + Database Migration Service','gcp':'AS/400 → GCP via Astadia','oci':'Heritage on Oracle stack · COBOL emulator','ibm':'Z on IBM Cloud + LinuxONE','private':'IBM z16 mainframe + AS/400 + COBOL/CICS']),
+      sizing: verdict === 'RETAIN' ? 'Retained in-place · IBM z/OS or i' : (verdict === 'REPLACE' ? 'Decommissioned · functionality re-platformed' : 'Strangler pattern · 18-36 month phase-out'),
+      notes:'Homogeneous (lift-and-shift) and heterogeneous (re-platform) · COBOL/JCL/CICS/IMS/Db2 inventory' }
+  ];
+
+  // The pickSvc helper above isn't valid JS — use plain object lookup
+  function lookup(cloud, table) { return table[cloud] || table['aws']; }
+
+  // Re-build SPEC properly
+  const PICKS = {
+    compute: { aws:'EC2 m6i.2xlarge + Auto Scaling', azure:'Azure VMs D8s v5 + VMSS', gcp:'Compute Engine n2-standard-8 + MIG', oci:'OCI VM.Standard3.Flex', ibm:'IBM Virtual Server bx2.8x32', private:'VMware vSphere 8 + DRS' },
+    network: { aws:'VPC + ALB + Transit Gateway + Route53', azure:'VNet + Application Gateway + Front Door + Private DNS', gcp:'VPC + Cloud Load Balancing + Cloud DNS', oci:'VCN + Flexible LB + DNS', ibm:'VPC + Application LB + IBM Cloud DNS', private:'F5 BIG-IP + BGP + Infoblox DNS' },
+    db:      { aws:'Aurora PostgreSQL r6g.2xlarge · 3 AZ', azure:'Azure SQL Hyperscale GP_Gen5_8', gcp:'Cloud SQL PostgreSQL HA 8 vCPU', oci:'Autonomous DB 8 OCPU', ibm:'Db2 on Cloud Enterprise 16 vCPU', private:'PostgreSQL 16 on bare metal + Patroni HA' },
+    security:{ aws:'IAM + KMS + GuardDuty + Security Hub + WAF', azure:'Entra ID + Key Vault + Defender + Sentinel', gcp:'IAM + KMS + Security Command Center', oci:'IAM + Vault + Cloud Guard', ibm:'IAM + Key Protect + QRadar on Cloud', private:'CyberArk + Thales HSM + Splunk SIEM' },
+    k8s:     { aws:'EKS 1.30 + Karpenter + Fargate Spot', azure:'AKS 1.30 + Virtual Nodes (ACI)', gcp:'GKE Autopilot 1.30', oci:'OKE 1.30 + Virtual Nodes', ibm:'IKS / Red Hat OpenShift on IBM', private:'OpenShift 4.16 on RHEL / vSphere' },
+    ai:      { aws:'Bedrock + SageMaker + Comprehend', azure:'Azure AI Foundry + Azure OpenAI + ML Studio', gcp:'Vertex AI + Gemini + Document AI', oci:'OCI Generative AI + Data Science', ibm:'watsonx.ai + watsonx.governance', private:'NVIDIA Triton + Kubeflow + on-prem GPU pool' },
+    web:     { aws:'CloudFront + S3 + Lambda@Edge', azure:'Azure Front Door + Static Web Apps + CDN', gcp:'Cloud CDN + Cloud Storage + Cloud Run', oci:'OCI CDN + Object Storage + Functions', ibm:'IBM CDN + Cloud Object Storage + Code Engine', private:'NGINX + Varnish + on-prem object store' },
+    desktop: { aws:'WorkSpaces + AppStream 2.0', azure:'Windows 365 Cloud PC + Azure Virtual Desktop', gcp:'Chrome Enterprise + Cameyo', oci:'Citrix on OCI', ibm:'Citrix Cloud on IBM', private:'Citrix XenApp + VMware Horizon' },
+    legacy:  { aws:'Mainframe Modernization + AppStream + DMS', azure:'Heirloom on Azure + Database Migration Service', gcp:'AS/400 → GCP via Astadia', oci:'Heritage on Oracle stack · COBOL emulator', ibm:'Z on IBM Cloud + LinuxONE', private:'IBM z16 mainframe + AS/400 + COBOL/CICS' }
+  };
+  const LAYERS = [
+    { layer:'1 · Compute',      ic:'🖥', svc: lookup(cloud, PICKS.compute),  sizing:'8 vCPU · 32GB RAM per node · 6 nodes (3 AZ × 2)',  notes:'Auto-scaled by CPU 60% target · spot/preemptible 30% blend in non-prod' },
+    { layer:'2 · Networking',   ic:'🔌', svc: lookup(cloud, PICKS.network),  sizing:'10 Gbps inter-AZ · sub-2 ms p99 latency',           notes:'WAF in front · TLS 1.3 only · IPv6 dual-stack' },
+    { layer:'3 · Database',     ic:'🗄', svc: lookup(cloud, PICKS.db),       sizing:'500 GB primary · 2 read replicas · PITR 35d',      notes:'Encrypted at rest (CMK) · Column-level encryption for PII' },
+    { layer:'4 · Security',     ic:'🔐', svc: lookup(cloud, PICKS.security), sizing:'FIPS 140-2 L3 HSM · 90-day key rotation',           notes:'Zero trust · mTLS · OAuth 2.1 + OIDC · just-in-time admin via PAM' },
+    { layer:'5 · Containers',   ic:'📦', svc: lookup(cloud, PICKS.k8s),      sizing:'3 control plane · 6 worker pools · GitOps via Argo CD', notes:'Service mesh (Istio) for mTLS · OPA Gatekeeper policies' },
+    { layer:'6 · AI / ML',      ic:'🧠', svc: lookup(cloud, PICKS.ai),       sizing:'A100 / H100 GPUs for inference · vector store 32 GB', notes:'Model evals · PII redaction in prompts · audit trail of LLM calls' },
+    { layer:'7 · Web apps',     ic:'🌐', svc: lookup(cloud, PICKS.web),      sizing:'Global PoPs · TLS termination at edge · HTTP/3',    notes:'CSP + SRI · Subresource integrity · Strict-Transport-Security' },
+    { layer:'8 · Desktop apps', ic:'🖱', svc: lookup(cloud, PICKS.desktop),  sizing:'200 concurrent users · 4 vCPU · 16 GB / session',  notes:'CISO-approved gold image · MFA at session start · DLP enforced' },
+    { layer:'9 · Legacy apps',  ic:'🏛', svc: lookup(cloud, PICKS.legacy),
+      sizing: verdict === 'RETAIN' ? 'Retained in-place · IBM z/OS or i'
+            : verdict === 'REPLACE' ? 'Decommissioned · functionality re-platformed'
+            : 'Strangler pattern · 18-36 month phase-out',
+      notes:'Homogeneous (lift-and-shift) and heterogeneous (re-platform) · COBOL/JCL/CICS/IMS/Db2 inventory' }
+  ];
+
+  let host = document.getElementById('di-specs-modal');
+  if (host) host.remove();
+  host = document.createElement('div');
+  host.id = 'di-specs-modal';
+  host.style.cssText = 'position:fixed;inset:0;background:rgba(20,33,58,.5);display:flex;align-items:center;justify-content:center;z-index:99990;font-family:var(--f-ui)';
+
+  let rowsHtml = '';
+  LAYERS.forEach(l => {
+    rowsHtml +=
+      '<div style="display:grid;grid-template-columns:200px 1fr 160px;gap:12px;padding:12px 14px;border-bottom:1px solid #E2E7F1;align-items:start">' +
+        '<div><div style="font-size:11px;font-weight:700;color:var(--ink);letter-spacing:.06em;text-transform:uppercase">' + l.ic + ' ' + l.layer + '</div>' +
+          '<div style="font-size:10.5px;color:var(--ink-2);margin-top:5px">' + l.notes + '</div></div>' +
+        '<div><div style="font-size:12.5px;font-weight:600;color:var(--ink);font-family:var(--f-mono)">' + l.svc + '</div></div>' +
+        '<div style="font-size:11px;color:var(--ink-2);text-align:right;line-height:1.45">' + l.sizing + '</div>' +
+      '</div>';
+  });
+
+  host.innerHTML =
+    '<div style="background:#fff;border-radius:14px;max-width:920px;width:94vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px -16px rgba(20,33,58,.4)">' +
+      '<div style="padding:18px 22px;background:linear-gradient(180deg,#FFFCF4,#fff);border-bottom:1px solid #E2E7F1;display:flex;justify-content:space-between;align-items:center">' +
+        '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase">9-LAYER INFRASTRUCTURE SPEC</div>' +
+          '<div style="font-family:var(--f-head);font-size:18px;font-weight:600;color:var(--ink);margin-top:3px">' + cap.name + ' · ' + cloudName + ' · ' + verdict + '</div>' +
+          '<div style="font-size:11.5px;color:var(--ink-2);margin-top:3px">Sizing assumptions are typical for tier-1 retail bank · adjust in your detailed design</div></div>' +
+        '<button onclick="document.getElementById(\'di-specs-modal\').remove()" style="background:#fff;border:1px solid #E2E7F1;border-radius:8px;padding:7px 13px;font-size:12px;color:var(--ink);cursor:pointer;font-family:inherit">Close ✕</button>' +
+      '</div>' +
+      '<div style="overflow-y:auto;flex:1">' + rowsHtml + '</div>' +
+      '<div style="padding:11px 22px;background:var(--canvas);border-top:1px solid var(--border);font-size:10.5px;color:var(--ink-2);display:flex;justify-content:space-between">' +
+        '<span>Includes legacy: <strong>homogeneous</strong> (lift-and-shift COBOL → emulator) + <strong>heterogeneous</strong> (re-platform → Java/Spring) + <strong>mainframe</strong> (IBM z, AS/400)</span>' +
+        '<span style="color:var(--gold);font-weight:700">Phase 22.2 · DI Platform</span>' +
+      '</div>' +
+    '</div>';
+
+  host.addEventListener('click', e => { if (e.target === host) host.remove(); });
+  document.body.appendChild(host);
+
+  if (window.DI && window.DI.audit) window.DI.audit.log('architecture', 'specs-view', { capId, cloud, verdict });
+}
 
 /* Phase 21.4 — Per-cloud architecture blueprint (auto-generated SVG) */
 const CLOUD_PALETTE = {
@@ -616,28 +781,4 @@ function generateEvp() {
     sentAt: new Date().toISOString(),
     capabilities: STATE.capabilities.map(c => {
       const cloud = STATE.picks[c.id] || 'AWS';
-      const all = window.DI.pricing.estimate({ capabilityId:c.id, verdict:c.verdict }, { region:STATE.region, model:STATE.model, currency:STATE.currency, discount:STATE.discount, components:includeComponents });
-      return Object.assign({}, c, { chosenCloud: cloud, monthly: all[cloud].total, tco3yr: all[cloud].tco3yr });
-    }),
-    filters: { region:STATE.region, model:STATE.model, currency:STATE.currency, discount:STATE.discount }
-  };
-  try { localStorage.setItem('di_evp_input', JSON.stringify(payload)); } catch(e){}
-  window.DI && window.DI.toast && window.DI.toast({ kind:'info', icon:'📊', title:'Generating EVP summary…', message:'Opening board-ready summary.' });
-  setTimeout(() => { location.href = 'evp-summary.html'; }, 600);
-}
-
-/* ── Bootstrap ──────────────────────────────────────── */
-loadState();
-const fromDiscovery = consumeHandoff();
-initFilters();
-render();
-
-if (fromDiscovery) {
-  setTimeout(() => {
-    window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'📥', title:'Discovery handoff received', message:'Imported ' + STATE.capabilities.length + ' capabilities. Pricing applied below.', duration:4500 });
-  }, 800);
-}
-</script>
-
-</body>
-</html>
+      const all = window.DI.pricing.estimate({ capability

@@ -20,6 +20,18 @@
   if (window.DI && window.DI.cmdk) return;
   window.DI = window.DI || {};
 
+  function decodeEntities(s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, ' ');
+  }
+
+
   const PAGES = [
     { id:'home',         name:'Home',                  href:'home.html',              kind:'page',  hint:'Tile dashboard',           keys:'g h' },
     { id:'nishi',        name:'Nishi · AI assistant',  href:'nishi-chatbot.html',     kind:'page',  hint:'Chat + voice',             keys:'g n' },
@@ -33,6 +45,11 @@
     { id:'requirements', name:'AI Requirements',       href:'requirements.html',      kind:'page',  hint:'Role-tagged · 4 lenses · regulatory clauses', keys:'g r' },
     { id:'actions',      name:'Role-based Actions',    href:'actions.html',           kind:'page',  hint:'Filters · KPIs · drill-down · leadership recommendation', keys:'g k' },
     { id:'blockchain',   name:'Blockchain & RWA',      href:'blockchain-rwa.html',    kind:'page',  hint:'Tokenization wizard · jurisdiction stance · roadmap', keys:'g b' }
+  ];
+
+  const ACTIONS = [
+    { id:'act-snapshot-xlsx', name:'⬇ Excel · Platform snapshot (all sheets)', kind:'action', hint:'Profile · Discovery · Architecture · Requirements · Actions · RAID · SOW · Audit', run: function () { if (window.DI && window.DI.export) window.DI.export.canonicalToWorkbook('di-platform-snapshot-' + new Date().toISOString().slice(0,10) + '.xlsx'); } },
+    { id:'act-snapshot-json', name:'⬇ JSON · Platform snapshot', kind:'action', hint:'Canonical artifact bundle as JSON', run: function () { if (window.DI && window.DI.export) window.DI.export.json('di-platform-snapshot-' + new Date().toISOString().slice(0,10) + '.json', window.DI.export.canonical()); } }
   ];
 
   const FEATURE_EXPLAINERS = [
@@ -79,7 +96,7 @@
       if (!gov || !gov.raid) return [];
       return gov.raid.map(r => ({
         id: 'raid-' + r.id,
-        name: r.id + ' · ' + (r.desc || '').replace(/<[^>]+>/g, '').slice(0, 80),
+        name: r.id + ' · ' + decodeEntities((r.desc || '').replace(/<[^>]+>/g, '')).slice(0, 80),
         href: 'program-governance.html',
         kind: 'raid',
         hint: r.type + ' · ' + r.sev + ' · ' + r.status
@@ -167,6 +184,7 @@
 
   function gatherAll() {
     return PAGES.map(p => Object.assign({}, p))
+      .concat(ACTIONS)
       .concat(FEATURE_EXPLAINERS)
       .concat(loadArtifacts())
       .concat(loadRaidItems());
@@ -192,10 +210,10 @@
     }
 
     // Group by kind
-    const groups = { page:[], walkthrough:[], artifact:[], raid:[], nishi:[] };
+    const groups = { page:[], action:[], walkthrough:[], artifact:[], raid:[], nishi:[] };
     results.forEach(r => { (groups[r.kind] || (groups[r.kind] = [])).push(r); });
-    const order = ['page','artifact','raid','walkthrough','nishi'];
-    const titles = { page:'Pages', walkthrough:'Feature walkthroughs', artifact:'Recent artifacts', raid:'RAID items', nishi:'Ask Nishi' };
+    const order = ['page','action','artifact','raid','walkthrough','nishi'];
+    const titles = { page:'Pages', action:'Actions', walkthrough:'Feature walkthroughs', artifact:'Recent artifacts', raid:'RAID items', nishi:'Ask Nishi' };
     let html = '';
     let i = 0;
     order.forEach(k => {
@@ -203,6 +221,7 @@
       html += '<div class="di-cmdk-group">' + titles[k] + '</div>';
       groups[k].forEach(r => {
         const icon = k === 'page' ? '📄'
+                   : k === 'action' ? '⚡'
                    : k === 'walkthrough' ? '▶'
                    : k === 'artifact' ? '📁'
                    : k === 'raid' ? '⚠'
@@ -237,7 +256,12 @@
     const r = results[cursor];
     if (!r) return;
     if (window.DI && window.DI.audit) window.DI.audit.log('cmdk', 'activate', { kind:r.kind, name:r.name });
-    location.href = r.href;
+    if (r.kind === 'action' && typeof r.run === 'function') {
+      close();
+      try { r.run(); } catch (e) { if (window.DI && window.DI.toast) window.DI.toast({ kind:'err', title:'Action failed', message: e.message }); }
+      return;
+    }
+    if (r.href) location.href = r.href;
   }
 
   function open() {

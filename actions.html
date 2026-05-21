@@ -11,6 +11,7 @@
 <script src="assets/cmdk.js" defer></script>
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
+<script src="assets/export.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -392,6 +393,7 @@ function renderTable() {
       '<button onclick="regenerate()">↻ Refresh from sources</button>' +
       '<button onclick="exportActions(\'csv\')">⬇ CSV</button>' +
       '<button onclick="exportActions(\'json\')">⬇ JSON</button>' +
+      '<button onclick="exportActions(\'xlsx\')">⬇ Excel</button>' +
     '</div></div>';
 
   html += '<div class="ac-table"><table>' +
@@ -461,13 +463,36 @@ function updateStatus(id, newStatus) {
 }
 
 function exportActions(fmt) {
+  const stamp = new Date().toISOString().slice(0,10);
   if (fmt === 'json') {
     const blob = new Blob([JSON.stringify(STATE.actions, null, 2)], { type:'application/json' });
-    download(blob, 'actions-' + new Date().toISOString().slice(0,10) + '.json');
+    download(blob, 'actions-' + stamp + '.json');
+  } else if (fmt === 'xlsx') {
+    if (!(window.DI && window.DI.export)) {
+      if (window.DI && window.DI.toast) window.DI.toast({ kind:'err', title:'Export', message:'Excel exporter not loaded — refresh and retry.' });
+      return;
+    }
+    const rows = STATE.actions.map(a => ({
+      ID: a.id,
+      Title: a.title,
+      Role: a.role,
+      Owner: a.ownerName || '',
+      Priority: a.priority,
+      Status: a.status,
+      Due: a.due,
+      Source: a.source,
+      'Dollar Impact': a.dollarImpact || 0,
+      Description: a.desc || '',
+      Recommendation: a.recommendation || '',
+      Outcome: a.outcome || ''
+    }));
+    window.DI.export.workbook('actions-' + stamp + '.xlsx', [
+      { name:'Actions', rows, colWidths:[10, 40, 22, 22, 9, 14, 12, 14, 14, 60, 60, 50] }
+    ]);
   } else {
     const csv = 'ID,Title,Role,Owner,Priority,Status,Due,Source,$ Impact,Outcome\n' +
       STATE.actions.map(a => [a.id, '"'+a.title.replace(/"/g,'""')+'"', a.role, a.ownerName||'', a.priority, a.status, a.due, a.source, a.dollarImpact||0, '"'+(a.outcome||'').replace(/"/g,'""')+'"'].join(',')).join('\n');
-    download(new Blob([csv],{type:'text/csv'}), 'actions-' + new Date().toISOString().slice(0,10) + '.csv');
+    download(new Blob([csv],{type:'text/csv'}), 'actions-' + stamp + '.csv');
   }
 }
 function download(blob, name) {

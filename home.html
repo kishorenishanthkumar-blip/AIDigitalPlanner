@@ -12,6 +12,7 @@
 <script src="assets/cmdk.js" defer></script>
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
+<script src="assets/export.js" defer></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,400&family=Outfit:wght@300;400;500;600;700&display=swap');
 
@@ -185,9 +186,20 @@ button{font-family:var(--f-ui);cursor:pointer}
       <div class="resume-bar"><div style="width:71%"></div></div>
       <button class="resume-cta" onclick="location.href='discovery-studio.html'">Resume →</button>
       <button class="resume-link" onclick="location.href='nishi-chatbot.html'">Start something new</button>
+      <button class="resume-link" onclick="exportPlatformSnapshot()">⬇ Platform snapshot (Excel)</button>
     </div>
   </div>
 </section>
+
+<script>
+function exportPlatformSnapshot() {
+  if (!(window.DI && window.DI.export)) {
+    window.DI && window.DI.toast && window.DI.toast({ kind:'err', title:'Export', message:'Excel exporter not loaded — refresh and retry.' });
+    return;
+  }
+  window.DI.export.canonicalToWorkbook('di-platform-snapshot-' + new Date().toISOString().slice(0,10) + '.xlsx');
+}
+</script>
 
 <!-- Recent items strip (Phase 18.4) -->
 <section class="recent-strip" id="recent-strip" style="display:none">
