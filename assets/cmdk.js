@@ -44,7 +44,9 @@
     { id:'operations',   name:'Operations',            href:'operations.html',        kind:'page',  hint:'KPI tiles · FinOps · incidents', keys:'g o' },
     { id:'requirements', name:'AI Requirements',       href:'requirements.html',      kind:'page',  hint:'Role-tagged · 4 lenses · regulatory clauses', keys:'g r' },
     { id:'actions',      name:'Role-based Actions',    href:'actions.html',           kind:'page',  hint:'Filters · KPIs · drill-down · leadership recommendation', keys:'g k' },
-    { id:'blockchain',   name:'Blockchain & RWA',      href:'blockchain-rwa.html',    kind:'page',  hint:'Tokenization wizard · jurisdiction stance · roadmap', keys:'g b' }
+    { id:'blockchain',   name:'Blockchain & RWA',      href:'blockchain-rwa.html',    kind:'page',  hint:'Tokenization wizard · jurisdiction stance · roadmap', keys:'g b' },
+    { id:'knowledge',    name:'Knowledge Artifacts',   href:'knowledge.html',         kind:'page',  hint:'Repository · templates · playbooks · patterns · regulatory', keys:'g w' },
+    { id:'iac',          name:'IaC Bundle Generator',  href:'iac.html',               kind:'page',  hint:'Terraform · Helm · GitHub Actions · per-cloud scaffolds', keys:'g i' }
   ];
 
   const ACTIONS = [

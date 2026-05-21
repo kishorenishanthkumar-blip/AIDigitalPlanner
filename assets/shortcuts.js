@@ -169,7 +169,7 @@
 
     // g X navigation sequences
     if (gPending) {
-      const map = { h:'home.html', n:'nishi-chatbot.html', d:'discovery-studio.html', a:'architecture-studio.html', e:'evp-summary.html', s:'sow.html', g:'program-governance.html', q:'questionnaire.html', o:'operations.html', r:'requirements.html', k:'actions.html', b:'blockchain-rwa.html' };
+      const map = { h:'home.html', n:'nishi-chatbot.html', d:'discovery-studio.html', a:'architecture-studio.html', e:'evp-summary.html', s:'sow.html', g:'program-governance.html', q:'questionnaire.html', o:'operations.html', r:'requirements.html', k:'actions.html', b:'blockchain-rwa.html', w:'knowledge.html', i:'iac.html' };
       if (map[e.key]) { e.preventDefault(); location.href = map[e.key]; }
       gPending = false;
       clearTimeout(gTimer);

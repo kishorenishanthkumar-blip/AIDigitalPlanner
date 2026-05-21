@@ -21,9 +21,10 @@
     { id: 'architecture', icon: '🏗', name: 'Architecture design',  desc: '7R-aligned architectures across 6 clouds.',           badge: 'LIVE' },
     { id: 'blockchain',   icon: '🪙', name: 'Blockchain & RWA',     desc: 'Tokenization & on-chain settlement patterns.',         badge: 'LIVE', href: 'blockchain-rwa.html' },
     { id: 'actions',      icon: '🎯', name: 'Role-based Actions',   desc: 'Aggregated actions by role · KPIs · drill-down.',      badge: 'LIVE', href: 'actions.html' },
-    { id: 'knowledge',    icon: '📚', name: 'Knowledge artifacts',  desc: 'RAG-backed institutional memory.',                     badge: 'BETA' },
+    { id: 'knowledge',    icon: '📚', name: 'Knowledge artifacts',  desc: 'Repository of past artifacts, templates, playbooks, regulatory checklists, patterns.', badge: 'LIVE', href: 'knowledge.html' },
     { id: 'export',       icon: '⬇',  name: 'Export reports',       desc: 'Markdown · JSON · MS Project · DR runbook.',          badge: 'LIVE' },
-    { id: 'sevenr',       icon: '🔄', name: '7R migration planner', desc: 'Rehost · Replatform · Refactor · …',                  badge: 'LIVE', href: 'discovery-studio.html' }
+    { id: 'sevenr',       icon: '🔄', name: '7R migration planner', desc: 'Rehost · Replatform · Refactor · …',                  badge: 'LIVE', href: 'discovery-studio.html' },
+    { id: 'iac',          icon: '⚙', name: 'IaC bundle generator', desc: 'Terraform · Helm · GitHub Actions scaffolds.',         badge: 'LIVE', href: 'iac.html' }
   ];
 
   // Top-level navigation

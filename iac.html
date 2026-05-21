@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IaC Bundle Generator · DI Platform</title>
+<meta name="description" content="Generate Terraform · Helm · GitHub Actions scaffolds tailored to your picked cloud and capabilities."/>
+<link rel="stylesheet" href="assets/theme.css">
+<script src="assets/toasts.js" defer></script>
+<script src="assets/audit.js" defer></script>
+<script src="assets/cmdk.js" defer></script>
+<script src="assets/shortcuts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/export.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+a{color:var(--gold);text-decoration:none}
+
+.iac-hero{background:linear-gradient(135deg,#1A2238,#243655);color:#fff;padding:24px 28px}
+.iac-hero-wrap{max-width:1280px;margin:0 auto}
+.iac-pre{font-size:11px;font-weight:700;color:var(--gold-3);letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+.iac-h1{font-family:var(--f-head);font-size:26px;font-weight:600;line-height:1.18}
+.iac-h1 em{font-style:italic;color:var(--gold-3)}
+.iac-sub{font-size:12.5px;color:#C8D2E2;margin-top:8px;max-width:760px;line-height:1.55}
+
+.iac-tools{background:#fff;border-bottom:1px solid var(--border);padding:14px 28px}
+.iac-tools-wrap{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:900px){.iac-tools-wrap{grid-template-columns:repeat(2,1fr)}}
+.iac-field{display:flex;flex-direction:column;gap:5px}
+.iac-field .lbl{font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase}
+.iac-field select,.iac-field input{padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;color:var(--ink);background:var(--canvas);font-family:inherit;outline:none}
+.iac-field select:focus,.iac-field input:focus{border-color:var(--gold)}
+
+.iac-main{max-width:1280px;margin:0 auto;padding:22px 28px 40px;display:grid;grid-template-columns:1fr 380px;gap:18px}
+@media (max-width:900px){.iac-main{grid-template-columns:1fr}}
+
+.iac-modules{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.iac-modules h2{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--ink)}
+.iac-mod-group{border:1px dashed var(--border);border-radius:10px;padding:12px}
+.iac-mod-group .ghd{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.iac-mod-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.iac-mod{background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:flex-start;gap:9px;cursor:pointer;transition:.15s}
+.iac-mod:hover{border-color:var(--gold-2)}
+.iac-mod.act{background:var(--aglow);border-color:var(--gold)}
+.iac-mod input{accent-color:var(--gold);margin-top:2px}
+.iac-mod .body{flex:1}
+.iac-mod .name{font-size:12px;font-weight:700;color:var(--ink)}
+.iac-mod .desc{font-size:10.5px;color:var(--ink-2);margin-top:2px;line-height:1.4}
+
+.iac-preview{background:#fff;border:1px solid var(--border);border-radius:12px;padding:0;display:flex;flex-direction:column;max-height:78vh;position:sticky;top:14px}
+.iac-preview-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,#FFFCF4,#fff)}
+.iac-preview-h h3{font-family:var(--f-head);font-size:14px;font-weight:600;color:var(--ink)}
+.iac-preview-h .meta{font-size:10.5px;color:var(--ink-2)}
+.iac-tree{padding:12px 18px;font-family:var(--f-mono);font-size:11.5px;color:var(--ink);overflow-y:auto;flex:1;line-height:1.6;background:#0E1A30;color:#D8E1F0}
+.iac-tree .dir{color:#F7B843;font-weight:700}
+.iac-tree .file{color:#9AC7FF}
+.iac-tree .lbl{color:#8AA4C8;font-size:10px;margin-left:6px}
+.iac-cta{padding:12px 18px;background:var(--canvas);border-top:1px solid var(--border);display:flex;gap:8px}
+.iac-cta button{flex:1;padding:9px 14px;font-size:12px;font-weight:700;border-radius:8px;cursor:pointer;font-family:inherit}
+.iac-cta .primary{background:var(--gold);color:#fff;border:none}
+.iac-cta .primary:hover{background:var(--gold-2)}
+.iac-cta .ghost{background:#fff;border:1px solid var(--border);color:var(--ink)}
+.iac-cta .ghost:hover{border-color:var(--gold);color:var(--gold)}
+
+.iac-banner{background:#FFFCF4;border:1px solid var(--gold-2);border-radius:10px;padding:11px 14px;font-size:11.5px;color:#7A5F10;margin-bottom:14px;line-height:1.55}
+.iac-banner strong{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<section class="iac-hero">
+  <div class="iac-hero-wrap">
+    <div class="iac-pre">IAC BUNDLE GENERATOR · PHASE 23.2</div>
+    <h1 class="iac-h1">From 7R map to a working <em>Terraform · Helm · GitHub Actions</em> scaffold.</h1>
+    <p class="iac-sub">Pick your cloud, region, and which modules to include. The generator stitches together a tar.gz bundle with cloud-native Terraform, Helm chart, and CI workflows — wired to your Discovery + Architecture decisions.</p>
+  </div>
+</section>
+
+<section class="iac-tools">
+  <div class="iac-tools-wrap">
+    <div class="iac-field"><span class="lbl">Cloud target</span>
+      <select id="i-cloud">
+        <option value="aws">AWS</option>
+        <option value="azure">Azure</option>
+        <option value="gcp">GCP</option>
+        <option value="oci">OCI</option>
+        <option value="ibm">IBM Cloud</option>
+        <option value="private">Private DC / OpenShift</option>
+      </select>
+    </div>
+    <div class="iac-field"><span class="lbl">Region</span>
+      <select id="i-region">
+        <option value="us-east-1">US-East</option>
+        <option value="eu-west-1">EU-West</option>
+        <option value="ap-southeast-1">APAC-Singapore</option>
+        <option value="ap-south-1">India</option>
+        <option value="me-south-1">Middle East</option>
+      </select>
+    </div>
+    <div class="iac-field"><span class="lbl">Environment</span>
+      <select id="i-env">
+        <option value="dev">Dev</option>
+        <option value="stg">Staging</option>
+        <option value="prod" selected>Production</option>
+      </select>
+    </div>
+    <div class="iac-field"><span class="lbl">Project name</span>
+      <input id="i-proj" type="text" value="banking-modernization" placeholder="banking-modernization">
+    </div>
+  </div>
+</section>
+
+<main class="iac-main">
+  <div class="iac-modules" id="iac-modules"></div>
+  <div class="iac-preview">
+    <div class="iac-preview-h">
+      <div>
+        <h3>📦 Bundle preview</h3>
+        <div class="meta" id="iac-meta">Pick modules · live preview updates</div>
+      </div>
+    </div>
+    <div class="iac-tree" id="iac-tree"></div>
+    <div class="iac-cta">
+      <button class="ghost" onclick="downloadTar()">⬇ tar.gz</button>
+      <button class="primary" onclick="downloadZip()">⬇ Download .zip</button>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   IaC bundle generator · Phase 23.2
+   Builds a tar.gz / zip with:
+     - terraform/ modules (cloud-specific)
+     - helm/ chart (deployment + service + ingress + HPA)
+     - .github/workflows/ pipelines (build · test · deploy · gated promote)
+     - README.md · Makefile
+   JSZip is loaded lazily from CDN.
+═══════════════════════════════════════════════════════ */
+
+const JSZIP_CDN = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+
+const MODULES = [
+  /* Terraform infra */
+  { id:'tf-network',   group:'Terraform · Foundations',     name:'VPC / Network',        desc:'3-AZ VPC · public + private subnets · NAT GW · flow logs', on:true },
+  { id:'tf-iam',       group:'Terraform · Foundations',     name:'IAM / RBAC',           desc:'Roles for CI · GitOps · least-privilege boundaries',         on:true },
+  { id:'tf-kms',       group:'Terraform · Foundations',     name:'KMS · key management', desc:'CMK + rotation · per-service grants',                          on:true },
+  { id:'tf-logging',   group:'Terraform · Foundations',     name:'Logging + audit',      desc:'CloudWatch / Azure Monitor / Cloud Logging with retention',    on:true },
+
+  { id:'tf-k8s',       group:'Terraform · Compute',         name:'Kubernetes cluster',   desc:'EKS / AKS / GKE / OKE managed control plane',                   on:true },
+  { id:'tf-rds',       group:'Terraform · Compute',         name:'Database',             desc:'Aurora / Azure SQL / Cloud SQL · 3-AZ · 35d PITR',              on:true },
+  { id:'tf-events',    group:'Terraform · Compute',         name:'Event backbone',       desc:'Kafka / MSK / Event Hubs / Pub-Sub',                            on:false },
+  { id:'tf-cache',     group:'Terraform · Compute',         name:'Redis cache',          desc:'ElastiCache / Azure Redis / Memorystore',                        on:false },
+
+  { id:'tf-waf',       group:'Terraform · Edge',            name:'WAF · CDN · DNS',      desc:'CloudFront / Front Door / Cloud CDN + Route53/DNS',             on:true },
+  { id:'tf-secrets',   group:'Terraform · Edge',            name:'Secrets manager',      desc:'AWS Secrets Mgr / Azure Key Vault / GCP SM with rotation',      on:true },
+
+  /* Helm */
+  { id:'helm-app',     group:'Helm · Application chart',    name:'Deployment + service', desc:'Strategy: RollingUpdate · readiness/liveness probes',           on:true },
+  { id:'helm-ingress', group:'Helm · Application chart',    name:'Ingress + TLS',        desc:'cert-manager + Let\'s Encrypt / ACM cert reference',           on:true },
+  { id:'helm-hpa',     group:'Helm · Application chart',    name:'HPA + PDB',            desc:'CPU 60% target · min/max replicas · PodDisruptionBudget',      on:true },
+  { id:'helm-mesh',    group:'Helm · Application chart',    name:'Istio sidecar',        desc:'mTLS + auth policy · destination rules',                        on:false },
+
+  /* GH Actions */
+  { id:'gha-build',    group:'GitHub Actions',              name:'CI · build + test',    desc:'Lint · unit · integration · SBOM · image scan',                 on:true },
+  { id:'gha-deploy',   group:'GitHub Actions',              name:'CD · deploy staging',  desc:'Helm upgrade · gated by manual approval to prod',               on:true },
+  { id:'gha-promote',  group:'GitHub Actions',              name:'Promote prod',         desc:'Tag-based promote · canary 10% → 50% → 100% with metrics gate', on:true },
+  { id:'gha-rollback', group:'GitHub Actions',              name:'Rollback workflow',    desc:'Helm rollback · DR runbook · automated PagerDuty page',          on:true }
+];
+
+const STATE = {
+  cloud:'aws', region:'us-east-1', env:'prod', proj:'banking-modernization',
+  modules: Object.fromEntries(MODULES.map(m => [m.id, m.on]))
+};
+
+function setField(key, val) { STATE[key] = val; renderPreview(); }
+function toggleMod(id) { STATE.modules[id] = !STATE.modules[id]; renderModules(); renderPreview(); }
+
+function renderModules() {
+  const wrap = document.getElementById('iac-modules');
+  wrap.innerHTML = '<h2>Pick the modules you want in the bundle</h2>' +
+    '<div class="iac-banner">⚠ Generated scaffolds are <strong>opinionated starting points</strong> — review carefully before applying to production. Wired to your Architecture Studio picks where available.</div>';
+
+  // Group
+  const groups = {};
+  MODULES.forEach(m => { (groups[m.group] = groups[m.group] || []).push(m); });
+  Object.keys(groups).forEach(g => {
+    wrap.innerHTML += '<div class="iac-mod-group">' +
+      '<div class="ghd">' + g + '</div>' +
+      '<div class="iac-mod-list">' +
+        groups[g].map(m => {
+          const on = !!STATE.modules[m.id];
+          return '<label class="iac-mod ' + (on ? 'act' : '') + '">' +
+            '<input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="toggleMod(\'' + m.id + '\')">' +
+            '<div class="body"><div class="name">' + m.name + '</div><div class="desc">' + m.desc + '</div></div>' +
+          '</label>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  });
+}
+
+function pickedCaps() {
+  // Try to pull picked capabilities from Architecture state, fallback to Discovery
+  try {
+    const arch = JSON.parse(localStorage.getItem('di_architecture_v1') || 'null');
+    if (arch && arch.picks) {
+      const disc = JSON.parse(localStorage.getItem('di_discovery_v1') || 'null');
+      const all  = disc && disc.results && disc.results.capabilities || [];
+      return Object.keys(arch.picks).map(id => all.find(c => c.id === id)).filter(Boolean);
+    }
+  } catch (e) {}
+  try {
+    const disc = JSON.parse(localStorage.getItem('di_discovery_v1') || 'null');
+    return (disc && disc.results && disc.results.capabilities) || [];
+  } catch (e) { return []; }
+}
+
+function fileTree() {
+  const tree = [];
+  const cloud = STATE.cloud;
+  const proj  = STATE.proj || 'banking-modernization';
+  const caps  = pickedCaps();
+
+  tree.push({ d: proj + '/', lbl:'root project' });
+  tree.push({ d: 'README.md', lbl:'overview · prereqs · how to apply' });
+  tree.push({ d: 'Makefile', lbl:'shortcuts: make plan / apply / destroy' });
+  tree.push({ d: '.gitignore' });
+
+  /* Terraform */
+  if (Object.values(STATE.modules).some(v => v)) {
+    tree.push({ d:'terraform/', lbl:'Infrastructure' });
+    tree.push({ d:'  ' + cloud + '/', lbl:cloud.toUpperCase() + ' modules' });
+    tree.push({ d:'    main.tf' });
+    tree.push({ d:'    variables.tf' });
+    tree.push({ d:'    outputs.tf' });
+    tree.push({ d:'    versions.tf' });
+    tree.push({ d:'    backend.tf', lbl:'remote state' });
+    if (STATE.modules['tf-network'])  tree.push({ d:'    modules/network/', lbl:'VPC · subnets · NAT' });
+    if (STATE.modules['tf-iam'])      tree.push({ d:'    modules/iam/' });
+    if (STATE.modules['tf-kms'])      tree.push({ d:'    modules/kms/' });
+    if (STATE.modules['tf-logging'])  tree.push({ d:'    modules/logging/' });
+    if (STATE.modules['tf-k8s'])      tree.push({ d:'    modules/k8s/', lbl: cloud === 'aws' ? 'EKS' : cloud === 'azure' ? 'AKS' : cloud === 'gcp' ? 'GKE' : cloud === 'oci' ? 'OKE' : 'OpenShift' });
+    if (STATE.modules['tf-rds'])      tree.push({ d:'    modules/database/', lbl: cloud === 'aws' ? 'Aurora PG' : cloud === 'azure' ? 'Azure SQL' : 'Cloud SQL' });
+    if (STATE.modules['tf-events'])   tree.push({ d:'    modules/events/', lbl: cloud === 'aws' ? 'MSK' : cloud === 'azure' ? 'Event Hubs' : 'Pub/Sub' });
+    if (STATE.modules['tf-cache'])    tree.push({ d:'    modules/cache/' });
+    if (STATE.modules['tf-waf'])      tree.push({ d:'    modules/edge/', lbl: 'WAF · CDN · DNS' });
+    if (STATE.modules['tf-secrets'])  tree.push({ d:'    modules/secrets/' });
+    tree.push({ d:'    envs/' });
+    tree.push({ d:'      dev.tfvars' });
+    tree.push({ d:'      stg.tfvars' });
+    tree.push({ d:'      prod.tfvars' });
+  }
+
+  /* Helm */
+  if (STATE.modules['helm-app'] || STATE.modules['helm-ingress'] || STATE.modules['helm-hpa'] || STATE.modules['helm-mesh']) {
+    tree.push({ d:'helm/', lbl:'Application charts' });
+    caps.slice(0, 4).forEach(c => {
+      const slug = (c.id || c.name || 'app').replace(/[^a-z0-9]+/gi,'-').toLowerCase();
+      tree.push({ d:'  ' + slug + '/' });
+      tree.push({ d:'    Chart.yaml' });
+      tree.push({ d:'    values.yaml' });
+      tree.push({ d:'    values-prod.yaml' });
+      tree.push({ d:'    templates/' });
+      if (STATE.modules['helm-app'])     { tree.push({ d:'      deployment.yaml' }); tree.push({ d:'      service.yaml' }); }
+      if (STATE.modules['helm-ingress']) tree.push({ d:'      ingress.yaml' });
+      if (STATE.modules['helm-hpa'])     { tree.push({ d:'      hpa.yaml' }); tree.push({ d:'      pdb.yaml' }); }
+      if (STATE.modules['helm-mesh'])    { tree.push({ d:'      virtualservice.yaml' }); tree.push({ d:'      authorizationpolicy.yaml' }); }
+    });
+    if (caps.length === 0) {
+      tree.push({ d:'  app/', lbl:'starter chart (no capabilities found)' });
+      tree.push({ d:'    Chart.yaml' });
+      tree.push({ d:'    values.yaml' });
+      tree.push({ d:'    templates/deployment.yaml' });
+      tree.push({ d:'    templates/service.yaml' });
+    }
+  }
+
+  /* GitHub Actions */
+  if (STATE.modules['gha-build'] || STATE.modules['gha-deploy'] || STATE.modules['gha-promote'] || STATE.modules['gha-rollback']) {
+    tree.push({ d:'.github/' });
+    tree.push({ d:'  workflows/' });
+    if (STATE.modules['gha-build'])    tree.push({ d:'    ci.yml',                lbl:'PR-triggered build + test' });
+    if (STATE.modules['gha-deploy'])   tree.push({ d:'    cd-staging.yml',        lbl:'main → staging deploy' });
+    if (STATE.modules['gha-promote'])  tree.push({ d:'    cd-prod-promote.yml',   lbl:'tag-triggered canary 10/50/100%' });
+    if (STATE.modules['gha-rollback']) tree.push({ d:'    rollback.yml',           lbl:'helm rollback + paging' });
+  }
+
+  return tree;
+}
+
+function renderPreview() {
+  const tree = fileTree();
+  const wrap = document.getElementById('iac-tree');
+  wrap.innerHTML = tree.map(node => {
+    const isDir = node.d.trim().endsWith('/') || /^[a-zA-Z0-9_.-]+$/.test(node.d.trim()) === false;
+    const indent = node.d.match(/^ */)[0].length;
+    const label  = node.d.trim();
+    const cls    = label.endsWith('/') ? 'dir' : 'file';
+    return '<div><span class="' + cls + '">' + '&nbsp;'.repeat(indent) + label + '</span>' + (node.lbl ? '<span class="lbl"># ' + node.lbl + '</span>' : '') + '</div>';
+  }).join('');
+  const total = tree.length;
+  const caps  = pickedCaps();
+  document.getElementById('iac-meta').textContent = total + ' files · ' + STATE.cloud.toUpperCase() + ' · ' + STATE.env + ' · ' + caps.length + ' capabilities';
+}
+
+/* ── Bundle assembly ────────────────────────────────── */
+function loadJSZip() {
+  if (window.JSZip) return Promise.resolve(window.JSZip);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = JSZIP_CDN;
+    s.onload = () => resolve(window.JSZip);
+    s.onerror = () => reject(new Error('Failed to load JSZip from CDN'));
+    document.head.appendChild(s);
+  });
+}
+
+async function downloadZip() {
+  try {
+    const JSZip = await loadJSZip();
+    const zip = new JSZip();
+    const proj = (STATE.proj || 'banking-modernization').replace(/[^a-z0-9_-]+/gi,'-');
+    const root = zip.folder(proj);
+    buildBundle(root);
+    const blob = await zip.generateAsync({ type:'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = proj + '-iac-' + new Date().toISOString().slice(0,10) + '.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'⬇', title:'Bundle downloaded', message: a.download });
+    if (window.DI && window.DI.audit) window.DI.audit.log('iac', 'download-zip', { cloud:STATE.cloud, env:STATE.env, proj });
+  } catch (e) {
+    window.DI && window.DI.toast && window.DI.toast({ kind:'err', title:'Bundle failed', message: e.message });
+  }
+}
+
+async function downloadTar() {
+  // tar.gz support would need pako + tar-stream; for now we fall back to .zip with a notice
+  window.DI && window.DI.toast && window.DI.toast({ kind:'info', icon:'ℹ', title:'tar.gz ships in 23.2.1', message:'For now, .zip extracts identically on all OSes. Downloading .zip…' });
+  await downloadZip();
+}
+
+function buildBundle(root) {
+  const cloud = STATE.cloud;
+  const env   = STATE.env;
+  const proj  = STATE.proj || 'banking-modernization';
+  const region = STATE.region;
+  const caps  = pickedCaps();
+
+  // README.md
+  root.file('README.md', readmeMd(proj, cloud, env, caps));
+  root.file('Makefile', makefileText(cloud, env));
+  root.file('.gitignore', gitignoreText());
+
+  /* Terraform */
+  const tf = root.folder('terraform').folder(cloud);
+  tf.file('main.tf', mainTf(cloud, region, env));
+  tf.file('variables.tf', variablesTf(cloud, region, env));
+  tf.file('outputs.tf', outputsTf());
+  tf.file('versions.tf', versionsTf(cloud));
+  tf.file('backend.tf', backendTf(cloud, proj));
+  ['dev','stg','prod'].forEach(e => tf.folder('envs').file(e + '.tfvars', tfvars(e, cloud, region)));
+
+  if (STATE.modules['tf-network']) { const m = tf.folder('modules').folder('network'); m.file('main.tf', moduleNetwork(cloud)); m.file('variables.tf', '/* network vars */\n'); m.file('outputs.tf', '/* network outputs */\n'); }
+  if (STATE.modules['tf-iam'])     { const m = tf.folder('modules').folder('iam');     m.file('main.tf', moduleIam(cloud));     m.file('variables.tf', '/* iam vars */\n'); m.file('outputs.tf', '/* iam outputs */\n'); }
+  if (STATE.modules['tf-kms'])     { const m = tf.folder('modules').folder('kms');     m.file('main.tf', moduleKms(cloud));     m.file('variables.tf', '/* kms vars */\n'); m.file('outputs.tf', '/* kms outputs */\n'); }
+  if (STATE.modules['tf-logging']) { const m = tf.folder('modules').folder('logging'); m.file('main.tf', '/* logging — CloudWatch / Azure Monitor / Cloud Logging */\n'); }
+  if (STATE.modules['tf-k8s'])     { const m = tf.folder('modules').folder('k8s');     m.file('main.tf', moduleK8s(cloud));     m.file('variables.tf', '/* k8s vars */\n'); m.file('outputs.tf', '/* k8s outputs */\n'); }
+  if (STATE.modules['tf-rds'])     { const m = tf.folder('modules').folder('database'); m.file('main.tf', moduleDb(cloud));      m.file('variables.tf', '/* db vars */\n');  m.file('outputs.tf', '/* db outputs */\n'); }
+  if (STATE.modules['tf-events'])  tf.folder('modules').folder('events').file('main.tf', '/* event backbone */\n');
+  if (STATE.modules['tf-cache'])   tf.folder('modules').folder('cache').file('main.tf', '/* cache tier */\n');
+  if (STATE.modules['tf-waf'])     { const m = tf.folder('modules').folder('edge');    m.file('main.tf', moduleEdge(cloud)); }
+  if (STATE.modules['tf-secrets']) tf.folder('modules').folder('secrets').file('main.tf', '/* secrets */\n');
+
+  /* Helm */
+  const anyHelm = STATE.modules['helm-app'] || STATE.modules['helm-ingress'] || STATE.modules['helm-hpa'] || STATE.modules['helm-mesh'];
+  if (anyHelm) {
+    const helm = root.folder('helm');
+    const chartList = caps.length > 0 ? caps.slice(0, 6) : [{ id:'app', name:'starter-app' }];
+    chartList.forEach(c => {
+      const slug = (c.id || c.name || 'app').replace(/[^a-z0-9]+/gi,'-').toLowerCase();
+      const chart = helm.folder(slug);
+      chart.file('Chart.yaml', helmChartYaml(slug));
+      chart.file('values.yaml', helmValuesYaml(slug, env));
+      chart.file('values-prod.yaml', helmValuesYaml(slug, 'prod'));
+      const tpl = chart.folder('templates');
+      if (STATE.modules['helm-app'])     { tpl.file('deployment.yaml', helmDeployment(slug)); tpl.file('service.yaml', helmService(slug)); }
+      if (STATE.modules['helm-ingress']) tpl.file('ingress.yaml', helmIngress(slug));
+      if (STATE.modules['helm-hpa'])     { tpl.file('hpa.yaml', helmHpa(slug)); tpl.file('pdb.yaml', helmPdb(slug)); }
+      if (STATE.modules['helm-mesh'])    { tpl.file('virtualservice.yaml', '# Istio VirtualService\n'); tpl.file('authorizationpolicy.yaml', '# Istio AuthorizationPolicy with mTLS STRICT\n'); }
+    });
+  }
+
+  /* GitHub Actions */
+  const anyGha = STATE.modules['gha-build'] || STATE.modules['gha-deploy'] || STATE.modules['gha-promote'] || STATE.modules['gha-rollback'];
+  if (anyGha) {
+    const wf = root.folder('.github').folder('workflows');
+    if (STATE.modules['gha-build'])    wf.file('ci.yml',              ghaCi());
+    if (STATE.modules['gha-deploy'])   wf.file('cd-staging.yml',      ghaCdStaging(cloud));
+    if (STATE.modules['gha-promote'])  wf.file('cd-prod-promote.yml', ghaCdPromote(cloud));
+    if (STATE.modules['gha-rollback']) wf.file('rollback.yml',         ghaRollback());
+  }
+}
+
+/* ── File body templates (concise; opinionated starting points) ── */
+function readmeMd(proj, cloud, env, caps) {
+  return '# ' + proj + '\n\n' +
+    'Generated by **DI Platform · IaC bundle generator (Phase 23.2)** — ' + new Date().toISOString() + '\n\n' +
+    '## Targets\n\n' +
+    '- Cloud: **' + cloud.toUpperCase() + '**\n' +
+    '- Default environment: **' + env + '**\n' +
+    '- Capabilities in scope: **' + (caps.length || 1) + '**' + (caps.length ? '\n  ' + caps.slice(0, 12).map(c => '- ' + (c.name || c.id)).join('\n  ') : '') + '\n\n' +
+    '## Prerequisites\n\n' +
+    '- Terraform ≥ 1.7\n' +
+    '- ' + (cloud === 'aws' ? 'AWS CLI · authenticated via SSO or IAM role' : cloud === 'azure' ? 'Azure CLI · `az login`' : cloud === 'gcp' ? '`gcloud` SDK · ADC configured' : 'cloud CLI authenticated') + '\n' +
+    '- kubectl ≥ 1.30 · Helm ≥ 3.14\n' +
+    '- GitHub repo with OIDC trust to ' + cloud.toUpperCase() + ' (no static credentials)\n\n' +
+    '## Apply order\n\n' +
+    '```bash\nmake plan ENV=' + env + '\nmake apply ENV=' + env + '\nmake helm-upgrade ENV=' + env + '\n```\n\n' +
+    '## Safety notes\n\n' +
+    '- These are **starting scaffolds**, not production-ready. Run a security review.\n' +
+    '- Never commit `*.tfvars` containing secrets. Use OIDC + secrets manager.\n' +
+    '- The `backend.tf` references a remote state bucket — create it before first `terraform init`.\n\n' +
+    'Generated from your DI Platform Discovery + Architecture state. Re-generate any time from `iac.html`.\n';
+}
+function makefileText(cloud, env) {
+  return '.PHONY: plan apply destroy helm-upgrade helm-diff\n\n' +
+    'ENV ?= ' + env + '\n' +
+    'CLOUD = ' + cloud + '\n\n' +
+    'plan:\n' +
+    '\tcd terraform/$(CLOUD) && terraform init -backend-config="key=$(ENV)/terraform.tfstate" && terraform plan -var-file=envs/$(ENV).tfvars\n\n' +
+    'apply:\n' +
+    '\tcd terraform/$(CLOUD) && terraform apply -var-file=envs/$(ENV).tfvars\n\n' +
+    'destroy:\n' +
+    '\tcd terraform/$(CLOUD) && terraform destroy -var-file=envs/$(ENV).tfvars\n\n' +
+    'helm-upgrade:\n' +
+    '\t@for chart in helm/*/; do helm upgrade --install $$(basename $$chart) $$chart -f $$chart/values-$(ENV).yaml; done\n\n' +
+    'helm-diff:\n' +
+    '\t@for chart in helm/*/; do helm diff upgrade $$(basename $$chart) $$chart -f $$chart/values-$(ENV).yaml; done\n';
+}
+function gitignoreText() {
+  return '.terraform/\n*.tfstate\n*.tfstate.backup\n*.tfvars\n!envs/*.example.tfvars\n.env\nnode_modules/\n.DS_Store\n';
+}
+
+function mainTf(cloud, region, env) {
+  const provider = cloud === 'aws' ? 'aws' : cloud === 'azure' ? 'azurerm' : cloud === 'gcp' ? 'google' : cloud === 'oci' ? 'oci' : cloud === 'ibm' ? 'ibm' : 'kubernetes';
+  return '# main.tf · ' + cloud.toUpperCase() + ' root module\n\n' +
+    'provider "' + provider + '" {\n' +
+    (cloud === 'aws'  ? '  region = var.region\n' :
+     cloud === 'azure'? '  features {}\n' :
+     cloud === 'gcp'  ? '  project = var.project_id\n  region  = var.region\n' :
+     '  region = var.region\n') +
+    '}\n\n' +
+    'module "network" { source = "./modules/network" env = var.env }\n' +
+    'module "iam"     { source = "./modules/iam"     env = var.env }\n' +
+    'module "kms"     { source = "./modules/kms"     env = var.env }\n' +
+    'module "k8s"     { source = "./modules/k8s"     env = var.env  network_id = module.network.id }\n' +
+    'module "database"{ source = "./modules/database" env = var.env  subnet_ids = module.network.private_subnets }\n' +
+    'module "edge"    { source = "./modules/edge"    env = var.env }\n';
+}
+function variablesTf(cloud, region, env) {
+  return 'variable "env"       { type = string  default = "' + env + '" }\n' +
+    'variable "region"    { type = string  default = "' + region + '" }\n' +
+    (cloud === 'gcp' ? 'variable "project_id"{ type = string }\n' : '') +
+    'variable "tags"      { type = map(string)  default = { project = "banking-modernization" } }\n';
+}
+function outputsTf() {
+  return 'output "vpc_id"      { value = module.network.id }\n' +
+    'output "k8s_endpoint"{ value = module.k8s.endpoint sensitive = true }\n' +
+    'output "db_endpoint" { value = module.database.endpoint sensitive = true }\n';
+}
+function versionsTf(cloud) {
+  const provider = cloud === 'aws' ? 'aws' : cloud === 'azure' ? 'azurerm' : cloud === 'gcp' ? 'google' : cloud === 'oci' ? 'oci' : cloud === 'ibm' ? 'ibm-cloud/ibm' : 'kubernetes';
+  return 'terraform {\n' +
+    '  required_version = ">= 1.7"\n' +
+    '  required_providers {\n' +
+    '    ' + (provider === 'ibm-cloud/ibm' ? 'ibm = { source = "ibm-cloud/ibm", version = ">= 1.65" }' :
+                provider === 'kubernetes'   ? 'kubernetes = { source = "hashicorp/kubernetes", version = ">= 2.30" }' :
+                provider + ' = { source = "hashicorp/' + provider + '", version = ">= 5.0" }') + '\n' +
+    '  }\n' +
+    '}\n';
+}
+function backendTf(cloud, proj) {
+  if (cloud === 'aws') return 'terraform {\n  backend "s3" {\n    bucket         = "' + proj + '-tfstate"\n    region         = "us-east-1"\n    dynamodb_table = "' + proj + '-tflock"\n    encrypt        = true\n  }\n}\n';
+  if (cloud === 'azure') return 'terraform {\n  backend "azurerm" {\n    resource_group_name  = "' + proj + '-rg"\n    storage_account_name = "' + proj.replace(/-/g,'') + 'tf"\n    container_name       = "tfstate"\n    key                  = "terraform.tfstate"\n  }\n}\n';
+  if (cloud === 'gcp') return 'terraform {\n  backend "gcs" {\n    bucket = "' + proj + '-tfstate"\n    prefix = "terraform/state"\n  }\n}\n';
+  return 'terraform {\n  backend "local" {\n    path = "terraform.tfstate"\n  }\n}\n';
+}
+function tfvars(env, cloud, region) { return 'env    = "' + env + '"\nregion = "' + region + '"\n# add cloud-specific vars here\n'; }
+
+function moduleNetwork(cloud) {
+  if (cloud === 'aws') return '# VPC · 3 AZ · public + private subnets\nresource "aws_vpc" "this" { cidr_block = "10.0.0.0/16" enable_dns_hostnames = true tags = var.tags }\n# subnets, NAT, IGW elided — see Terraform AWS module: terraform-aws-modules/vpc/aws\n';
+  if (cloud === 'azure') return '# VNet · 3 zones\nresource "azurerm_virtual_network" "this" { name = "vnet-${var.env}" address_space = ["10.0.0.0/16"] location = var.region resource_group_name = var.rg_name }\n';
+  if (cloud === 'gcp') return '# VPC · auto subnets\nresource "google_compute_network" "this" { name = "vpc-${var.env}" auto_create_subnetworks = false }\n';
+  return '# Network · ' + cloud + '\n';
+}
+function moduleIam(cloud) {
+  return '# IAM · least-privilege roles for CI and GitOps\n' +
+    (cloud === 'aws' ? 'resource "aws_iam_role" "ci" { name = "${var.env}-ci" assume_role_policy = data.aws_iam_policy_document.gha_oidc.json }\n' :
+     cloud === 'azure' ? 'resource "azurerm_user_assigned_identity" "ci" { name = "${var.env}-ci" resource_group_name = var.rg_name location = var.region }\n' :
+     '# IAM ' + cloud + '\n');
+}
+function moduleKms(cloud) {
+  if (cloud === 'aws')   return 'resource "aws_kms_key" "this" { description = "CMK for ${var.env}" enable_key_rotation = true deletion_window_in_days = 30 }\n';
+  if (cloud === 'azure') return 'resource "azurerm_key_vault" "this" { name = "kv-${var.env}" location = var.region resource_group_name = var.rg_name sku_name = "premium" }\n';
+  if (cloud === 'gcp')   return 'resource "google_kms_key_ring" "this" { name = "kr-${var.env}" location = var.region }\n';
+  return '# KMS ' + cloud + '\n';
+}
+function moduleK8s(cloud) {
+  if (cloud === 'aws')   return '# EKS · managed control plane + Karpenter\nresource "aws_eks_cluster" "this" { name = "${var.env}-eks" role_arn = aws_iam_role.eks.arn version = "1.30" vpc_config { subnet_ids = var.subnet_ids } }\n';
+  if (cloud === 'azure') return '# AKS · 1.30 + Virtual Nodes\nresource "azurerm_kubernetes_cluster" "this" { name = "${var.env}-aks" location = var.region resource_group_name = var.rg_name kubernetes_version = "1.30" default_node_pool { name = "default" vm_size = "Standard_D8s_v5" node_count = 3 } identity { type = "SystemAssigned" } }\n';
+  if (cloud === 'gcp')   return '# GKE Autopilot\nresource "google_container_cluster" "this" { name = "${var.env}-gke" location = var.region enable_autopilot = true initial_node_count = 1 }\n';
+  if (cloud === 'oci')   return '# OKE\nresource "oci_containerengine_cluster" "this" { compartment_id = var.compartment_id name = "${var.env}-oke" kubernetes_version = "v1.30.0" vcn_id = var.vcn_id }\n';
+  return '# OpenShift on bare metal — see openshift-installer\n';
+}
+function moduleDb(cloud) {
+  if (cloud === 'aws')   return '# Aurora PostgreSQL · 3 AZ\nresource "aws_rds_cluster" "this" { engine = "aurora-postgresql" engine_version = "16" cluster_identifier = "${var.env}-pg" db_subnet_group_name = aws_db_subnet_group.this.name backup_retention_period = 35 storage_encrypted = true }\n';
+  if (cloud === 'azure') return '# Azure SQL Hyperscale\nresource "azurerm_mssql_server" "this" { name = "${var.env}-sql" resource_group_name = var.rg_name location = var.region version = "12.0" administrator_login = var.sql_admin administrator_login_password = var.sql_pwd }\n';
+  if (cloud === 'gcp')   return '# Cloud SQL PG HA\nresource "google_sql_database_instance" "this" { name = "${var.env}-pg" database_version = "POSTGRES_16" region = var.region settings { tier = "db-custom-8-32768" availability_type = "REGIONAL" backup_configuration { enabled = true } } }\n';
+  return '# Database ' + cloud + '\n';
+}
+function moduleEdge(cloud) {
+  if (cloud === 'aws')   return '# WAF + CloudFront\nresource "aws_wafv2_web_acl" "this" { name = "${var.env}-acl" scope = "CLOUDFRONT" default_action { allow {} } visibility_config { cloudwatch_metrics_enabled = true metric_name = "${var.env}-acl" sampled_requests_enabled = true } }\n';
+  if (cloud === 'azure') return '# Azure Front Door + WAF Policy\nresource "azurerm_frontdoor_firewall_policy" "this" { name = "${var.env}fdwaf" resource_group_name = var.rg_name }\n';
+  if (cloud === 'gcp')   return '# Cloud Armor + Cloud CDN\nresource "google_compute_security_policy" "this" { name = "${var.env}-armor" rule { action = "allow" priority = 2147483647 match { versioned_expr = "SRC_IPS_V1" config { src_ip_ranges = ["*"] } } description = "default" } }\n';
+  return '# Edge ' + cloud + '\n';
+}
+
+function helmChartYaml(slug) {
+  return 'apiVersion: v2\nname: ' + slug + '\ndescription: Banking modernization service · ' + slug + '\ntype: application\nversion: 0.1.0\nappVersion: "1.0.0"\n';
+}
+function helmValuesYaml(slug, env) {
+  return '# Helm values for ' + slug + ' (' + env + ')\nimage:\n  repository: ghcr.io/your-org/' + slug + '\n  tag: latest\nreplicaCount: ' + (env === 'prod' ? 3 : 2) + '\nresources:\n  requests:\n    cpu: 250m\n    memory: 512Mi\n  limits:\n    cpu: 1000m\n    memory: 1Gi\nservice:\n  type: ClusterIP\n  port: 8080\ningress:\n  enabled: true\n  host: ' + slug + '-' + env + '.example.com\nautoscaling:\n  enabled: true\n  minReplicas: ' + (env === 'prod' ? 3 : 2) + '\n  maxReplicas: ' + (env === 'prod' ? 12 : 4) + '\n  targetCPUUtilizationPercentage: 60\npodDisruptionBudget:\n  minAvailable: ' + (env === 'prod' ? 2 : 1) + '\n';
+}
+function helmDeployment(slug) {
+  return 'apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ' + slug + '\nspec:\n  replicas: {{ .Values.replicaCount }}\n  selector:\n    matchLabels: { app: ' + slug + ' }\n  strategy:\n    type: RollingUpdate\n    rollingUpdate: { maxSurge: 25%, maxUnavailable: 0 }\n  template:\n    metadata:\n      labels: { app: ' + slug + ' }\n    spec:\n      containers:\n        - name: ' + slug + '\n          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"\n          ports: [{ containerPort: {{ .Values.service.port }} }]\n          resources: {{ toYaml .Values.resources | nindent 12 }}\n          readinessProbe: { httpGet: { path: /healthz, port: {{ .Values.service.port }} }, initialDelaySeconds: 5 }\n          livenessProbe:  { httpGet: { path: /healthz, port: {{ .Values.service.port }} }, initialDelaySeconds: 20 }\n';
+}
+function helmService(slug) {
+  return 'apiVersion: v1\nkind: Service\nmetadata:\n  name: ' + slug + '\nspec:\n  type: {{ .Values.service.type }}\n  selector: { app: ' + slug + ' }\n  ports:\n    - port: {{ .Values.service.port }}\n      targetPort: {{ .Values.service.port }}\n';
+}
+function helmIngress(slug) {
+  return 'apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ' + slug + '\n  annotations:\n    cert-manager.io/cluster-issuer: letsencrypt-prod\nspec:\n  ingressClassName: nginx\n  tls:\n    - hosts: [{{ .Values.ingress.host }}]\n      secretName: ' + slug + '-tls\n  rules:\n    - host: {{ .Values.ingress.host }}\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend: { service: { name: ' + slug + ', port: { number: {{ .Values.service.port }} } } }\n';
+}
+function helmHpa(slug) {
+  return 'apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: ' + slug + '\nspec:\n  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: ' + slug + ' }\n  minReplicas: {{ .Values.autoscaling.minReplicas }}\n  maxReplicas: {{ .Values.autoscaling.maxReplicas }}\n  metrics:\n    - type: Resource\n      resource:\n        name: cpu\n        target: { type: Utilization, averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }} }\n';
+}
+function helmPdb(slug) {
+  return 'apiVersion: policy/v1\nkind: PodDisruptionBudget\nmetadata:\n  name: ' + slug + '\nspec:\n  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}\n  selector:\n    matchLabels: { app: ' + slug + ' }\n';
+}
+
+function ghaCi() {
+  return 'name: CI · build + test\non:\n  pull_request:\n  push: { branches: [main] }\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with: { node-version: 20 }\n      - run: npm ci\n      - run: npm run lint\n      - run: npm test\n      - name: SBOM\n        uses: anchore/sbom-action@v0\n      - name: Image scan\n        uses: aquasecurity/trivy-action@master\n        with: { scan-type: fs, scan-ref: ., severity: HIGH,CRITICAL }\n';
+}
+function ghaCdStaging(cloud) {
+  const oidc = cloud === 'aws' ? '      - uses: aws-actions/configure-aws-credentials@v4\n        with:\n          role-to-assume: ${{ secrets.AWS_STAGING_ROLE }}\n          aws-region: us-east-1\n' :
+               cloud === 'azure' ? '      - uses: azure/login@v2\n        with:\n          client-id: ${{ secrets.AZURE_CLIENT_ID }}\n          tenant-id: ${{ secrets.AZURE_TENANT_ID }}\n          subscription-id: ${{ secrets.AZURE_SUB_ID }}\n' :
+               '      # add cloud-specific OIDC step\n';
+  return 'name: CD · staging\non:\n  push: { branches: [main] }\n\nconcurrency: { group: cd-staging, cancel-in-progress: true }\n\npermissions: { id-token: write, contents: read }\n\njobs:\n  deploy-staging:\n    runs-on: ubuntu-latest\n    environment: staging\n    steps:\n      - uses: actions/checkout@v4\n' + oidc +
+    '      - run: |\n          for chart in helm/*/; do\n            helm upgrade --install $(basename "$chart") "$chart" -f "$chart/values-stg.yaml" --namespace staging --create-namespace --atomic --timeout 8m\n          done\n      - name: Smoke test\n        run: ./scripts/smoke-test.sh staging\n';
+}
+function ghaCdPromote(cloud) {
+  return 'name: CD · promote to prod (canary)\non:\n  release: { types: [published] }\n  workflow_dispatch: {}\n\nconcurrency: { group: cd-prod, cancel-in-progress: false }\n\npermissions: { id-token: write, contents: read }\n\njobs:\n  canary-10:\n    runs-on: ubuntu-latest\n    environment: production-canary\n    steps:\n      - uses: actions/checkout@v4\n      - run: ./scripts/canary.sh 10\n      - name: Metrics gate (Prometheus)\n        run: ./scripts/metrics-gate.sh --error-rate-max 1.0 --p99-latency-ms 350\n  canary-50:\n    needs: canary-10\n    runs-on: ubuntu-latest\n    environment: production-canary\n    steps:\n      - run: ./scripts/canary.sh 50\n      - run: ./scripts/metrics-gate.sh --error-rate-max 1.0 --p99-latency-ms 350\n  full:\n    needs: canary-50\n    runs-on: ubuntu-latest\n    environment: production\n    steps:\n      - run: ./scripts/canary.sh 100\n      - name: Tag release\n        run: gh release edit ${{ github.ref_name }} --notes "Promoted to 100%"\n';
+}
+function ghaRollback() {
+  return 'name: Rollback\non:\n  workflow_dispatch:\n    inputs:\n      env: { description: "Environment", required: true, default: "prod" }\n      revision: { description: "Helm revision to roll back to", required: true }\n\njobs:\n  rollback:\n    runs-on: ubuntu-latest\n    environment: ${{ github.event.inputs.env }}\n    steps:\n      - uses: actions/checkout@v4\n      - run: |\n          for chart in helm/*/; do\n            helm rollback $(basename "$chart") ${{ github.event.inputs.revision }} --namespace ${{ github.event.inputs.env }}\n          done\n      - name: Page on-call\n        run: curl -X POST "$PAGERDUTY_WEBHOOK" -d "rollback triggered for ${{ github.event.inputs.env }}"\n        env: { PAGERDUTY_WEBHOOK: ${{ secrets.PAGERDUTY_WEBHOOK }} }\n';
+}
+
+/* ── Wire up ────────────────────────────────────────── */
+document.getElementById('i-cloud').addEventListener('change',  e => setField('cloud',  e.target.value));
+document.getElementById('i-region').addEventListener('change', e => setField('region', e.target.value));
+document.getElementById('i-env').addEventListener('change',    e => setField('env',    e.target.value));
+document.getElementById('i-proj').addEventListener('input',    e => setField('proj',   e.target.value));
+
+renderModules();
+renderPreview();
+if (window.DI && window.DI.audit) window.DI.audit.log('iac', 'open', {});
+</script>
+
+</body>
+</html>

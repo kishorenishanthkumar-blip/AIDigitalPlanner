@@ -12,6 +12,7 @@
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
 <script src="assets/export.js" defer></script>
+<script src="assets/export.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -371,6 +372,7 @@ function renderList() {
       '<button onclick="regenerate()">↻ Regenerate from Discovery + RFP</button>' +
       '<button onclick="exportRequirements(\'json\')">⬇ JSON</button>' +
       '<button onclick="exportRequirements(\'csv\')">⬇ CSV</button>' +
+      '<button onclick="exportRequirements(\'xlsx\')">⬇ Excel</button>' +
       '<button onclick="exportRequirements(\'xlsx\')">⬇ Excel</button>' +
       '<button class="primary" onclick="location.href=\'actions.html\'">Generate actions →</button>' +
     '</div></div>';

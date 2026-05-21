@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Knowledge Artifacts · DI Platform</title>
+<meta name="description" content="Searchable repository of past artifacts, reference templates, and banking modernization playbooks."/>
+<link rel="stylesheet" href="assets/theme.css">
+<script src="assets/toasts.js" defer></script>
+<script src="assets/audit.js" defer></script>
+<script src="assets/cmdk.js" defer></script>
+<script src="assets/shortcuts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/export.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+a{color:var(--gold);text-decoration:none}
+
+.kn-hero{background:linear-gradient(135deg,#1A2238,#243655);color:#fff;padding:24px 28px}
+.kn-hero-wrap{max-width:1280px;margin:0 auto}
+.kn-pre{font-size:11px;font-weight:700;color:var(--gold-3);letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+.kn-h1{font-family:var(--f-head);font-size:26px;font-weight:600;line-height:1.18}
+.kn-h1 em{font-style:italic;color:var(--gold-3)}
+.kn-sub{font-size:12.5px;color:#C8D2E2;margin-top:8px;max-width:760px;line-height:1.55}
+.kn-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+@media (max-width:760px){.kn-stats{grid-template-columns:repeat(2,1fr)}}
+.kn-stat{background:rgba(255,208,112,.08);border:1px solid var(--gold);border-radius:9px;padding:10px 13px}
+.kn-stat .lbl{font-size:9.5px;font-weight:700;color:var(--gold-3);letter-spacing:.06em;text-transform:uppercase}
+.kn-stat .val{font-family:var(--f-head);font-size:20px;font-weight:600;color:#fff;margin-top:2px}
+
+.kn-tools{background:#fff;border-bottom:1px solid var(--border);padding:11px 24px;position:sticky;top:0;z-index:50}
+.kn-tools-wrap{max-width:1280px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.kn-search{flex:1;min-width:240px;padding:8px 12px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;color:var(--ink);background:var(--canvas);font-family:inherit;outline:none}
+.kn-search:focus{border-color:var(--gold)}
+.kn-chips{display:flex;gap:5px;flex-wrap:wrap}
+.kn-chip{font-size:11px;background:var(--canvas);border:1px solid var(--border);border-radius:99px;padding:5px 11px;cursor:pointer;font-weight:600;color:var(--ink-2)}
+.kn-chip.act{background:var(--aglow);border-color:var(--gold);color:var(--gold)}
+.kn-chip:hover{border-color:var(--gold-2)}
+.kn-tools .actions{margin-left:auto;display:flex;gap:6px}
+.kn-tools .actions button{background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 11px;font-size:11.5px;color:var(--ink);font-family:inherit;font-weight:600}
+.kn-tools .actions button:hover{border-color:var(--gold);color:var(--gold)}
+.kn-tools .actions .primary{background:var(--gold);border-color:var(--gold);color:#fff}
+.kn-tools .actions .primary:hover{background:var(--gold-2)}
+
+.kn-main{max-width:1280px;margin:0 auto;padding:22px 28px 40px}
+
+.kn-section-h{font-size:10px;font-weight:700;color:var(--ink);letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:12px;margin-top:18px}
+.kn-section-h:first-child{margin-top:0}
+.kn-section-h .div{flex:1;height:1px;background:var(--border)}
+.kn-section-h .ct{font-size:10px;color:var(--ink-2);font-weight:600;letter-spacing:0}
+
+.kn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:11px}
+
+.kn-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:.18s;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px}
+.kn-card:hover{border-color:var(--gold-2);transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.kn-card .h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.kn-card .ic{font-size:18px}
+.kn-card .pills{display:flex;gap:4px;flex-wrap:wrap}
+.kn-pill{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:99px;letter-spacing:.04em;text-transform:uppercase}
+.kn-pill.discovery   {background:#E6F0FF;color:#1A4D99}
+.kn-pill.architecture{background:#E8F8E8;color:#0A8462}
+.kn-pill.requirements{background:#FFF7E6;color:#C8921A}
+.kn-pill.actions     {background:#FBE6F3;color:#A0357A}
+.kn-pill.sow         {background:#F0E6FB;color:#5B2A99}
+.kn-pill.governance  {background:#FFEEEA;color:#D93B36}
+.kn-pill.template    {background:#EEF2F7;color:#5B6B8A}
+.kn-pill.playbook    {background:#FFE7B3;color:#7A5F10}
+.kn-pill.regulatory  {background:#E6F4F4;color:#0D7777}
+.kn-pill.pattern     {background:#F8F0E3;color:#8C5E1E}
+.kn-card .ttl{font-size:13px;font-weight:700;color:var(--ink);line-height:1.3}
+.kn-card .meta{font-size:10.5px;color:var(--ink-2);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.kn-card .meta .sep{opacity:.5}
+.kn-card .desc{font-size:11.5px;color:var(--ink-2);line-height:1.45}
+.kn-card .tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+.kn-card .tag{font-size:9.5px;color:var(--ink-3);background:var(--canvas);border:1px solid var(--border);border-radius:5px;padding:1px 6px}
+.kn-card .footer{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:var(--ink-2);border-top:1px dashed var(--border);padding-top:7px;margin-top:6px}
+.kn-card .footer .open{color:var(--gold);font-weight:700}
+.kn-card .footer .dl{cursor:pointer;color:var(--ink-2)}
+.kn-card .footer .dl:hover{color:var(--gold)}
+
+.kn-empty{text-align:center;padding:60px 20px;background:#fff;border:1px solid var(--border);border-radius:14px;color:var(--ink-2)}
+.kn-empty h2{font-family:var(--f-head);font-size:18px;color:var(--ink);margin-bottom:6px}
+.kn-empty p{font-size:12.5px;max-width:520px;margin:0 auto 14px;line-height:1.55}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fadeUp{animation:fadeUp .35s ease both}
+</style>
+</head>
+<body>
+
+<section class="kn-hero">
+  <div class="kn-hero-wrap">
+    <div class="kn-pre">KNOWLEDGE REPOSITORY · PHASE 23.1</div>
+    <h1 class="kn-h1">Every artifact you've built · <em>plus reference templates and playbooks.</em></h1>
+    <p class="kn-sub">Browse, search, and reopen past Discovery sessions, Architecture decisions, Requirements packs, SOWs, and RAID registers. Drop in templated playbooks for common banking modernization patterns. Everything stays in your browser — no server.</p>
+    <div class="kn-stats" id="kn-stats"></div>
+  </div>
+</section>
+
+<section class="kn-tools">
+  <div class="kn-tools-wrap">
+    <input type="search" class="kn-search" id="kn-search" placeholder="Search artifacts, templates, playbooks…">
+    <div class="kn-chips" id="kn-type-chips"></div>
+    <div class="actions">
+      <button onclick="snapshotCurrentState()">📥 Save current as artifact</button>
+      <button onclick="exportAll()">⬇ Excel · all</button>
+      <button class="primary" onclick="loadSeedTemplates()">+ Load sample library</button>
+    </div>
+  </div>
+</section>
+
+<main class="kn-main" id="kn-main"></main>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   Knowledge Artifacts · Phase 23.1
+   Combines:
+     - User-generated snapshots (Discovery / Architecture / Requirements / Actions / SOW / Governance)
+     - Reference templates (banking patterns, regulatory checklists, playbooks)
+   Storage: di_knowledge_v1 (localStorage)
+═══════════════════════════════════════════════════════ */
+
+const KN_KEY = 'di_knowledge_v1';
+const STATE = { items: [], filterType: 'all', search: '' };
+
+const TYPES = [
+  { id:'all',           name:'All',           ic:'📚' },
+  { id:'discovery',     name:'Discovery',     ic:'🎯' },
+  { id:'architecture',  name:'Architecture',  ic:'🏛' },
+  { id:'requirements',  name:'Requirements',  ic:'📋' },
+  { id:'actions',       name:'Actions',       ic:'⚡' },
+  { id:'sow',           name:'SOW',           ic:'📄' },
+  { id:'governance',    name:'Governance',    ic:'⚖' },
+  { id:'template',      name:'Templates',     ic:'📐' },
+  { id:'playbook',      name:'Playbooks',     ic:'📘' },
+  { id:'regulatory',    name:'Regulatory',    ic:'⚖️' },
+  { id:'pattern',       name:'Patterns',      ic:'🧩' }
+];
+
+const TYPE_IC = { discovery:'🎯', architecture:'🏛', requirements:'📋', actions:'⚡', sow:'📄', governance:'⚖', template:'📐', playbook:'📘', regulatory:'⚖️', pattern:'🧩' };
+
+const SEED_TEMPLATES = [
+  { id:'tpl-cards-modern',   type:'template', title:'Cards & Payments modernization template',  desc:'9-capability scope · 18-month plan · cloud-native stack with event-driven payments', tags:['cards','payments','event-driven','12-factor'],     owner:'DI Platform', size:'12 KB' },
+  { id:'tpl-aml-replat',     type:'template', title:'AML platform re-platform template',         desc:'Lift FATCA, KYC, sanctions screening to managed services · graph-based linking',     tags:['aml','kyc','sanctions','graph'],                  owner:'DI Platform', size:'9 KB' },
+  { id:'tpl-corebank-strang',type:'template', title:'Core banking strangler-fig template',       desc:'Mainframe → microservices · 36-month phased decomposition · zero-downtime cutover',  tags:['core','mainframe','strangler','microservices'],   owner:'DI Platform', size:'18 KB' },
+  { id:'tpl-trade-fin',      type:'template', title:'Trade Finance digitization template',       desc:'LC + guarantees + supply-chain finance · DLT-curious pilot · 12 month timeline',     tags:['trade','dlt','lc','scf'],                         owner:'DI Platform', size:'10 KB' },
+
+  { id:'pb-target-arch',     type:'playbook', title:'Target architecture playbook · tier-1 retail bank', desc:'9-layer reference architecture · DORA-compliant SDLC · zero-trust mTLS',     tags:['target-state','zero-trust','dora','9-layer'],     owner:'DI Platform', size:'24 KB' },
+  { id:'pb-7r-decision',     type:'playbook', title:'7R decision playbook',                      desc:'Question tree to pick rehost / replatform / refactor / rearchitect / rebuild / replace / retain', tags:['7r','decisioning'],                          owner:'DI Platform', size:'8 KB' },
+  { id:'pb-finops-runbook',  type:'playbook', title:'FinOps runbook for cloud spend control',    desc:'Cost anomaly playbook · tagging schema · weekly burndown',                          tags:['finops','tagging','burndown'],                    owner:'DI Platform', size:'11 KB' },
+  { id:'pb-blockchain-pilot',type:'playbook', title:'Blockchain pilot launch playbook',          desc:'6-week MVP framework · custodian choice tree · MAS / SEC / MiCA stance brief',      tags:['blockchain','rwa','custody'],                     owner:'DI Platform', size:'14 KB' },
+
+  { id:'reg-dora-eu',        type:'regulatory', title:'DORA · EU operational resilience checklist', desc:'45-point compliance checklist · in-scope from 2025-01-17',                       tags:['dora','eu','resilience'],                         owner:'DI Platform', size:'7 KB' },
+  { id:'reg-bcbs-239',       type:'regulatory', title:'BCBS 239 · risk data aggregation checklist',desc:'14 principles · data lineage · timeliness · accuracy',                              tags:['bcbs-239','risk-data','lineage'],                 owner:'DI Platform', size:'9 KB' },
+  { id:'reg-mas-trm',        type:'regulatory', title:'MAS TRM · Singapore tech risk mgmt',       desc:'Notice 644 · access control · key mgmt · cloud due-diligence',                     tags:['mas','singapore','cloud'],                        owner:'DI Platform', size:'11 KB' },
+  { id:'reg-rbi-cyber',      type:'regulatory', title:'RBI cybersecurity framework 2016',         desc:'Baseline · adaptive · advanced tiers · annual VAPT cycle',                          tags:['rbi','india','cyber'],                            owner:'DI Platform', size:'8 KB' },
+  { id:'reg-sox-404',        type:'regulatory', title:'SOX 404 · IT general controls scope',      desc:'ITGC mapping for in-scope financial reporting systems',                             tags:['sox','itgc','us'],                                owner:'DI Platform', size:'6 KB' },
+
+  { id:'pat-event-bank',     type:'pattern',  title:'Event-driven banking pattern',              desc:'Kafka/Kinesis backbone · saga orchestration · CQRS for ledger reads',               tags:['kafka','cqrs','saga'],                            owner:'DI Platform', size:'13 KB' },
+  { id:'pat-cqrs-ledger',    type:'pattern',  title:'CQRS ledger pattern',                        desc:'Append-only write store · denormalized read store · materialized projections',     tags:['cqrs','ledger','event-sourcing'],                 owner:'DI Platform', size:'9 KB' },
+  { id:'pat-zero-trust',     type:'pattern',  title:'Zero-trust banking network pattern',        desc:'mTLS service mesh · device + workload identity · just-in-time admin',              tags:['zero-trust','mtls','jit'],                        owner:'DI Platform', size:'11 KB' }
+];
+
+function loadState() {
+  try { STATE.items = JSON.parse(localStorage.getItem(KN_KEY) || '[]'); }
+  catch (e) { STATE.items = []; }
+  // Always merge in live artifacts from other modules
+  hydrateFromLocalStorage();
+}
+function saveState() {
+  try { localStorage.setItem(KN_KEY, JSON.stringify(STATE.items)); } catch (e) {}
+}
+
+function hydrateFromLocalStorage() {
+  // Auto-add live artifacts from each module if not already snapshotted
+  const seen = new Set(STATE.items.map(i => i.id));
+  function maybeAdd(item) { if (!seen.has(item.id)) { STATE.items.push(item); seen.add(item.id); } }
+
+  try {
+    const disc = JSON.parse(localStorage.getItem('di_discovery_v1') || 'null');
+    if (disc && disc.results && disc.results.capabilities && disc.results.capabilities.length) {
+      maybeAdd({
+        id:'live-discovery', type:'discovery',
+        title:'Live Discovery · ' + disc.results.capabilities.length + ' capabilities',
+        desc:'Active 7R map in Discovery Studio · ' + (disc.results.capabilities.filter(c=>c.verdict==='REHOST').length) + ' rehost · ' + (disc.results.capabilities.filter(c=>c.verdict==='REPLAT').length) + ' replat · ' + (disc.results.capabilities.filter(c=>c.verdict==='REFACT').length) + ' refact',
+        tags:['live','7r'], owner: profileEmail(), size: estimateSize(disc),
+        modified: disc.updatedAt || new Date().toISOString(),
+        href:'discovery-studio.html', live:true
+      });
+    }
+  } catch (e) {}
+  try {
+    const arch = JSON.parse(localStorage.getItem('di_architecture_v1') || 'null');
+    if (arch && arch.picks && Object.keys(arch.picks).length) {
+      maybeAdd({
+        id:'live-architecture', type:'architecture',
+        title:'Live Architecture · ' + Object.keys(arch.picks).length + ' cloud picks',
+        desc:'Active cloud-pick map · region ' + (arch.region || 'na-east') + ' · discount ' + (arch.discount || 0) + '%',
+        tags:['live','pricing'], owner: profileEmail(), size: estimateSize(arch),
+        modified: arch.updatedAt || new Date().toISOString(),
+        href:'architecture-studio.html', live:true
+      });
+    }
+  } catch (e) {}
+  try {
+    const req = JSON.parse(localStorage.getItem('di_requirements_v1') || 'null');
+    if (req && req.requirements && req.requirements.length) {
+      maybeAdd({
+        id:'live-requirements', type:'requirements',
+        title:'Live Requirements · ' + req.requirements.length + ' items',
+        desc:'Role-tagged AI requirements · 4 lenses · regulatory clauses',
+        tags:['live','4-lenses'], owner: profileEmail(), size: estimateSize(req),
+        modified: req.updatedAt || new Date().toISOString(),
+        href:'requirements.html', live:true
+      });
+    }
+  } catch (e) {}
+  try {
+    const act = JSON.parse(localStorage.getItem('di_actions_v1') || 'null');
+    if (act && act.actions && act.actions.length) {
+      maybeAdd({
+        id:'live-actions', type:'actions',
+        title:'Live Actions · ' + act.actions.length + ' open',
+        desc:'Role-based action plan · ' + (act.actions.filter(a=>a.priority==='P1').length) + ' P1 · ' + (act.actions.filter(a=>a.status==='Done').length) + ' done',
+        tags:['live','role-based'], owner: profileEmail(), size: estimateSize(act),
+        modified: act.updatedAt || new Date().toISOString(),
+        href:'actions.html', live:true
+      });
+    }
+  } catch (e) {}
+  try {
+    const sow = JSON.parse(localStorage.getItem('di_sow_v1') || 'null');
+    if (sow && sow.version) {
+      maybeAdd({
+        id:'live-sow', type:'sow',
+        title:'Live SOW · v' + sow.version,
+        desc:'Inline-editable Statement of Work · status ' + (sow.status || 'draft'),
+        tags:['live','sow','draft'], owner: profileEmail(), size: estimateSize(sow),
+        modified: sow.updatedAt || new Date().toISOString(),
+        href:'sow.html', live:true
+      });
+    }
+  } catch (e) {}
+  try {
+    const gov = JSON.parse(localStorage.getItem('di_governance_v1') || 'null');
+    if (gov && gov.raid && gov.raid.length) {
+      maybeAdd({
+        id:'live-governance', type:'governance',
+        title:'Live Governance · ' + gov.raid.length + ' RAID items',
+        desc:'RAID register · ' + gov.raid.filter(r=>r.status==='Open').length + ' open · ' + (gov.capabilities||[]).length + ' capabilities',
+        tags:['live','raid'], owner: profileEmail(), size: estimateSize(gov),
+        modified: gov.updatedAt || new Date().toISOString(),
+        href:'program-governance.html', live:true
+      });
+    }
+  } catch (e) {}
+}
+
+function profileEmail() {
+  try { const p = JSON.parse(sessionStorage.getItem('di_account_profile') || 'null'); return (p && p.email) || 'guest'; } catch (e) { return 'guest'; }
+}
+function estimateSize(obj) {
+  try {
+    const s = JSON.stringify(obj).length;
+    if (s >= 1024) return Math.round(s/1024) + ' KB';
+    return s + ' B';
+  } catch (e) { return '—'; }
+}
+
+function loadSeedTemplates() {
+  const seen = new Set(STATE.items.map(i => i.id));
+  SEED_TEMPLATES.forEach(t => {
+    if (!seen.has(t.id)) {
+      STATE.items.push(Object.assign({ modified:new Date().toISOString(), seed:true }, t));
+    }
+  });
+  saveState();
+  render();
+  if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'📚', title:'Library loaded', message:'Added ' + SEED_TEMPLATES.length + ' templates · playbooks · regulatory checklists · patterns.', duration:3500 });
+  if (window.DI && window.DI.audit) window.DI.audit.log('knowledge', 'load-seed', { count: SEED_TEMPLATES.length });
+}
+
+function snapshotCurrentState() {
+  // Snapshot all current live state into an immutable artifact
+  const ts = new Date().toISOString();
+  const id = 'snap-' + Date.now();
+  const sources = [];
+  try { if (localStorage.getItem('di_discovery_v1'))  sources.push('discovery'); } catch (e) {}
+  try { if (localStorage.getItem('di_architecture_v1')) sources.push('architecture'); } catch (e) {}
+  try { if (localStorage.getItem('di_requirements_v1'))  sources.push('requirements'); } catch (e) {}
+  try { if (localStorage.getItem('di_actions_v1'))      sources.push('actions'); } catch (e) {}
+  try { if (localStorage.getItem('di_sow_v1'))           sources.push('sow'); } catch (e) {}
+  try { if (localStorage.getItem('di_governance_v1'))    sources.push('governance'); } catch (e) {}
+
+  if (sources.length === 0) {
+    window.DI && window.DI.toast && window.DI.toast({ kind:'warn', title:'Nothing to snapshot', message:'Build something in Discovery / Architecture first.' });
+    return;
+  }
+
+  const snapshot = {
+    id, type:'discovery',
+    title:'Snapshot · ' + new Date().toLocaleDateString() + ' · ' + sources.join(' · '),
+    desc:'Frozen-in-time copy of: ' + sources.join(', ') + '. Open to view the full payload.',
+    tags:sources, owner: profileEmail(), modified: ts,
+    size: '—', snapshot:true, sources
+  };
+  // Pick a "best" type pill
+  if (sources.includes('sow')) snapshot.type = 'sow';
+  else if (sources.includes('governance')) snapshot.type = 'governance';
+  else if (sources.includes('architecture')) snapshot.type = 'architecture';
+  else snapshot.type = 'discovery';
+
+  // Embed full payload (canonical)
+  try {
+    if (window.DI && window.DI.export) {
+      snapshot.payload = window.DI.export.canonical();
+      snapshot.size = estimateSize(snapshot.payload);
+    }
+  } catch (e) {}
+
+  STATE.items.unshift(snapshot);
+  saveState();
+  render();
+  if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'📥', title:'Snapshot saved', message:snapshot.title, duration:4000 });
+  if (window.DI && window.DI.audit) window.DI.audit.log('knowledge', 'snapshot', { id, sources });
+}
+
+function exportAll() {
+  if (!(window.DI && window.DI.export)) {
+    window.DI && window.DI.toast && window.DI.toast({ kind:'err', title:'Export', message:'Excel exporter not loaded — refresh and retry.' });
+    return;
+  }
+  const rows = STATE.items.map(it => ({
+    ID: it.id,
+    Type: it.type,
+    Title: it.title,
+    Description: it.desc,
+    Tags: (it.tags || []).join('; '),
+    Owner: it.owner || '',
+    Modified: it.modified || '',
+    Size: it.size || ''
+  }));
+  const stamp = new Date().toISOString().slice(0,10);
+  window.DI.export.workbook('knowledge-artifacts-' + stamp + '.xlsx', [
+    { name:'Knowledge', rows, colWidths:[18, 14, 40, 60, 26, 22, 20, 10] }
+  ]);
+}
+
+function exportItem(id) {
+  if (!(window.DI && window.DI.export)) return;
+  const it = STATE.items.find(x => x.id === id);
+  if (!it) return;
+  window.DI.export.json(it.id + '.json', it);
+  if (window.DI && window.DI.audit) window.DI.audit.log('knowledge', 'export-item', { id });
+}
+
+function openItem(id) {
+  const it = STATE.items.find(x => x.id === id);
+  if (!it) return;
+  if (it.href) {
+    location.href = it.href;
+    return;
+  }
+  // Reference templates / playbooks / patterns / regulatory — show in modal
+  showItemModal(it);
+}
+
+function showItemModal(it) {
+  let host = document.getElementById('di-kn-modal');
+  if (host) host.remove();
+  host = document.createElement('div');
+  host.id = 'di-kn-modal';
+  host.style.cssText = 'position:fixed;inset:0;background:rgba(20,33,58,.5);display:flex;align-items:center;justify-content:center;z-index:99990;font-family:var(--f-ui)';
+  const pretty = it.payload ? JSON.stringify(it.payload, null, 2).slice(0, 8000) : (it.body || 'No payload — this is a reference card. Click "Open in repo" to view the source.');
+  host.innerHTML =
+    '<div style="background:#fff;border-radius:14px;max-width:780px;width:94vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px -16px rgba(20,33,58,.4)">' +
+      '<div style="padding:18px 22px;background:linear-gradient(180deg,#FFFCF4,#fff);border-bottom:1px solid #E2E7F1;display:flex;justify-content:space-between;align-items:center">' +
+        '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase">' + (TYPE_IC[it.type] || '📚') + ' ' + it.type + '</div>' +
+          '<div style="font-family:var(--f-head);font-size:18px;font-weight:600;color:var(--ink);margin-top:3px">' + escapeHTML(it.title) + '</div>' +
+          '<div style="font-size:11.5px;color:var(--ink-2);margin-top:3px">' + escapeHTML(it.desc) + '</div></div>' +
+        '<button onclick="document.getElementById(\'di-kn-modal\').remove()" style="background:#fff;border:1px solid #E2E7F1;border-radius:8px;padding:7px 13px;font-size:12px;color:var(--ink);cursor:pointer;font-family:inherit">Close ✕</button>' +
+      '</div>' +
+      '<div style="overflow-y:auto;flex:1;padding:18px 22px">' +
+        '<div style="font-size:10.5px;color:var(--ink-2);display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap"><span><strong>Owner:</strong> ' + escapeHTML(it.owner || '?') + '</span><span><strong>Modified:</strong> ' + (it.modified ? new Date(it.modified).toLocaleString() : '?') + '</span><span><strong>Size:</strong> ' + escapeHTML(it.size || '?') + '</span><span><strong>Tags:</strong> ' + (it.tags || []).map(escapeHTML).join(', ') + '</span></div>' +
+        '<pre style="background:var(--canvas);padding:14px;border-radius:9px;font-family:var(--f-mono);font-size:11px;color:var(--ink);line-height:1.5;white-space:pre-wrap;word-break:break-word">' + escapeHTML(pretty) + '</pre>' +
+      '</div>' +
+      '<div style="padding:12px 22px;background:var(--canvas);border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">' +
+        '<button onclick="exportItem(\'' + it.id + '\')" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600">⬇ JSON</button>' +
+        (it.snapshot ? '<button onclick="restoreSnapshot(\'' + it.id + '\')" style="background:var(--gold);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700">↺ Restore as live state</button>' : '') +
+      '</div>' +
+    '</div>';
+  host.addEventListener('click', e => { if (e.target === host) host.remove(); });
+  document.body.appendChild(host);
+
+  if (window.DI && window.DI.audit) window.DI.audit.log('knowledge', 'view', { id: it.id });
+}
+
+function restoreSnapshot(id) {
+  const it = STATE.items.find(x => x.id === id);
+  if (!it || !it.payload) {
+    window.DI && window.DI.toast && window.DI.toast({ kind:'warn', title:'Cannot restore', message:'No payload on this snapshot.' });
+    return;
+  }
+  if (!confirm('Restore "' + it.title + '" as the live working state? This overwrites current Discovery / Architecture / etc.')) return;
+  const p = it.payload;
+  try { if (p.discovery)    localStorage.setItem('di_discovery_v1',     JSON.stringify(p.discovery)); } catch (e) {}
+  try { if (p.architecture) localStorage.setItem('di_architecture_v1',  JSON.stringify(p.architecture)); } catch (e) {}
+  try { if (p.requirements) localStorage.setItem('di_requirements_v1',  JSON.stringify(p.requirements)); } catch (e) {}
+  try { if (p.actions)      localStorage.setItem('di_actions_v1',       JSON.stringify(p.actions)); } catch (e) {}
+  try { if (p.sow)          localStorage.setItem('di_sow_v1',           JSON.stringify(p.sow)); } catch (e) {}
+  try { if (p.governance)   localStorage.setItem('di_governance_v1',    JSON.stringify(p.governance)); } catch (e) {}
+  window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'↺', title:'Snapshot restored', message:'Live state updated. Open Discovery / Architecture to confirm.', duration:5000 });
+  if (window.DI && window.DI.audit) window.DI.audit.log('knowledge', 'restore', { id });
+  document.getElementById('di-kn-modal') && document.getElementById('di-kn-modal').remove();
+}
+
+function deleteItem(id, event) {
+  if (event) event.stopPropagation();
+  const it = STATE.items.find(x => x.id === id);
+  if (!it) return;
+  if (it.live) {
+    window.DI && window.DI.toast && window.DI.toast({ kind:'warn', title:'Cannot delete live artifact', message:'Open the source page and clear it from there.' });
+    return;
+  }
+  if (!confirm('Remove "' + it.title + '" from your knowledge repo?')) return;
+  STATE.items = STATE.items.filter(x => x.id !== id);
+  saveState();
+  render();
+  if (window.DI && window.DI.audit) window.DI.audit.log('knowledge', 'delete', { id });
+}
+
+/* ── Render ─────────────────────────────────────────── */
+function renderStats() {
+  const wrap = document.getElementById('kn-stats');
+  const tot = STATE.items.length;
+  const live = STATE.items.filter(i => i.live).length;
+  const ref = STATE.items.filter(i => ['template','playbook','regulatory','pattern'].includes(i.type)).length;
+  const snaps = STATE.items.filter(i => i.snapshot).length;
+  wrap.innerHTML =
+    '<div class="kn-stat"><div class="lbl">TOTAL ARTIFACTS</div><div class="val">' + tot + '</div></div>' +
+    '<div class="kn-stat"><div class="lbl">LIVE</div><div class="val">' + live + '</div></div>' +
+    '<div class="kn-stat"><div class="lbl">SNAPSHOTS</div><div class="val">' + snaps + '</div></div>' +
+    '<div class="kn-stat"><div class="lbl">REFERENCE</div><div class="val">' + ref + '</div></div>';
+}
+
+function renderChips() {
+  const wrap = document.getElementById('kn-type-chips');
+  wrap.innerHTML = TYPES.map(t => {
+    const ct = t.id === 'all' ? STATE.items.length : STATE.items.filter(i => i.type === t.id).length;
+    const cls = STATE.filterType === t.id ? 'kn-chip act' : 'kn-chip';
+    return '<button class="' + cls + '" onclick="setFilter(\'' + t.id + '\')">' + t.ic + ' ' + t.name + ' · ' + ct + '</button>';
+  }).join('');
+}
+
+function setFilter(t) {
+  STATE.filterType = t;
+  render();
+}
+
+function renderGrid() {
+  const wrap = document.getElementById('kn-main');
+  let items = STATE.items.slice();
+  if (STATE.filterType !== 'all') items = items.filter(i => i.type === STATE.filterType);
+  if (STATE.search) {
+    const q = STATE.search.toLowerCase();
+    items = items.filter(i =>
+      (i.title || '').toLowerCase().includes(q) ||
+      (i.desc || '').toLowerCase().includes(q) ||
+      (i.tags || []).some(t => t.toLowerCase().includes(q))
+    );
+  }
+
+  if (items.length === 0) {
+    wrap.innerHTML =
+      '<div class="kn-empty fadeUp">' +
+        '<h2>No artifacts yet</h2>' +
+        '<p>Build something in Discovery, Architecture, or Requirements — it shows up here automatically. Or click <strong>Load sample library</strong> to seed 16 templates / playbooks / patterns / regulatory checklists.</p>' +
+        '<button class="kn-chip act" onclick="loadSeedTemplates()">+ Load sample library</button>' +
+      '</div>';
+    return;
+  }
+
+  // Group by type
+  const groups = {};
+  items.forEach(it => { (groups[it.type] = groups[it.type] || []).push(it); });
+  const order = ['discovery','architecture','requirements','actions','sow','governance','template','playbook','regulatory','pattern'];
+
+  let html = '';
+  order.forEach(g => {
+    if (!groups[g]) return;
+    const meta = TYPES.find(t => t.id === g);
+    html += '<div class="kn-section-h">' + (meta ? meta.ic + ' ' + meta.name.toUpperCase() : g.toUpperCase()) + '<span class="ct">· ' + groups[g].length + '</span><div class="div"></div></div>';
+    html += '<div class="kn-grid">';
+    groups[g].forEach(it => {
+      const ic = TYPE_IC[it.type] || '📄';
+      html += '<div class="kn-card fadeUp" onclick="openItem(\'' + it.id + '\')">' +
+        '<div class="h">' +
+          '<span class="ic">' + ic + '</span>' +
+          '<div class="pills"><span class="kn-pill ' + it.type + '">' + it.type + '</span>' + (it.live ? '<span class="kn-pill" style="background:var(--green-bg);color:var(--green)">live</span>' : '') + (it.snapshot ? '<span class="kn-pill" style="background:var(--aglow);color:var(--gold)">snapshot</span>' : '') + '</div>' +
+        '</div>' +
+        '<div class="ttl">' + escapeHTML(it.title) + '</div>' +
+        '<div class="desc">' + escapeHTML(it.desc || '') + '</div>' +
+        (it.tags && it.tags.length ? '<div class="tags">' + it.tags.map(t => '<span class="tag">' + escapeHTML(t) + '</span>').join('') + '</div>' : '') +
+        '<div class="footer">' +
+          '<span>' + escapeHTML(it.owner || '?') + ' · ' + (it.modified ? new Date(it.modified).toLocaleDateString() : '?') + ' · ' + (it.size || '?') + '</span>' +
+          '<span class="open">' +
+            (it.live ? 'Open →' : 'View →') +
+            ' <span class="dl" onclick="event.stopPropagation();exportItem(\'' + it.id + '\')" title="Export JSON">⬇</span>' +
+            (it.live ? '' : ' <span class="dl" onclick="deleteItem(\'' + it.id + '\', event)" title="Delete">×</span>') +
+          '</span>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  });
+  wrap.innerHTML = html;
+}
+
+function render() {
+  renderStats();
+  renderChips();
+  renderGrid();
+}
+
+function escapeHTML(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+/* ── Wire up ────────────────────────────────────────── */
+document.getElementById('kn-search').addEventListener('input', e => { STATE.search = e.target.value; renderGrid(); });
+
+/* Bootstrap */
+loadState();
+render();
+if (window.DI && window.DI.audit) window.DI.audit.log('knowledge', 'open', { items: STATE.items.length });
+</script>
+
+</body>
+</html>
