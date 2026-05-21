@@ -1,364 +1,383 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Operations · Super-Intelligent Run Ops — DI Platform</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Operations · DI Platform</title>
+<meta name="description" content="Live run-the-bank operations — KPIs, MTTR, SLO burn, batch SLAs, FinOps signals."/>
 <link rel="stylesheet" href="assets/theme.css">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
+<script src="assets/pricing.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
-:root{
-  --void:#060B14;--deep:#090E1A;--navy:#0D1628;--panel:#101828;
-  --card:#14213A;--card2:#172845;--b1:#1C2E48;--b2:#243655;
-  --amber:#C8921A;--amber2:#E8AC38;--amber3:#FFD070;
-  --green:#0FD49A;--red:#FF4D6A;--blue:#3D8EFF;--purple:#9B72FF;--orange:#FF8030;--teal:#00C9C8;--pink:#FF6BB5;
-  --t1:#EEF4FF;--t2:#8AA4C8;--t3:#4A6285;
-  --f-head:'Fraunces',Georgia,serif;--f-ui:'Outfit',system-ui,sans-serif;--f-mono:'JetBrains Mono','Courier New',monospace;
-}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--void);color:var(--t1);font-family:var(--f-ui);font-size:13px;line-height:1.5}
-::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+a{color:var(--gold);text-decoration:none}
 
-.tb{height:54px;background:var(--panel);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 22px;gap:14px;position:sticky;top:0;z-index:50}
-.tb-logo{width:32px;height:32px;background:linear-gradient(135deg,var(--amber),var(--amber3));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--void)}
-.tb-brand{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1)}
-.tb-div{width:1px;height:24px;background:var(--b1)}
-.tb-crumb{font-size:12px;color:var(--t2);display:flex;gap:8px;align-items:center}
-.tb-crumb a{color:var(--t2);text-decoration:none}.tb-crumb a:hover{color:var(--amber2)}
-.tb-r{margin-left:auto;display:flex;gap:8px}
-.tb-link{padding:6px 14px;background:transparent;border:1px solid var(--b2);border-radius:7px;color:var(--t2);font-size:12px;text-decoration:none;transition:.2s}
-.tb-link:hover{border-color:var(--amber);color:var(--amber2)}
+/* Hero */
+.op-hero{padding:24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.op-hero-wrap{max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px}
+.op-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.op-h1{font-family:var(--f-head);font-size:24px;font-weight:600;line-height:1.18}
+.op-h1 em{font-style:italic;color:var(--gold)}
+.op-pulse{display:inline-flex;align-items:center;gap:6px;background:var(--green-bg);border:1px solid var(--green);border-radius:99px;padding:5px 12px;font-size:11.5px;color:#0A8462;font-weight:700}
+.op-pulse::before{content:'';width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse-dot 1.5s ease infinite}
+@keyframes pulse-dot{0%,100%{opacity:.4}50%{opacity:1}}
 
-.hero{padding:32px 32px 16px;max-width:1480px;margin:0 auto}
-.hero-badge{display:inline-flex;gap:8px;align-items:center;padding:6px 14px;background:rgba(155,114,255,.12);border:1px solid rgba(155,114,255,.3);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple);margin-bottom:14px}
-.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--purple);box-shadow:0 0 8px var(--purple)}
-.hero h1{font-family:var(--f-head);font-size:clamp(30px,4.2vw,46px);font-weight:700;letter-spacing:-.02em;line-height:1.05;color:var(--t1);margin-bottom:10px}
-.hero h1 em{font-style:italic;color:var(--purple)}
-.hero p{font-size:14px;color:var(--t2);max-width:920px}
+/* Period selector */
+.op-period{background:#fff;border-bottom:1px solid var(--border);padding:11px 24px}
+.op-period-wrap{max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.op-period .picker{display:flex;gap:4px;background:var(--canvas);padding:3px;border-radius:9px;border:1px solid var(--border)}
+.op-period .picker button{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;background:transparent;color:var(--ink-2);font-family:inherit}
+.op-period .picker button.act{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+.op-period .meta{font-size:11.5px;color:var(--ink-2)}
 
-/* Persona row */
-.personas{max-width:1480px;margin:24px auto 0;padding:0 32px}
-.personas h2{font-family:var(--f-head);font-size:14px;color:var(--t1);margin-bottom:10px;display:flex;align-items:center;gap:10px}
-.personas h2::before{content:'';width:3px;height:14px;background:var(--purple);border-radius:2px}
-.persona-band{background:linear-gradient(135deg,rgba(155,114,255,.15),rgba(61,142,255,.1));border:1px solid rgba(155,114,255,.3);border-radius:14px;padding:14px 18px;margin-bottom:10px;display:grid;grid-template-columns:160px 1fr 160px;gap:14px;align-items:center}
-.persona-band .left{font-family:var(--f-head);font-size:14px;color:var(--t1)}
-.persona-band .left .ttl{font-weight:700;color:var(--purple)}
-.persona-band .left .sub{font-size:11px;color:var(--t3);margin-top:2px}
-.persona-band .center{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-.persona-pill{padding:6px 12px;background:rgba(155,114,255,.15);border:1px solid rgba(155,114,255,.3);border-radius:999px;font-size:11px;color:var(--t1);font-weight:500;white-space:nowrap}
-.persona-band .right{text-align:right;font-size:11px;color:var(--t3)}
-.persona-band .right strong{color:var(--purple);font-family:var(--f-head)}
+/* Main */
+.op-main{max-width:1400px;margin:0 auto;padding:22px 24px 36px}
 
-/* Sub-personas */
-.sub-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px}
-@media (max-width:980px){.sub-row{grid-template-columns:repeat(3,1fr)}}
-.sp{background:var(--card);border:1px solid var(--b1);border-radius:8px;padding:9px 10px;font-size:11px;color:var(--t2);text-align:center;cursor:pointer;transition:.2s}
-.sp:hover{border-color:var(--purple);color:var(--t1);transform:translateY(-2px)}
-.sp strong{display:block;color:var(--t1);font-size:11.5px;font-family:var(--f-head);font-weight:600}
+/* KPI tiles */
+.op-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+@media (max-width:1100px){.op-tiles{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.op-tiles{grid-template-columns:1fr}}
+.op-tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:.2s}
+.op-tile:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.op-tile .head{display:flex;justify-content:space-between;align-items:flex-start}
+.op-tile .lbl{font-size:10px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase}
+.op-tile .ic{font-size:18px}
+.op-tile .val{font-family:var(--f-head);font-size:26px;font-weight:600;line-height:1}
+.op-tile .target{font-size:10.5px;color:var(--ink-2)}
+.op-tile .delta{font-size:11px;font-weight:700}
+.op-tile .delta.ok  {color:var(--green)}
+.op-tile .delta.warn{color:var(--orange)}
+.op-tile .delta.err {color:var(--red)}
+.op-tile .spark{margin-top:4px}
+.op-tile.ok{border-left:3px solid var(--green)}
+.op-tile.warn{border-left:3px solid var(--orange)}
+.op-tile.err{border-left:3px solid var(--red)}
 
-/* Lifecycle stages */
-.stages{max-width:1480px;margin:24px auto 0;padding:0 32px}
-.stage-arrows{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px}
-.stage-arrow{padding:9px 12px;background:linear-gradient(90deg,rgba(155,114,255,.25),rgba(61,142,255,.18));border:1px solid rgba(155,114,255,.3);border-radius:6px;color:var(--t1);font-weight:700;font-size:12px;text-align:center;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%,12px 50%);padding-left:24px;padding-right:24px}
-.stage-arrow:nth-child(1){background:linear-gradient(90deg,rgba(155,114,255,.35),rgba(155,114,255,.2));clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%)}
-.stage-arrow:nth-child(6){clip-path:polygon(12px 0,100% 0,100% 100%,12px 100%,0 50%)}
+/* Sparkline svg */
+.op-spark{width:100%;height:36px;display:block}
+.op-spark path{fill:none;stroke-width:1.8}
+.op-spark .ok-stroke  {stroke:var(--green)}
+.op-spark .warn-stroke{stroke:var(--orange)}
+.op-spark .err-stroke {stroke:var(--red)}
+.op-spark .ok-fill    {fill:rgba(15,212,154,.12);stroke:none}
+.op-spark .warn-fill  {fill:rgba(255,128,48,.12);stroke:none}
+.op-spark .err-fill   {fill:rgba(255,77,106,.12);stroke:none}
 
-.activity-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
-@media (max-width:980px){.activity-grid{grid-template-columns:repeat(2,1fr)}}
-.act-col{background:var(--card);border:1px solid var(--b1);border-radius:12px;padding:14px 12px}
-.act-col h3{font-family:var(--f-head);font-size:13px;color:var(--t1);margin-bottom:10px;text-align:center;font-weight:600}
-.act-pill{background:linear-gradient(135deg,rgba(155,114,255,.18),rgba(61,142,255,.08));border:1px solid rgba(155,114,255,.25);border-radius:7px;padding:8px 10px;font-size:11px;color:var(--t1);text-align:center;margin-bottom:6px;line-height:1.35;cursor:default;transition:.2s}
-.act-pill:hover{border-color:var(--purple);transform:translateX(2px)}
+/* Section h */
+.op-section-h{display:flex;align-items:center;gap:10px;font-size:10px;font-weight:700;color:var(--ink);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.op-section-h .div{flex:1;height:1px;background:var(--border)}
+.op-section-h .right{font-size:10px;color:var(--gold);font-weight:700;cursor:pointer;text-transform:none;letter-spacing:0}
 
-/* AI agents row */
-.agents-section{max-width:1480px;margin:24px auto 0;padding:0 32px}
-.agents-section h2{font-family:var(--f-head);font-size:14px;color:var(--t1);margin-bottom:10px;display:flex;align-items:center;gap:10px}
-.agents-section h2::before{content:'';width:3px;height:14px;background:var(--pink);border-radius:2px}
-.agents-row{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
-@media (max-width:980px){.agents-row{grid-template-columns:repeat(5,1fr)}}
-@media (max-width:600px){.agents-row{grid-template-columns:repeat(3,1fr)}}
-.agent{background:var(--panel);border:1.5px solid var(--pink);border-radius:8px;padding:9px 6px;font-size:10.5px;font-weight:600;color:var(--t1);text-align:center;cursor:pointer;transition:.2s;line-height:1.3}
-.agent:hover{background:rgba(255,107,181,.15);transform:translateY(-3px)}
+/* Two-column area */
+.op-grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:18px}
+@media (max-width:1000px){.op-grid-2{grid-template-columns:1fr}}
 
-/* Real-time flow diagram (second screenshot pattern) */
-.flow-section{max-width:1480px;margin:32px auto 0;padding:0 32px}
-.flow-section h2{font-family:var(--f-head);font-size:14px;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:10px}
-.flow-section h2::before{content:'';width:3px;height:14px;background:var(--teal);border-radius:2px}
-.flow-section h2 .sub{font-family:var(--f-ui);font-weight:500;font-size:11px;color:var(--t3);margin-left:6px;letter-spacing:.06em;text-transform:uppercase}
-.flow-grid{display:grid;grid-template-columns:1fr 320px;gap:18px}
-@media (max-width:1100px){.flow-grid{grid-template-columns:1fr}}
-.flow-canvas{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:18px;overflow-x:auto}
-.flow-row{display:grid;grid-template-columns:90px 130px repeat(5,1fr);gap:6px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--b1)}
-.flow-row:last-child{border-bottom:none}
-.flow-row .pct{font-family:var(--f-mono);font-size:10.5px;color:var(--teal);text-align:right;font-weight:700}
-.flow-row .stage{padding:6px 10px;background:linear-gradient(135deg,rgba(155,114,255,.2),rgba(61,142,255,.1));border:1px solid rgba(155,114,255,.3);border-radius:6px;font-size:11px;color:var(--t1);font-weight:600;text-align:center}
-.flow-row .step{padding:6px 10px;background:var(--panel);border:1px solid var(--b1);border-radius:6px;font-size:10.5px;color:var(--t2);text-align:center;font-weight:500;line-height:1.3}
-.flow-row .step.act{background:linear-gradient(135deg,rgba(155,114,255,.3),rgba(155,114,255,.15));border-color:var(--purple);color:var(--t1)}
-.flow-row .step.resolve{background:linear-gradient(135deg,rgba(15,212,154,.18),rgba(15,212,154,.08));border-color:var(--green);color:var(--green)}
-.flow-row .step.human{background:linear-gradient(135deg,rgba(255,184,107,.18),rgba(255,184,107,.08));border-color:var(--orange);color:var(--orange)}
-.flow-row .empty{visibility:hidden}
+/* Incidents list */
+.op-incidents{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 18px}
+.op-incident{display:grid;grid-template-columns:80px 1fr auto;gap:12px;padding:10px 0;border-bottom:1px dashed var(--border);font-size:12px;align-items:center}
+.op-incident:last-child{border-bottom:none}
+.op-incident .sev{font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:5px;text-align:center;color:#fff;text-transform:uppercase;letter-spacing:.04em}
+.op-incident .sev.P1{background:var(--red)}
+.op-incident .sev.P2{background:var(--orange)}
+.op-incident .sev.P3{background:var(--blue)}
+.op-incident .desc{font-weight:600}
+.op-incident .meta{font-size:10.5px;color:var(--ink-2);margin-top:2px}
+.op-incident .when{font-size:10.5px;color:var(--ink-2);font-family:var(--f-mono);text-align:right}
 
-/* Fabric panel */
-.fabric{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
-.fabric h3{font-family:var(--f-head);font-size:13px;color:var(--t1);display:flex;align-items:center;gap:8px}
-.fabric h3::before{content:'';width:3px;height:12px;background:var(--c,var(--teal));border-radius:2px}
-.fab-cat{padding:11px;background:var(--panel);border:1px solid var(--b1);border-radius:9px}
-.fab-cat .ftt{font-size:11.5px;font-weight:700;color:var(--c,var(--teal));margin-bottom:6px;display:flex;align-items:center;gap:6px;letter-spacing:.04em;text-transform:uppercase}
-.fab-cat .fab-item{font-size:11px;color:var(--t2);padding:3px 0;display:flex;justify-content:space-between}
-.fab-cat .fab-item span:last-child{color:var(--t3);font-family:var(--f-mono);font-size:10px}
+/* FinOps panel */
+.op-finops{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 18px}
+.op-finops .alert{background:var(--canvas);border-left:3px solid var(--red);border-radius:7px;padding:10px 12px;margin-bottom:8px;font-size:12px}
+.op-finops .alert.warn{border-left-color:var(--orange)}
+.op-finops .alert.ok{border-left-color:var(--green)}
+.op-finops .alert .head{font-weight:700;display:flex;justify-content:space-between;gap:8px;margin-bottom:3px}
+.op-finops .alert .head .amt{color:var(--red);font-family:var(--f-mono)}
+.op-finops .alert.ok .head .amt{color:var(--green)}
+.op-finops .alert.warn .head .amt{color:var(--orange)}
+.op-finops .alert .desc{font-size:11px;color:var(--ink-2);line-height:1.45}
+.op-finops .alert .act{margin-top:6px;font-size:11px;color:var(--gold);font-weight:700;cursor:pointer}
 
-/* KPI panel */
-.metrics{max-width:1480px;margin:24px auto 0;padding:0 32px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
-@media (max-width:980px){.metrics{grid-template-columns:repeat(3,1fr)}}
-.metric{background:var(--card);border:1px solid var(--b1);border-radius:10px;padding:14px;position:relative;overflow:hidden}
-.metric::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--teal))}
-.metric .lbl{font-size:10px;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
-.metric .v{font-family:var(--f-head);font-size:22px;color:var(--t1);font-weight:700;margin-top:4px;line-height:1.1}
-.metric .sub{font-size:10px;color:var(--t2);margin-top:2px}
+/* Nishi intents */
+.op-nishi{background:linear-gradient(135deg,#1A2238,#243655);color:#fff;border-radius:14px;padding:18px 22px;margin-top:18px}
+.op-nishi .head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.op-nishi .head .ic{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold-3));color:var(--ink);font-weight:900;display:flex;align-items:center;justify-content:center;font-size:16px}
+.op-nishi h3{font-family:var(--f-head);font-size:15px;font-weight:600}
+.op-nishi p{font-size:12.5px;color:#C8D2E2;margin-bottom:10px;line-height:1.55}
+.op-nishi .chips{display:flex;gap:6px;flex-wrap:wrap}
+.op-nishi .chip{background:rgba(200,146,26,.18);border:1px solid var(--gold);color:var(--gold-3);border-radius:99px;padding:5px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.op-nishi .chip:hover{background:var(--gold);color:var(--ink)}
 
-/* Legend */
-.legend{max-width:1480px;margin:20px auto 0;padding:0 32px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:11.5px;color:var(--t2)}
-.lg{display:flex;align-items:center;gap:6px}
-.lg-sw{width:12px;height:12px;border-radius:3px}
+/* Batch status table */
+.op-batches{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.op-batches table{border-collapse:collapse;width:100%;font-size:12px}
+.op-batches thead th{background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.op-batches td{padding:10px 14px;border-bottom:1px solid var(--canvas-2);vertical-align:middle}
+.op-batches .status{font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;color:#fff;display:inline-block;text-transform:uppercase;letter-spacing:.04em}
+.op-batches .status.OK{background:var(--green)}
+.op-batches .status.WARN{background:var(--orange)}
+.op-batches .status.FAIL{background:var(--red)}
+.op-batches td.num{text-align:right;font-family:var(--f-mono)}
 
-footer{text-align:center;padding:28px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1);margin-top:40px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fadeUp{animation:fadeUp .35s ease both}
 </style>
 </head>
 <body>
 
-<!-- Shared top bar with Features ▾ mega-menu -->
 <div data-di-topbar></div>
 
-<section class="hero">
-  <span class="hero-badge">Continuous Improvement · Run Ops</span>
-  <h1>Run <em>Super-Intelligent Operations.</em></h1>
-  <p>End-to-end agentic operations across the run-the-bank lifecycle — from proactive monitoring to autonomous remediation, problem management analytics, and continuous modernization. Every persona, every stage, every agent.</p>
+<!-- Hero -->
+<section class="op-hero">
+  <div class="op-hero-wrap">
+    <div>
+      <div class="op-eyebrow">OPERATIONS · SUPER-INTELLIGENT RUN OPS</div>
+      <h1 class="op-h1">Live run-the-bank metrics, <em>updated every minute.</em></h1>
+    </div>
+    <div class="op-pulse">Live · sample fixtures · production data via Phase 18.x</div>
+  </div>
 </section>
 
-<!-- PERSONA BAND -->
-<div class="personas">
-  <h2>Personas</h2>
-  <div class="persona-band">
-    <div class="left">
-      <div class="ttl">Client Executive</div>
-      <div class="sub">Outcomes · funding</div>
+<!-- Period selector -->
+<div class="op-period">
+  <div class="op-period-wrap">
+    <div class="picker">
+      <button data-p="1d">24 hr</button>
+      <button class="act" data-p="7d">Last 7 days</button>
+      <button data-p="30d">30 days</button>
+      <button data-p="90d">90 days</button>
     </div>
-    <div class="center">
-      <div class="persona-pill">ITOps Portfolio Manager</div>
-    </div>
-    <div class="right">
-      <div>Audience</div>
-      <strong>End Users</strong>
-    </div>
-  </div>
-  <div class="sub-row">
-    <div class="sp"><strong>Endpoint</strong>Support Engineer</div>
-    <div class="sp"><strong>Cloud</strong>Support Engineer</div>
-    <div class="sp"><strong>Network</strong>Support Engineer</div>
-    <div class="sp"><strong>Data</strong>Support Engineer</div>
-    <div class="sp"><strong>App</strong>Support Engineer</div>
-    <div class="sp"><strong>Business Process</strong>Support Engineer</div>
+    <div class="meta" id="op-meta">7-day window · 168 samples per KPI</div>
   </div>
 </div>
 
-<!-- LIFECYCLE STAGES + ACTIVITIES -->
-<div class="stages">
-  <div class="stage-arrows">
-    <div class="stage-arrow">Transition &amp; Plan</div>
-    <div class="stage-arrow">Observe &amp; Detect</div>
-    <div class="stage-arrow">Diagnose &amp; Analyze</div>
-    <div class="stage-arrow">Act &amp; Remediate</div>
-    <div class="stage-arrow">Learn &amp; Improve</div>
-    <div class="stage-arrow">Modernize &amp; Transform</div>
-  </div>
-  <div class="activity-grid">
-    <div class="act-col">
-      <h3>Transition &amp; Plan</h3>
-      <div class="act-pill">Due Diligence</div>
-      <div class="act-pill">Knowledge Transfer</div>
-      <div class="act-pill">Secondary Support</div>
-    </div>
-    <div class="act-col">
-      <h3>Observe &amp; Detect</h3>
-      <div class="act-pill">Self Service</div>
-      <div class="act-pill">Ticket Management</div>
-      <div class="act-pill">Autonomous Incident Detection &amp; Correlation</div>
-      <div class="act-pill">Predictive Failure Forecasting</div>
-      <div class="act-pill">SLO Drift Detection &amp; Optimization</div>
-    </div>
-    <div class="act-col">
-      <h3>Diagnose &amp; Analyze</h3>
-      <div class="act-pill">Root Cause Analysis (RCA) recommendation</div>
-      <div class="act-pill">Change Impact Simulation &amp; Risk Assessment</div>
-      <div class="act-pill">Intelligent Capacity Planning</div>
-      <div class="act-pill">Intelligent Alert Summarization</div>
-    </div>
-    <div class="act-col">
-      <h3>Act &amp; Remediate</h3>
-      <div class="act-pill">Self-Healing Workflows</div>
-      <div class="act-pill">Dynamic Runbook Generation &amp; Execution</div>
-      <div class="act-pill">Chaos Engineering</div>
-      <div class="act-pill">Intelligent Deployments</div>
-      <div class="act-pill">CI/CD Pipeline Observability &amp; Guardrails</div>
-    </div>
-    <div class="act-col">
-      <h3>Learn &amp; Improve</h3>
-      <div class="act-pill">Problem Management Analytics</div>
-      <div class="act-pill">Auto-Generation of Postmortems</div>
-      <div class="act-pill">Knowledge Base Mining &amp; Retrieval</div>
-      <div class="act-pill">Conversational SRE Assistant</div>
-    </div>
-    <div class="act-col">
-      <h3>Modernize &amp; Transform</h3>
-      <div class="act-pill">Cloud Migration</div>
-      <div class="act-pill">Code Modernization</div>
-      <div class="act-pill">Tech Debt Reduction</div>
-    </div>
-  </div>
-</div>
+<main class="op-main" id="op-main"></main>
 
-<!-- AGENT ROW -->
-<div class="agents-section">
-  <h2>AI Agents · Active in production</h2>
-  <div class="agents-row" id="agents-row">
-    <div class="agent">Transition<br>Agent</div>
-    <div class="agent">Observability<br>Agent</div>
-    <div class="agent">Self-Service<br>Agent</div>
-    <div class="agent">Ticket<br>Agent</div>
-    <div class="agent">Event<br>Agent</div>
-    <div class="agent">Triage<br>Agent</div>
-    <div class="agent">Remediation<br>Agent</div>
-    <div class="agent">Code Intelligence<br>Agent</div>
-    <div class="agent">Ops Analytics<br>Agent</div>
-    <div class="agent">Modernization<br>Agent</div>
-  </div>
-</div>
+<script>
+/* ═══════════════════════════════════════════════════════
+   Operations dashboard · Phase 17
+   Sample fixtures for KPIs, incidents, batches, FinOps.
+═══════════════════════════════════════════════════════ */
 
-<!-- FLOW + FABRIC -->
-<div class="flow-section">
-  <h2>Real-Time Operating Model <span class="sub">· effort distribution &amp; auto-resolve thresholds</span></h2>
+/* ── Generate realistic sample data ─────────────────── */
+function genSeries(n, base, jitter, trend) {
+  const a = [];
+  let v = base;
+  for (let i = 0; i < n; i++) {
+    v = base + (Math.sin(i / 6) * jitter * 0.4) + ((Math.random() - 0.5) * jitter * 0.6) + (i / n * (trend || 0));
+    a.push(Math.max(0, v));
+  }
+  return a;
+}
 
-  <div class="flow-grid">
-    <div class="flow-canvas">
-      <div class="flow-row">
-        <div class="pct">30%</div>
-        <div class="stage">Event Correlations</div>
-        <div class="step">Correlate Events</div>
-        <div class="step">Triage &amp; Assign</div>
-        <div class="step act">Troubleshoot &amp; resolve</div>
-        <div class="step act">Create problem ticket</div>
-        <div class="step empty">-</div>
-      </div>
-      <div class="flow-row">
-        <div class="pct">20%</div>
-        <div class="stage">Ticket Triage &amp; Resolution</div>
-        <div class="step">User reported? (Y)</div>
-        <div class="step">Correlate &amp; Enrich incident</div>
-        <div class="step">Triage &amp; Assign</div>
-        <div class="step act">Troubleshoot &amp; resolve</div>
-        <div class="step empty">-</div>
-      </div>
-      <div class="flow-row">
-        <div class="pct">64%</div>
-        <div class="stage" style="background:linear-gradient(135deg,rgba(15,212,154,.18),rgba(15,212,154,.08));border-color:rgba(15,212,154,.3);color:var(--green)">Validate alert / incident</div>
-        <div class="step resolve">Auto-heal? (Y · 60%)</div>
-        <div class="step resolve">Autonomous resolution</div>
-        <div class="step empty">-</div>
-        <div class="step empty">-</div>
-        <div class="step empty">-</div>
-      </div>
-      <div class="flow-row">
-        <div class="pct">7.5%</div>
-        <div class="stage">Service Request</div>
-        <div class="step">Analyze</div>
-        <div class="step">Adhoc? (Y)</div>
-        <div class="step act">Deliver service request</div>
-        <div class="step empty">-</div>
-        <div class="step empty">-</div>
-      </div>
-      <div class="flow-row">
-        <div class="pct">2.5%</div>
-        <div class="stage">Problem Management</div>
-        <div class="step">5 Why's analysis</div>
-        <div class="step">Perform RCA</div>
-        <div class="step resolve">Autonomous delivery (60%)</div>
-        <div class="step act">Troubleshoot &amp; resolve</div>
-        <div class="step human">Human-in-the-loop</div>
-      </div>
-      <div class="flow-row">
-        <div class="pct">15%</div>
-        <div class="stage">L3 Bug Fix / Enhancement</div>
-        <div class="step">Code Analysis</div>
-        <div class="step">Code Change</div>
-        <div class="step">Validate</div>
-        <div class="step">Document &amp; Close</div>
-        <div class="step human">Human-in-the-loop</div>
-      </div>
-      <div class="flow-row">
-        <div class="pct">25%</div>
-        <div class="stage">Proactive Monitoring</div>
-        <div class="step">Monitor Logs, Traces &amp; Metrics</div>
-        <div class="step">Detect Anomalies</div>
-        <div class="step">Generate Event</div>
-        <div class="step act">Review &amp; approve</div>
-        <div class="step empty">-</div>
-      </div>
-    </div>
+const KPIS = [
+  {
+    id:'mttr',
+    icon:'⚡',
+    label:'MEAN TIME TO RECOVERY',
+    target:'< 25 min',
+    series: genSeries(168, 22, 14, -3),
+    fmt: v => Math.round(v) + ' min',
+    threshold: 30,    // above = bad
+    statusFn: (last, threshold) => last < 20 ? 'ok' : (last < threshold ? 'warn' : 'err'),
+    deltaFn: (avg, base) => Math.round(((avg - base) / base) * 100) + '%',
+    base: 30
+  },
+  {
+    id:'slo',
+    icon:'📊',
+    label:'SLO BURN RATE (PAYMENTS)',
+    target:'< 5% / month',
+    series: genSeries(168, 1.8, 1.0, 0.2),
+    fmt: v => v.toFixed(1) + '%',
+    threshold: 5,
+    statusFn: (last, threshold) => last < 3 ? 'ok' : (last < threshold ? 'warn' : 'err'),
+    deltaFn: (avg, base) => '+ ' + ((avg/base - 1) * 100).toFixed(0) + '%',
+    base: 1.5
+  },
+  {
+    id:'batch',
+    icon:'🌙',
+    label:'BATCH SLA (END-OF-DAY)',
+    target:'> 99.5%',
+    series: genSeries(168, 99.85, 0.4, 0),
+    fmt: v => v.toFixed(2) + '%',
+    threshold: 99.5,    // below = bad
+    statusFn: (last, threshold) => last > 99.8 ? 'ok' : (last > threshold ? 'warn' : 'err'),
+    deltaFn: (avg) => '0.0%',
+    base: 99.85
+  },
+  {
+    id:'success',
+    icon:'✅',
+    label:'TRANSACTION SUCCESS',
+    target:'> 99.95%',
+    series: genSeries(168, 99.97, 0.06, 0),
+    fmt: v => v.toFixed(3) + '%',
+    threshold: 99.95,
+    statusFn: (last, threshold) => last > 99.97 ? 'ok' : (last > threshold ? 'warn' : 'err'),
+    deltaFn: () => '+0.01%',
+    base: 99.97
+  }
+];
 
-    <div class="fabric">
-      <h3>Topaz-style Fabric</h3>
-      <div class="fab-cat" style="--c:var(--purple)">
-        <div class="ftt">IT &amp; BizOps Agents</div>
-        <div class="fab-item"><span>Triage agent</span><span>v3.2</span></div>
-        <div class="fab-item"><span>Correlation agent</span><span>v3.0</span></div>
-        <div class="fab-item"><span>Event handler agent</span><span>v2.8</span></div>
-        <div class="fab-item"><span>Change handler agent</span><span>v2.5</span></div>
-        <div class="fab-item"><span>Auto-healing agent</span><span>v3.4</span></div>
-        <div class="fab-item"><span>Service Request handler</span><span>v2.2</span></div>
-      </div>
-      <div class="fab-cat" style="--c:var(--blue)">
-        <div class="ftt">Digital Brain (ITOps)</div>
-        <div class="fab-item"><span>Client SLM</span><span>privately fine-tuned</span></div>
-        <div class="fab-item"><span>Enterprise RAG</span><span>vector DB · pgvector</span></div>
-      </div>
-      <div class="fab-cat" style="--c:var(--green)">
-        <div class="ftt">Event Intelligence</div>
-        <div class="fab-item"><span>ServiceNow ITOM</span><span>connector</span></div>
-        <div class="fab-item"><span>CMDB / Service mapping</span><span>live sync</span></div>
-        <div class="fab-item"><span>Dynatrace · Splunk</span><span>read · enrich</span></div>
-      </div>
-      <div class="fab-cat" style="--c:var(--orange)">
-        <div class="ftt">Foundational Automation</div>
-        <div class="fab-item"><span>200+ playbooks</span><span>shared</span></div>
-        <div class="fab-item"><span>Policy-as-code</span><span>OPA</span></div>
-        <div class="fab-item"><span>Ansible</span><span>execution</span></div>
-      </div>
-    </div>
-  </div>
+const INCIDENTS = [
+  { sev:'P2', desc:'Cards · Authorization API · elevated latency (p99 jumped 320ms → 940ms)',  module:'Cards · Auth',     when:'42 min ago', status:'mitigating' },
+  { sev:'P3', desc:'AML batch · false-positive spike from new rule deployment',                 module:'AML',              when:'2 hr ago',   status:'investigating' },
+  { sev:'P3', desc:'Treasury · ETL job slow due to Postgres autovacuum',                       module:'Treasury',         when:'4 hr ago',   status:'resolved' },
+  { sev:'P1', desc:'Core Payments · settle batch failed; manual rerun successful',              module:'Core Payments',    when:'Yesterday',  status:'resolved' },
+  { sev:'P3', desc:'Wealth Mgmt · SaaS vendor degraded API; failover engaged',                  module:'Wealth',           when:'2 days ago', status:'resolved' }
+];
 
-  <div class="legend">
-    <div class="lg"><div class="lg-sw" style="background:linear-gradient(135deg,rgba(155,114,255,.3),rgba(155,114,255,.15));border:1px solid var(--purple)"></div>Tool / Automation</div>
-    <div class="lg"><div class="lg-sw" style="background:linear-gradient(135deg,rgba(15,212,154,.18),rgba(15,212,154,.08));border:1px solid var(--green)"></div>Autonomous</div>
-    <div class="lg"><div class="lg-sw" style="background:linear-gradient(135deg,rgba(255,184,107,.18),rgba(255,184,107,.08));border:1px solid var(--orange)"></div>Human-in-the-loop</div>
-    <div class="lg"><span style="font-family:var(--f-mono);color:var(--teal)">%</span> Effort distribution</div>
-  </div>
-</div>
+const BATCHES = [
+  { name:'EOD Payments settle',           module:'Core Payments', start:'23:00', dur:'2h 14m', status:'OK',   sla:'99.95%' },
+  { name:'Card transaction settlement',   module:'Cards · Tx',    start:'01:30', dur:'1h 28m', status:'OK',   sla:'99.99%' },
+  { name:'AML screening (overnight)',     module:'AML',           start:'02:00', dur:'3h 41m', status:'WARN', sla:'99.20%' },
+  { name:'BCBS 239 regulatory report',    module:'Risk & Comp',   start:'04:00', dur:'4h 02m', status:'OK',   sla:'100%'   },
+  { name:'Cards loyalty point accrual',   module:'Cards · Loyalty',start:'05:00',dur:'58m',   status:'OK',   sla:'99.80%' }
+];
 
-<!-- METRICS -->
-<div class="metrics">
-  <div class="metric" style="--c:var(--green)"><div class="lbl">Auto-Resolved</div><div class="v">68%</div><div class="sub">incidents this month</div></div>
-  <div class="metric" style="--c:var(--blue)"><div class="lbl">MTTR</div><div class="v">14 min</div><div class="sub">↓ 22% QoQ</div></div>
-  <div class="metric" style="--c:var(--purple)"><div class="lbl">Predicted Failures</div><div class="v">142</div><div class="sub">avoided · last 30d</div></div>
-  <div class="metric" style="--c:var(--orange)"><div class="lbl">Open P1</div><div class="v">2</div><div class="sub">SLA: green</div></div>
-  <div class="metric" style="--c:var(--pink)"><div class="lbl">Knowledge hits</div><div class="v">8,431</div><div class="sub">RAG-served / week</div></div>
-  <div class="metric" style="--c:var(--teal)"><div class="lbl">Tech Debt</div><div class="v">−18%</div><div class="sub">retired this quarter</div></div>
-</div>
+function avg(arr) { return arr.reduce((a,b) => a+b, 0) / arr.length; }
 
-<footer>
-  DI-Platform · Super-Intelligent Operations · IDD: DI-2026-NKK-0511-001 · © 2026 Nishanth Kumar Kishore / Digital Infotech
-</footer>
+/* ── Render KPI tiles ───────────────────────────────── */
+function sparkSVG(series, statusClass) {
+  if (!series.length) return '';
+  const w = 200, h = 36;
+  const max = Math.max.apply(null, series);
+  const min = Math.min.apply(null, series);
+  const range = max - min || 1;
+  const pts = series.map((v, i) => {
+    const x = (i / (series.length - 1)) * w;
+    const y = h - ((v - min) / range) * (h - 4) - 2;
+    return [x, y];
+  });
+  const pathD  = 'M ' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L ');
+  const fillD  = 'M 0,' + h + ' L ' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L ') + ' L ' + w + ',' + h + ' Z';
+  return '<svg class="op-spark" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' +
+    '<path class="' + statusClass + '-fill" d="' + fillD + '"/>' +
+    '<path class="' + statusClass + '-stroke" d="' + pathD + '"/>' +
+  '</svg>';
+}
+
+function renderKpiTiles() {
+  let html = '<div class="op-tiles">';
+  KPIS.forEach(k => {
+    const last = k.series[k.series.length - 1];
+    const status = k.statusFn(last, k.threshold);
+    html += '<div class="op-tile ' + status + '" onclick="alertKpi(\'' + k.id + '\')">' +
+      '<div class="head"><div class="lbl">' + k.label + '</div><div class="ic">' + k.icon + '</div></div>' +
+      '<div class="val">' + k.fmt(last) + '</div>' +
+      '<div class="target">target ' + k.target + '</div>' +
+      '<div class="spark">' + sparkSVG(k.series, status) + '</div>' +
+      '<div class="delta ' + status + '">' + (status === 'ok' ? '↓' : status === 'warn' ? '~' : '↑') + ' vs 7-day baseline</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+function alertKpi(id) {
+  const k = KPIS.find(x => x.id === id);
+  if (!k) return;
+  window.DI && window.DI.toast && window.DI.toast({ kind:'info', icon:k.icon, title:k.label, message:'Drilldown view ships in Phase 17.3. Last sample: ' + k.fmt(k.series[k.series.length-1]) + ' · target ' + k.target, duration:5000 });
+}
+
+/* ── FinOps alerts (use pricing library) ────────────── */
+function renderFinOps() {
+  // Pull pricing-driven alerts. Since this is sample data, surface
+  // realistic banking FinOps anomalies plus one based on pricing lib.
+  const alerts = [
+    { kind:'warn', amt:'+$14,200/mo', title:'Cards · AWS RDS class upsized last week', desc:'r6g.large → r6g.xlarge in the Cards · Auth cluster on May 18. Currently at 41% utilisation. Consider downsizing or right-sizing.', cta:'Open right-sizing report →' },
+    { kind:'err',  amt:'+$8,400/mo',  title:'Core Payments · cross-region egress spiked', desc:'us-east-1 → eu-west-1 egress climbed from 0.8 TB to 4.2 TB in 7 days. Likely a misconfigured replica.', cta:'Investigate →' },
+    { kind:'ok',   amt:'-$22,800/mo', title:'3-year Savings Plan saved $22.8K this month', desc:'Architecture finalized 3-yr Savings Plan on May 15. Realised savings now flowing into AWS bill.', cta:'View plan →' }
+  ];
+  let html = '<div class="op-section-h">FINOPS SIGNALS · COST ANOMALIES<div class="div"></div><span class="right" onclick="askNishi(\'finops\')">Ask Nishi for full breakdown →</span></div>';
+  html += '<div class="op-finops">';
+  alerts.forEach(a => {
+    html += '<div class="alert ' + a.kind + '"><div class="head"><span>' + a.title + '</span><span class="amt">' + a.amt + '</span></div><div class="desc">' + a.desc + '</div><div class="act" onclick="window.DI&&window.DI.toast({kind:\'info\',title:\'Coming\',message:\'Detail view ships in Phase 17.3.\'})">' + a.cta + '</div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+/* ── Recent incidents ───────────────────────────────── */
+function renderIncidents() {
+  let html = '<div class="op-section-h">RECENT INCIDENTS · LAST 48 HOURS<div class="div"></div><span class="right" onclick="askNishi(\'incidents\')">Ask Nishi for trends →</span></div>';
+  html += '<div class="op-incidents">';
+  INCIDENTS.forEach(i => {
+    html += '<div class="op-incident">' +
+      '<span class="sev ' + i.sev + '">' + i.sev + '</span>' +
+      '<div><div class="desc">' + i.desc + '</div><div class="meta">' + i.module + ' · ' + i.status + '</div></div>' +
+      '<div class="when">' + i.when + '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+/* ── Batches ────────────────────────────────────────── */
+function renderBatches() {
+  let html = '<div class="op-section-h">OVERNIGHT BATCHES · LAST RUN<div class="div"></div><span class="right" onclick="askNishi(\'batches\')">Ask Nishi to forecast tonight\'s runs →</span></div>';
+  html += '<div class="op-batches"><table><thead><tr><th>Batch</th><th>Module</th><th>Start</th><th>Duration</th><th>SLA</th><th>Status</th></tr></thead><tbody>';
+  BATCHES.forEach(b => {
+    html += '<tr><td><strong>' + b.name + '</strong></td><td>' + b.module + '</td><td>' + b.start + '</td><td class="num">' + b.dur + '</td><td class="num">' + b.sla + '</td><td><span class="status ' + b.status + '">' + b.status + '</span></td></tr>';
+  });
+  html += '</tbody></table></div>';
+  return html;
+}
+
+/* ── Nishi intent panel ─────────────────────────────── */
+function renderNishi() {
+  return '<div class="op-nishi">' +
+    '<div class="head"><div class="ic">🤖</div><div><h3>Ask Nishi about Operations</h3></div></div>' +
+    '<p>Run-the-bank queries you can ask in natural language. Nishi can pull from the metrics on this page, the FinOps signals, and the incident log.</p>' +
+    '<div class="chips">' +
+      '<button class="chip" onclick="askNishi(\'last week batch failures\')">Show last week\'s batch failures</button>' +
+      '<button class="chip" onclick="askNishi(\'cost anomaly\')">Why did AWS RDS spike 14%?</button>' +
+      '<button class="chip" onclick="askNishi(\'forecast EOD\')">Forecast tonight\'s EOD batches</button>' +
+      '<button class="chip" onclick="askNishi(\'SLO trends\')">Are SLOs trending in or out?</button>' +
+      '<button class="chip" onclick="askNishi(\'incident trends\')">Top 3 modules by incident count this month</button>' +
+      '<button class="chip" onclick="askNishi(\'forecast budget\')">Forecast Q3 cloud bill</button>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ── Dispatcher → opens Nishi with pre-filled prompt ─ */
+function askNishi(prompt) {
+  /* Phase 19 will parse this in Nishi. For now, set a flag so Nishi can pick it up. */
+  try { sessionStorage.setItem('di_nishi_prompt', prompt); } catch (e) {}
+  window.DI && window.DI.toast && window.DI.toast({ kind:'info', icon:'🤖', title:'Opening Nishi…', message:'"' + prompt + '"', duration:2500 });
+  setTimeout(() => { location.href = 'nishi-chatbot.html?from=operations&q=' + encodeURIComponent(prompt); }, 600);
+}
+
+/* ── Render ─────────────────────────────────────────── */
+function render() {
+  const main = document.getElementById('op-main');
+  main.innerHTML =
+    renderKpiTiles() +
+    '<div class="op-grid-2"><div>' + renderIncidents() + '</div><div>' + renderFinOps() + '</div></div>' +
+    renderBatches() +
+    renderNishi();
+}
+
+/* ── Period picker wiring (regenerate data) ─────────── */
+document.querySelectorAll('.op-period .picker button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.op-period .picker button').forEach(x => x.classList.remove('act'));
+    b.classList.add('act');
+    const p = b.dataset.p;
+    const samples = { '1d':24, '7d':168, '30d':720, '90d':2160 }[p] || 168;
+    const labelMap = { '1d':'24 hr', '7d':'7-day', '30d':'30-day', '90d':'90-day' };
+    KPIS.forEach(k => { k.series = genSeries(samples, k.base, k.base * 0.4, k.id === 'mttr' ? -3 : 0); });
+    document.getElementById('op-meta').textContent = labelMap[p] + ' window · ' + samples + ' samples per KPI';
+    render();
+  });
+});
+
+render();
+</script>
 
 </body>
 </html>
