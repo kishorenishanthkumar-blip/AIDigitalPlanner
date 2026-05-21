@@ -1,841 +1,645 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Program Governance · DI Platform — Digital Infotech</title>
-<meta name="author" content="Nishanth Kumar Kishore" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Program Governance · DI Platform</title>
+<meta name="description" content="Program Governance — RAID register, 7-R timeline, cost model, MS Project XML export."/>
 <link rel="stylesheet" href="assets/theme.css">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
+<script src="assets/pricing.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
-
-:root{
-  --void:#060B14; --deep:#090E1A; --navy:#0D1628; --panel:#101828;
-  --card:#14213A; --card2:#172845; --b1:#1C2E48; --b2:#243655; --b3:#2D4268;
-  --amber:#C8921A; --amber2:#E8AC38; --amber3:#FFD070; --aglow:rgba(200,146,26,.12);
-  --green:#0FD49A; --red:#FF4D6A; --blue:#3D8EFF; --purple:#9B72FF;
-  --orange:#FF8030; --teal:#00C9C8; --pink:#FF6BB5;
-  --t1:#EEF4FF; --t2:#8AA4C8; --t3:#4A6285; --t4:#2A3E5A;
-  --f-head:'Fraunces',Georgia,serif;
-  --f-ui:'Outfit',system-ui,sans-serif;
-  --f-mono:'JetBrains Mono','Courier New',monospace;
-}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--void);color:var(--t1);font-family:var(--f-ui);font-size:13px;line-height:1.5}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+a{color:var(--gold);text-decoration:none}
 
-.tb{height:54px;background:var(--panel);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 22px;gap:14px;position:sticky;top:0;z-index:50}
-.tb-logo{width:32px;height:32px;background:linear-gradient(135deg,var(--amber),var(--amber3));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--void)}
-.tb-brand{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1)}
-.tb-div{width:1px;height:24px;background:var(--b1)}
-.tb-crumb{font-size:12px;color:var(--t2);display:flex;gap:8px;align-items:center}
-.tb-crumb a{color:var(--t2);text-decoration:none}
-.tb-crumb a:hover{color:var(--amber2)}
-.tb-crumb .sep{color:var(--t3)}
-.tb-r{margin-left:auto;display:flex;gap:10px;align-items:center}
-.tb-link{padding:6px 14px;background:transparent;border:1px solid var(--b2);border-radius:7px;color:var(--t2);font-size:12px;text-decoration:none;transition:.2s}
-.tb-link:hover{border-color:var(--amber);color:var(--amber2)}
-.tb-link.primary{background:var(--amber);color:var(--void);border-color:var(--amber);font-weight:700}
-.tb-link.primary:hover{background:var(--amber2)}
-
-.hero{padding:36px 32px 18px;max-width:1480px;margin:0 auto}
-.hero-badge{display:inline-flex;gap:8px;align-items:center;padding:6px 14px;background:var(--aglow);border:1px solid rgba(200,146,26,.3);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber2);margin-bottom:14px}
-.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--amber2);box-shadow:0 0 8px var(--amber2)}
-.hero h1{font-family:var(--f-head);font-size:clamp(30px,4vw,46px);font-weight:700;letter-spacing:-.02em;line-height:1.05;color:var(--t1);margin-bottom:10px}
-.hero h1 em{font-style:italic;color:var(--amber2)}
-.hero p{font-size:15px;color:var(--t2);max-width:920px;line-height:1.6}
-
-/* Selector — banking module + architecture */
-.selector{max-width:1480px;margin:22px auto 0;padding:0 32px;display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end}
-@media (max-width:900px){.selector{grid-template-columns:1fr}}
-.sel-pill{display:flex;flex-direction:column;gap:6px}
-.sel-pill label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
-.sel-pill select{padding:11px 36px 11px 14px;background:var(--card);border:1px solid var(--b1);border-radius:8px;color:var(--t1);font-size:13px;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%238AA4C8' d='M0 0l5 6 5-6z'/></svg>");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer}
-.sel-pill select:focus{outline:none;border-color:var(--amber)}
-.gen-btn{padding:11px 22px;background:var(--amber);border:none;border-radius:8px;color:var(--void);font-size:13px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:.2s}
-.gen-btn:hover{background:var(--amber2);transform:translateY(-1px)}
-
-/* KPI row */
-.kpi-row{max-width:1480px;margin:18px auto 0;padding:0 32px;display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
-@media (max-width:1100px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
-.kpi{background:var(--card);border:1px solid var(--b1);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--amber))}
-.kpi .lbl{font-size:10px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
-.kpi .v{font-family:var(--f-head);font-size:24px;font-weight:700;color:var(--t1);margin-top:4px;line-height:1.1}
-.kpi .sub{font-size:10px;color:var(--t2);margin-top:2px}
-.kpi .trend-up{color:var(--green);font-size:10px;font-weight:600}
-.kpi .trend-down{color:var(--red);font-size:10px;font-weight:600}
+/* Hero */
+.pg-hero{padding:24px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fff,var(--canvas))}
+.pg-hero-wrap{max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:18px}
+.pg-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.pg-h1{font-family:var(--f-head);font-size:24px;font-weight:600;line-height:1.18}
+.pg-h1 em{font-style:italic;color:var(--gold)}
+.pg-stats{display:flex;gap:10px;flex-wrap:wrap}
+.pg-stat{background:#fff;border:1px solid var(--border);border-radius:10px;padding:9px 14px;min-width:130px;text-align:center}
+.pg-stat.red{background:var(--red-bg);border-color:var(--red)}
+.pg-stat.ok {background:var(--green-bg);border-color:var(--green)}
+.pg-stat .lbl{font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase;margin-bottom:2px}
+.pg-stat .val{font-family:var(--f-head);font-size:20px;font-weight:600}
+.pg-stat.red .val{color:var(--red)}
+.pg-stat.ok .val{color:#0A8462}
 
 /* Tabs */
-.tabs{max-width:1480px;margin:24px auto 0;padding:0 32px;display:flex;gap:4px;border-bottom:1px solid var(--b1);overflow-x:auto}
-.tab{padding:11px 18px;background:transparent;border:none;color:var(--t3);font-size:12.5px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.2s;font-family:var(--f-ui)}
-.tab:hover{color:var(--t1)}
-.tab.act{color:var(--amber2);border-bottom-color:var(--amber)}
-.tab .badge-c{display:inline-block;margin-left:6px;padding:1px 6px;background:var(--card);border-radius:999px;font-size:10px;color:var(--t2)}
-.tab.act .badge-c{background:var(--aglow);color:var(--amber2)}
+.pg-tabs{background:#fff;border-bottom:1px solid var(--border);padding:0 24px}
+.pg-tabs-wrap{max-width:1400px;margin:0 auto;display:flex;gap:4px;overflow-x:auto}
+.pg-tab{padding:12px 18px;background:transparent;border:none;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;border-bottom:3px solid transparent;font-family:inherit;white-space:nowrap}
+.pg-tab:hover{color:var(--ink)}
+.pg-tab.act{color:var(--gold);border-bottom-color:var(--gold)}
 
-.pane{display:none;max-width:1480px;margin:0 auto;padding:24px 32px 28px}
-.pane.on{display:block}
+/* Toolbar */
+.pg-toolbar{background:#fff;border-bottom:1px solid var(--border);padding:11px 24px}
+.pg-toolbar-wrap{max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pg-toolbar .meta{font-size:11.5px;color:var(--ink-2)}
+.pg-toolbar .actions{display:flex;gap:6px;flex-wrap:wrap}
+.pg-toolbar .actions button{background:#fff;border:1px solid var(--border);border-radius:7px;padding:6px 11px;font-size:11.5px;color:var(--ink);font-family:inherit}
+.pg-toolbar .actions button:hover{border-color:var(--gold);color:var(--gold)}
+.pg-toolbar .actions .primary{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+.pg-toolbar .actions .primary:hover{background:var(--gold-2)}
 
-/* Generic tile */
-.tile{background:var(--card);border:1px solid var(--b1);border-radius:12px;padding:18px 20px;margin-bottom:14px}
-.tile-h{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--t1);margin-bottom:4px;display:flex;align-items:center;gap:10px}
-.tile-h::before{content:'';width:3px;height:14px;background:var(--c,var(--amber));border-radius:2px}
-.tile-sub{font-size:12px;color:var(--t3);margin-bottom:14px}
+/* Body */
+.pg-body{max-width:1400px;margin:0 auto;padding:22px 24px 36px}
 
-/* Table */
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-th{text-align:left;padding:10px 8px;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--b1)}
-td{padding:10px 8px;border-bottom:1px dashed var(--b1);color:var(--t1);vertical-align:top}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(255,255,255,.02)}
-.cell-mono{font-family:var(--f-mono);font-size:11.5px;color:var(--t2)}
-.cell-id{font-family:var(--f-mono);font-size:11px;color:var(--amber2);font-weight:600}
-.pri-Critical{color:var(--red);font-weight:700}
-.pri-High{color:var(--orange);font-weight:700}
-.pri-Medium{color:var(--amber2);font-weight:600}
-.pri-Low{color:var(--t2)}
-.stat-Open{color:var(--orange)}
-.stat-Mitigated{color:var(--green)}
-.stat-Closed{color:var(--t3)}
-.stat-Active{color:var(--blue)}
+/* RAID table */
+.pg-raid{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.pg-raid table{border-collapse:collapse;width:100%;font-size:12.5px}
+.pg-raid thead th{background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.pg-raid td{padding:12px 14px;border-bottom:1px solid var(--canvas-2);vertical-align:top}
+.pg-raid tr:hover td{background:var(--canvas)}
+.pg-raid .type{font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em;display:inline-block}
+.pg-raid .type.R{background:var(--red-bg);color:var(--red)}
+.pg-raid .type.A{background:var(--blue-bg);color:var(--blue)}
+.pg-raid .type.I{background:var(--orange-bg);color:var(--orange)}
+.pg-raid .type.D{background:var(--purple-bg);color:var(--purple)}
+.pg-raid .sev{font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;text-transform:uppercase;letter-spacing:.04em;display:inline-block;color:#fff}
+.pg-raid .sev.high{background:var(--red)}
+.pg-raid .sev.med {background:var(--orange)}
+.pg-raid .sev.low {background:var(--green)}
+.pg-raid .desc{font-size:12px;line-height:1.55}
+.pg-raid [contenteditable]{padding:2px 4px;margin:0 -4px;border-radius:4px;outline:none;cursor:text}
+.pg-raid [contenteditable]:hover{background:rgba(200,146,26,.06)}
+.pg-raid [contenteditable]:focus{background:#FFFCF4;box-shadow:0 0 0 2px rgba(200,146,26,.25)}
+.pg-raid select{font-family:inherit;font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--ink)}
+.pg-raid .owner{font-size:11px;color:var(--ink)}
+.pg-raid .delete-btn{background:transparent;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 6px}
+.pg-raid .delete-btn:hover{background:var(--red-bg)}
+.pg-raid-add{padding:12px 16px;background:var(--canvas);border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap}
+.pg-raid-add button{background:#fff;border:1px solid var(--border);border-radius:6px;padding:5px 11px;font-size:11px;color:var(--ink);font-family:inherit;cursor:pointer}
+.pg-raid-add button:hover{border-color:var(--gold);color:var(--gold)}
 
-/* Two-column */
-.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media (max-width:900px){.cols-2{grid-template-columns:1fr}}
+/* Filter chips */
+.pg-filters{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.pg-filter{font-size:11px;background:#fff;border:1px solid var(--border);border-radius:99px;padding:5px 11px;cursor:pointer;color:var(--ink-2)}
+.pg-filter.act{background:var(--aglow);border-color:var(--gold-2);color:var(--ink);font-weight:700}
 
-/* 7R Timeline */
-.tl{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:14px}
-@media (max-width:900px){.tl{grid-template-columns:repeat(2,1fr)}}
-.tl-cell{background:var(--panel);border:1px solid var(--b1);border-radius:9px;padding:12px;position:relative;overflow:hidden;transition:.25s}
-.tl-cell:hover{transform:translateY(-3px);border-color:var(--c,var(--amber))}
-.tl-cell::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--amber))}
-.tl-cell .tk{font-family:var(--f-head);font-size:18px;font-weight:700;color:var(--c,var(--amber2));margin-bottom:4px}
-.tl-cell .tn{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:6px}
-.tl-cell .td{font-size:10.5px;color:var(--t2);line-height:1.45}
-.tl-cell .tm{font-family:var(--f-mono);font-size:10px;color:var(--t3);margin-top:8px;padding-top:8px;border-top:1px dashed var(--b1)}
+/* 7-R Gantt */
+.pg-gantt{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:auto}
+.pg-gantt-wrap{min-width:1100px}
+.pg-gantt-head{display:grid;grid-template-columns:280px 1fr;border-bottom:1px solid var(--border);background:var(--canvas)}
+.pg-gantt-head .name{padding:10px 14px;font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;border-right:1px solid var(--border)}
+.pg-gantt-head .months{display:grid;grid-template-columns:repeat(18,1fr)}
+.pg-gantt-head .months div{padding:10px 4px;text-align:center;font-size:9.5px;font-weight:700;color:var(--ink-2);border-right:1px solid var(--canvas-2);letter-spacing:.04em}
+.pg-gantt-row{display:grid;grid-template-columns:280px 1fr;border-bottom:1px solid var(--canvas-2);position:relative}
+.pg-gantt-row:hover{background:var(--canvas)}
+.pg-gantt-row .name{padding:10px 14px;border-right:1px solid var(--border);font-size:12px}
+.pg-gantt-row .name .cap-name{font-weight:700;font-size:12px}
+.pg-gantt-row .name .cap-meta{font-size:10px;color:var(--ink-2);margin-top:1px}
+.pg-gantt-bar-track{position:relative;display:grid;grid-template-columns:repeat(18,1fr);align-items:center;padding:6px 0}
+.pg-gantt-bar-track > .col{border-right:1px dashed var(--canvas-2);height:24px}
+.pg-gantt-bar{position:absolute;height:22px;border-radius:5px;display:flex;align-items:center;padding:0 8px;color:#fff;font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;top:6px;box-shadow:0 2px 6px -2px rgba(0,0,0,.2)}
+.pg-gantt-bar.REHOST   {background:#3D8EFF}
+.pg-gantt-bar.REPLAT   {background:#0FD49A}
+.pg-gantt-bar.REFACT   {background:#FF8030}
+.pg-gantt-bar.REARCH   {background:#FF4D6A}
+.pg-gantt-bar.REBUILD  {background:#9B72FF}
+.pg-gantt-bar.REPLACE  {background:#A0357A}
+.pg-gantt-bar.RETAIN   {background:#5B6B8A}
 
-/* RAID legend */
-.legend{display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap}
-.lg-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t2)}
-.lg-sw{width:10px;height:10px;border-radius:3px}
+/* Cost model */
+.pg-cost-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+@media (max-width:900px){.pg-cost-grid{grid-template-columns:1fr}}
+.pg-cost-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px}
+.pg-cost-card .lbl{font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase}
+.pg-cost-card .val{font-family:var(--f-head);font-size:26px;font-weight:600;margin-top:4px}
+.pg-cost-card .val.green{color:#0A8462}
+.pg-cost-card .val.gold{color:var(--gold)}
+.pg-cost-card .sub{font-size:11.5px;color:var(--ink-2);margin-top:4px}
+.pg-cost-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;display:flex;margin-top:10px}
+.pg-cost-bar .seg{background:var(--gold)}
 
-/* Cost */
-.cost-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-@media (max-width:900px){.cost-grid{grid-template-columns:repeat(2,1fr)}}
-.cost-bar{height:6px;background:var(--b1);border-radius:3px;overflow:hidden;margin-top:8px}
-.cost-bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--amber3));border-radius:3px}
+/* Runlog */
+.pg-runlog{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 20px}
+.pg-runlog-entry{display:grid;grid-template-columns:160px 32px 1fr;gap:10px;padding:10px 0;border-bottom:1px dashed var(--border)}
+.pg-runlog-entry:last-child{border-bottom:none}
+.pg-runlog-entry .time{font-size:11px;color:var(--ink-2);font-family:var(--f-mono)}
+.pg-runlog-entry .ic{font-size:13px;text-align:center}
+.pg-runlog-entry .msg{font-size:12.5px}
+.pg-runlog-entry .msg strong{color:var(--ink)}
 
-/* Drill down  */
-.drill{margin-top:14px;background:var(--navy);border:1px dashed var(--b2);border-radius:9px;padding:14px 18px;font-size:12.5px;color:var(--t2);display:none}
-.drill.on{display:block;animation:fadeUp .3s}
+/* Empty */
+.pg-empty{text-align:center;padding:60px 20px;background:#fff;border:1px solid var(--border);border-radius:14px;color:var(--ink-2)}
+.pg-empty h2{font-family:var(--f-head);font-size:20px;color:var(--ink);margin-bottom:8px}
+.pg-empty p{font-size:13px;max-width:480px;margin:0 auto 14px;line-height:1.55}
+.pg-empty .actions a,.pg-empty .actions button{background:var(--gold);color:#fff;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;text-decoration:none;border:none;font-family:inherit;cursor:pointer;margin:0 4px}
+.pg-empty .actions .ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+
+/* Banner */
+.pg-banner{background:#FFFCF4;border:1px solid var(--gold-2);border-radius:10px;padding:11px 14px;font-size:12px;color:#7A5F10;margin-bottom:14px;display:flex;align-items:center;gap:10px;line-height:1.55}
+.pg-banner strong{color:var(--gold)}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-
-/* Export bar */
-.export-bar{max-width:1480px;margin:14px auto;padding:18px 26px;background:linear-gradient(90deg,rgba(15,212,154,.07),rgba(61,142,255,.05));border:1px solid var(--b1);border-radius:12px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
-.eb-l h4{font-family:var(--f-head);font-size:14px;color:var(--t1);margin-bottom:2px}
-.eb-l p{font-size:12px;color:var(--t2)}
-.eb-r{display:flex;gap:8px;flex-wrap:wrap}
-.exp-btn{padding:9px 14px;background:var(--card);border:1px solid var(--b2);border-radius:7px;color:var(--t1);font-size:11.5px;font-weight:600;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:var(--f-ui)}
-.exp-btn:hover{border-color:var(--amber);color:var(--amber2);transform:translateY(-1px)}
-.exp-btn.green:hover{border-color:var(--green);color:var(--green)}
-.exp-btn.blue:hover{border-color:var(--blue);color:var(--blue)}
-
-footer{text-align:center;padding:28px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1)}
-
-/* Banner if no architecture selected */
-.warn{max-width:1480px;margin:18px auto 0;padding:14px 22px;background:rgba(255,128,48,.06);border:1px solid rgba(255,128,48,.3);border-radius:10px;display:flex;align-items:center;gap:12px;color:var(--orange);font-size:12.5px}
-.warn .icon{width:22px;height:22px;border-radius:50%;background:rgba(255,128,48,.18);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
-.warn a{color:var(--orange);font-weight:600;text-decoration:underline}
+.fadeUp{animation:fadeUp .35s ease both}
 </style>
 </head>
 <body>
 
-<!-- Shared top bar with Features ▾ mega-menu -->
 <div data-di-topbar></div>
 
-<section class="hero">
-  <span class="hero-badge">Program Governance · Step 2 of 2</span>
-  <h1>Plan the <em>full program</em> — end to end.</h1>
-  <p>Pick a banking module and a deployment target. The platform assembles the finalized requirements, governance KPIs, data governance posture, 7R-aligned timeline, RAID log, cost tracker, ops KPIs, and produces a downloadable MS Project plan plus a DR/rollback runlog.</p>
-</section>
+<!-- Hero -->
+<section class="pg-hero" id="pg-hero"></section>
 
-<div id="warn-no-arch" class="warn" style="display:none">
-  <div class="icon">!</div>
-  <div>No deployment target selected yet — pick one in the <a href="architecture-studio.html">Architecture Studio</a> first, or choose one below to continue.</div>
-</div>
+<!-- Tabs -->
+<nav class="pg-tabs"><div class="pg-tabs-wrap" id="pg-tabs"></div></nav>
 
-<div class="selector">
-  <div class="sel-pill">
-    <label>Banking Module</label>
-    <select id="sel-module">
-      <option>Core Banking — Payments</option>
-      <option>Core Banking — Deposits</option>
-      <option>Core Banking — Loans</option>
-      <option>Cards</option>
-      <option>Trade Finance</option>
-      <option>Treasury</option>
-      <option>Wealth Management</option>
-      <option>Risk &amp; Compliance</option>
-      <option>Anti-Money Laundering</option>
-      <option>Customer Onboarding (KYC)</option>
-    </select>
-  </div>
-  <div class="sel-pill">
-    <label>Deployment Target</label>
-    <select id="sel-arch">
-      <option value="private">Banking Private Data Center</option>
-      <option value="aws">AWS</option>
-      <option value="azure">Azure</option>
-      <option value="gcp">GCP</option>
-      <option value="oci">Oracle Cloud (OCI)</option>
-      <option value="ibm">IBM Cloud</option>
-    </select>
-  </div>
-  <button class="gen-btn" onclick="regenerate()">↻ Generate Plan</button>
-</div>
+<!-- Toolbar (per tab) -->
+<div class="pg-toolbar"><div class="pg-toolbar-wrap" id="pg-toolbar"></div></div>
 
-<div class="kpi-row" id="kpi-row"></div>
-
-<div class="tabs" id="tabs"></div>
-
-<div id="panes"></div>
-
-<div class="export-bar">
-  <div class="eb-l">
-    <h4>Export & operational artifacts</h4>
-    <p>Download the program plan as MS Project XML, the runlog for DR / rollback drills, and a summary JSON for downstream pipelines.</p>
-  </div>
-  <div class="eb-r">
-    <button class="exp-btn green" onclick="exportMSProject()">⬇ MS Project (.xml)</button>
-    <button class="exp-btn blue"  onclick="exportRunlog()">⬇ Runlog (.txt)</button>
-    <button class="exp-btn"       onclick="exportJSON()">⬇ Program JSON</button>
-    <button class="exp-btn"       onclick="window.print()">⎙ Print briefing</button>
-  </div>
-</div>
-
-<footer>
-  DI-Platform · Program Governance · IDD: DI-2026-NKK-0511-001 · © 2026 Nishanth Kumar Kishore / Digital Infotech
-</footer>
+<!-- Body -->
+<main class="pg-body" id="pg-body"></main>
 
 <script>
-// ─── Data ───────────────────────────────────────────────────
-const ARCH = {
-  private:{name:"Banking Private Data Center", letter:"PD", color:"#C8921A", risk:1.4, costMult:1.6, durMult:1.4},
-  aws:    {name:"AWS",                          letter:"AW", color:"#FF8030", risk:1.0, costMult:1.0, durMult:1.0},
-  azure:  {name:"Azure",                        letter:"AZ", color:"#3D8EFF", risk:1.0, costMult:0.95,durMult:1.0},
-  gcp:    {name:"GCP",                          letter:"GC", color:"#0FD49A", risk:1.0, costMult:0.92,durMult:1.0},
-  oci:    {name:"Oracle Cloud (OCI)",           letter:"OC", color:"#FF4D6A", risk:1.1, costMult:1.15,durMult:1.15},
-  ibm:    {name:"IBM Cloud",                    letter:"IB", color:"#9B72FF", risk:1.05,costMult:1.2, durMult:1.2}
+/* ═══════════════════════════════════════════════════════
+   Program Governance · Phase 16
+   Reads di_handoff_governance from Architecture.
+═══════════════════════════════════════════════════════ */
+
+const PG_KEY = 'di_governance_v1';
+let INPUT = null;
+let STATE = {
+  tab: 'raid',
+  raid: [],
+  raidFilter: 'all',
+  runlog: [],
+  capabilities: [],
+  filters: null,
+  durationMonths: 14,
+  fixedPrice: 3950000,
+  createdAt: null,
+  updatedAt: null
 };
 
-const REQUIREMENTS = {
-  Technical: [
-    ["REQ-T-001","Real-time settlement on TIPS / SEPA Instant rails","Critical"],
-    ["REQ-T-002","Decouple AML engine via async event bus (Kafka)","High"],
-    ["REQ-T-003","p99 API latency < 250ms across all rails","High"],
-    ["REQ-T-004","Multi-region active-active with RPO < 5s","Critical"],
-    ["REQ-T-005","Zero-trust mTLS between all microservices","High"],
-    ["REQ-T-006","Hardware-backed key management (HSM)","Critical"],
-    ["REQ-T-007","Idempotent payment APIs with replay protection","Critical"],
+const TABS = [
+  { id:'raid',    label:'📋 RAID Register' },
+  { id:'gantt',   label:'📅 7-R Timeline' },
+  { id:'cost',    label:'💰 Cost Model' },
+  { id:'runlog',  label:'📜 Runlog' }
+];
+
+const RAID_SEED = {
+  R: [
+    { sev:'high', desc:'Mainframe COBOL skills are declining; risk to Payments rearchitect timeline.', owner:'CTO',     status:'Open' },
+    { sev:'high', desc:'BCBS 239 deadline puts pressure on Risk &amp; Compliance rearchitect wave.', owner:'CRO',     status:'Open' },
+    { sev:'med',  desc:'Cloud egress costs underestimated in initial TCO; needs FinOps review.',     owner:'FinOps',  status:'Open' },
+    { sev:'med',  desc:'Vendor lock-in if cards loyalty fully migrates to single SaaS.',             owner:'Procurement', status:'Open' },
+    { sev:'low',  desc:'Time-zone overlap with partner team in APAC limits sync windows.',           owner:'PMO',     status:'Mitigated' }
   ],
-  Business:[
-    ["REQ-B-001","Reduce settlement latency from 14h → <60s","Critical"],
-    ["REQ-B-002","Cut operational cost by 30% over 18 months","High"],
-    ["REQ-B-003","Lower manual reconciliation rate < 2%","High"],
-    ["REQ-B-004","Increase straight-through-processing to 96%","Medium"],
-    ["REQ-B-005","Expand to 3 new corridors (LATAM, EMEA, APAC)","Medium"],
+  A: [
+    { sev:'',     desc:'Assumes ' + 'Client' + ' provides one Product Owner per capability for ≥ 50% of program duration.', owner:'PMO',    status:'Confirmed' },
+    { sev:'',     desc:'Assumes existing identity / SSO stack works for all new cloud-native services.', owner:'CISO',    status:'Confirmed' },
+    { sev:'',     desc:'Assumes hyperscaler enterprise rate of 18% (subject to procurement negotiation).', owner:'Procurement', status:'Pending' }
   ],
-  Product:[
-    ["REQ-P-001","Self-serve corporate payments portal","High"],
-    ["REQ-P-002","Embedded payment widgets via SDK","Medium"],
-    ["REQ-P-003","Real-time payment status webhooks","High"],
-    ["REQ-P-004","Multi-currency wallet — 14 currencies","Medium"],
-    ["REQ-P-005","FX rate streaming with sub-second updates","Medium"],
+  I: [
+    { sev:'high', desc:'AS/400 RPG → Postgres test data not yet anonymised; blocking Deposits Replatform.', owner:'Data Steward', status:'Open' },
+    { sev:'med',  desc:'Treasury Solaris servers EOL in 14 months; cutover must finish before then.',    owner:'Infra',     status:'Open' }
   ],
-  Regulatory:[
-    ["REQ-R-001","PCI-DSS 4.0 across the cardholder data env","Critical"],
-    ["REQ-R-002","SOX controls for change & access management","Critical"],
-    ["REQ-R-003","GDPR · Right-to-erasure within 30 days","High"],
-    ["REQ-R-004","ISO 20022 message standard adoption","High"],
-    ["REQ-R-005","FATF Travel Rule for cross-border > $1k","Critical"],
-    ["REQ-R-006","Regulatory reporting — daily MIS by 09:00","High"],
+  D: [
+    { sev:'',     desc:'Depends on Architecture Studio sign-off (M1 deliverable).',                       owner:'Architect', status:'Active' },
+    { sev:'',     desc:'Depends on FinOps tooling (Cloudability or AWS Cost Explorer) being installed before M2.', owner:'FinOps', status:'Pending' },
+    { sev:'',     desc:'Depends on Snowflake account provisioning for unified risk data platform.',      owner:'Data',      status:'Pending' }
   ]
 };
 
-const SEVEN_R = [
-  {k:"R1",n:"Retire",       d:"Decommission legacy modules with no continuing value.",         baseDur:"2 mo",  c:"#FF4D6A"},
-  {k:"R2",n:"Retain",       d:"Keep on-prem; wrap with APIs for hybrid integration.",          baseDur:"3 mo",  c:"#8AA4C8"},
-  {k:"R3",n:"Rehost",       d:"Lift-and-shift VMs into target — minimal change.",              baseDur:"4 mo",  c:"#3D8EFF"},
-  {k:"R4",n:"Replatform",   d:"Containerize + minor refactor for managed services.",           baseDur:"6 mo",  c:"#00C9C8"},
-  {k:"R5",n:"Repurchase",   d:"Adopt SaaS replacements for commodity capability.",             baseDur:"5 mo",  c:"#9B72FF"},
-  {k:"R6",n:"Refactor",     d:"Significant code rewrite to cloud-native patterns.",            baseDur:"9 mo",  c:"#FF8030"},
-  {k:"R7",n:"Rearchitect",  d:"Decompose monolith → event-driven microservices.",              baseDur:"12 mo", c:"#0FD49A"}
-];
+const TYPE_LABEL = { R:'Risk', A:'Assumption', I:'Issue', D:'Dependency' };
 
-const RAID = [
-  ["RSK-001","Risk","Vendor lock-in to chosen hyperscaler","Critical","Open","Adopt CNCF-aligned services; quarterly portability test"],
-  ["RSK-002","Risk","HSM key migration error during cutover","Critical","Mitigated","Dual-control rotation; rehearsed rollback to legacy HSM"],
-  ["RSK-003","Risk","Regulator slow to approve EU rollout","High","Open","Pre-engage; submit dossier 90 days ahead"],
-  ["ASM-001","Assumption","Existing AML engine v3.2 supports async events","High","Active","Confirm with vendor in week 2 of discovery"],
-  ["ASM-002","Assumption","Budget approved within FY26 cap","Medium","Active","CFO sign-off captured in steering minutes"],
-  ["ISS-001","Issue","COBOL job scheduler lacks observability hooks","High","Open","Wrap with sidecar collector; sunset by Phase 3"],
-  ["ISS-002","Issue","Mainframe → cloud network latency > 50ms","Medium","Mitigated","Direct Connect / ExpressRoute provisioned"],
-  ["DEP-001","Dependency","Reg dossier approval from central bank","Critical","Open","Critical path · 90-day SLA"],
-  ["DEP-002","Dependency","Vendor delivery: new HSM firmware","High","Active","Contract milestone · contractual penalty"]
-];
+function loadInput() {
+  try { INPUT = JSON.parse(localStorage.getItem('di_handoff_governance') || 'null'); } catch (e) {}
+  try { Object.assign(STATE, JSON.parse(localStorage.getItem(PG_KEY) || '{}')); } catch (e) {}
+}
+function saveState() { STATE.updatedAt = new Date().toISOString(); try { localStorage.setItem(PG_KEY, JSON.stringify(STATE)); } catch (e) {} }
 
-const TABS = [
-  {k:"requirements",n:"Finalized Requirements",          c:"var(--amber)"},
-  {k:"governance",  n:"Program Governance",              c:"var(--blue)"},
-  {k:"data",        n:"Data Governance",                 c:"var(--purple)"},
-  {k:"timeline",    n:"7R Timeline",                     c:"var(--teal)"},
-  {k:"raid",        n:"RAID Log",                        c:"var(--red)"},
-  {k:"cost",        n:"Cost & PAT",                      c:"var(--green)"},
-  {k:"ops",         n:"Ops KPIs",                        c:"var(--orange)"},
-  {k:"runlog",      n:"DR / Rollback Runlog",            c:"var(--pink)"}
-];
-
-// ─── State + persistence ────────────────────────────────────
-function loadStoredArch(){
-  try{
-    const stored = JSON.parse(sessionStorage.getItem('diSelectedArch') || 'null');
-    if(stored && ARCH[stored.key]) document.getElementById('sel-arch').value = stored.key;
-    else document.getElementById('warn-no-arch').style.display='flex';
-  }catch(e){}
+function consumeHandoff() {
+  if (!INPUT || !INPUT.capabilities) return false;
+  STATE.capabilities = INPUT.capabilities;
+  STATE.filters = INPUT.filters || {};
+  // Seed RAID if empty
+  if (STATE.raid.length === 0) {
+    let counter = 1;
+    ['R','A','I','D'].forEach(type => {
+      RAID_SEED[type].forEach(item => {
+        STATE.raid.push({
+          id: 'P-' + String(counter++).padStart(3, '0'),
+          type: type,
+          sev: item.sev || 'low',
+          desc: item.desc,
+          owner: item.owner,
+          status: item.status,
+          createdAt: new Date().toISOString()
+        });
+      });
+    });
+  }
+  // Seed runlog
+  if (STATE.runlog.length === 0) {
+    STATE.runlog.push(
+      { time: new Date().toISOString(), ic:'📥', msg:'Received architecture handoff · <strong>' + INPUT.capabilities.length + ' capabilities</strong> imported · 7R verdicts locked.' },
+      { time: new Date().toISOString(), ic:'📋', msg:'Seeded RAID register with <strong>' + STATE.raid.length + ' items</strong> from peer-bank template.' },
+      { time: new Date().toISOString(), ic:'📅', msg:'7-R timeline drafted across 3 parallel waves (Cards · Core · Risk &amp; Reg).' }
+    );
+  }
+  STATE.createdAt = STATE.createdAt || new Date().toISOString();
+  saveState();
+  return true;
 }
 
-// ─── Render ─────────────────────────────────────────────────
-function currentState(){
-  return {
-    module: document.getElementById('sel-module').value,
-    archKey: document.getElementById('sel-arch').value,
-    arch: ARCH[document.getElementById('sel-arch').value]
-  };
+function fmt(n) {
+  if (!isFinite(n)) return '—';
+  const c = (STATE.filters && STATE.filters.currency) || 'USD';
+  if (Math.abs(n) >= 1000000) return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:1 }).format(n/1000000).replace(/\.0/,'') + 'M';
+  if (Math.abs(n) >= 1000)    return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:0 }).format(n/1000) + 'K';
+  return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:0 }).format(n);
 }
 
-function renderKPIs(){
-  const {arch} = currentState();
-  const totReqs = Object.values(REQUIREMENTS).reduce((a,b)=>a+b.length,0);
-  const critical = Object.values(REQUIREMENTS).flat().filter(r=>r[2]==='Critical').length;
-  const dur = Math.round(9 * arch.durMult);
-  const cost = (2.5 * arch.costMult).toFixed(1);
-  const raidCount = RAID.length;
-  const raidOpen = RAID.filter(r=>r[4]==='Open').length;
-  const data = [
-    {l:"Total Requirements",v:totReqs,    s:`${critical} Critical`,             c:"var(--amber)"},
-    {l:"Program Duration", v:`${dur} mo`, s:`Based on 7R · ${arch.name}`,       c:"var(--blue)"},
-    {l:"Est. Cost (FY)",   v:`$${cost}M`, s:`±15% confidence`,                  c:"var(--green)"},
-    {l:"RAID Items",       v:raidCount,   s:`${raidOpen} open`,                 c:"var(--red)"},
-    {l:"Health Score",     v:"82 / 100",  s:`<span class='trend-up'>↑ 4 this sprint</span>`, c:"var(--teal)"},
-    {l:"PAT Margin",       v:"22.4%",     s:`<span class='trend-up'>↑ vs plan</span>`,       c:"var(--purple)"}
-  ];
-  document.getElementById('kpi-row').innerHTML = data.map(k => `
-    <div class="kpi" style="--c:${k.c}">
-      <div class="lbl">${k.l}</div>
-      <div class="v">${k.v}</div>
-      <div class="sub">${k.s}</div>
-    </div>`).join('');
+/* ── Render hero ────────────────────────────────────── */
+function renderHero() {
+  const el = document.getElementById('pg-hero');
+  const caps = STATE.capabilities;
+  const open = STATE.raid.filter(r => r.status === 'Open').length;
+  const high = STATE.raid.filter(r => r.sev === 'high' && r.status === 'Open').length;
+  const monthly = caps.reduce((s, c) => s + (c.monthly || 0), 0);
+
+  el.innerHTML = '<div class="pg-hero-wrap fadeUp">' +
+    '<div><div class="pg-eyebrow">PROGRAM GOVERNANCE · ' + caps.length + ' CAPABILITIES</div>' +
+      '<h1 class="pg-h1">RAID, timeline, cost — <em>your migration control tower.</em></h1></div>' +
+    '<div class="pg-stats">' +
+      '<div class="pg-stat ' + (high > 0 ? 'red' : 'ok') + '"><div class="lbl">HIGH-SEV OPEN</div><div class="val">' + high + '</div></div>' +
+      '<div class="pg-stat"><div class="lbl">TOTAL RAID</div><div class="val">' + STATE.raid.length + '</div></div>' +
+      '<div class="pg-stat"><div class="lbl">DURATION</div><div class="val">' + STATE.durationMonths + ' mo</div></div>' +
+      '<div class="pg-stat"><div class="lbl">CLOUD COST / MO</div><div class="val">' + fmt(monthly) + '</div></div>' +
+    '</div>' +
+  '</div>';
 }
 
-function renderTabs(){
-  const tabsEl = document.getElementById('tabs');
-  tabsEl.innerHTML = '';
-  TABS.forEach((t,i) => {
-    const b = document.createElement('button');
-    b.className = 'tab' + (i===0?' act':'');
-    b.dataset.k = t.k;
-    let count = '';
-    if (t.k==='requirements') count = Object.values(REQUIREMENTS).reduce((a,b)=>a+b.length,0);
-    if (t.k==='raid')         count = RAID.length;
-    if (t.k==='timeline')     count = '7R';
-    b.innerHTML = `${t.n}${count!==''?`<span class="badge-c">${count}</span>`:''}`;
-    b.onclick = ()=> activateTab(t.k);
-    tabsEl.appendChild(b);
+/* ── Render tabs + toolbar ──────────────────────────── */
+function renderTabs() {
+  document.getElementById('pg-tabs').innerHTML = TABS.map(t =>
+    '<button class="pg-tab ' + (STATE.tab === t.id ? 'act' : '') + '" onclick="selectTab(\'' + t.id + '\')">' + t.label + '</button>'
+  ).join('');
+}
+function selectTab(id) { STATE.tab = id; saveState(); renderBody(); renderToolbar(); renderTabs(); }
+
+function renderToolbar() {
+  const el = document.getElementById('pg-toolbar');
+  if (STATE.tab === 'raid') {
+    el.innerHTML =
+      '<div class="meta">' + STATE.raid.length + ' items · click any cell to edit</div>' +
+      '<div class="actions">' +
+        '<button onclick="addRaidRow(\'R\')">+ Risk</button>' +
+        '<button onclick="addRaidRow(\'A\')">+ Assumption</button>' +
+        '<button onclick="addRaidRow(\'I\')">+ Issue</button>' +
+        '<button onclick="addRaidRow(\'D\')">+ Dependency</button>' +
+        '<button onclick="exportRAID()">⬇ Export CSV</button>' +
+      '</div>';
+  } else if (STATE.tab === 'gantt') {
+    el.innerHTML =
+      '<div class="meta">3 parallel waves · ' + STATE.capabilities.length + ' capabilities · ' + STATE.durationMonths + ' months total</div>' +
+      '<div class="actions">' +
+        '<button class="primary" onclick="exportMSProject()">⬇ MS Project XML</button>' +
+        '<button onclick="exportGanttCSV()">⬇ CSV</button>' +
+      '</div>';
+  } else if (STATE.tab === 'cost') {
+    el.innerHTML =
+      '<div class="meta">Live from pricing library · refreshed ' + (window.DI && window.DI.pricing ? new Date(window.DI.pricing.refreshedAt).toLocaleDateString() : 'unknown') + '</div>' +
+      '<div class="actions">' +
+        '<button onclick="exportCostCSV()">⬇ Cost breakdown CSV</button>' +
+      '</div>';
+  } else if (STATE.tab === 'runlog') {
+    el.innerHTML =
+      '<div class="meta">' + STATE.runlog.length + ' events · append-only</div>' +
+      '<div class="actions">' +
+        '<button onclick="exportRunlog()">⬇ Export</button>' +
+      '</div>';
+  }
+}
+
+/* ── Render body ────────────────────────────────────── */
+function renderBody() {
+  const el = document.getElementById('pg-body');
+  const caps = STATE.capabilities;
+
+  if (!caps.length) {
+    el.innerHTML = '<div class="pg-empty">' +
+      '<h2>No data yet</h2>' +
+      '<p>Program Governance receives capabilities + 7R verdicts from Architecture Studio. Run Discovery → Architecture first, then click <strong>Send to Governance</strong>.</p>' +
+      '<div class="actions"><a href="discovery-studio.html">Start with Discovery →</a> <button class="ghost" onclick="loadSample()">Load sample</button></div>' +
+    '</div>';
+    return;
+  }
+
+  // Source banner
+  let banner = '';
+  if (INPUT && INPUT.source) {
+    banner = '<div class="pg-banner">📥 <div>Imported from <strong>' + (INPUT.source === 'architecture' ? 'Architecture Studio' : INPUT.source) + '</strong>: ' + caps.length + ' capabilities with 7R verdicts and live pricing.</div></div>';
+  }
+
+  if (STATE.tab === 'raid')   el.innerHTML = banner + renderRAID();
+  if (STATE.tab === 'gantt')  el.innerHTML = banner + renderGantt();
+  if (STATE.tab === 'cost')   el.innerHTML = banner + renderCost();
+  if (STATE.tab === 'runlog') el.innerHTML = banner + renderRunlog();
+}
+
+/* ── RAID register ──────────────────────────────────── */
+function renderRAID() {
+  const filtered = STATE.raid.filter(r => STATE.raidFilter === 'all' || r.type === STATE.raidFilter || (STATE.raidFilter === 'open' && r.status === 'Open') || (STATE.raidFilter === 'high' && r.sev === 'high'));
+
+  let html = '<div class="pg-filters">' +
+    ['all','R','A','I','D','open','high'].map(k =>
+      '<button class="pg-filter ' + (STATE.raidFilter === k ? 'act' : '') + '" onclick="STATE.raidFilter=\'' + k + '\';saveState();renderBody()">' +
+        (k === 'all' ? 'All ' + STATE.raid.length :
+         k === 'R'   ? 'Risks · ' + STATE.raid.filter(r=>r.type==='R').length :
+         k === 'A'   ? 'Assumptions · ' + STATE.raid.filter(r=>r.type==='A').length :
+         k === 'I'   ? 'Issues · ' + STATE.raid.filter(r=>r.type==='I').length :
+         k === 'D'   ? 'Dependencies · ' + STATE.raid.filter(r=>r.type==='D').length :
+         k === 'open'? 'Open · ' + STATE.raid.filter(r=>r.status==='Open').length :
+                       'High severity · ' + STATE.raid.filter(r=>r.sev==='high').length) +
+      '</button>'
+    ).join('') +
+  '</div>';
+
+  html += '<div class="pg-raid"><table><thead><tr>' +
+    '<th>ID</th><th>Type</th><th>Severity</th><th>Description</th><th>Owner</th><th>Status</th><th></th>' +
+  '</tr></thead><tbody>';
+  filtered.forEach((r, idx) => {
+    const realIdx = STATE.raid.indexOf(r);
+    html += '<tr>' +
+      '<td style="font-family:var(--f-mono);font-weight:700;color:var(--ink-2)">' + r.id + '</td>' +
+      '<td><span class="type ' + r.type + '">' + TYPE_LABEL[r.type] + '</span></td>' +
+      '<td>' + (r.type === 'A' || r.type === 'D' ? '<span style="color:var(--ink-3);font-size:10.5px">—</span>' :
+        '<select onchange="updateRaid(' + realIdx + ',\'sev\',this.value)"><option value="high" ' + (r.sev==='high'?'selected':'') + '>HIGH</option><option value="med" ' + (r.sev==='med'?'selected':'') + '>MED</option><option value="low" ' + (r.sev==='low'?'selected':'') + '>LOW</option></select>') +
+      '</td>' +
+      '<td class="desc" contenteditable="true" onblur="updateRaid(' + realIdx + ',\'desc\',this.innerHTML)">' + r.desc + '</td>' +
+      '<td><span class="owner" contenteditable="true" onblur="updateRaid(' + realIdx + ',\'owner\',this.textContent)">' + r.owner + '</span></td>' +
+      '<td><select onchange="updateRaid(' + realIdx + ',\'status\',this.value)">' +
+        ['Open','In Progress','Mitigated','Confirmed','Pending','Active','Closed'].map(s => '<option' + (r.status===s?' selected':'') + '>' + s + '</option>').join('') +
+      '</select></td>' +
+      '<td><button class="delete-btn" onclick="deleteRaid(' + realIdx + ')" title="Delete">×</button></td>' +
+    '</tr>';
   });
+  html += '</tbody></table>';
+  html += '<div class="pg-raid-add"><span style="font-size:11px;color:var(--ink-2);align-self:center;margin-right:6px">Add new:</span>' +
+    '<button onclick="addRaidRow(\'R\')">+ Risk</button>' +
+    '<button onclick="addRaidRow(\'A\')">+ Assumption</button>' +
+    '<button onclick="addRaidRow(\'I\')">+ Issue</button>' +
+    '<button onclick="addRaidRow(\'D\')">+ Dependency</button>' +
+  '</div></div>';
+  return html;
+}
+function updateRaid(idx, key, val) { if (STATE.raid[idx]) { STATE.raid[idx][key] = val; saveState(); renderHero(); } }
+function addRaidRow(type) {
+  const next = STATE.raid.length + 1;
+  STATE.raid.push({ id:'P-' + String(next).padStart(3,'0'), type:type, sev: type === 'R' || type === 'I' ? 'med' : '', desc:'Click to describe…', owner:'TBD', status:'Open', createdAt:new Date().toISOString() });
+  STATE.runlog.unshift({ time:new Date().toISOString(), ic:'➕', msg:'Added new ' + TYPE_LABEL[type].toLowerCase() + ' P-' + String(next).padStart(3,'0') + '.' });
+  saveState();
+  renderBody();
+  renderHero();
+}
+function deleteRaid(idx) {
+  const r = STATE.raid[idx];
+  if (!r) return;
+  if (!confirm('Delete ' + r.id + ' (' + TYPE_LABEL[r.type] + ')?')) return;
+  STATE.raid.splice(idx, 1);
+  STATE.runlog.unshift({ time:new Date().toISOString(), ic:'🗑', msg:'Deleted ' + r.id + ' (' + TYPE_LABEL[r.type].toLowerCase() + ').' });
+  saveState();
+  renderBody();
+  renderHero();
 }
 
-function activateTab(k){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('act', t.dataset.k===k));
-  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on', p.dataset.k===k));
+/* ── 7-R Gantt ──────────────────────────────────────── */
+function renderGantt() {
+  // Assign each capability to a wave + start month based on verdict
+  const VERDICT_WAVE = { REHOST:1, REPLAT:2, REFACT:2, REARCH:3, REBUILD:3, REPLACE:1, RETAIN:0 };
+  const WAVE_START = { 1:2, 2:5, 3:8, 0:14 };  // month start
+  const VERDICT_DUR = { REHOST:2.5, REPLAT:5, REFACT:7.5, REARCH:10.5, REBUILD:12, REPLACE:7, RETAIN:0 };
+
+  // Months 1..18
+  let head = '<div class="pg-gantt-head"><div class="name">CAPABILITY</div><div class="months">';
+  for (let i = 1; i <= 18; i++) head += '<div>M' + i + '</div>';
+  head += '</div></div>';
+
+  let rows = '';
+  STATE.capabilities.forEach(c => {
+    const v   = c.verdict || 'REPLAT';
+    const start = WAVE_START[VERDICT_WAVE[v]] || 1;
+    const dur   = VERDICT_DUR[v] || 5;
+    const left = ((start - 1) / 18) * 100;
+    const widthPct = (dur / 18) * 100;
+    rows += '<div class="pg-gantt-row">' +
+      '<div class="name"><div class="cap-name">' + c.name + '</div><div class="cap-meta">Wave ' + (VERDICT_WAVE[v]||'-') + ' · ' + v + ' · ' + (c.chosenCloud || c.stack || '?') + '</div></div>' +
+      '<div class="pg-gantt-bar-track">';
+    for (let i = 0; i < 18; i++) rows += '<div class="col"></div>';
+    rows += '<div class="pg-gantt-bar ' + v + '" style="left:' + left + '%;width:' + widthPct + '%">' + v + '</div>' +
+      '</div></div>';
+  });
+
+  // Milestone markers
+  let milestones = '<div style="margin-top:14px;font-size:11.5px;color:var(--ink-2);background:#fff;border:1px solid var(--border);border-radius:9px;padding:11px 14px">' +
+    '<strong style="color:var(--ink)">Milestones:</strong> ' +
+    '<span style="margin:0 8px"><span style="display:inline-block;width:10px;height:10px;background:var(--gold);border-radius:50%;margin-right:5px"></span>M1 · Architecture sign-off (Month 2)</span>' +
+    '<span style="margin:0 8px"><span style="display:inline-block;width:10px;height:10px;background:var(--gold);border-radius:50%;margin-right:5px"></span>M2 · Landing zone (Month 4)</span>' +
+    '<span style="margin:0 8px"><span style="display:inline-block;width:10px;height:10px;background:var(--gold);border-radius:50%;margin-right:5px"></span>M3 · Cards wave (Month 7)</span>' +
+    '<span style="margin:0 8px"><span style="display:inline-block;width:10px;height:10px;background:var(--gold);border-radius:50%;margin-right:5px"></span>M4 · Core wave (Month 10)</span>' +
+    '<span style="margin:0 8px"><span style="display:inline-block;width:10px;height:10px;background:var(--gold);border-radius:50%;margin-right:5px"></span>M5 · Risk wave (Month 12)</span>' +
+    '<span style="margin:0 8px"><span style="display:inline-block;width:10px;height:10px;background:var(--gold);border-radius:50%;margin-right:5px"></span>M6 · Final cutover (Month 14)</span>' +
+  '</div>';
+
+  return '<div class="pg-gantt"><div class="pg-gantt-wrap">' + head + rows + '</div></div>' + milestones;
 }
 
-function renderPanes(){
-  const {module, arch} = currentState();
-  const wrap = document.getElementById('panes');
-  wrap.innerHTML = '';
+/* ── Cost model ─────────────────────────────────────── */
+function renderCost() {
+  const caps = STATE.capabilities;
+  let monthlyFut = 0, monthlyLeg = 0;
+  caps.forEach(c => { monthlyFut += (c.monthly || 0); });
+  const legacy = window.DI && window.DI.pricing ? window.DI.pricing.legacyTco(caps) : [];
+  legacy.forEach(l => { monthlyLeg += l.monthly; });
+  const tco3yrFut = monthlyFut * 36;
+  const tco3yrLeg = monthlyLeg * 36;
+  const savings   = tco3yrLeg - tco3yrFut;
+  const programCost = STATE.fixedPrice;
 
-  // — Requirements
-  const reqPane = document.createElement('div');
-  reqPane.className = 'pane on'; reqPane.dataset.k='requirements';
-  const cats = Object.keys(REQUIREMENTS);
-  reqPane.innerHTML = `
-    <div class="tile" style="--c:var(--amber)">
-      <div class="tile-h">Finalized Requirements — ${module}</div>
-      <div class="tile-sub">Generated by the 6-agent pipeline · Technical / Business / Product / Regulatory · ${arch.name}</div>
-      ${cats.map(cat=>`
-        <h4 style="font-family:var(--f-head);font-size:13px;color:var(--t1);margin:14px 0 8px">${cat} <span style="color:var(--t3);font-size:11px;font-weight:400">(${REQUIREMENTS[cat].length})</span></h4>
-        <table>
-          <thead><tr><th style="width:90px">ID</th><th>Requirement</th><th style="width:90px">Priority</th></tr></thead>
-          <tbody>${REQUIREMENTS[cat].map(([id,t,p])=>`
-            <tr><td class="cell-id">${id}</td><td>${t}</td><td><span class="pri-${p}">${p}</span></td></tr>`).join('')}
-          </tbody>
-        </table>
-      `).join('')}
-    </div>`;
-  wrap.appendChild(reqPane);
+  let html = '<div class="pg-cost-grid">' +
+    '<div class="pg-cost-card"><div class="lbl">PROGRAM COST · ONE-TIME</div><div class="val gold">' + fmt(programCost) + '</div><div class="sub">Fixed price for vendor services per SOW</div></div>' +
+    '<div class="pg-cost-card"><div class="lbl">CLOUD INFRA · 3-YR</div><div class="val">' + fmt(tco3yrFut) + '</div><div class="sub">Billed by hyperscalers, reimbursed at cost</div></div>' +
+    '<div class="pg-cost-card"><div class="lbl">3-YR SAVINGS</div><div class="val green">' + fmt(savings) + '</div><div class="sub">vs legacy ' + fmt(tco3yrLeg) + '</div></div>' +
+  '</div>';
 
-  // — Governance
-  const govPane = document.createElement('div');
-  govPane.className = 'pane'; govPane.dataset.k='governance';
-  govPane.innerHTML = `
-    <div class="cols-2">
-      <div class="tile" style="--c:var(--blue)">
-        <div class="tile-h">Steering Cadence</div>
-        <table><tbody>
-          <tr><td>Sponsor Review</td><td class="cell-mono">Monthly · 1st Tue</td></tr>
-          <tr><td>Steering Committee</td><td class="cell-mono">Bi-weekly · Wed 14:00</td></tr>
-          <tr><td>Architecture Council</td><td class="cell-mono">Weekly · Mon 10:00</td></tr>
-          <tr><td>Risk Forum</td><td class="cell-mono">Weekly · Thu 16:00</td></tr>
-        </tbody></table>
-      </div>
-      <div class="tile" style="--c:var(--blue)">
-        <div class="tile-h">Decision Rights (RACI)</div>
-        <table>
-          <thead><tr><th>Decision</th><th>R</th><th>A</th><th>C</th></tr></thead>
-          <tbody>
-            <tr><td>Tech stack</td><td>Arch Lead</td><td>CIO</td><td>Eng VP</td></tr>
-            <tr><td>Vendor selection</td><td>Procurement</td><td>CFO</td><td>Arch · Sec</td></tr>
-            <tr><td>Go-live</td><td>Program Mgr</td><td>CIO</td><td>Risk · Ops</td></tr>
-            <tr><td>Rollback</td><td>SRE Lead</td><td>CTO</td><td>Risk</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="tile" style="--c:var(--blue)">
-      <div class="tile-h">Program Health KPIs</div>
-      <div class="cost-grid">
-        ${[
-          ["Schedule Variance","+3.2%","On track","var(--green)"],
-          ["Cost Variance","-1.4%","Under budget","var(--green)"],
-          ["Scope Stability","94%","Healthy","var(--green)"],
-          ["Defect Density","0.8 / KLOC","Below threshold","var(--green)"],
-          ["Velocity (sprint)","42 SP","Stable","var(--amber2)"],
-          ["Stakeholder NPS","+38","Improving","var(--green)"],
-          ["Open P1 Defects","2","Watch","var(--orange)"],
-          ["Time-to-Recover","18 min","Best-in-class","var(--green)"]
-        ].map(([l,v,sub,c])=>`<div><div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">${l}</div><div style="font-family:var(--f-head);font-size:18px;color:${c};margin-top:2px">${v}</div><div style="font-size:10px;color:var(--t2);margin-top:2px">${sub}</div></div>`).join('')}
-      </div>
-    </div>`;
-  wrap.appendChild(govPane);
+  // Per-capability cost breakdown
+  html += '<div class="pg-raid"><table><thead><tr><th>CAPABILITY</th><th>7R</th><th>CLOUD</th><th style="text-align:right">MONTHLY</th><th style="text-align:right">3-YR TCO</th><th style="text-align:right">% OF TOTAL</th></tr></thead><tbody>';
+  caps.forEach(c => {
+    const pct = monthlyFut ? Math.round((c.monthly / monthlyFut) * 100) : 0;
+    html += '<tr><td><strong>' + c.name + '</strong></td><td><span class="type" style="background:var(--aglow);color:var(--gold)">' + (c.verdict || '?') + '</span></td><td>' + (c.chosenCloud || c.stack || '?') + '</td>' +
+      '<td style="text-align:right;font-family:var(--f-mono)">' + fmt(c.monthly || 0) + '</td>' +
+      '<td style="text-align:right;font-family:var(--f-mono)">' + fmt((c.monthly||0) * 36) + '</td>' +
+      '<td style="text-align:right;font-family:var(--f-mono);color:var(--gold);font-weight:700">' + pct + '%</td></tr>';
+  });
+  html += '<tr style="background:var(--aglow);font-weight:700"><td colspan="3">TOTAL</td>' +
+    '<td style="text-align:right;font-family:var(--f-mono)">' + fmt(monthlyFut) + '</td>' +
+    '<td style="text-align:right;font-family:var(--f-mono)">' + fmt(tco3yrFut) + '</td><td></td></tr>' +
+  '</tbody></table></div>';
 
-  // — Data Governance
-  const dataPane = document.createElement('div');
-  dataPane.className = 'pane'; dataPane.dataset.k='data';
-  dataPane.innerHTML = `
-    <div class="cols-2">
-      <div class="tile" style="--c:var(--purple)">
-        <div class="tile-h">Data Classification</div>
-        <table>
-          <thead><tr><th>Class</th><th>Examples</th><th>Encryption</th></tr></thead>
-          <tbody>
-            <tr><td><span class="pri-Critical">Restricted</span></td><td class="cell-mono">PAN, CVV, KYC docs</td><td>AES-256 + HSM</td></tr>
-            <tr><td><span class="pri-High">Confidential</span></td><td class="cell-mono">Account #, balance</td><td>AES-256</td></tr>
-            <tr><td><span class="pri-Medium">Internal</span></td><td class="cell-mono">Transaction metadata</td><td>TLS-in-transit</td></tr>
-            <tr><td><span class="pri-Low">Public</span></td><td class="cell-mono">Rate cards, FAQs</td><td>Standard</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="tile" style="--c:var(--purple)">
-        <div class="tile-h">Data Lineage & Quality</div>
-        <table>
-          <tbody>
-            <tr><td>Data Catalog</td><td class="cell-mono">Collibra · Alation</td></tr>
-            <tr><td>Lineage Coverage</td><td class="cell-mono">92% of critical datasets</td></tr>
-            <tr><td>DQ Score (avg)</td><td class="cell-mono"><span class="stat-Mitigated">96.4%</span></td></tr>
-            <tr><td>Data Owner SLA</td><td class="cell-mono">48h response</td></tr>
-            <tr><td>Retention Policy</td><td class="cell-mono">7y financial · 5y KYC</td></tr>
-            <tr><td>Right-to-Erasure</td><td class="cell-mono">30-day SLA · GDPR</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="tile" style="--c:var(--purple)">
-      <div class="tile-h">Master Data Strategy</div>
-      <div class="tile-sub">Single source of truth for customer, account, and product domains — synced to consumer systems via CDC streams.</div>
-      <table>
-        <thead><tr><th>Domain</th><th>System of Record</th><th>Sync</th><th>SLA</th></tr></thead>
-        <tbody>
-          <tr><td>Customer</td><td>CIF Hub</td><td class="cell-mono">CDC → Kafka</td><td>&lt; 200ms</td></tr>
-          <tr><td>Account</td><td>Core Ledger</td><td class="cell-mono">CDC → Kafka</td><td>&lt; 200ms</td></tr>
-          <tr><td>Product</td><td>Product Catalog</td><td class="cell-mono">Batch · hourly</td><td>1 h</td></tr>
-          <tr><td>Reference Data</td><td>Ref Data Hub</td><td class="cell-mono">API pull · 15min</td><td>15 min</td></tr>
-        </tbody>
-      </table>
-    </div>`;
-  wrap.appendChild(dataPane);
-
-  // — Timeline
-  const tlPane = document.createElement('div');
-  tlPane.className = 'pane'; tlPane.dataset.k='timeline';
-  tlPane.innerHTML = `
-    <div class="tile" style="--c:var(--teal)">
-      <div class="tile-h">7R Migration Timeline — ${arch.name}</div>
-      <div class="tile-sub">Each strategy maps to a phase of the program. Durations scale with the target's complexity multiplier (×${arch.durMult.toFixed(2)}).</div>
-      <div class="tl">
-        ${SEVEN_R.map(r=>{
-          const baseMo = parseInt(r.baseDur);
-          const adjMo = Math.max(1, Math.round(baseMo * arch.durMult));
-          return `<div class="tl-cell" style="--c:${r.c}">
-            <div class="tk">${r.k}</div>
-            <div class="tn">${r.n}</div>
-            <div class="td">${r.d}</div>
-            <div class="tm">${adjMo} mo · adjusted</div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>
-    <div class="tile" style="--c:var(--teal)">
-      <div class="tile-h">Critical Path Milestones</div>
-      <table>
-        <thead><tr><th style="width:120px">Milestone</th><th>Description</th><th style="width:100px">Owner</th><th style="width:90px">Date</th></tr></thead>
-        <tbody>
-          <tr><td class="cell-id">M-01</td><td>Landing zone provisioned + reg sign-off</td><td>Arch Lead</td><td>2026-07-15</td></tr>
-          <tr><td class="cell-id">M-02</td><td>First module deployed · UAT signed off</td><td>Eng VP</td><td>2026-10-30</td></tr>
-          <tr><td class="cell-id">M-03</td><td>AML engine cut-over completed</td><td>Risk Lead</td><td>2026-12-15</td></tr>
-          <tr><td class="cell-id">M-04</td><td>Production go-live · 10% traffic</td><td>SRE Lead</td><td>2027-02-15</td></tr>
-          <tr><td class="cell-id">M-05</td><td>100% traffic · legacy decommissioned</td><td>Program Mgr</td><td>2027-05-30</td></tr>
-        </tbody>
-      </table>
-    </div>`;
-  wrap.appendChild(tlPane);
-
-  // — RAID
-  const raidPane = document.createElement('div');
-  raidPane.className = 'pane'; raidPane.dataset.k='raid';
-  raidPane.innerHTML = `
-    <div class="tile" style="--c:var(--red)">
-      <div class="tile-h">RAID Log</div>
-      <div class="tile-sub">Risks · Assumptions · Issues · Dependencies — refreshed every steering cycle.</div>
-      <div class="legend">
-        <div class="lg-item"><div class="lg-sw" style="background:var(--red)"></div>Risk</div>
-        <div class="lg-item"><div class="lg-sw" style="background:var(--blue)"></div>Assumption</div>
-        <div class="lg-item"><div class="lg-sw" style="background:var(--orange)"></div>Issue</div>
-        <div class="lg-item"><div class="lg-sw" style="background:var(--purple)"></div>Dependency</div>
-      </div>
-      <table>
-        <thead><tr><th style="width:80px">ID</th><th style="width:90px">Type</th><th>Description</th><th style="width:80px">Severity</th><th style="width:90px">Status</th><th>Mitigation / Owner</th></tr></thead>
-        <tbody>
-          ${RAID.map(r=>`
-            <tr><td class="cell-id">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="pri-${r[3]}">${r[3]}</span></td><td><span class="stat-${r[4]}">${r[4]}</span></td><td>${r[5]}</td></tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>`;
-  wrap.appendChild(raidPane);
-
-  // — Cost & PAT
-  const costPane = document.createElement('div');
-  costPane.className = 'pane'; costPane.dataset.k='cost';
-  const baseCost = 2.5; // $M
-  costPane.innerHTML = `
-    <div class="tile" style="--c:var(--green)">
-      <div class="tile-h">Cost Breakdown — ${arch.name}</div>
-      <div class="tile-sub">Total estimated FY: <strong style="color:var(--t1)">$${(baseCost*arch.costMult).toFixed(2)}M</strong> (±15%) · tracked at sprint cadence.</div>
-      <div class="cost-grid">
-        ${[
-          ["Compute & containers",30],
-          ["Data & storage",18],
-          ["Licenses",15],
-          ["Security & compliance",12],
-          ["Networking",8],
-          ["Observability",6],
-          ["Professional services",8],
-          ["Contingency",3]
-        ].map(([l,pct])=>{
-          const amt = (baseCost*arch.costMult*pct/100).toFixed(2);
-          return `<div>
-            <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">${l}</div>
-            <div style="font-family:var(--f-head);font-size:18px;color:var(--t1);margin-top:2px">$${amt}M</div>
-            <div class="cost-bar"><span style="width:${pct*2.5}%"></span></div>
-            <div style="font-size:10px;color:var(--t2);margin-top:4px">${pct}% of total</div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>
-    <div class="cols-2">
-      <div class="tile" style="--c:var(--green)">
-        <div class="tile-h">PAT Margin Tracker</div>
-        <table>
-          <tbody>
-            <tr><td>FY26 Plan</td><td class="cell-mono">21.0%</td></tr>
-            <tr><td>FY26 Actual (YTD)</td><td class="cell-mono"><span class="stat-Mitigated">22.4%</span></td></tr>
-            <tr><td>Δ vs plan</td><td class="cell-mono"><span class="stat-Mitigated">+1.4 pts</span></td></tr>
-            <tr><td>FY27 Forecast</td><td class="cell-mono">23.8%</td></tr>
-            <tr><td>Cost-to-serve / txn</td><td class="cell-mono">$0.012</td></tr>
-            <tr><td>STP rate</td><td class="cell-mono">96.1%</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="tile" style="--c:var(--green)">
-        <div class="tile-h">Investment Phasing</div>
-        <table>
-          <thead><tr><th>Phase</th><th>Cap-ex</th><th>Op-ex</th></tr></thead>
-          <tbody>
-            <tr><td>FY26 H1</td><td class="cell-mono">$0.8M</td><td class="cell-mono">$0.2M</td></tr>
-            <tr><td>FY26 H2</td><td class="cell-mono">$1.1M</td><td class="cell-mono">$0.3M</td></tr>
-            <tr><td>FY27 H1</td><td class="cell-mono">$0.6M</td><td class="cell-mono">$0.5M</td></tr>
-            <tr><td>Total</td><td class="cell-mono">$${(baseCost*arch.costMult*0.7).toFixed(2)}M</td><td class="cell-mono">$${(baseCost*arch.costMult*0.3).toFixed(2)}M</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>`;
-  wrap.appendChild(costPane);
-
-  // — Ops KPIs
-  const opsPane = document.createElement('div');
-  opsPane.className = 'pane'; opsPane.dataset.k='ops';
-  opsPane.innerHTML = `
-    <div class="tile" style="--c:var(--orange)">
-      <div class="tile-h">Operations KPIs</div>
-      <div class="cost-grid">
-        ${[
-          ["Availability","99.97%","SLA: 99.95%"],
-          ["MTTR","18 min","Target: ≤ 30 min"],
-          ["MTBF","720 h","↑ vs last Q"],
-          ["Change Success","98.4%","Plan ≥ 97%"],
-          ["Deployment freq","2.4 / wk","DORA elite"],
-          ["Lead time","2.1 d","DORA elite"],
-          ["Error budget","83% remaining","Healthy"],
-          ["Cost / 1K txn","$3.14","↓ 6% QoQ"]
-        ].map(([l,v,s])=>`<div>
-          <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">${l}</div>
-          <div style="font-family:var(--f-head);font-size:20px;color:var(--t1);margin-top:2px">${v}</div>
-          <div style="font-size:10.5px;color:var(--t2);margin-top:2px">${s}</div>
-        </div>`).join('')}
-      </div>
-    </div>
-    <div class="tile" style="--c:var(--orange)">
-      <div class="tile-h">Service Quality Heatmap</div>
-      <table>
-        <thead><tr><th>Service</th><th>Avail.</th><th>p99</th><th>Errors</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>Payments API</td><td>99.99%</td><td class="cell-mono">142ms</td><td class="cell-mono">0.01%</td><td><span class="stat-Mitigated">● Healthy</span></td></tr>
-          <tr><td>Settlement Engine</td><td>99.96%</td><td class="cell-mono">230ms</td><td class="cell-mono">0.04%</td><td><span class="stat-Mitigated">● Healthy</span></td></tr>
-          <tr><td>AML Engine</td><td>99.92%</td><td class="cell-mono">312ms</td><td class="cell-mono">0.11%</td><td><span class="stat-Open">● Watch</span></td></tr>
-          <tr><td>FX Rate Stream</td><td>99.95%</td><td class="cell-mono">86ms</td><td class="cell-mono">0.02%</td><td><span class="stat-Mitigated">● Healthy</span></td></tr>
-          <tr><td>Notifications</td><td>99.91%</td><td class="cell-mono">410ms</td><td class="cell-mono">0.18%</td><td><span class="stat-Open">● Watch</span></td></tr>
-        </tbody>
-      </table>
-    </div>`;
-  wrap.appendChild(opsPane);
-
-  // — Runlog
-  const runPane = document.createElement('div');
-  runPane.className = 'pane'; runPane.dataset.k='runlog';
-  runPane.innerHTML = `
-    <div class="tile" style="--c:var(--pink)">
-      <div class="tile-h">DR / Rollback Runlog Template</div>
-      <div class="tile-sub">Click <strong style="color:var(--pink)">⬇ Runlog (.txt)</strong> in the export bar to download the full runbook for ${arch.name}. Below is a preview.</div>
-      <pre style="background:var(--navy);border:1px solid var(--b1);border-radius:8px;padding:14px;font-family:var(--f-mono);font-size:11.5px;color:var(--t2);overflow-x:auto;line-height:1.6;white-space:pre-wrap" id="runlog-preview"></pre>
-    </div>
-    <div class="cols-2">
-      <div class="tile" style="--c:var(--pink)">
-        <div class="tile-h">Rollback Strategies</div>
-        <table>
-          <thead><tr><th>Strategy</th><th>RTO</th><th>RPO</th><th>Fits</th></tr></thead>
-          <tbody>
-            <tr><td>Blue-Green</td><td>&lt; 5 min</td><td>0</td><td>Tier-1 stateless</td></tr>
-            <tr><td>Canary</td><td>15 min</td><td>0</td><td>Gradual roll-out</td></tr>
-            <tr><td>Feature Flag</td><td>seconds</td><td>0</td><td>Config-only</td></tr>
-            <tr><td>DB Snapshot Restore</td><td>30 min</td><td>5 min</td><td>Data-affecting</td></tr>
-            <tr><td>Multi-Region Failover</td><td>3 min</td><td>5 sec</td><td>Tier-1 DR</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="tile" style="--c:var(--pink)">
-        <div class="tile-h">DR Drill Cadence</div>
-        <table>
-          <tbody>
-            <tr><td>Tabletop exercise</td><td class="cell-mono">Quarterly</td></tr>
-            <tr><td>Region failover drill</td><td class="cell-mono">Semi-annual</td></tr>
-            <tr><td>Full failover (prod)</td><td class="cell-mono">Annual</td></tr>
-            <tr><td>Backup restore test</td><td class="cell-mono">Monthly</td></tr>
-            <tr><td>Chaos engineering</td><td class="cell-mono">Weekly (non-prod)</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>`;
-  wrap.appendChild(runPane);
-
-  document.getElementById('runlog-preview').textContent = buildRunlog().split('\n').slice(0,28).join('\n') + '\n...';
+  return html;
 }
 
-// ─── Exports ────────────────────────────────────────────────
-function buildRunlog(){
-  const {module, arch} = currentState();
-  const dt = new Date().toISOString();
-  return `# DI-Platform · DR / Rollback Runlog
-# Module:       ${module}
-# Target:       ${arch.name}
-# Generated:    ${dt}
-# IDD:          DI-2026-NKK-0511-001
-# ───────────────────────────────────────────────────────────
-
-PHASE 1 — PRE-FLIGHT (T-24h)
-  [ ] Confirm change ticket approved (CAB sign-off)
-  [ ] Notify customers via status page (T-24h advisory)
-  [ ] Validate backup integrity — last successful snapshot < 4h old
-  [ ] Confirm rollback artifact present in artifact store
-  [ ] Page on-call SRE + Risk + Compliance leads
-  [ ] Validate runbook against latest version control hash
-
-PHASE 2 — CUT-OVER (T-0)
-  [ ] Set maintenance window in monitoring (silence alerts P3-P5)
-  [ ] Drain traffic from primary region (canary 10% → 50% → 100%)
-  [ ] Take pre-cutover database snapshot (RPO=0 anchor)
-  [ ] Promote target environment — flip blue/green
-  [ ] Run smoke tests: /health · /ready · synthetic payment flow
-  [ ] Confirm dashboards green for 15 minutes
-
-PHASE 3 — ROLLBACK CRITERIA (auto-triggered)
-  [ ] Error rate > 1% sustained 5 min → trigger rollback
-  [ ] p99 latency > 2× baseline sustained 10 min → trigger rollback
-  [ ] Critical security alert from SIEM → immediate rollback
-  [ ] CFO-flagged financial discrepancy → manual rollback (Approver: CTO)
-
-PHASE 4 — ROLLBACK PROCEDURE (RTO < 5 min)
-  [ ] On-call SRE invokes: dip-cli rollback --target ${arch.name.toLowerCase().replace(/ /g,'-')} --confirm
-  [ ] Route 100% traffic back to legacy stack
-  [ ] Restore database snapshot if data-affecting change
-  [ ] Verify reconciliation: every txn since T-0 accounted for
-  [ ] Notify customers via status page (incident open)
-  [ ] Schedule post-incident review within 48h
-
-PHASE 5 — POST CUT-OVER (T+24h)
-  [ ] Watch error budget burn for 24h
-  [ ] Validate end-of-day batch reconciliation
-  [ ] Decommission legacy pool after T+72h with no rollback trigger
-  [ ] Update runbook with lessons learned
-  [ ] Close change ticket — record outcome
-
-# Approvers
-#   CTO:              _______________________   sign / date
-#   Risk Lead:        _______________________   sign / date
-#   Compliance Lead:  _______________________   sign / date
-`;
+/* ── Runlog ─────────────────────────────────────────── */
+function renderRunlog() {
+  if (!STATE.runlog.length) return '<div class="pg-runlog"><p style="color:var(--ink-2);font-size:12px">No events yet. Activity will be logged as you edit RAID items, change cost models, or receive new handoffs.</p></div>';
+  return '<div class="pg-runlog">' + STATE.runlog.map(e =>
+    '<div class="pg-runlog-entry">' +
+      '<div class="time">' + new Date(e.time).toLocaleString() + '</div>' +
+      '<div class="ic">' + e.ic + '</div>' +
+      '<div class="msg">' + e.msg + '</div>' +
+    '</div>'
+  ).join('') + '</div>';
 }
 
-function download(name, mime, body){
-  const blob = new Blob([body], { type: mime });
+/* ── Sample loader (if no handoff) ──────────────────── */
+function loadSample() {
+  if (!INPUT) {
+    INPUT = {
+      source: 'sample',
+      capabilities: [
+        { id:'core-payments', name:'Core Banking · Payments', verdict:'REARCH', chosenCloud:'AWS',   monthly:18260 },
+        { id:'core-deposits', name:'Core Banking · Deposits', verdict:'REPLAT', chosenCloud:'AZURE', monthly:11300 },
+        { id:'core-loans',    name:'Core Banking · Loans',    verdict:'REFACT', chosenCloud:'GCP',   monthly:13220 },
+        { id:'card-fulfill',  name:'Cards · Fulfillment',     verdict:'REHOST', chosenCloud:'AZURE', monthly:4455  },
+        { id:'card-mgmt',     name:'Cards · Management',      verdict:'REFACT', chosenCloud:'AWS',   monthly:9550  },
+        { id:'card-tx',       name:'Cards · Transactions',    verdict:'REFACT', chosenCloud:'AWS',   monthly:11800 },
+        { id:'trade-finance', name:'Trade Finance',           verdict:'REFACT', chosenCloud:'AWS',   monthly:7680  },
+        { id:'treasury',      name:'Treasury',                verdict:'REPLAT', chosenCloud:'OCI',   monthly:7200  },
+        { id:'risk-comp',     name:'Risk & Compliance',       verdict:'REARCH', chosenCloud:'AWS',   monthly:14100 },
+        { id:'aml',           name:'AML / Fraud',             verdict:'REARCH', chosenCloud:'AWS',   monthly:12300 }
+      ],
+      filters: { region:'na-east', currency:'USD', model:'3-yr-savings', discount:0 }
+    };
+  }
+  consumeHandoff();
+  renderHero();
+  renderBody();
+  renderToolbar();
+}
+
+/* ── Exports ────────────────────────────────────────── */
+function exportRAID() {
+  const csv = 'ID,Type,Severity,Description,Owner,Status\n' +
+    STATE.raid.map(r => [r.id, TYPE_LABEL[r.type], r.sev, '"' + r.desc.replace(/<[^>]+>/g,'').replace(/"/g,'""') + '"', r.owner, r.status].join(',')).join('\n');
+  downloadBlob(csv, 'text/csv', 'raid-register-' + new Date().toISOString().slice(0,10) + '.csv');
+}
+function exportGanttCSV() {
+  const VERDICT_DUR = { REHOST:2.5, REPLAT:5, REFACT:7.5, REARCH:10.5, REBUILD:12, REPLACE:7, RETAIN:0 };
+  const VERDICT_WAVE = { REHOST:1, REPLAT:2, REFACT:2, REARCH:3, REBUILD:3, REPLACE:1, RETAIN:0 };
+  const WAVE_START = { 1:2, 2:5, 3:8, 0:14 };
+  const csv = 'Capability,Verdict,Wave,Start Month,Duration Months,Target Cloud,Monthly Cost\n' +
+    STATE.capabilities.map(c => {
+      const v = c.verdict || 'REPLAT';
+      const wave = VERDICT_WAVE[v] || 0;
+      return [c.name, v, wave, WAVE_START[wave] || 1, VERDICT_DUR[v] || 5, c.chosenCloud || c.stack || '?', c.monthly || 0].join(',');
+    }).join('\n');
+  downloadBlob(csv, 'text/csv', 'gantt-' + new Date().toISOString().slice(0,10) + '.csv');
+}
+function exportCostCSV() {
+  let monthlyFut = 0;
+  STATE.capabilities.forEach(c => { monthlyFut += (c.monthly || 0); });
+  const csv = 'Capability,Verdict,Cloud,Monthly USD,3-Yr TCO USD\n' +
+    STATE.capabilities.map(c => [c.name, c.verdict||'?', c.chosenCloud||c.stack||'?', c.monthly||0, (c.monthly||0)*36].join(',')).join('\n') +
+    '\nTOTAL,,,' + monthlyFut + ',' + (monthlyFut*36);
+  downloadBlob(csv, 'text/csv', 'cost-breakdown-' + new Date().toISOString().slice(0,10) + '.csv');
+}
+function exportRunlog() {
+  const txt = STATE.runlog.map(e => '[' + new Date(e.time).toISOString() + '] ' + e.msg.replace(/<[^>]+>/g,'')).join('\n');
+  downloadBlob(txt, 'text/plain', 'runlog-' + new Date().toISOString().slice(0,10) + '.txt');
+}
+
+function exportMSProject() {
+  // Generate Microsoft Project XML (.xml that MS Project can import)
+  const VERDICT_WAVE = { REHOST:1, REPLAT:2, REFACT:2, REARCH:3, REBUILD:3, REPLACE:1, RETAIN:0 };
+  const WAVE_START   = { 1:2, 2:5, 3:8, 0:14 };
+  const VERDICT_DUR  = { REHOST:2.5, REPLAT:5, REFACT:7.5, REARCH:10.5, REBUILD:12, REPLACE:7, RETAIN:0 };
+  const startDate = new Date(); startDate.setHours(0,0,0,0);
+  function dateAdd(d, months) { const x = new Date(d); x.setMonth(x.getMonth() + Math.round(months)); return x; }
+  function iso(d) { return d.toISOString().slice(0,10) + 'T00:00:00'; }
+
+  let tasks = '';
+  let uid = 0;
+  // Top-level program
+  uid++;
+  tasks += '<Task><UID>' + uid + '</UID><ID>' + uid + '</ID><Name>Banking Modernization Program</Name><Type>1</Type><OutlineLevel>1</OutlineLevel><Start>' + iso(startDate) + '</Start><Finish>' + iso(dateAdd(startDate, STATE.durationMonths)) + '</Finish><Summary>1</Summary></Task>';
+
+  // Per capability
+  STATE.capabilities.forEach((c, i) => {
+    uid++;
+    const v = c.verdict || 'REPLAT';
+    const wave = VERDICT_WAVE[v] || 1;
+    const startMo = WAVE_START[wave] || 1;
+    const dur = VERDICT_DUR[v] || 5;
+    const taskStart = dateAdd(startDate, startMo - 1);
+    const taskEnd   = dateAdd(taskStart, dur);
+    tasks += '<Task>' +
+      '<UID>' + uid + '</UID>' +
+      '<ID>' + uid + '</ID>' +
+      '<Name>' + xmlEscape(c.name) + ' · ' + v + '</Name>' +
+      '<Type>0</Type>' +
+      '<OutlineLevel>2</OutlineLevel>' +
+      '<Start>' + iso(taskStart) + '</Start>' +
+      '<Finish>' + iso(taskEnd) + '</Finish>' +
+      '<Duration>PT' + Math.round(dur * 4 * 40) + 'H0M0S</Duration>' +   // ~40h/wk
+      '<Notes>' + xmlEscape((c.chosenCloud||c.stack||'?') + ' · ' + (c.eff||'?') + ' · ' + (c.risk||'?') + ' risk') + '</Notes>' +
+    '</Task>';
+  });
+
+  const xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+    '<Project xmlns="http://schemas.microsoft.com/project">' +
+      '<Name>Banking Modernization · ' + STATE.capabilities.length + ' capabilities</Name>' +
+      '<Title>Banking Modernization Program</Title>' +
+      '<Author>Digital Infotech</Author>' +
+      '<CreationDate>' + iso(new Date()) + '</CreationDate>' +
+      '<ScheduleFromStart>1</ScheduleFromStart>' +
+      '<StartDate>' + iso(startDate) + '</StartDate>' +
+      '<Tasks>' + tasks + '</Tasks>' +
+    '</Project>';
+
+  downloadBlob(xml, 'application/xml', 'banking-mod-program-' + new Date().toISOString().slice(0,10) + '.xml');
+  STATE.runlog.unshift({ time:new Date().toISOString(), ic:'⬇', msg:'Exported MS Project XML · <strong>' + STATE.capabilities.length + ' tasks</strong> · imports cleanly into Microsoft Project / Project Online.' });
+  saveState();
+  if (STATE.tab === 'runlog') renderBody();
+}
+
+function xmlEscape(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;'); }
+
+function downloadBlob(content, mime, filename) {
+  const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = name; a.click();
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+  window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'⬇', title:'Downloaded', message: filename });
 }
 
-function exportRunlog(){
-  const {module, arch} = currentState();
-  const safe = (module + '_' + arch.name).replace(/[^a-z0-9]+/ig,'-').toLowerCase();
-  download(`runlog_${safe}.txt`, 'text/plain', buildRunlog());
-}
-
-function exportJSON(){
-  const {module, arch} = currentState();
-  const data = {
-    module, deploymentTarget: arch.name,
-    generatedAt: new Date().toISOString(),
-    requirements: REQUIREMENTS,
-    raid: RAID,
-    sevenR: SEVEN_R,
-    cost: {estimatedTotalM: +(2.5*arch.costMult).toFixed(2), confidence: "±15%"},
-    duration: {months: Math.round(9 * arch.durMult)},
-    inventor: "Nishanth Kumar Kishore",
-    idd: "DI-2026-NKK-0511-001"
-  };
-  const safe = (module + '_' + arch.name).replace(/[^a-z0-9]+/ig,'-').toLowerCase();
-  download(`program_${safe}.json`, 'application/json', JSON.stringify(data, null, 2));
-}
-
-function exportMSProject(){
-  const {module, arch} = currentState();
-  const safe = (module + '_' + arch.name).replace(/[^a-z0-9]+/ig,'-').toLowerCase();
-  const tasks = SEVEN_R.map((r,i) => {
-    const dur = Math.max(1, Math.round(parseInt(r.baseDur) * arch.durMult)) * 20; // working days
-    return {uid: i+1, name: `${r.k} · ${r.n}`, dur, note: r.d};
-  });
-  const start = '2026-06-01T08:00:00';
-  // MS Project compatible XML using the Microsoft Project schema
-  const tasksXml = tasks.map((t,i)=>`
-    <Task>
-      <UID>${t.uid}</UID>
-      <ID>${t.uid}</ID>
-      <Name>${t.name}</Name>
-      <Type>1</Type>
-      <Active>1</Active>
-      <Manual>0</Manual>
-      <Notes>${t.note}</Notes>
-      <DurationFormat>7</DurationFormat>
-      <Duration>PT${t.dur*8}H0M0S</Duration>
-      <OutlineLevel>1</OutlineLevel>
-      <PredecessorLink>${i>0?`<PredecessorUID>${i}</PredecessorUID><Type>1</Type>`:''}</PredecessorLink>
-    </Task>`).join('');
-
-  const xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Project xmlns="http://schemas.microsoft.com/project">
-  <Name>DI-Platform Program — ${module} · ${arch.name}</Name>
-  <Title>DI-Platform · ${module} on ${arch.name}</Title>
-  <Author>Nishanth Kumar Kishore</Author>
-  <Company>Digital Infotech</Company>
-  <Subject>Program plan auto-generated by DI-Platform</Subject>
-  <Manager>Program Manager</Manager>
-  <StartDate>${start}</StartDate>
-  <FinishDate>2027-06-30T17:00:00</FinishDate>
-  <CalendarUID>1</CalendarUID>
-  <DefaultStartTime>08:00:00</DefaultStartTime>
-  <DefaultFinishTime>17:00:00</DefaultFinishTime>
-  <MinutesPerDay>480</MinutesPerDay>
-  <MinutesPerWeek>2400</MinutesPerWeek>
-  <DaysPerMonth>20</DaysPerMonth>
-  <Calendars>
-    <Calendar><UID>1</UID><Name>Standard</Name><IsBaseCalendar>1</IsBaseCalendar></Calendar>
-  </Calendars>
-  <Tasks>${tasksXml}
-  </Tasks>
-  <Resources>
-    <Resource><UID>1</UID><Name>Program Manager</Name><Type>1</Type></Resource>
-    <Resource><UID>2</UID><Name>Architecture Lead</Name><Type>1</Type></Resource>
-    <Resource><UID>3</UID><Name>Engineering VP</Name><Type>1</Type></Resource>
-    <Resource><UID>4</UID><Name>SRE Lead</Name><Type>1</Type></Resource>
-    <Resource><UID>5</UID><Name>Risk Lead</Name><Type>1</Type></Resource>
-  </Resources>
-</Project>`;
-  download(`msproject_${safe}.xml`, 'application/xml', xml);
-}
-
-// ─── Boot ───────────────────────────────────────────────────
-function regenerate(){
-  renderKPIs();
-  renderPanes();
-  // Persist current arch choice
-  const {archKey, arch} = currentState();
-  sessionStorage.setItem('diSelectedArch', JSON.stringify({key: archKey, title: arch.name, letter: arch.letter, color: arch.color}));
-  document.getElementById('warn-no-arch').style.display='none';
-}
-
-loadStoredArch();
-renderKPIs();
+/* ── Bootstrap ──────────────────────────────────────── */
+loadInput();
+const seeded = consumeHandoff();
+renderHero();
 renderTabs();
-renderPanes();
+renderToolbar();
+renderBody();
 
-document.getElementById('sel-module').addEventListener('change', regenerate);
-document.getElementById('sel-arch').addEventListener('change', regenerate);
+if (seeded) {
+  setTimeout(() => {
+    window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'📥', title:'Architecture handoff received', message:'Imported ' + STATE.capabilities.length + ' capabilities; seeded ' + STATE.raid.length + ' RAID items.', duration:4500 });
+  }, 800);
+}
 </script>
 
-<script src="assets/nishi.js" defer></script>
-<script src="assets/nishi-dock.js" defer></script>
 </body>
 </html>
