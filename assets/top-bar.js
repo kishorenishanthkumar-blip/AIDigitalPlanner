@@ -16,10 +16,11 @@
   // Features catalog — single source of truth (kept in sync with feature-explainer.html)
   const FEATURES = [
     { id: 'rfp',          icon: '📝', name: 'RFP-style Q&A',        desc: 'Role + region aware questionnaires.',                 badge: 'LIVE' },
-    { id: 'requirements', icon: '📋', name: 'AI Requirements',      desc: 'Drafts Technical · Business · Product · Regulatory.', badge: 'LIVE' },
+    { id: 'requirements', icon: '📋', name: 'AI Requirements',      desc: 'Drafts Technical · Business · Product · Regulatory.', badge: 'LIVE', href: 'requirements.html' },
     { id: 'discovery',    icon: '🔍', name: 'Discovery autofill',   desc: 'Dropdowns that learn your typed values.',             badge: 'LIVE' },
     { id: 'architecture', icon: '🏗', name: 'Architecture design',  desc: '7R-aligned architectures across 6 clouds.',           badge: 'LIVE' },
-    { id: 'blockchain',   icon: '🪙', name: 'Blockchain & RWA',     desc: 'Tokenization & on-chain settlement patterns.',         badge: 'BETA' },
+    { id: 'blockchain',   icon: '🪙', name: 'Blockchain & RWA',     desc: 'Tokenization & on-chain settlement patterns.',         badge: 'LIVE', href: 'blockchain-rwa.html' },
+    { id: 'actions',      icon: '🎯', name: 'Role-based Actions',   desc: 'Aggregated actions by role · KPIs · drill-down.',      badge: 'LIVE', href: 'actions.html' },
     { id: 'knowledge',    icon: '📚', name: 'Knowledge artifacts',  desc: 'RAG-backed institutional memory.',                     badge: 'BETA' },
     { id: 'export',       icon: '⬇',  name: 'Export reports',       desc: 'Markdown · JSON · MS Project · DR runbook.',          badge: 'LIVE' },
     { id: 'sevenr',       icon: '🔄', name: '7R migration planner', desc: 'Rehost · Replatform · Refactor · …',                  badge: 'LIVE', href: 'discovery-studio.html' }

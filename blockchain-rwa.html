@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Blockchain &amp; RWA · DI Platform</title>
+<meta name="description" content="Discovery wizard for blockchain banking adoption and Real World Asset tokenization. Produces a roadmap with regulator stance, custodianship model, and token standard."/>
+<link rel="stylesheet" href="assets/theme.css">
+<script src="assets/toasts.js" defer></script>
+<script src="assets/audit.js" defer></script>
+<script src="assets/cmdk.js" defer></script>
+<script src="assets/shortcuts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+a{color:var(--gold);text-decoration:none}
+
+/* Hero */
+.bc-hero{padding:24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.bc-hero-wrap{max-width:1200px;margin:0 auto}
+.bc-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.bc-h1{font-family:var(--f-head);font-size:25px;font-weight:600;line-height:1.18}
+.bc-h1 em{font-style:italic;color:var(--gold)}
+.bc-sub{font-size:13px;color:var(--ink-2);margin-top:8px;max-width:780px;line-height:1.55}
+
+/* Main grid */
+.bc-main{padding:22px 24px 36px;max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+@media (max-width:960px){.bc-main{grid-template-columns:1fr}}
+
+.bc-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px}
+.bc-card h3{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.bc-card h3::before{content:'';width:3px;height:14px;background:var(--gold);border-radius:2px}
+.bc-card .desc{font-size:12px;color:var(--ink-2);margin-bottom:12px;line-height:1.5}
+
+.bc-group{margin-bottom:18px}
+.bc-group:last-child{margin-bottom:0}
+.bc-group-h{font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--ink);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.bc-group-h::before{content:'';width:6px;height:6px;background:var(--gold);border-radius:50%}
+
+.bc-options{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media (max-width:520px){.bc-options{grid-template-columns:1fr}}
+.bc-option{display:flex;align-items:flex-start;gap:8px;background:var(--canvas);border:1px solid var(--border);border-radius:9px;padding:9px 11px;cursor:pointer;font-size:12px;transition:.15s}
+.bc-option:hover{border-color:var(--gold-2)}
+.bc-option.checked{background:var(--aglow);border-color:var(--gold-2)}
+.bc-option input{accent-color:var(--gold);margin-top:2px;flex-shrink:0;cursor:pointer}
+.bc-option .text{flex:1;min-width:0}
+.bc-option .name{font-weight:600;color:var(--ink)}
+.bc-option .hint{font-size:10.5px;color:var(--ink-2);margin-top:1px}
+
+.bc-field{margin-bottom:14px}
+.bc-field label{font-size:11px;font-weight:700;color:var(--ink);display:block;margin-bottom:5px}
+.bc-field label .hint{color:var(--ink-3);font-weight:400;font-size:10.5px}
+.bc-field select,.bc-field input{width:100%;padding:9px 12px;background:var(--canvas);border:1px solid var(--border-2);border-radius:8px;font-size:13px;color:var(--ink);outline:none;font-family:inherit}
+.bc-field select:focus,.bc-field input:focus{border-color:var(--gold);background:#FFFCF4}
+
+/* Output / roadmap */
+.bc-out{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:sticky;top:74px;align-self:start}
+.bc-out h3{font-family:var(--f-head);font-size:16px;font-weight:600;margin-bottom:8px}
+.bc-out .stat-row{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px dashed var(--border)}
+.bc-out .stat-row:last-child{border-bottom:none}
+.bc-out .stat-row strong{color:var(--ink);font-weight:700}
+.bc-out .verdict{background:linear-gradient(135deg,var(--ink),#243655);color:#fff;border-radius:10px;padding:14px 16px;margin-top:14px}
+.bc-out .verdict .v-lbl{font-size:9.5px;font-weight:700;color:var(--gold-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.bc-out .verdict .v-h{font-family:var(--f-head);font-size:17px;font-weight:600;line-height:1.3}
+.bc-out .verdict .v-sub{font-size:11px;color:#C8D2E2;margin-top:5px;line-height:1.5}
+
+.bc-roadmap{margin-top:14px;background:var(--aglow);border:1px dashed var(--gold-2);border-radius:11px;padding:12px 14px;font-size:11.5px;color:#7A5F10;line-height:1.55}
+.bc-roadmap strong{color:var(--gold);display:block;margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase;font-size:10px}
+.bc-roadmap ol{margin:0;padding-left:18px}
+.bc-roadmap ol li{margin-bottom:4px}
+
+.bc-cta{margin-top:14px;display:flex;gap:6px;flex-wrap:wrap}
+.bc-cta button,.bc-cta a{flex:1;background:var(--gold);color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;font-family:inherit}
+.bc-cta .ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+
+/* Risk meter */
+.bc-risk{display:flex;align-items:center;gap:8px;margin-top:8px}
+.bc-risk-bar{flex:1;height:8px;background:var(--border);border-radius:99px;overflow:hidden}
+.bc-risk-bar > div{height:100%;background:linear-gradient(90deg,#0FD49A,#FF8030,#FF4D6A);transition:width .3s}
+.bc-risk-lbl{font-size:11px;font-weight:700}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fadeUp{animation:fadeUp .35s ease both}
+</style>
+</head>
+<body>
+
+<div data-di-topbar></div>
+
+<section class="bc-hero">
+  <div class="bc-hero-wrap">
+    <div class="bc-eyebrow">BLOCKCHAIN &amp; RWA TOKENIZATION</div>
+    <h1 class="bc-h1">Bring traditional banking <em>on-chain</em> — with the regulator in the room.</h1>
+    <p class="bc-sub">Pick your use case, token standard, custodianship model, and target jurisdictions. The platform produces a roadmap with regulator stance, on/off-ramp design, and the predicted risk band.</p>
+  </div>
+</section>
+
+<main class="bc-main" id="bc-main">
+
+  <!-- Left: question wizard -->
+  <div>
+    <div class="bc-card fadeUp">
+      <h3>Use case</h3>
+      <p class="desc">Tokenization first lands on closed-loop or narrow-money use cases. Pick the ones that match your business mandate.</p>
+      <div class="bc-group">
+        <div class="bc-group-h">Primary use case</div>
+        <div class="bc-options" id="bc-usecase">
+          <label class="bc-option" data-key="usecase" data-val="cards-loyalty"><input type="checkbox"><span class="text"><span class="name">Cards rewards / loyalty</span><span class="hint">Closed-loop redemption · low regulatory bar</span></span></label>
+          <label class="bc-option" data-key="usecase" data-val="receivables"><input type="checkbox"><span class="text"><span class="name">Cards receivables tokenization</span><span class="hint">Securitization · accelerates capital recycling</span></span></label>
+          <label class="bc-option" data-key="usecase" data-val="treasury-bonds"><input type="checkbox"><span class="text"><span class="name">Treasury bonds / sovereign</span><span class="hint">Real-time settlement · CBDC-adjacent</span></span></label>
+          <label class="bc-option" data-key="usecase" data-val="trade-finance"><input type="checkbox"><span class="text"><span class="name">Trade finance documents</span><span class="hint">eBL · LC · invoice tokens</span></span></label>
+          <label class="bc-option" data-key="usecase" data-val="custody"><input type="checkbox"><span class="text"><span class="name">Custody &amp; settlement (securities)</span><span class="hint">T+1 / T+0 settlement on permissioned chain</span></span></label>
+          <label class="bc-option" data-key="usecase" data-val="stablecoin"><input type="checkbox"><span class="text"><span class="name">Stablecoin issuance</span><span class="hint">Highest regulatory complexity · MiCA / GENIUS Act</span></span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="bc-card fadeUp" style="margin-top:14px">
+      <h3>Technical fit</h3>
+      <p class="desc">Public chains vs permissioned · token standard · network selection.</p>
+      <div class="bc-field">
+        <label for="bc-net">Network choice <span class="hint">· permissioned is the default for banking</span></label>
+        <select id="bc-net">
+          <option value="fabric">Hyperledger Fabric (permissioned · most-adopted by banks)</option>
+          <option value="corda">R3 Corda (permissioned · trade finance native)</option>
+          <option value="quorum">Quorum / Hyperledger Besu (permissioned EVM)</option>
+          <option value="canton">Canton Network (privacy-first DLT)</option>
+          <option value="public-eth-l2">Public Ethereum L2 (Base / Polygon zkEVM) · with permissioned wrappers</option>
+          <option value="public-eth-l1">Public Ethereum L1 · highest visibility · highest fees</option>
+        </select>
+      </div>
+      <div class="bc-field">
+        <label for="bc-token">Token standard</label>
+        <select id="bc-token">
+          <option value="erc20">ERC-20 · fungible · simplest</option>
+          <option value="erc3643">ERC-3643 · permissioned · KYC built-in (T-REX) — recommended</option>
+          <option value="erc721">ERC-721 · NFT · individual securities / unique assets</option>
+          <option value="erc1400">ERC-1400 · security token · partition + transfer restrictions</option>
+          <option value="fabric-token">Fabric Token SDK · native permissioned</option>
+        </select>
+      </div>
+      <div class="bc-field">
+        <label>Custodianship model</label>
+        <div class="bc-options" id="bc-custody">
+          <label class="bc-option" data-key="custody" data-val="own"><input type="radio" name="custody"><span class="text"><span class="name">Self-custody by issuer</span><span class="hint">Bank owns the keys + HSM</span></span></label>
+          <label class="bc-option" data-key="custody" data-val="qualified"><input type="radio" name="custody"><span class="text"><span class="name">Qualified custodian</span><span class="hint">Anchorage · BitGo · Fireblocks</span></span></label>
+          <label class="bc-option" data-key="custody" data-val="hybrid"><input type="radio" name="custody"><span class="text"><span class="name">Hybrid · MPC threshold</span><span class="hint">Multi-party computation · no single point of failure</span></span></label>
+          <label class="bc-option" data-key="custody" data-val="public-custody"><input type="radio" name="custody"><span class="text"><span class="name">Investor self-custody</span><span class="hint">Bank issues + investors hold (highest risk)</span></span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="bc-card fadeUp" style="margin-top:14px">
+      <h3>On / off ramps</h3>
+      <p class="desc">How fiat enters and exits the token system — this is where regulators concentrate scrutiny.</p>
+      <div class="bc-options">
+        <label class="bc-option" data-key="ramps" data-val="bank-rails"><input type="checkbox"><span class="text"><span class="name">Direct bank rails (ACH / SEPA / RTGS)</span><span class="hint">Lowest friction · highest oversight</span></span></label>
+        <label class="bc-option" data-key="ramps" data-val="stablecoin-bridge"><input type="checkbox"><span class="text"><span class="name">Stablecoin bridge (USDC / EURC)</span><span class="hint">Faster · regulated issuers only</span></span></label>
+        <label class="bc-option" data-key="ramps" data-val="cex-onramp"><input type="checkbox"><span class="text"><span class="name">Centralized exchange onramp</span><span class="hint">Coinbase · Kraken · Bitstamp</span></span></label>
+        <label class="bc-option" data-key="ramps" data-val="defi"><input type="checkbox"><span class="text"><span class="name">DeFi pools (not recommended for banking)</span><span class="hint">High counterparty risk · regulatory red flag</span></span></label>
+      </div>
+    </div>
+
+    <div class="bc-card fadeUp" style="margin-top:14px">
+      <h3>Target jurisdictions</h3>
+      <p class="desc">Each jurisdiction has its own crypto / DLT framework. The platform will surface the relevant regulator stance.</p>
+      <div class="bc-options">
+        <label class="bc-option" data-key="jur" data-val="us"><input type="checkbox"><span class="text"><span class="name">United States</span><span class="hint">SEC · CFTC · OCC · NYDFS · GENIUS Act (2025)</span></span></label>
+        <label class="bc-option" data-key="jur" data-val="eu"><input type="checkbox"><span class="text"><span class="name">European Union</span><span class="hint">MiCA (live since 2024) · DORA</span></span></label>
+        <label class="bc-option" data-key="jur" data-val="uk"><input type="checkbox"><span class="text"><span class="name">United Kingdom</span><span class="hint">FCA Cryptoassets Sandbox · FSMA 2023</span></span></label>
+        <label class="bc-option" data-key="jur" data-val="singapore"><input type="checkbox"><span class="text"><span class="name">Singapore</span><span class="hint">MAS Project Guardian · DPT Act</span></span></label>
+        <label class="bc-option" data-key="jur" data-val="uae"><input type="checkbox"><span class="text"><span class="name">UAE</span><span class="hint">VARA · DFSA Crypto Token Regime · ADGM FSRA</span></span></label>
+        <label class="bc-option" data-key="jur" data-val="hk"><input type="checkbox"><span class="text"><span class="name">Hong Kong</span><span class="hint">HKMA Stablecoin Ordinance · SFC VATP</span></span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: live output -->
+  <div>
+    <div class="bc-out fadeUp" id="bc-out"></div>
+  </div>
+
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   Blockchain + RWA wizard · Phase 21.3
+═══════════════════════════════════════════════════════ */
+
+const BC_KEY = 'di_blockchain_v1';
+let STATE = {
+  usecase: [],
+  network: 'fabric',
+  token: 'erc3643',
+  custody: '',
+  ramps: [],
+  jur: []
+};
+
+function loadState() { try { Object.assign(STATE, JSON.parse(localStorage.getItem(BC_KEY) || '{}')); } catch (e) {} }
+function saveState() { try { localStorage.setItem(BC_KEY, JSON.stringify(STATE)); } catch (e) {} }
+
+function wireInputs() {
+  document.querySelectorAll('.bc-option').forEach(opt => {
+    const key = opt.dataset.key;
+    const val = opt.dataset.val;
+    const input = opt.querySelector('input');
+    if (!input) return;
+    // Restore state
+    if (input.type === 'checkbox') {
+      const arr = STATE[key] || [];
+      input.checked = arr.includes(val);
+      opt.classList.toggle('checked', input.checked);
+    } else if (input.type === 'radio') {
+      input.checked = STATE[key] === val;
+      opt.classList.toggle('checked', input.checked);
+    }
+    opt.addEventListener('click', e => {
+      if (e.target.tagName !== 'INPUT') input.click();
+    });
+    input.addEventListener('change', () => {
+      if (input.type === 'checkbox') {
+        let arr = STATE[key] || [];
+        if (input.checked) { if (!arr.includes(val)) arr.push(val); }
+        else arr = arr.filter(x => x !== val);
+        STATE[key] = arr;
+        opt.classList.toggle('checked', input.checked);
+      } else if (input.type === 'radio') {
+        STATE[key] = val;
+        document.querySelectorAll('.bc-option[data-key="' + key + '"]').forEach(o => o.classList.toggle('checked', o === opt));
+      }
+      saveState();
+      renderOutput();
+    });
+  });
+  const netSel = document.getElementById('bc-net');
+  netSel.value = STATE.network || 'fabric';
+  netSel.addEventListener('change', e => { STATE.network = e.target.value; saveState(); renderOutput(); });
+  const tokSel = document.getElementById('bc-token');
+  tokSel.value = STATE.token || 'erc3643';
+  tokSel.addEventListener('change', e => { STATE.token = e.target.value; saveState(); renderOutput(); });
+}
+
+/* Risk + regulator computation */
+function computeOutput() {
+  const usecase = STATE.usecase || [];
+  const jur     = STATE.jur || [];
+  const ramps   = STATE.ramps || [];
+  const custody = STATE.custody || '';
+
+  // Risk score 0-100
+  let risk = 20;
+  if (usecase.includes('stablecoin'))    risk += 40;
+  if (usecase.includes('treasury-bonds')) risk += 20;
+  if (usecase.includes('custody'))        risk += 25;
+  if (usecase.includes('receivables'))    risk += 15;
+  if (usecase.includes('trade-finance'))  risk += 10;
+  if (usecase.includes('cards-loyalty'))  risk += 0;
+  if (STATE.network === 'public-eth-l1')  risk += 25;
+  if (STATE.network === 'public-eth-l2')  risk += 12;
+  if (custody === 'public-custody')        risk += 15;
+  if (custody === 'qualified')             risk -= 5;
+  if (ramps.includes('defi'))              risk += 30;
+  if (jur.length > 3)                      risk += 10;   // multi-jurisdiction = harder
+  risk = Math.max(5, Math.min(100, risk));
+  const riskBand = risk < 30 ? 'Low' : risk < 55 ? 'Medium' : risk < 80 ? 'High' : 'Very high';
+
+  // Timeline (months)
+  const timeline = Math.max(4, Math.round(
+    3 + usecase.length * 1.5 + (STATE.network && STATE.network.indexOf('public') === 0 ? 4 : 0) + jur.length * 1.2 + ramps.length * 0.8
+  ));
+
+  // Investment band
+  const baseInvest = 800 + usecase.length * 350 + jur.length * 240 + (STATE.network && STATE.network.indexOf('public') === 0 ? 600 : 200);
+  const invest = '$' + baseInvest + 'K – $' + Math.round(baseInvest * 1.6) + 'K';
+
+  // Roadmap phases
+  const phases = [
+    'Engage compliance early — get a written opinion from each in-scope regulator (4-6 weeks).',
+    'Pilot 1 use case end-to-end · closed-loop · single jurisdiction (8-10 weeks).',
+    'Smart contract audit (OpenZeppelin or Halborn) · external (4 weeks).',
+    'Limited go-live with KYC-gated participants · monitor for 90 days.',
+    'Open up to additional jurisdictions / use cases per phase-gate review.'
+  ];
+
+  // Regulator stance per jurisdiction
+  const REG_STANCE = {
+    us:        { name:'United States', primary:'SEC · CFTC · OCC · NYDFS', stance:'Cautious. GENIUS Act 2025 clarifies stablecoins. Token-securities still under SEC. Engage state regulators in parallel (NYDFS BitLicense).' },
+    eu:        { name:'European Union', primary:'ESMA · EBA (MiCA)', stance:'Permissive. MiCA is live since Dec 2024 — clear path for asset-referenced + e-money tokens. DORA applies for resilience.' },
+    uk:        { name:'United Kingdom', primary:'FCA · BoE', stance:'Sandbox-friendly. FCA Cryptoassets register + DSS (Digital Securities Sandbox) since Sep 2024.' },
+    singapore: { name:'Singapore', primary:'MAS', stance:'Most-banking-friendly. Project Guardian pilots are mature. DPT Act licenses required.' },
+    uae:       { name:'UAE', primary:'VARA (Dubai) · ADGM FSRA · DFSA', stance:'Aggressive innovation push. VARA fees are high but timelines are short. DFSA Crypto Token Regime is mature.' },
+    hk:        { name:'Hong Kong', primary:'HKMA · SFC', stance:'Stablecoin Ordinance 2024 · SFC Virtual Asset Trading Platform regime. Re-positioning post-2021 ban.' }
+  };
+  const regStances = jur.map(k => REG_STANCE[k]).filter(Boolean);
+
+  // Verdict
+  let verdictH, verdictSub;
+  if (risk < 30 && timeline < 8) {
+    verdictH = 'GO · Pilot in 6-8 months';
+    verdictSub = 'Tractable scope, friendly jurisdictions, modest investment. Schedule kickoff this quarter.';
+  } else if (risk < 55) {
+    verdictH = 'CONDITIONAL GO · Stage-gated';
+    verdictSub = 'Useable case-by-case. Engage compliance + start with a closed-loop pilot. Re-evaluate after 90 days.';
+  } else if (risk < 80) {
+    verdictH = 'CAUTION · Multi-jurisdiction risk';
+    verdictSub = 'Defer board approval until regulator opinions are in writing. Consider single-jurisdiction MVP first.';
+  } else {
+    verdictH = 'HOLD · Too many open variables';
+    verdictSub = 'Reduce scope. Pick one use case, one jurisdiction, qualified custodian, permissioned network. Then re-run this scoping.';
+  }
+
+  return { risk, riskBand, timeline, invest, phases, regStances, verdictH, verdictSub, usecase, ramps, jur, custody };
+}
+
+function renderOutput() {
+  const o = computeOutput();
+  const el = document.getElementById('bc-out');
+
+  const TOKEN_NAME = { erc20:'ERC-20', erc3643:'ERC-3643 (T-REX)', erc721:'ERC-721', erc1400:'ERC-1400', 'fabric-token':'Fabric Token SDK' };
+  const NET_NAME   = { fabric:'Hyperledger Fabric', corda:'R3 Corda', quorum:'Quorum / Besu', canton:'Canton', 'public-eth-l2':'Ethereum L2', 'public-eth-l1':'Ethereum L1' };
+  const CUSTODY_NAME = { own:'Self-custody', qualified:'Qualified custodian', hybrid:'MPC hybrid', 'public-custody':'Investor self-custody' };
+
+  let html = '<h3>Live roadmap output</h3>';
+
+  html += '<div class="stat-row"><span>Use cases selected</span><strong>' + (o.usecase.length || '—') + '</strong></div>';
+  html += '<div class="stat-row"><span>Network</span><strong>' + (NET_NAME[STATE.network] || '—') + '</strong></div>';
+  html += '<div class="stat-row"><span>Token standard</span><strong>' + (TOKEN_NAME[STATE.token] || '—') + '</strong></div>';
+  html += '<div class="stat-row"><span>Custody</span><strong>' + (CUSTODY_NAME[o.custody] || '—') + '</strong></div>';
+  html += '<div class="stat-row"><span>Jurisdictions</span><strong>' + (o.jur.length || '—') + '</strong></div>';
+  html += '<div class="stat-row"><span>Est. timeline to pilot</span><strong>' + o.timeline + ' months</strong></div>';
+  html += '<div class="stat-row"><span>Est. program investment</span><strong>' + o.invest + '</strong></div>';
+  html += '<div class="stat-row"><span>Risk band</span><strong style="color:' + (o.risk < 30 ? '#0A8462' : o.risk < 55 ? '#A04500' : '#C92535') + '">' + o.riskBand + '</strong></div>';
+
+  // Risk meter
+  html += '<div class="bc-risk"><div class="bc-risk-bar"><div style="width:' + o.risk + '%"></div></div><div class="bc-risk-lbl" style="color:' + (o.risk < 30 ? '#0A8462' : o.risk < 55 ? '#A04500' : '#C92535') + '">' + o.risk + '%</div></div>';
+
+  html += '<div class="verdict"><div class="v-lbl">PLATFORM VERDICT</div><div class="v-h">' + o.verdictH + '</div><div class="v-sub">' + o.verdictSub + '</div></div>';
+
+  if (o.regStances && o.regStances.length) {
+    html += '<div style="margin-top:14px"><div style="font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase;margin-bottom:6px">Regulator stance per jurisdiction</div>';
+    o.regStances.forEach(r => {
+      html += '<div style="background:#F8FAFD;border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:6px"><div style="font-weight:700;font-size:12px">' + r.name + ' · <span style="font-weight:400;color:var(--ink-2);font-size:11px">' + r.primary + '</span></div><div style="font-size:11.5px;color:var(--ink-2);margin-top:3px;line-height:1.5">' + r.stance + '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div class="bc-roadmap"><strong>Roadmap (5 phases)</strong><ol>' +
+    o.phases.map(p => '<li>' + p + '</li>').join('') +
+  '</ol></div>';
+
+  html += '<div class="bc-cta">' +
+    '<button onclick="exportRoadmap()">⬇ Export JSON</button>' +
+    '<button onclick="addToDiscovery()">Send to Discovery →</button>' +
+  '</div>';
+
+  el.innerHTML = html;
+}
+
+function exportRoadmap() {
+  const payload = { state: STATE, computed: computeOutput(), generatedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'blockchain-rwa-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+  if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'⬇', title:'Roadmap exported', message:'JSON downloaded.' });
+  if (window.DI && window.DI.audit) window.DI.audit.log('blockchain-rwa', 'export', { usecase: STATE.usecase, jur: STATE.jur });
+}
+
+function addToDiscovery() {
+  /* Add a "Blockchain pilot" capability to the existing Discovery wizard. */
+  try {
+    const disc = JSON.parse(localStorage.getItem('di_discovery_v1') || '{"selected":[],"detail":{},"mode":"detailed"}');
+    if (!disc.selected.includes('blockchain-pilot')) disc.selected.push('blockchain-pilot');
+    disc.detail['blockchain-pilot'] = disc.detail['blockchain-pilot'] || {
+      infra: Object.assign({}, { webServers:'4-8', appServers:'8-20', dbServers:'2-4 (cluster)', hosting:'Hybrid', compute:'50-200 vCPU', util:32, complexity: STATE.network && STATE.network.indexOf('public') === 0 ? 'highly' : 'complex' })
+    };
+    localStorage.setItem('di_discovery_v1', JSON.stringify(disc));
+    if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'➕', title:'Added to Discovery', message:'A Blockchain pilot capability is now in your Discovery scope.' });
+    if (window.DI && window.DI.audit) window.DI.audit.log('blockchain-rwa', 'send-to-discovery', { state: STATE });
+    setTimeout(() => { location.href = 'discovery-studio.html'; }, 700);
+  } catch (e) { if (window.DI && window.DI.toast) window.DI.toast({ kind:'err', title:'Could not save', message:String(e) }); }
+}
+
+/* Bootstrap */
+loadState();
+wireInputs();
+renderOutput();
+</script>
+
+</body>
+</html>

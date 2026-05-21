@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Role-Based Actions · DI Platform</title>
+<meta name="description" content="Top filters → executive KPIs → role-prioritized actions table → drill-down with leadership recommendation and outcome band."/>
+<link rel="stylesheet" href="assets/theme.css">
+<script src="assets/toasts.js" defer></script>
+<script src="assets/audit.js" defer></script>
+<script src="assets/cmdk.js" defer></script>
+<script src="assets/shortcuts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+a{color:var(--gold);text-decoration:none}
+
+/* Hero */
+.ac-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.ac-hero-wrap{max-width:1400px;margin:0 auto}
+.ac-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.ac-h1{font-family:var(--f-head);font-size:23px;font-weight:600;line-height:1.18}
+.ac-h1 em{font-style:italic;color:var(--gold)}
+
+/* Filters */
+.ac-filters{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px}
+.ac-filters-wrap{max-width:1400px;margin:0 auto;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.ac-filt{display:flex;flex-direction:column;gap:3px}
+.ac-filt .lbl{font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase}
+.ac-filt select{padding:6px 10px;border:1px solid var(--border-2);border-radius:7px;font-size:12px;background:var(--canvas);font-family:inherit;outline:none;color:var(--ink)}
+.ac-filt select:focus{border-color:var(--gold)}
+.ac-search{flex:1;max-width:320px}
+.ac-search input{width:100%;padding:6px 10px;border:1px solid var(--border-2);border-radius:7px;font-size:12px;background:var(--canvas);font-family:inherit;outline:none}
+
+/* KPI strip */
+.ac-kpis{padding:16px 24px 4px;max-width:1400px;margin:0 auto}
+.ac-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:760px){.ac-kpi-row{grid-template-columns:repeat(2,1fr)}}
+.ac-kpi{background:#fff;border:1px solid var(--border);border-radius:11px;padding:11px 14px}
+.ac-kpi .lbl{font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase}
+.ac-kpi .val{font-family:var(--f-head);font-size:22px;font-weight:600;line-height:1.1;margin-top:2px}
+.ac-kpi .sub{font-size:10.5px;color:var(--ink-2);margin-top:1px}
+.ac-kpi.red .val{color:var(--red)}
+.ac-kpi.gold .val{color:var(--gold)}
+.ac-kpi.ok .val{color:#0A8462}
+
+/* Table */
+.ac-main{padding:14px 24px 36px;max-width:1400px;margin:0 auto}
+.ac-table{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:auto}
+.ac-table table{border-collapse:collapse;width:100%;min-width:1100px;font-size:12.5px}
+.ac-table thead th{background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;padding:11px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.ac-table thead th.sort{cursor:pointer}
+.ac-table thead th.sort:hover{color:var(--gold)}
+.ac-table tbody tr{cursor:pointer;transition:.15s}
+.ac-table tbody tr:hover{background:var(--canvas)}
+.ac-table td{padding:10px 12px;border-bottom:1px solid var(--canvas-2);vertical-align:middle}
+.ac-table .id{font-family:var(--f-mono);font-weight:700;color:var(--ink-2);font-size:10.5px}
+.ac-table .title{font-weight:700}
+.ac-table .meta{font-size:10.5px;color:var(--ink-2);margin-top:1px}
+.ac-table .pill{font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:99px;letter-spacing:.04em;text-transform:uppercase;display:inline-block;white-space:nowrap}
+.ac-table .pill.pri-P1{background:var(--red);color:#fff}
+.ac-table .pill.pri-P2{background:#FF8030;color:#fff}
+.ac-table .pill.pri-P3{background:#3D8EFF;color:#fff}
+.ac-table .pill.pri-P4{background:#5B6B8A;color:#fff}
+.ac-table .pill.st-open{background:#FFE7EC;color:#C92535}
+.ac-table .pill.st-progress{background:#FFE7CC;color:#A04500}
+.ac-table .pill.st-blocked{background:#FFEFC2;color:#7A5F10}
+.ac-table .pill.st-done{background:#E8FBF4;color:#0A8462}
+.ac-table .role-pill{font-size:10px;background:#F8FAFD;color:var(--ink);border:1px solid var(--border);padding:2px 8px;border-radius:99px;display:inline-block;font-weight:600}
+.ac-table .source-pill{font-size:9.5px;color:var(--ink-3);font-family:var(--f-mono)}
+.ac-table .due{font-family:var(--f-mono);font-size:11px}
+.ac-table .due.overdue{color:var(--red);font-weight:700}
+
+/* Drill row */
+.ac-drill{background:linear-gradient(180deg,#FFFCF4,#fff);border-top:none}
+.ac-drill td{padding:14px 22px;font-size:12.5px}
+.ac-drill .drill-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+@media (max-width:760px){.ac-drill .drill-grid{grid-template-columns:1fr}}
+.ac-drill .drill-section{}
+.ac-drill .drill-h{font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+.ac-drill .desc{font-size:12.5px;color:var(--ink);line-height:1.6;margin-bottom:10px}
+.ac-drill .reco{background:#1A2238;color:#fff;border-radius:10px;padding:12px 14px;margin-top:8px}
+.ac-drill .reco .h{font-size:10px;font-weight:700;color:var(--gold-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.ac-drill .reco .body{font-size:12.5px;line-height:1.55}
+.ac-drill .outcome-band{display:flex;gap:10px;margin-top:10px}
+.ac-drill .outcome{background:#fff;border:1px solid var(--border);border-radius:10px;padding:9px 12px;flex:1}
+.ac-drill .outcome .lbl{font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase}
+.ac-drill .outcome .v{font-family:var(--f-head);font-size:16px;font-weight:600;color:var(--ink);margin-top:2px}
+.ac-drill .outcome.ok .v{color:#0A8462}
+.ac-drill .outcome.warn .v{color:#A04500}
+.ac-drill .outcome.bad .v{color:var(--red)}
+
+.ac-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.ac-toolbar .meta{font-size:11.5px;color:var(--ink-2)}
+.ac-toolbar .actions{display:flex;gap:6px}
+.ac-toolbar .actions button{background:#fff;border:1px solid var(--border);border-radius:7px;padding:6px 11px;font-size:11.5px;color:var(--ink);font-family:inherit;cursor:pointer}
+.ac-toolbar .actions button:hover{border-color:var(--gold);color:var(--gold)}
+.ac-toolbar .actions .primary{background:var(--gold);color:#fff;border-color:var(--gold);font-weight:700}
+
+.ac-empty{text-align:center;padding:60px 20px;background:#fff;border:1px solid var(--border);border-radius:14px;color:var(--ink-2)}
+.ac-empty h2{font-family:var(--f-head);font-size:20px;color:var(--ink);margin-bottom:8px}
+.ac-empty p{font-size:13px;max-width:520px;margin:0 auto 14px;line-height:1.55}
+.ac-empty .actions a,.ac-empty .actions button{background:var(--gold);color:#fff;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;text-decoration:none;border:none;font-family:inherit;cursor:pointer;margin:0 4px}
+.ac-empty .actions .ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div data-di-topbar></div>
+
+<section class="ac-hero">
+  <div class="ac-hero-wrap">
+    <div class="ac-eyebrow">ROLE-BASED ACTIONS · EXECUTIVE VIEW</div>
+    <h1 class="ac-h1">Every owner sees only what's <em>theirs</em>, ranked by priority and dollar impact.</h1>
+  </div>
+</section>
+
+<div class="ac-filters">
+  <div class="ac-filters-wrap">
+    <div class="ac-filt"><div class="lbl">ROLE</div><select id="f-role"></select></div>
+    <div class="ac-filt"><div class="lbl">PRIORITY</div><select id="f-priority"><option value="all">All</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option></select></div>
+    <div class="ac-filt"><div class="lbl">STATUS</div><select id="f-status"><option value="all">All</option><option>Open</option><option>In Progress</option><option>Blocked</option><option>Done</option></select></div>
+    <div class="ac-filt"><div class="lbl">TIMELINE</div><select id="f-timeline"><option value="all">All</option><option value="overdue">Overdue</option><option value="7d">Next 7 days</option><option value="30d">Next 30 days</option><option value="90d">Next 90 days</option></select></div>
+    <div class="ac-filt ac-search"><div class="lbl">SEARCH</div><input id="f-search" placeholder="Filter by id, title, or owner…"/></div>
+  </div>
+</div>
+
+<div class="ac-kpis" id="ac-kpis"></div>
+
+<main class="ac-main" id="ac-main"></main>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   Role-Based Actions · Phase 21.2
+   Aggregates actions from RAID (Governance), Requirements,
+   Incidents (Operations), and Architecture decisions.
+═══════════════════════════════════════════════════════ */
+
+const AC_KEY = 'di_actions_v1';
+let STATE = {
+  filterRole: 'all',
+  filterPriority: 'all',
+  filterStatus: 'all',
+  filterTimeline: 'all',
+  search: '',
+  sortBy: 'priority',
+  sortDir: 'asc',
+  expanded: null,
+  actions: []
+};
+
+const ROLES_ALL = ['CTO','CIO','CRO','CFO','Head of Architecture','Head of Compliance','Product Owner','SRE Lead','Data Officer','Business Owner','Program Manager'];
+
+function gatherActions() {
+  const actions = [];
+  let counter = 1;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const addDays = d => new Date(today.getTime() + d*24*3600*1000).toISOString().slice(0,10);
+
+  // From Governance RAID
+  try {
+    const gov = JSON.parse(localStorage.getItem('di_governance_v1') || 'null');
+    if (gov && gov.raid && gov.raid.length) {
+      gov.raid.forEach(r => {
+        actions.push({
+          id: 'A-' + String(counter++).padStart(3,'0'),
+          title: (r.desc || '').replace(/<[^>]+>/g, '').slice(0, 100),
+          desc: (r.desc || '').replace(/<[^>]+>/g, ''),
+          role: mapOwnerToRole(r.owner) || 'Program Manager',
+          ownerName: r.owner || 'TBD',
+          priority: r.sev === 'high' ? 'P1' : r.sev === 'med' ? 'P2' : 'P3',
+          status: r.status === 'Open' ? 'Open' : r.status === 'In Progress' ? 'In Progress' : r.status === 'Mitigated' || r.status === 'Closed' ? 'Done' : 'In Progress',
+          due: addDays(r.sev === 'high' ? 7 : r.sev === 'med' ? 21 : 60),
+          source: 'Governance · ' + r.id,
+          sourceLink: 'program-governance.html',
+          recommendation: defaultReco(r.type, r.sev),
+          dollarImpact: r.sev === 'high' ? 250000 : r.sev === 'med' ? 80000 : 20000,
+          outcome: r.sev === 'high' ? 'unblocks critical-path workstream' : 'maintains program velocity'
+        });
+      });
+    }
+  } catch (e) {}
+
+  // From Requirements (high-priority only)
+  try {
+    const rq = JSON.parse(localStorage.getItem('di_requirements_v1') || 'null');
+    if (rq && rq.requirements) {
+      rq.requirements.filter(r => r.priority === 'high').slice(0, 8).forEach(r => {
+        actions.push({
+          id: 'A-' + String(counter++).padStart(3,'0'),
+          title: 'Implement: ' + r.title,
+          desc: r.desc,
+          role: r.roles && r.roles[0] || 'Head of Architecture',
+          ownerName: '(TBA)',
+          priority: 'P2',
+          status: 'Open',
+          due: addDays(45),
+          source: 'Requirements · ' + r.id,
+          sourceLink: 'requirements.html',
+          recommendation: 'Allocate engineering capacity in the next sprint. ' + (r.regs && r.regs.length ? 'Coordinate with compliance on ' + r.regs[0] + '.' : ''),
+          dollarImpact: 60000,
+          outcome: 'enables ' + (r.lens === 'reg' ? 'regulator readiness' : r.lens === 'biz' ? 'business outcome' : 'platform capability')
+        });
+      });
+    }
+  } catch (e) {}
+
+  // From Architecture (cloud-pick decisions worth flagging)
+  try {
+    const arch = JSON.parse(localStorage.getItem('di_architecture_v1') || 'null');
+    if (arch && arch.capabilities && arch.capabilities.length) {
+      // Hi-cost capabilities → finalize cloud pick
+      arch.capabilities.filter(c => c.monthly > 10000).slice(0, 4).forEach(c => {
+        actions.push({
+          id: 'A-' + String(counter++).padStart(3,'0'),
+          title: 'Finalize cloud target for ' + c.name,
+          desc: c.name + ' is currently mapped to ' + (arch.picks[c.id] || 'AWS') + ' with monthly cost ~$' + Math.round(c.monthly/1000) + 'K. Validate with Procurement and Architecture review board before SOW lock.',
+          role: 'Head of Architecture',
+          ownerName: 'Architecture Council',
+          priority: 'P2',
+          status: 'In Progress',
+          due: addDays(14),
+          source: 'Architecture · ' + c.id,
+          sourceLink: 'architecture-studio.html',
+          recommendation: 'Spike both incumbent and alternative cloud over 5 days; latency / DR / FinOps comparison. CTO signs off.',
+          dollarImpact: c.monthly * 36,
+          outcome: 'locks 3-yr commit · saves negotiation leverage'
+        });
+      });
+    }
+  } catch (e) {}
+
+  // From Operations (sample incidents)
+  actions.push(
+    { id:'A-' + String(counter++).padStart(3,'0'), title:'Investigate Card · Authorization API latency', desc:'p99 jumped from 320ms to 940ms after RDS upsize on May 18. Investigate vs roll back.', role:'SRE Lead', ownerName:'Auth team', priority:'P2', status:'In Progress', due:addDays(3), source:'Operations · INC-042', sourceLink:'operations.html', recommendation:'Right-size RDS back to r6g.large with 1-yr RI. Run latency test before close.', dollarImpact:14200, outcome:'returns SLO to in-band; saves $14K/mo cloud spend' },
+    { id:'A-' + String(counter++).padStart(3,'0'), title:'Tonight AML batch SLA risk', desc:'New AML rule deployed at 18:30 today. Forecast says SLA may breach if false-positive volume > 8K. Monitor through 06:00.', role:'SRE Lead', ownerName:'AML on-call', priority:'P1', status:'Open', due:addDays(0), source:'Operations · INC-041', sourceLink:'operations.html', recommendation:'Page primary at 03:00 if false-positive count > 6K. Have rule rollback ready.', dollarImpact:50000, outcome:'protects SLA; avoids regulator notification' }
+  );
+
+  // From per-country regulators (deadline-driven actions)
+  try {
+    const profile = JSON.parse(sessionStorage.getItem('di_account_profile') || 'null');
+    const region = (profile && profile.region) || 'North America';
+    if (/europe/i.test(region)) {
+      actions.push({ id:'A-' + String(counter++).padStart(3,'0'), title:'DORA operational resilience attestation', desc:'DORA Article 5 requires board-approved ICT risk policy + register of information by Jan 2026. Draft + approval cycle ~ 90 days.', role:'Head of Compliance', ownerName:'Compliance Office', priority:'P1', status:'Open', due:addDays(60), source:'Regulatory · EU DORA', sourceLink:'questionnaire.html', recommendation:'Engage external counsel for gap analysis. Reuse SOW Annex C KPIs as evidence for board.', dollarImpact:150000, outcome:'avoids supervisory finding' });
+    }
+    if (/asia pacific/i.test(region) || /south east/i.test(region)) {
+      actions.push({ id:'A-' + String(counter++).padStart(3,'0'), title:'MAS TRM 644 readiness assessment', desc:'MAS TRM Notice 644 requires bi-annual self-assessment of technology risk controls. Next due in 4 months.', role:'CRO', ownerName:'Risk Office', priority:'P2', status:'Open', due:addDays(90), source:'Regulatory · MAS', sourceLink:'questionnaire.html', recommendation:'Run the questionnaire under the MAS pack; share with MAS-appointed external assessor.', dollarImpact:80000, outcome:'maintains MAS rating' });
+    }
+  } catch (e) {}
+
+  return actions;
+}
+
+function mapOwnerToRole(owner) {
+  if (!owner) return null;
+  const o = owner.toLowerCase();
+  if (o.includes('cto'))        return 'CTO';
+  if (o.includes('cio'))        return 'CIO';
+  if (o.includes('cro') || o.includes('risk')) return 'CRO';
+  if (o.includes('cfo') || o.includes('finance')) return 'CFO';
+  if (o.includes('comp'))       return 'Head of Compliance';
+  if (o.includes('arch'))       return 'Head of Architecture';
+  if (o.includes('product'))    return 'Product Owner';
+  if (o.includes('sre') || o.includes('ops')) return 'SRE Lead';
+  if (o.includes('data'))       return 'Data Officer';
+  if (o.includes('business') || o.includes('owner')) return 'Business Owner';
+  if (o.includes('pmo') || o.includes('program')) return 'Program Manager';
+  return 'Program Manager';
+}
+
+function defaultReco(type, sev) {
+  if (type === 'R')   return sev === 'high' ? 'Escalate to steering committee within 5 business days. Identify mitigation owner + budget.' : 'Review at next bi-weekly. Document mitigation path.';
+  if (type === 'A')   return 'Validate the assumption at the next architecture board. If wrong, reopen scoping for affected capabilities.';
+  if (type === 'I')   return 'Resolve before the next milestone. Assign primary + secondary owner.';
+  if (type === 'D')   return 'Track the dependency on the program plan. Set a follow-up cadence with the upstream team.';
+  return 'Review and prioritize.';
+}
+
+/* ── State persistence + load ─────────────────────── */
+function loadOrGenerate() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(AC_KEY) || 'null'); } catch (e) {}
+  if (saved && saved.actions && saved.actions.length) { STATE.actions = saved.actions; return; }
+  STATE.actions = gatherActions();
+  saveState();
+  if (window.DI && window.DI.audit) window.DI.audit.log('actions', 'auto-generated', { count: STATE.actions.length });
+}
+function saveState() {
+  try { localStorage.setItem(AC_KEY, JSON.stringify({ actions: STATE.actions, updatedAt: new Date().toISOString() })); } catch (e) {}
+}
+function regenerate() {
+  STATE.actions = gatherActions();
+  saveState();
+  render();
+  if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'↻', title:'Actions refreshed', message: STATE.actions.length + ' actions from current artifacts.' });
+}
+function loadSample() {
+  STATE.actions = gatherActions();
+  // If still empty, seed
+  if (STATE.actions.length === 0) {
+    const today = new Date();
+    const day = d => new Date(today.getTime() + d*24*3600*1000).toISOString().slice(0,10);
+    STATE.actions = [
+      { id:'A-001', title:'Finalize Architecture sign-off · Payments', desc:'Architecture review board pending for Core Payments cloud target.', role:'Head of Architecture', ownerName:'Architecture Council', priority:'P1', status:'In Progress', due:day(5), source:'Architecture', sourceLink:'architecture-studio.html', recommendation:'Convene review board this week; sign-off required to start landing zone.', dollarImpact:500000, outcome:'unblocks M1 milestone' },
+      { id:'A-002', title:'Approve SOW v0.2 for Legal review', desc:'SOW updated after architecture finalization. Required for procurement vendor onboarding.', role:'CFO', ownerName:'Procurement', priority:'P1', status:'Open', due:day(7), source:'SOW', sourceLink:'sow.html', recommendation:'CFO + Legal countersign required. Schedule 30-min review.', dollarImpact:3950000, outcome:'unlocks vendor mobilization' },
+      { id:'A-003', title:'Mainframe COBOL skills risk · RAID R-001', desc:'Two mainframe engineers retiring in Q3 2026. No succession plan.', role:'CTO', ownerName:'Mainframe Lead', priority:'P1', status:'Open', due:day(45), source:'Governance · R-001', sourceLink:'program-governance.html', recommendation:'Engage staffing partner immediately. Cross-train 2 Java engineers as bridge.', dollarImpact:280000, outcome:'mitigates skills attrition risk' },
+      { id:'A-004', title:'BCBS 239 self-assessment by Risk', desc:'Annual BCBS 239 attestation due in 6 weeks. Owner: CRO.', role:'CRO', ownerName:'Risk Office', priority:'P2', status:'Open', due:day(42), source:'Regulatory', sourceLink:'questionnaire.html', recommendation:'Schedule weekly check-ins. Reuse SOW Annex C KPIs as evidence.', dollarImpact:100000, outcome:'maintains regulator standing' },
+      { id:'A-005', title:'Card auth latency spike investigation', desc:'p99 jumped from 320ms to 940ms after RDS upsize. Roll back vs accept.', role:'SRE Lead', ownerName:'Auth team', priority:'P2', status:'In Progress', due:day(3), source:'Operations', sourceLink:'operations.html', recommendation:'Right-size RDS back. Saves $14K/mo + restores SLO.', dollarImpact:14200, outcome:'SLO restored' },
+      { id:'A-006', title:'Snowflake account provisioning for Risk', desc:'Dependency for unified risk data platform rearchitect.', role:'Data Officer', ownerName:'Data Platform', priority:'P3', status:'Blocked', due:day(21), source:'Governance · D-003', sourceLink:'program-governance.html', recommendation:'Escalate to vendor account exec. Default to AWS Redshift if not resolved by Day 14.', dollarImpact:45000, outcome:'unblocks Risk modernization wave' }
+    ];
+  }
+  saveState();
+  render();
+}
+
+/* ── Filters wiring ───────────────────────────────── */
+function initFilters() {
+  const r = document.getElementById('f-role');
+  r.innerHTML = '<option value="all">All roles</option>' + ROLES_ALL.map(x => '<option>' + x + '</option>').join('');
+  r.addEventListener('change', e => { STATE.filterRole = e.target.value; render(); });
+  document.getElementById('f-priority').addEventListener('change', e => { STATE.filterPriority = e.target.value; render(); });
+  document.getElementById('f-status').addEventListener('change',   e => { STATE.filterStatus   = e.target.value; render(); });
+  document.getElementById('f-timeline').addEventListener('change', e => { STATE.filterTimeline = e.target.value; render(); });
+  document.getElementById('f-search').addEventListener('input',    e => { STATE.search = e.target.value.toLowerCase(); render(); });
+}
+
+/* ── Render ───────────────────────────────────────── */
+function applyFilters(actions) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  return actions.filter(a => {
+    if (STATE.filterRole !== 'all'     && a.role !== STATE.filterRole) return false;
+    if (STATE.filterPriority !== 'all' && a.priority !== STATE.filterPriority) return false;
+    if (STATE.filterStatus !== 'all'   && a.status !== STATE.filterStatus) return false;
+    if (STATE.filterTimeline !== 'all') {
+      const due = new Date(a.due); due.setHours(0,0,0,0);
+      const diffDays = Math.round((due - today) / (24*3600*1000));
+      if (STATE.filterTimeline === 'overdue' && diffDays >= 0) return false;
+      if (STATE.filterTimeline === '7d'      && (diffDays < 0 || diffDays > 7)) return false;
+      if (STATE.filterTimeline === '30d'     && (diffDays < 0 || diffDays > 30)) return false;
+      if (STATE.filterTimeline === '90d'     && (diffDays < 0 || diffDays > 90)) return false;
+    }
+    if (STATE.search) {
+      const s = (a.id + ' ' + a.title + ' ' + (a.ownerName||'') + ' ' + a.role + ' ' + a.source).toLowerCase();
+      if (!s.includes(STATE.search)) return false;
+    }
+    return true;
+  });
+}
+
+function renderKpis() {
+  const el = document.getElementById('ac-kpis');
+  const total = STATE.actions.length;
+  if (!total) { el.innerHTML = ''; return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const overdue = STATE.actions.filter(a => { const d = new Date(a.due); return d < today && a.status !== 'Done'; }).length;
+  const high = STATE.actions.filter(a => a.priority === 'P1').length;
+  const totalDollarRisk = STATE.actions.filter(a => a.status !== 'Done').reduce((s, a) => s + (a.dollarImpact || 0), 0);
+  const fmtMoney = n => { if (n >= 1000000) return '$' + (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M'; if (n >= 1000) return '$' + Math.round(n/1000) + 'K'; return '$' + n; };
+
+  el.innerHTML = '<div class="ac-kpi-row">' +
+    '<div class="ac-kpi"><div class="lbl">TOTAL ACTIONS</div><div class="val">' + total + '</div><div class="sub">all sources aggregated</div></div>' +
+    '<div class="ac-kpi red"><div class="lbl">P1 · CRITICAL</div><div class="val">' + high + '</div><div class="sub">need attention now</div></div>' +
+    '<div class="ac-kpi ' + (overdue > 0 ? 'red' : 'ok') + '"><div class="lbl">OVERDUE</div><div class="val">' + overdue + '</div><div class="sub">past due date</div></div>' +
+    '<div class="ac-kpi gold"><div class="lbl">$ AT RISK</div><div class="val">' + fmtMoney(totalDollarRisk) + '</div><div class="sub">tied to open actions</div></div>' +
+  '</div>';
+}
+
+function renderTable() {
+  const main = document.getElementById('ac-main');
+  if (!STATE.actions.length) {
+    main.innerHTML = '<div class="ac-empty">' +
+      '<h2>No actions captured yet</h2>' +
+      '<p>Actions are aggregated from Governance RAID, Requirements, Architecture decisions, Operations incidents, and Regulatory deadlines. Run any of those first, OR click <strong>Load sample</strong>.</p>' +
+      '<div class="actions"><button onclick="loadSample()">Load sample</button><a class="ghost" href="program-governance.html">Open Governance →</a></div>' +
+    '</div>';
+    return;
+  }
+
+  const filtered = applyFilters(STATE.actions);
+  // Sort
+  const priOrder = { P1:1, P2:2, P3:3, P4:4 };
+  filtered.sort((a,b) => (priOrder[a.priority] || 5) - (priOrder[b.priority] || 5) || new Date(a.due) - new Date(b.due));
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  let html = '<div class="ac-toolbar"><div class="meta">' + filtered.length + ' of ' + STATE.actions.length + ' shown · sorted by priority then due</div>' +
+    '<div class="actions">' +
+      '<button onclick="regenerate()">↻ Refresh from sources</button>' +
+      '<button onclick="exportActions(\'csv\')">⬇ CSV</button>' +
+      '<button onclick="exportActions(\'json\')">⬇ JSON</button>' +
+    '</div></div>';
+
+  html += '<div class="ac-table"><table>' +
+    '<thead><tr>' +
+      '<th>ID</th><th>Action</th><th>Role</th><th>Priority</th><th>Status</th><th>Due</th><th>Source</th>' +
+    '</tr></thead><tbody>';
+
+  filtered.forEach(a => {
+    const due = new Date(a.due); due.setHours(0,0,0,0);
+    const overdue = due < today && a.status !== 'Done';
+    const isExpanded = STATE.expanded === a.id;
+    html += '<tr onclick="toggleExpand(\'' + a.id + '\')">' +
+      '<td class="id">' + a.id + '</td>' +
+      '<td><div class="title">' + escapeHTML(a.title) + '</div><div class="meta">' + escapeHTML(a.ownerName || '') + '</div></td>' +
+      '<td><span class="role-pill">' + escapeHTML(a.role) + '</span></td>' +
+      '<td><span class="pill pri-' + a.priority + '">' + a.priority + '</span></td>' +
+      '<td><span class="pill st-' + a.status.toLowerCase().replace(/ /g,'').replace('inprogress','progress') + '">' + a.status + '</span></td>' +
+      '<td class="due ' + (overdue ? 'overdue' : '') + '">' + a.due + (overdue ? ' ●' : '') + '</td>' +
+      '<td class="source-pill">' + escapeHTML(a.source) + '</td>' +
+    '</tr>';
+    if (isExpanded) {
+      const outcomeBand = a.priority === 'P1' ? 'bad' : a.priority === 'P2' ? 'warn' : 'ok';
+      const fmtMoney = n => { if (n >= 1000000) return '$' + (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M'; if (n >= 1000) return '$' + Math.round(n/1000) + 'K'; return '$' + n; };
+      html += '<tr class="ac-drill"><td colspan="7"><div class="drill-grid">' +
+        '<div class="drill-section">' +
+          '<div class="drill-h">DESCRIPTION</div>' +
+          '<div class="desc">' + escapeHTML(a.desc) + '</div>' +
+          '<div class="drill-h">LEADERSHIP RECOMMENDATION</div>' +
+          '<div class="reco"><div class="h">From Nishi · ' + a.role + ' lens</div><div class="body">' + escapeHTML(a.recommendation) + '</div></div>' +
+          (a.sourceLink ? '<div style="margin-top:10px;font-size:11px"><a href="' + a.sourceLink + '" style="color:var(--gold);font-weight:700">Open source artifact →</a></div>' : '') +
+        '</div>' +
+        '<div class="drill-section">' +
+          '<div class="drill-h">EXPECTED OUTCOME</div>' +
+          '<div style="font-size:12.5px;color:var(--ink);line-height:1.55">' + escapeHTML(a.outcome) + '</div>' +
+          '<div class="outcome-band">' +
+            '<div class="outcome ' + outcomeBand + '"><div class="lbl">$ IMPACT</div><div class="v">' + fmtMoney(a.dollarImpact || 0) + '</div></div>' +
+            '<div class="outcome"><div class="lbl">OWNER</div><div class="v">' + escapeHTML(a.ownerName || a.role) + '</div></div>' +
+          '</div>' +
+          '<div style="margin-top:10px;display:flex;gap:6px">' +
+            '<button onclick="updateStatus(\'' + a.id + '\',\'In Progress\');event.stopPropagation()" style="font-size:11px;padding:5px 11px;background:#fff;border:1px solid var(--border);border-radius:7px;cursor:pointer;font-family:inherit">Mark In Progress</button>' +
+            '<button onclick="updateStatus(\'' + a.id + '\',\'Done\');event.stopPropagation()" style="font-size:11px;padding:5px 11px;background:var(--green);color:#fff;border:none;border-radius:7px;cursor:pointer;font-family:inherit;font-weight:700">Mark Done</button>' +
+          '</div>' +
+        '</div>' +
+      '</div></td></tr>';
+    }
+  });
+
+  html += '</tbody></table></div>';
+  main.innerHTML = html;
+}
+
+function toggleExpand(id) {
+  STATE.expanded = STATE.expanded === id ? null : id;
+  renderTable();
+  if (window.DI && window.DI.audit) window.DI.audit.log('actions', 'drill-down', { id });
+}
+
+function updateStatus(id, newStatus) {
+  const a = STATE.actions.find(x => x.id === id);
+  if (!a) return;
+  const old = a.status;
+  a.status = newStatus;
+  saveState();
+  render();
+  if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'✓', title:'Status updated', message: id + ' · ' + old + ' → ' + newStatus });
+  if (window.DI && window.DI.audit) window.DI.audit.log('actions', 'status-change', { id, from: old, to: newStatus });
+}
+
+function exportActions(fmt) {
+  if (fmt === 'json') {
+    const blob = new Blob([JSON.stringify(STATE.actions, null, 2)], { type:'application/json' });
+    download(blob, 'actions-' + new Date().toISOString().slice(0,10) + '.json');
+  } else {
+    const csv = 'ID,Title,Role,Owner,Priority,Status,Due,Source,$ Impact,Outcome\n' +
+      STATE.actions.map(a => [a.id, '"'+a.title.replace(/"/g,'""')+'"', a.role, a.ownerName||'', a.priority, a.status, a.due, a.source, a.dollarImpact||0, '"'+(a.outcome||'').replace(/"/g,'""')+'"'].join(',')).join('\n');
+    download(new Blob([csv],{type:'text/csv'}), 'actions-' + new Date().toISOString().slice(0,10) + '.csv');
+  }
+}
+function download(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+  if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'⬇', title:'Downloaded', message: name });
+}
+
+function escapeHTML(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+function render() { renderKpis(); renderTable(); }
+
+/* Bootstrap */
+loadOrGenerate();
+initFilters();
+render();
+</script>
+
+</body>
+</html>

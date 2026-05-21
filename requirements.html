@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Requirements · DI Platform</title>
+<meta name="description" content="Role-tagged AI-generated requirements with four lenses (Technical · Business · Product · Regulatory) and regulatory clause references."/>
+<link rel="stylesheet" href="assets/theme.css">
+<script src="assets/toasts.js" defer></script>
+<script src="assets/audit.js" defer></script>
+<script src="assets/cmdk.js" defer></script>
+<script src="assets/shortcuts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+a{color:var(--gold);text-decoration:none}
+
+.rq-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.rq-hero-wrap{max-width:1400px;margin:0 auto}
+.rq-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.rq-h1{font-family:var(--f-head);font-size:23px;font-weight:600;line-height:1.18}
+.rq-h1 em{font-style:italic;color:var(--gold)}
+.rq-sub{font-size:13px;color:var(--ink-2);margin-top:8px;max-width:780px}
+
+/* Filters */
+.rq-filters{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px}
+.rq-filters-wrap{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.rq-filter-group{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-2)}
+.rq-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;background:#fff;border:1px solid var(--border);border-radius:99px;padding:5px 11px;cursor:pointer;color:var(--ink-2);font-family:inherit}
+.rq-chip.act{background:var(--aglow);border-color:var(--gold-2);color:var(--ink);font-weight:700}
+.rq-chip .ct{font-size:10px;background:rgba(0,0,0,.06);padding:0 5px;border-radius:99px;margin-left:3px}
+.rq-chip.act .ct{background:rgba(0,0,0,.08)}
+
+/* KPI strip */
+.rq-kpis{padding:16px 24px 4px;max-width:1400px;margin:0 auto}
+.rq-kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+@media (max-width:900px){.rq-kpi-row{grid-template-columns:repeat(2,1fr)}}
+.rq-kpi{background:#fff;border:1px solid var(--border);border-radius:11px;padding:11px 14px}
+.rq-kpi .lbl{font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase}
+.rq-kpi .val{font-family:var(--f-head);font-size:22px;font-weight:600;line-height:1.1;margin-top:2px}
+.rq-kpi .sub{font-size:10.5px;color:var(--ink-2);margin-top:1px}
+.rq-kpi.tech .val{color:#1A4D99}
+.rq-kpi.biz  .val{color:#0A8462}
+.rq-kpi.prod .val{color:#A0357A}
+.rq-kpi.reg  .val{color:var(--gold)}
+
+/* Cards grid */
+.rq-main{padding:14px 24px 36px;max-width:1400px;margin:0 auto}
+.rq-list{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:900px){.rq-list{grid-template-columns:1fr}}
+.rq-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;border-left:4px solid var(--gold);display:flex;flex-direction:column;gap:6px}
+.rq-card.lens-tech{border-left-color:#3D8EFF}
+.rq-card.lens-biz {border-left-color:#0FD49A}
+.rq-card.lens-prod{border-left-color:#A0357A}
+.rq-card.lens-reg {border-left-color:var(--gold)}
+.rq-card .id{font-family:var(--f-mono);font-size:10px;color:var(--ink-2);font-weight:700;letter-spacing:.03em}
+.rq-card .title{font-size:13.5px;font-weight:700;line-height:1.35}
+.rq-card .desc{font-size:12px;color:var(--ink-2);line-height:1.5}
+.rq-card .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.rq-card .pill{font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:99px;letter-spacing:.04em;text-transform:uppercase}
+.rq-card .pill.lens-tech{background:#F0F7FF;color:#1A4D99}
+.rq-card .pill.lens-biz {background:#E8FBF4;color:#0A8462}
+.rq-card .pill.lens-prod{background:#FFF0F8;color:#A0357A}
+.rq-card .pill.lens-reg {background:#FFF7E6;color:#7A5F10}
+.rq-card .pill.role{background:#F8FAFD;color:var(--ink);border:1px solid var(--border)}
+.rq-card .pill.pri-high{background:#FFE7EC;color:#C92535}
+.rq-card .pill.pri-med {background:#FFE7CC;color:#A04500}
+.rq-card .pill.pri-low {background:#E8FBF4;color:#0A8462}
+.rq-card .pill.reg-clause{background:transparent;color:var(--ink-2);border:1px dashed var(--gold-2);font-weight:600;font-family:var(--f-mono);font-size:9px;text-transform:none;letter-spacing:0}
+.rq-card .source{font-size:10.5px;color:var(--ink-3);margin-top:3px;font-family:var(--f-mono)}
+
+/* Empty / actions */
+.rq-empty{text-align:center;padding:60px 20px;background:#fff;border:1px solid var(--border);border-radius:14px;color:var(--ink-2)}
+.rq-empty h2{font-family:var(--f-head);font-size:20px;color:var(--ink);margin-bottom:8px}
+.rq-empty p{font-size:13px;max-width:520px;margin:0 auto 14px;line-height:1.55}
+.rq-empty .actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.rq-empty .actions a,.rq-empty .actions button{background:var(--gold);color:#fff;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;text-decoration:none;border:none;font-family:inherit;cursor:pointer}
+.rq-empty .actions .ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+
+.rq-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.rq-toolbar .meta{font-size:11.5px;color:var(--ink-2)}
+.rq-toolbar .actions{display:flex;gap:6px}
+.rq-toolbar .actions button{background:#fff;border:1px solid var(--border);border-radius:7px;padding:6px 11px;font-size:11.5px;color:var(--ink);font-family:inherit;cursor:pointer}
+.rq-toolbar .actions button:hover{border-color:var(--gold);color:var(--gold)}
+.rq-toolbar .actions .primary{background:var(--gold);color:#fff;border-color:var(--gold);font-weight:700}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fadeUp{animation:fadeUp .35s ease both}
+</style>
+</head>
+<body>
+
+<div data-di-topbar></div>
+
+<section class="rq-hero">
+  <div class="rq-hero-wrap">
+    <div class="rq-eyebrow">AI REQUIREMENTS · ROLE-TAGGED · 4 LENSES</div>
+    <h1 class="rq-h1">Every requirement, <em>linked to the person who owns it and the regulator that demanded it.</em></h1>
+    <p class="rq-sub">Generated from your Discovery 7R map and RFP responses. Each requirement is tagged with its lens (Technical · Business · Product · Regulatory), the role responsible, and the specific regulatory clauses that motivated it.</p>
+  </div>
+</section>
+
+<div class="rq-filters">
+  <div class="rq-filters-wrap" id="rq-filters">
+    <span style="font-size:11px;color:var(--ink-2);font-weight:600">Filters:</span>
+  </div>
+</div>
+
+<div class="rq-kpis" id="rq-kpis"></div>
+
+<main class="rq-main" id="rq-main"></main>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   AI Requirements · Phase 21.1
+   Derives requirements from Discovery capabilities + Questionnaire output.
+═══════════════════════════════════════════════════════ */
+
+const RQ_KEY = 'di_requirements_v1';
+let STATE = {
+  filterLens: 'all',
+  filterRole: 'all',
+  filterPriority: 'all',
+  requirements: []
+};
+
+const LENSES = {
+  tech: { name:'Technical',  color:'#1A4D99', ic:'⚙' },
+  biz:  { name:'Business',   color:'#0A8462', ic:'💼' },
+  prod: { name:'Product',    color:'#A0357A', ic:'📦' },
+  reg:  { name:'Regulatory', color:'#C8921A', ic:'⚖' }
+};
+
+const ROLES = ['CTO','CIO','CRO','CFO','Head of Architecture','Head of Compliance','Product Owner','SRE Lead','Data Officer','Business Owner'];
+
+/* Pull source data from localStorage / sessionStorage */
+function gatherSources() {
+  let discovery = null, qOutput = null, qHandoff = null, profile = null;
+  try { discovery  = JSON.parse(localStorage.getItem('di_discovery_v1') || 'null'); } catch (e) {}
+  try { qOutput    = JSON.parse(sessionStorage.getItem('di_questionnaire_output') || 'null'); } catch (e) {}
+  try { qHandoff   = JSON.parse(localStorage.getItem('di_handoff_from_questionnaire') || 'null'); } catch (e) {}
+  try { profile    = JSON.parse(sessionStorage.getItem('di_account_profile') || 'null'); } catch (e) {}
+  return { discovery, qOutput, qHandoff, profile };
+}
+
+/* Per-verdict requirement templates — generates 4 lens requirements per capability */
+function generateRequirements(sources) {
+  const { discovery, qOutput, qHandoff, profile } = sources;
+  const reqs = [];
+  let counter = 1;
+  const region = (profile && profile.region) || (qHandoff && qHandoff.profile && qHandoff.profile.region) || 'North America';
+
+  // Match region to first per-country regulator (for clause refs)
+  const regulatorByRegion = {
+    'North America':      ['SOX 404','PCI-DSS 4.0','FFIEC IT Examination','OSFI B-13'],
+    'Europe':             ['GDPR','PSD3','DORA','EBA Outsourcing Guidelines'],
+    'Asia Pacific':       ['RBI Master Direction on Outsourcing','MAS TRM Notice 644','APRA CPS 234'],
+    'South East Asia':    ['BNM RMiT','OJK POJK 38/2016','BSP Circular 1019'],
+    'South Western Asia': ['SAMA Cyber Security Framework','CBUAE Outsourcing Regulation','QFCRA']
+  };
+  const regulators = regulatorByRegion[region] || regulatorByRegion['North America'];
+
+  const caps = (discovery && discovery.results && discovery.results.capabilities) || (discovery && discovery.selected || []).map(id => ({ id, name:id, verdict:'REPLAT' }));
+
+  caps.forEach(cap => {
+    const verdict = cap.verdict || 'REPLAT';
+    const capName = cap.name || cap.id;
+    const id = id => 'R-' + String(counter++).padStart(3,'0');
+
+    // Technical lens — 1-2 reqs per capability
+    reqs.push({ id: id(), capId: cap.id, lens:'tech', title: 'Cloud-native deployment for ' + capName,
+      desc: 'Deploy ' + capName + ' on ' + (cap.stack || 'AWS') + ' using ' + (verdict === 'REHOST' ? 'containers (lift-and-shift)' : verdict === 'REPLAT' ? 'managed services with HA' : 'microservices with event-driven backbone') + '. Target ' + (verdict === 'REARCH' ? '99.99%' : '99.95%') + ' availability.',
+      roles: ['Head of Architecture','CTO','SRE Lead'],
+      regs: [],
+      priority: cap.critical ? 'high' : (verdict === 'REARCH' ? 'high' : 'med'),
+      source: 'Discovery 7R · ' + verdict
+    });
+
+    if (verdict === 'REFACT' || verdict === 'REARCH') {
+      reqs.push({ id: id(), capId: cap.id, lens:'tech', title: 'API-first design for ' + capName,
+        desc: 'Expose REST + Event APIs (OpenAPI 3.1, ISO 20022 message format where applicable). Auth via OAuth 2.1 + mTLS for service-to-service.',
+        roles: ['Head of Architecture','CTO'],
+        regs: [],
+        priority: 'high',
+        source: 'Discovery 7R · ' + verdict
+      });
+    }
+
+    // Business lens — 1 req per capability
+    reqs.push({ id: id(), capId: cap.id, lens:'biz', title: 'Business outcome for ' + capName,
+      desc: (verdict === 'REARCH' ? 'Reduce mean processing latency from baseline to < 350ms p95; unlock real-time settlement.'
+           : verdict === 'REPLAT' ? 'Cut annual run-rate IT spend by ≥ 25% via managed-service consolidation.'
+           : verdict === 'REFACT' ? 'Cut time-to-market for new product variants from 14 weeks to 3 weeks.'
+           : verdict === 'REPLACE' ? 'Eliminate vendor lock-in to unsupported platform; reduce TCO by 40%.'
+           : 'Reduce manual operations effort by ≥ 30%; lift STP to ≥ 96%.'),
+      roles: ['CFO','Business Owner'],
+      regs: [],
+      priority: 'high',
+      source: 'Discovery 7R · ' + verdict
+    });
+
+    // Product lens
+    reqs.push({ id: id(), capId: cap.id, lens:'prod', title: 'User journey for ' + capName,
+      desc: 'Define end-to-end user journey with role-based access (operator, supervisor, auditor). Include dashboard, drill-down, and export to Excel for the operations team.',
+      roles: ['Product Owner','Business Owner'],
+      regs: [],
+      priority: 'med',
+      source: 'Discovery'
+    });
+
+    // Regulatory lens — 1-2 reqs depending on capability
+    reqs.push({ id: id(), capId: cap.id, lens:'reg', title: 'Audit trail + data residency for ' + capName,
+      desc: 'Immutable audit log of every state-changing operation; data residency in-region (' + region + '). Quarterly external audit.',
+      roles: ['Head of Compliance','CRO','Data Officer'],
+      regs: [regulators[0], regulators[2]],
+      priority: cap.critical ? 'high' : 'med',
+      source: 'Discovery + ' + region
+    });
+
+    if (/payment|card|aml|risk|comp/i.test(capName)) {
+      reqs.push({ id: id(), capId: cap.id, lens:'reg', title: 'KYC / AML compliance for ' + capName,
+        desc: 'Real-time AML screening on every transaction; KYC re-verification at each onboarding refresh cycle (annual minimum).',
+        roles: ['Head of Compliance','CRO'],
+        regs: [regulators[1] || regulators[0], 'BSA / AML'],
+        priority: 'high',
+        source: 'Regulatory pack · ' + region
+      });
+    }
+  });
+
+  // Add cross-cutting requirements if questionnaire was completed
+  if (qOutput && qOutput.derivedArtifacts && qOutput.derivedArtifacts.requirements) {
+    qOutput.derivedArtifacts.requirements.forEach((r, i) => {
+      reqs.push({
+        id: 'R-' + String(counter++).padStart(3,'0'),
+        capId: 'rfp',
+        lens: r.type === 'compliance' ? 'reg' : r.type === 'business' ? 'biz' : 'tech',
+        title: r.title || ('Requirement from RFP ' + (i + 1)),
+        desc: r.description || r.text || '(derived from RFP responses)',
+        roles: ['CTO','Head of Architecture'],
+        regs: [],
+        priority: r.priority || 'med',
+        source: 'RFP Questionnaire'
+      });
+    });
+  }
+
+  return reqs;
+}
+
+function loadOrGenerate() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(RQ_KEY) || 'null'); } catch (e) {}
+  if (saved && saved.requirements && saved.requirements.length) { STATE.requirements = saved.requirements; return; }
+  const sources = gatherSources();
+  STATE.requirements = generateRequirements(sources);
+  saveState();
+  if (window.DI && window.DI.audit) window.DI.audit.log('requirements', 'auto-generated', { count: STATE.requirements.length });
+}
+
+function saveState() {
+  try { localStorage.setItem(RQ_KEY, JSON.stringify({ requirements: STATE.requirements, updatedAt: new Date().toISOString() })); } catch (e) {}
+}
+
+function regenerate() {
+  const sources = gatherSources();
+  STATE.requirements = generateRequirements(sources);
+  saveState();
+  render();
+  if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'↻', title:'Requirements regenerated', message: STATE.requirements.length + ' requirements from current Discovery + RFP.' });
+}
+
+function loadSample() {
+  // Force a sample discovery if none exists
+  try {
+    const existing = JSON.parse(localStorage.getItem('di_discovery_v1') || 'null');
+    if (!existing || !existing.selected || !existing.selected.length) {
+      const sample = {
+        selected: ['core-payments','core-deposits','core-loans','card-fulfill','card-mgmt','risk-comp','aml'],
+        mode: 'detailed',
+        results: { capabilities: [
+          { id:'core-payments', name:'Core Banking · Payments', verdict:'REARCH', stack:'AWS', critical:true },
+          { id:'core-deposits', name:'Core Banking · Deposits', verdict:'REPLAT', stack:'AZURE' },
+          { id:'core-loans',    name:'Core Banking · Loans',    verdict:'REFACT', stack:'GCP' },
+          { id:'card-fulfill',  name:'Cards · Fulfillment',     verdict:'REHOST', stack:'AZURE' },
+          { id:'card-mgmt',     name:'Cards · Management',      verdict:'REFACT', stack:'AWS' },
+          { id:'risk-comp',     name:'Risk & Compliance',       verdict:'REARCH', stack:'AWS', critical:true },
+          { id:'aml',           name:'AML / Fraud',             verdict:'REARCH', stack:'AWS', critical:true }
+        ] }
+      };
+      localStorage.setItem('di_discovery_v1', JSON.stringify(sample));
+    }
+  } catch (e) {}
+  regenerate();
+}
+
+/* ── Render ─────────────────────────────────────────── */
+function render() {
+  renderFilters();
+  renderKpis();
+  renderList();
+}
+
+function renderFilters() {
+  const f = document.getElementById('rq-filters');
+  const lensCounts = { all: STATE.requirements.length };
+  Object.keys(LENSES).forEach(k => lensCounts[k] = STATE.requirements.filter(r => r.lens === k).length);
+
+  let html = '<span style="font-size:11px;color:var(--ink-2);font-weight:600">Lens:</span>';
+  ['all'].concat(Object.keys(LENSES)).forEach(k => {
+    const label = k === 'all' ? 'All' : LENSES[k].name;
+    html += '<button class="rq-chip ' + (STATE.filterLens === k ? 'act' : '') + '" onclick="setFilter(\'filterLens\',\'' + k + '\')">' + (k !== 'all' ? LENSES[k].ic + ' ' : '') + label + '<span class="ct">' + lensCounts[k] + '</span></button>';
+  });
+
+  html += '<span style="font-size:11px;color:var(--ink-2);font-weight:600;margin-left:10px">Priority:</span>';
+  ['all','high','med','low'].forEach(p => {
+    const count = p === 'all' ? STATE.requirements.length : STATE.requirements.filter(r => r.priority === p).length;
+    html += '<button class="rq-chip ' + (STATE.filterPriority === p ? 'act' : '') + '" onclick="setFilter(\'filterPriority\',\'' + p + '\')">' + p.charAt(0).toUpperCase() + p.slice(1) + '<span class="ct">' + count + '</span></button>';
+  });
+
+  html += '<span style="font-size:11px;color:var(--ink-2);font-weight:600;margin-left:10px">Role:</span>';
+  const roleOpts = ['all'].concat(ROLES.filter(rl => STATE.requirements.some(r => r.roles && r.roles.includes(rl))));
+  roleOpts.forEach(r => {
+    const count = r === 'all' ? STATE.requirements.length : STATE.requirements.filter(rr => rr.roles && rr.roles.includes(r)).length;
+    html += '<button class="rq-chip ' + (STATE.filterRole === r ? 'act' : '') + '" onclick="setFilter(\'filterRole\',\'' + r + '\')">' + r + '<span class="ct">' + count + '</span></button>';
+  });
+
+  f.innerHTML = html;
+}
+
+function setFilter(key, val) { STATE[key] = val; render(); }
+
+function renderKpis() {
+  const el = document.getElementById('rq-kpis');
+  if (!STATE.requirements.length) { el.innerHTML = ''; return; }
+  const total = STATE.requirements.length;
+  const lens = k => STATE.requirements.filter(r => r.lens === k).length;
+  const highPri = STATE.requirements.filter(r => r.priority === 'high').length;
+  el.innerHTML = '<div class="rq-kpi-row">' +
+    '<div class="rq-kpi"><div class="lbl">TOTAL</div><div class="val">' + total + '</div><div class="sub">requirements derived</div></div>' +
+    '<div class="rq-kpi tech"><div class="lbl">⚙ TECHNICAL</div><div class="val">' + lens('tech') + '</div><div class="sub">' + Math.round(lens('tech')/total*100) + '% of total</div></div>' +
+    '<div class="rq-kpi biz"> <div class="lbl">💼 BUSINESS</div> <div class="val">' + lens('biz')  + '</div><div class="sub">' + Math.round(lens('biz') /total*100) + '% of total</div></div>' +
+    '<div class="rq-kpi prod"><div class="lbl">📦 PRODUCT</div>  <div class="val">' + lens('prod') + '</div><div class="sub">' + Math.round(lens('prod')/total*100) + '% of total</div></div>' +
+    '<div class="rq-kpi reg"> <div class="lbl">⚖ REGULATORY</div><div class="val">' + lens('reg')  + '</div><div class="sub">' + highPri + ' high-priority</div></div>' +
+  '</div>';
+}
+
+function renderList() {
+  const el = document.getElementById('rq-main');
+  if (!STATE.requirements.length) {
+    el.innerHTML = '<div class="rq-empty">' +
+      '<h2>No requirements yet</h2>' +
+      '<p>Requirements are derived from your Discovery 7R map and RFP questionnaire answers. Run Discovery first, OR click <strong>Load sample</strong> to see what role-tagged requirements look like.</p>' +
+      '<div class="actions"><button onclick="loadSample()">Load sample (7 capabilities)</button><a class="ghost" href="discovery-studio.html">Open Discovery →</a></div>' +
+    '</div>';
+    return;
+  }
+
+  let filtered = STATE.requirements;
+  if (STATE.filterLens !== 'all')     filtered = filtered.filter(r => r.lens === STATE.filterLens);
+  if (STATE.filterPriority !== 'all') filtered = filtered.filter(r => r.priority === STATE.filterPriority);
+  if (STATE.filterRole !== 'all')     filtered = filtered.filter(r => r.roles && r.roles.includes(STATE.filterRole));
+
+  let html = '<div class="rq-toolbar"><div class="meta">' + filtered.length + ' of ' + STATE.requirements.length + ' shown</div>' +
+    '<div class="actions">' +
+      '<button onclick="regenerate()">↻ Regenerate from Discovery + RFP</button>' +
+      '<button onclick="exportRequirements(\'json\')">⬇ JSON</button>' +
+      '<button onclick="exportRequirements(\'csv\')">⬇ CSV</button>' +
+      '<button class="primary" onclick="location.href=\'actions.html\'">Generate actions →</button>' +
+    '</div></div>';
+
+  html += '<div class="rq-list">';
+  filtered.forEach(r => {
+    const lens = LENSES[r.lens] || LENSES.tech;
+    html += '<div class="rq-card lens-' + r.lens + '">' +
+      '<div class="id">' + r.id + ' · ' + r.capId + '</div>' +
+      '<div class="title">' + escapeHTML(r.title) + '</div>' +
+      '<div class="desc">' + escapeHTML(r.desc) + '</div>' +
+      '<div class="meta">' +
+        '<span class="pill lens-' + r.lens + '">' + lens.name + '</span>' +
+        '<span class="pill pri-' + r.priority + '">' + r.priority + '</span>' +
+        (r.roles || []).map(role => '<span class="pill role">' + escapeHTML(role) + '</span>').join('') +
+        (r.regs || []).map(reg  => '<span class="pill reg-clause">⚖ ' + escapeHTML(reg) + '</span>').join('') +
+      '</div>' +
+      '<div class="source">Source: ' + escapeHTML(r.source) + '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+function exportRequirements(fmt) {
+  if (fmt === 'json') {
+    const blob = new Blob([JSON.stringify(STATE.requirements, null, 2)], { type:'application/json' });
+    download(blob, 'requirements-' + new Date().toISOString().slice(0,10) + '.json');
+  } else {
+    const csv = 'ID,Capability,Lens,Title,Description,Roles,Regulators,Priority,Source\n' +
+      STATE.requirements.map(r => [r.id, r.capId, r.lens, '"'+r.title.replace(/"/g,'""')+'"', '"'+r.desc.replace(/"/g,'""')+'"', '"'+(r.roles||[]).join('; ')+'"', '"'+(r.regs||[]).join('; ')+'"', r.priority, r.source].join(',')).join('\n');
+    download(new Blob([csv],{type:'text/csv'}), 'requirements-' + new Date().toISOString().slice(0,10) + '.csv');
+  }
+}
+function download(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+  if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'⬇', title:'Downloaded', message: name });
+}
+
+function escapeHTML(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+/* Bootstrap */
+loadOrGenerate();
+render();
+</script>
+
+</body>
+</html>

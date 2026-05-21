@@ -29,7 +29,10 @@
     { id:'sow',          name:'Draft SOW',             href:'sow.html',               kind:'page',  hint:'Inline-editable Statement of Work', keys:'g s' },
     { id:'governance',   name:'Program Governance',    href:'program-governance.html', kind:'page', hint:'RAID + Gantt + cost + MS Project', keys:'g g' },
     { id:'rfp',          name:'RFP Questionnaire',     href:'questionnaire.html',     kind:'page',  hint:'88-question adaptive RFP', keys:'g q' },
-    { id:'operations',   name:'Operations',            href:'operations.html',        kind:'page',  hint:'KPI tiles · FinOps · incidents', keys:'g o' }
+    { id:'operations',   name:'Operations',            href:'operations.html',        kind:'page',  hint:'KPI tiles · FinOps · incidents', keys:'g o' },
+    { id:'requirements', name:'AI Requirements',       href:'requirements.html',      kind:'page',  hint:'Role-tagged · 4 lenses · regulatory clauses', keys:'g r' },
+    { id:'actions',      name:'Role-based Actions',    href:'actions.html',           kind:'page',  hint:'Filters · KPIs · drill-down · leadership recommendation', keys:'g k' },
+    { id:'blockchain',   name:'Blockchain & RWA',      href:'blockchain-rwa.html',    kind:'page',  hint:'Tokenization wizard · jurisdiction stance · roadmap', keys:'g b' }
   ];
 
   const FEATURE_EXPLAINERS = [
