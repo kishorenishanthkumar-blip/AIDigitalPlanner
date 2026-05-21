@@ -207,9 +207,11 @@ function render() {
     document.getElementById('evp-body').innerHTML =
       '<div class="evp-empty">' +
       '<h2>No architecture data yet</h2>' +
-      '<p>EVP summary builds on the capabilities and prices you finalize in Architecture Studio. Run Discovery → Architecture first, then click <strong>Generate EVP Summary</strong> at the end of Architecture.</p>' +
-      '<div class="actions"><a href="discovery-studio.html">Start with Discovery →</a></div>' +
-      '</div>';
+      '<p>EVP summary builds on the capabilities and prices you finalize in Architecture Studio. Run Discovery → Architecture first, OR click <strong>Load sample</strong> to see what the board pack looks like with realistic data.</p>' +
+      '<div class="actions" style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">' +
+        '<button onclick="loadSampleEvp()" style="background:#C8921A;color:#fff;border:none;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Load sample (13 capabilities)</button>' +
+        '<a href="discovery-studio.html" style="background:#fff;color:#1A2238;border:1px solid #E2E7F1;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;text-decoration:none">Start with Discovery →</a>' +
+      '</div></div>';
     document.getElementById('evp-meta').textContent = 'No data';
     return;
   }
@@ -308,6 +310,36 @@ function sendToLegal() {
 
 function emailEvp() {
   window.DI && window.DI.toast && window.DI.toast({ kind:'info', title:'Email integration coming in Phase 18.x', message:'For now, use the PDF or PPT export.', duration:4000 });
+}
+
+/* Phase 18.5 — load a realistic 13-capability sample so the EVP can be demoed
+   without first running Discovery and Architecture. */
+function loadSampleEvp() {
+  const SAMPLE = {
+    source: 'sample',
+    sentAt: new Date().toISOString(),
+    capabilities: [
+      { id:'core-payments', name:'Core Banking · Payments', verdict:'REARCH', chosenCloud:'AWS',   monthly:18260, tco3yr:657360, risk:'High', eff:'9-12 mo' },
+      { id:'core-deposits', name:'Core Banking · Deposits', verdict:'REPLAT', chosenCloud:'AZURE', monthly:11300, tco3yr:406800, risk:'Low',  eff:'4-6 mo' },
+      { id:'core-loans',    name:'Core Banking · Loans',    verdict:'REFACT', chosenCloud:'GCP',   monthly:13220, tco3yr:475920, risk:'Med',  eff:'6-9 mo' },
+      { id:'trade-finance', name:'Trade Finance',           verdict:'REFACT', chosenCloud:'AWS',   monthly:7680,  tco3yr:276480, risk:'Med',  eff:'6-9 mo' },
+      { id:'treasury',      name:'Treasury',                verdict:'REPLAT', chosenCloud:'OCI',   monthly:7200,  tco3yr:259200, risk:'Low',  eff:'4-6 mo' },
+      { id:'card-fulfill',  name:'Cards · Fulfillment',     verdict:'REHOST', chosenCloud:'AZURE', monthly:4455,  tco3yr:160380, risk:'Low',  eff:'2-3 mo' },
+      { id:'card-mgmt',     name:'Cards · Management',      verdict:'REFACT', chosenCloud:'AWS',   monthly:9550,  tco3yr:343800, risk:'Med',  eff:'6-9 mo' },
+      { id:'card-tx',       name:'Cards · Transactions',    verdict:'REFACT', chosenCloud:'AWS',   monthly:11800, tco3yr:424800, risk:'Med',  eff:'6-9 mo' },
+      { id:'acq-consumer',  name:'Acquisition · Consumer',  verdict:'REFACT', chosenCloud:'AWS',   monthly:6240,  tco3yr:224640, risk:'Med',  eff:'6-9 mo' },
+      { id:'acq-corporate', name:'Acquisition · Corporate', verdict:'REPLAT', chosenCloud:'AWS',   monthly:5180,  tco3yr:186480, risk:'Low',  eff:'3-5 mo' },
+      { id:'account-mgmt',  name:'Account Management',      verdict:'REFACT', chosenCloud:'AWS',   monthly:9870,  tco3yr:355320, risk:'Med',  eff:'6-9 mo' },
+      { id:'risk-comp',     name:'Risk & Compliance',       verdict:'REARCH', chosenCloud:'AWS',   monthly:13450, tco3yr:484200, risk:'High', eff:'10-12 mo' },
+      { id:'aml',           name:'AML / Fraud',             verdict:'REARCH', chosenCloud:'AWS',   monthly:12460, tco3yr:448560, risk:'High', eff:'10-12 mo' }
+    ],
+    filters: { region:'na-east', currency:'USD', model:'3-yr-savings', discount:18 }
+  };
+  try { localStorage.setItem('di_evp_input', JSON.stringify(SAMPLE)); } catch (e) {}
+  INPUT = SAMPLE;
+  window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'📥', title:'Sample loaded', message:'13 capabilities · NA-East · USD · 18% enterprise discount. Re-rendering EVP…', duration:3500 });
+  if (window.DI && window.DI.audit) window.DI.audit.log('evp', 'load-sample', { caps: SAMPLE.capabilities.length });
+  render();
 }
 
 function exportEVP(fmt) {

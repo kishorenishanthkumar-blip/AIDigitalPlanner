@@ -176,9 +176,11 @@ function render() {
   if (!r) {
     body.innerHTML = '<div class="sow-empty">' +
       '<h2>No EVP data yet</h2>' +
-      '<p>The Statement of Work draws its scope, milestones, prices and KPIs from the EVP summary. Generate the EVP from Architecture Studio first, then click <strong>Draft SOW for Legal</strong>.</p>' +
-      '<div class="actions"><a href="discovery-studio.html">Start with Discovery →</a></div>' +
-      '</div>';
+      '<p>The Statement of Work draws its scope, milestones, prices and KPIs from the EVP summary. Run Discovery → Architecture → EVP first, OR click <strong>Load sample</strong> to see what the SOW looks like with realistic data.</p>' +
+      '<div class="actions" style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">' +
+        '<button onclick="loadSampleSow()" style="background:var(--gold);color:#fff;border:none;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Load sample (13 capabilities)</button>' +
+        '<a href="discovery-studio.html">Start with Discovery →</a>' +
+      '</div></div>';
     return;
   }
 
@@ -349,6 +351,38 @@ function exportDOCX() {
 function exportPDF() {
   window.DI && window.DI.toast && window.DI.toast({ kind:'info', title:'Print → Save as PDF', message:'Opening browser print dialog. Choose "Save as PDF" as the destination.', duration:4000 });
   setTimeout(() => window.print(), 400);
+}
+
+/* Phase 18.5 — load a realistic 13-capability sample so the SOW can be demoed
+   without first running Discovery / Architecture / EVP. */
+function loadSampleSow() {
+  const SAMPLE = {
+    source: 'sample',
+    sentAt: new Date().toISOString(),
+    capabilities: [
+      { id:'core-payments', name:'Core Banking · Payments', verdict:'REARCH', chosenCloud:'AWS',   monthly:18260, tco3yr:657360, risk:'High', eff:'9-12 mo' },
+      { id:'core-deposits', name:'Core Banking · Deposits', verdict:'REPLAT', chosenCloud:'AZURE', monthly:11300, tco3yr:406800, risk:'Low',  eff:'4-6 mo' },
+      { id:'core-loans',    name:'Core Banking · Loans',    verdict:'REFACT', chosenCloud:'GCP',   monthly:13220, tco3yr:475920, risk:'Med',  eff:'6-9 mo' },
+      { id:'trade-finance', name:'Trade Finance',           verdict:'REFACT', chosenCloud:'AWS',   monthly:7680,  tco3yr:276480, risk:'Med',  eff:'6-9 mo' },
+      { id:'treasury',      name:'Treasury',                verdict:'REPLAT', chosenCloud:'OCI',   monthly:7200,  tco3yr:259200, risk:'Low',  eff:'4-6 mo' },
+      { id:'card-fulfill',  name:'Cards · Fulfillment',     verdict:'REHOST', chosenCloud:'AZURE', monthly:4455,  tco3yr:160380, risk:'Low',  eff:'2-3 mo' },
+      { id:'card-mgmt',     name:'Cards · Management',      verdict:'REFACT', chosenCloud:'AWS',   monthly:9550,  tco3yr:343800, risk:'Med',  eff:'6-9 mo' },
+      { id:'card-tx',       name:'Cards · Transactions',    verdict:'REFACT', chosenCloud:'AWS',   monthly:11800, tco3yr:424800, risk:'Med',  eff:'6-9 mo' },
+      { id:'acq-consumer',  name:'Acquisition · Consumer',  verdict:'REFACT', chosenCloud:'AWS',   monthly:6240,  tco3yr:224640, risk:'Med',  eff:'6-9 mo' },
+      { id:'acq-corporate', name:'Acquisition · Corporate', verdict:'REPLAT', chosenCloud:'AWS',   monthly:5180,  tco3yr:186480, risk:'Low',  eff:'3-5 mo' },
+      { id:'account-mgmt',  name:'Account Management',      verdict:'REFACT', chosenCloud:'AWS',   monthly:9870,  tco3yr:355320, risk:'Med',  eff:'6-9 mo' },
+      { id:'risk-comp',     name:'Risk & Compliance',       verdict:'REARCH', chosenCloud:'AWS',   monthly:13450, tco3yr:484200, risk:'High', eff:'10-12 mo' },
+      { id:'aml',           name:'AML / Fraud',             verdict:'REARCH', chosenCloud:'AWS',   monthly:12460, tco3yr:448560, risk:'High', eff:'10-12 mo' }
+    ],
+    filters: { region:'na-east', currency:'USD', model:'3-yr-savings', discount:18 }
+  };
+  try { localStorage.setItem('di_sow_input', JSON.stringify(SAMPLE)); } catch (e) {}
+  INPUT = SAMPLE;
+  // Reset the SOW so it picks up the new defaults
+  SOW._tuned = false;
+  window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'📥', title:'Sample loaded', message:'SOW drafted for 13 capabilities. Click any paragraph to edit.', duration:3500 });
+  if (window.DI && window.DI.audit) window.DI.audit.log('sow', 'load-sample', { caps: SAMPLE.capabilities.length });
+  render();
 }
 
 function addComment() {
