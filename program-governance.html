@@ -6,6 +6,11 @@
 <title>Program Governance · DI Platform</title>
 <meta name="description" content="Program Governance — RAID register, 7-R timeline, cost model, MS Project XML export."/>
 <link rel="stylesheet" href="assets/theme.css">
+<!-- Phase 0 · shared enterprise tokens + helpers -->
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/audit.js" defer></script>
 <script src="assets/cmdk.js" defer></script>
@@ -14,6 +19,11 @@
 <script src="assets/export.js" defer></script>
 <script src="assets/pricing.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
+<!-- Phase 2A · Governance Workspace -->
+<script src="assets/aidp-api.js"></script>
+<script src="assets/studio-shell.js" defer></script>
+<script src="assets/studio-test.js" defer></script>
+<script src="assets/governance-api.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -151,17 +161,161 @@ a{color:var(--gold);text-decoration:none}
 
 <div data-di-topbar></div>
 
-<!-- Hero -->
-<section class="pg-hero" id="pg-hero"></section>
+<!-- View toggle · Legacy gantt+cost ↔ Workspace · enterprise -->
+<div style="background:#fff;border-bottom:1px solid var(--border);padding:10px 24px">
+  <div style="max-width:1500px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div style="display:inline-flex;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:99px;padding:2px">
+      <button id="pg-view-legacy"    class="active" onclick="setPgView('legacy')"    style="background:#FFFFFF;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#0F172A;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.08)">Gantt + Cost</button>
+      <button id="pg-view-workspace"               onclick="setPgView('workspace')" style="background:transparent;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#64748B;cursor:pointer">Workspace</button>
+    </div>
+    <div style="font-size:11px;color:#64748B">Workspace · live GOVERNANCE agent · 4-column RAID matrix · change requests · steering pack generator</div>
+  </div>
+</div>
 
-<!-- Tabs -->
-<nav class="pg-tabs"><div class="pg-tabs-wrap" id="pg-tabs"></div></nav>
+<!-- Legacy Gantt + Cost view -->
+<div id="pg-legacy-view">
+  <!-- Hero -->
+  <section class="pg-hero" id="pg-hero"></section>
 
-<!-- Toolbar (per tab) -->
-<div class="pg-toolbar"><div class="pg-toolbar-wrap" id="pg-toolbar"></div></div>
+  <!-- Tabs -->
+  <nav class="pg-tabs"><div class="pg-tabs-wrap" id="pg-tabs"></div></nav>
 
-<!-- Body -->
-<main class="pg-body" id="pg-body"></main>
+  <!-- Toolbar (per tab) -->
+  <div class="pg-toolbar"><div class="pg-toolbar-wrap" id="pg-toolbar"></div></div>
+
+  <!-- Body -->
+  <main class="pg-body" id="pg-body"></main>
+</div>
+
+<!-- Workspace view · enterprise pattern · live GOVERNANCE agent -->
+<div id="pg-workspace" style="display:none">
+  <style>
+    #pg-workspace .pgw-kanban { display:grid; grid-template-columns:repeat(4, minmax(240px, 1fr)); gap:12px; }
+    #pg-workspace .pgw-col { background:var(--aidp-white); border:1px solid var(--aidp-ink-200); border-radius:6px; padding:10px; min-height:300px; }
+    #pg-workspace .pgw-col-head { display:flex; justify-content:space-between; align-items:center; padding:4px 4px 10px; border-bottom:2px solid var(--aidp-ink-200); margin-bottom:8px; }
+    #pg-workspace .pgw-col-head h3 { font-family:var(--aidp-f-ui); font-size:13px; font-weight:600; color:var(--aidp-ink-900); margin:0; }
+    #pg-workspace .pgw-col-head .ct { font-family:var(--aidp-f-mono); font-size:11px; color:var(--aidp-ink-500); }
+    #pg-workspace .pgw-card { background:#fff; border:1px solid var(--aidp-ink-200); border-radius:5px; padding:8px 10px; margin-bottom:7px; cursor:pointer; transition:.1s; }
+    #pg-workspace .pgw-card:hover { border-color:var(--aidp-navy); box-shadow:0 1px 3px rgba(15,23,42,.08); }
+    #pg-workspace .pgw-card.selected { background:var(--aidp-navy-lt); border-color:var(--aidp-navy); }
+    #pg-workspace .pgw-card .head { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; gap:6px; }
+    #pg-workspace .pgw-card .sev { font-family:var(--aidp-f-mono); font-size:10px; font-weight:600; padding:1px 5px; border-radius:3px; }
+    #pg-workspace .pgw-card .sev.sev-5 { background:#7F1D1D; color:#fff; }
+    #pg-workspace .pgw-card .sev.sev-4 { background:var(--aidp-red); color:#fff; }
+    #pg-workspace .pgw-card .sev.sev-3 { background:var(--aidp-amber); color:#fff; }
+    #pg-workspace .pgw-card .sev.sev-2 { background:var(--aidp-ink-300); color:var(--aidp-ink-800); }
+    #pg-workspace .pgw-card .sev.sev-1 { background:var(--aidp-ink-200); color:var(--aidp-ink-600); }
+    #pg-workspace .pgw-card .summary { font-size:12px; font-weight:500; color:var(--aidp-ink-900); line-height:1.35; margin-bottom:3px; }
+    #pg-workspace .pgw-card .meta { font-size:10.5px; color:var(--aidp-ink-500); display:flex; flex-wrap:wrap; gap:4px 8px; }
+    #pg-workspace .pgw-rag { display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:99px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+    #pg-workspace .pgw-rag.green  { background:var(--aidp-green-lt); color:var(--aidp-green); }
+    #pg-workspace .pgw-rag.amber  { background:var(--aidp-amber-lt); color:var(--aidp-amber); }
+    #pg-workspace .pgw-rag.red    { background:var(--aidp-red-lt);   color:var(--aidp-red); }
+    #pg-workspace .pgw-pack-section { background:var(--aidp-white); border:1px solid var(--aidp-ink-200); border-radius:6px; padding:14px 18px; margin-bottom:12px; }
+    #pg-workspace .pgw-pack-section h4 { font-size:11px; font-weight:600; color:var(--aidp-ink-500); text-transform:uppercase; letter-spacing:.06em; margin:0 0 10px; }
+    #pg-workspace .pgw-pack-section .narrative { font-size:13px; color:var(--aidp-ink-800); line-height:1.55; white-space:pre-wrap; }
+    @media (max-width:1024px) { #pg-workspace .pgw-kanban { grid-template-columns:repeat(2, 1fr); } }
+    @media (max-width:640px)  { #pg-workspace .pgw-kanban { grid-template-columns:1fr; } }
+  </style>
+
+  <div class="aidp-shell">
+
+    <header class="aidp-header">
+      <div>
+        <div class="aidp-bread"><a href="home">Home</a> &nbsp;/&nbsp; <a href="actions">Actions</a> &nbsp;/&nbsp; <a href="sow">SOW</a> &nbsp;/&nbsp; Program Governance · Workspace</div>
+        <h1 class="aidp-title">Program Governance · Workspace</h1>
+        <p class="aidp-subtitle">Live GOVERNANCE agent · 4-column RAID matrix (Risks · Assumptions · Issues · Dependencies) · change request lifecycle · steering pack generator with RAG status. Seed from SOW or Actions.</p>
+      </div>
+      <div class="aidp-context">
+        <span class="aidp-tenant">Tenant: <strong id="pg-tenant-name">…</strong></span>
+        <span class="aidp-freshness" id="pg-freshness"><span class="dot"></span> <span data-aidp-fresh-text>Loading…</span></span>
+      </div>
+    </header>
+
+    <div class="aidp-kpis">
+      <div class="aidp-kpi"><div class="lbl">Total RAID</div><div class="val" id="pg-kpi-total">—</div><div class="sub" id="pg-kpi-total-sub">&nbsp;</div></div>
+      <div class="aidp-kpi danger"><div class="lbl">High-severity open</div><div class="val" id="pg-kpi-high">—</div><div class="sub" id="pg-kpi-high-sub">&nbsp;</div></div>
+      <div class="aidp-kpi"><div class="lbl">Change requests</div><div class="val" id="pg-kpi-crs">—</div><div class="sub" id="pg-kpi-crs-sub">&nbsp;</div></div>
+      <div class="aidp-kpi positive"><div class="lbl">Programme RAG</div><div class="val" id="pg-kpi-rag" style="font-family:var(--aidp-f-ui);font-size:18px">—</div><div class="sub" id="pg-kpi-rag-sub">&nbsp;</div></div>
+    </div>
+
+    <div class="aidp-filters">
+      <div class="aidp-filter">
+        <label for="pg-f-status">Status</label>
+        <select id="pg-f-status"><option value="">All</option><option>open</option><option>mitigating</option><option>monitoring</option><option>accepted</option><option>closed</option><option>transferred</option></select>
+      </div>
+      <div class="aidp-filter">
+        <label for="pg-f-severity">Severity ≥</label>
+        <select id="pg-f-severity"><option value="">All</option><option value="5">5 (catastrophic)</option><option value="4">4 (severe)</option><option value="3">3 (significant)</option><option value="2">2 (minor)</option><option value="1">1 (negligible)</option></select>
+      </div>
+      <div class="aidp-filter">
+        <label for="pg-f-owner">Owner role</label>
+        <select id="pg-f-owner"><option value="">All</option>
+          <option value="cio">CIO</option><option value="cto">CTO</option><option value="ciso">CISO</option>
+          <option value="program-director">Program Director</option><option value="architect">Architect</option>
+          <option value="engineer">Engineer</option><option value="sre">SRE</option>
+          <option value="head-of-compliance">Head of Compliance</option><option value="head-of-cloud">Head of Cloud</option>
+          <option value="finops">FinOps</option><option value="change-mgr">Change Manager</option>
+        </select>
+      </div>
+      <div class="aidp-filter-divider"></div>
+      <div class="aidp-source-toggle" role="tablist" aria-label="View mode">
+        <button id="pg-tab-raid"     class="active" onclick="pgSetTab('raid')">🛡 RAID matrix</button>
+        <button id="pg-tab-changes"                onclick="pgSetTab('changes')">📋 Change requests</button>
+        <button id="pg-tab-steering"               onclick="pgSetTab('steering')">📊 Steering pack</button>
+      </div>
+      <div class="aidp-grow"></div>
+      <button class="aidp-btn aidp-btn-sm" onclick="pgRefresh()" title="Reload from D1 (F)">↻ Refresh</button>
+    </div>
+
+    <div id="pg-error" style="display:none"></div>
+
+    <!-- RAID matrix · 4-column kanban -->
+    <div id="pg-raid-pane">
+      <div class="pgw-kanban" id="pg-raid-body"></div>
+      <div style="margin-top:14px">
+        <div class="aidp-detail" id="pg-detail" style="position:relative;top:0">
+          <h3>Select a RAID item</h3>
+          <div class="sub">Click any card above to inspect + edit. Changes auto-save after 0.8s.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change requests pane -->
+    <div id="pg-changes-pane" style="display:none">
+      <div class="aidp-table-wrap">
+        <div class="aidp-table-header">
+          <h3>Change requests</h3>
+          <div class="aidp-table-meta" id="pg-changes-meta">&nbsp;</div>
+        </div>
+        <div id="pg-changes-body"><div class="aidp-state"><div class="icon">📋</div><h2>No change requests yet</h2><p>Use <strong>+ New CR</strong> in the action bar below to raise one.</p></div></div>
+      </div>
+    </div>
+
+    <!-- Steering pack pane -->
+    <div id="pg-steering-pane" style="display:none">
+      <div id="pg-steering-body"><div class="aidp-state"><div class="icon">📊</div><h2>No steering pack yet</h2><p>Click <strong>🌐 Generate steering pack</strong> in the action bar below to cross-bind SOW + Actions + RAID and render a programme-level steering pack with RAG status.</p></div></div>
+    </div>
+
+  </div>
+
+  <div class="aidp-actions">
+    <div class="aidp-actions-inner">
+      <div class="aidp-actions-status" id="pg-status">
+        <strong id="pg-status-text">No RAID items loaded</strong>
+      </div>
+      <div class="aidp-actions-buttons">
+        <button class="aidp-btn aidp-btn-sm" onclick="pgLoadSample()"  title="Load 12-item banking RAID sample (S)">📥 Load sample</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="pgAddItem()"     title="Add new RAID item (A)">+ Add</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="pgNewChangeRequest()" title="Raise change request (C)">+ New CR</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="pgSeedFromSow()" title="Seed RAID from SOW (Z)">🌱 Seed from SOW</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="pgGenerateSteeringPack()" title="Generate steering pack via AIDP (G)">🌐 Steering pack</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="pgExportXlsx()"  title="Download Excel workbook (X)">⬇ Excel</button>
+        <button class="aidp-btn aidp-btn-primary aidp-btn-sm" onclick="pgSendToOperations()" title="Send RAID + open issues to Operations">Send to Operations →</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════════
@@ -692,6 +846,677 @@ if (seeded) {
 }
 </script>
 
+<!-- ═════════════════════════════════════════════════════════
+     Phase 2A · Program Governance Workspace
+     Live GOVERNANCE agent · RAID matrix · CRs · Steering pack
+═════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  'use strict';
+
+  if (!window.GovernanceAPI) {
+    console.warn('[PG-WS] GovernanceAPI not loaded · Workspace tab will be inert.');
+    return;
+  }
+
+  /* ─── Canonical enums (match GOVERNANCE agent contract) ──── */
+  var KIND_COLS = [
+    { kind:'risk',       label:'Risks',        icon:'🛡', accent:'var(--aidp-red)' },
+    { kind:'assumption', label:'Assumptions',  icon:'💭', accent:'var(--aidp-ink-500)' },
+    { kind:'issue',      label:'Issues',       icon:'🔥', accent:'var(--aidp-amber)' },
+    { kind:'dependency', label:'Dependencies', icon:'🔗', accent:'var(--aidp-navy)' }
+  ];
+  var STATUSES   = ['open','mitigating','monitoring','accepted','closed','transferred'];
+  var SEVERITIES = [1,2,3,4,5];
+  /* Canonical 16-role taxonomy · matches @aidp/actions-engine::Role */
+  var OWNER_ROLES = [
+    'cio','cto','ciso',
+    'head-of-engineering','head-of-cloud','head-of-compliance',
+    'head-of-data','head-of-ops','program-director',
+    'architect','engineer','sre','devsecops',
+    'product-owner','finops','change-mgr'
+  ];
+
+  var WS_KEY = 'aidp_pg_ws_cache_v1';
+
+  /* ─── State ──────────────────────────────────────────────── */
+  var PG = {
+    items: [],
+    changes: [],
+    pack: null,
+    selectedId: null,
+    tab: 'raid',
+    filters: { status:'', minSeverity:'', owner_role:'' },
+    fetchedAt: 0,
+    rendering: false
+  };
+
+  function wsSave() {
+    try {
+      localStorage.setItem(WS_KEY, JSON.stringify({
+        items: PG.items, changes: PG.changes, pack: PG.pack,
+        fetchedAt: PG.fetchedAt, selectedId: PG.selectedId, tab: PG.tab
+      }));
+    } catch (e) {}
+  }
+  function wsLoad() {
+    try {
+      var raw = localStorage.getItem(WS_KEY);
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      if (Array.isArray(d.items)) PG.items = d.items;
+      if (Array.isArray(d.changes)) PG.changes = d.changes;
+      if (d.pack) PG.pack = d.pack;
+      if (d.fetchedAt) PG.fetchedAt = d.fetchedAt;
+      if (d.selectedId) PG.selectedId = d.selectedId;
+      if (d.tab) PG.tab = d.tab;
+    } catch (e) {}
+  }
+
+  /* ─── Sample seed (12 banking RAID items) ──────────────── */
+  var SAMPLE_ITEMS = [
+    { kind:'risk', summary:'Mainframe COBOL talent declining — Payments rearchitect timeline at risk', severity:4, status:'mitigating', owner_role:'cto', mitigation:'Pair-up with vendor + 12-week upskill cohort.' },
+    { kind:'risk', summary:'BCBS 239 reporting deadline collides with Risk rearchitect wave', severity:5, status:'open', owner_role:'head-of-compliance', mitigation:'Defer non-critical risk modules; bring deadline forward 6 weeks.' },
+    { kind:'risk', summary:'Cloud egress underestimated in TCO — FinOps review needed', severity:3, status:'monitoring', owner_role:'finops', mitigation:'Re-baseline with VPC endpoint pricing; tag every egress workload.' },
+    { kind:'risk', summary:'Vendor lock-in if Cards loyalty migrates fully to single SaaS', severity:3, status:'open', owner_role:'procurement', mitigation:'Negotiate exit-data clause + parallel-run option.' },
+    { kind:'assumption', summary:'Client provides 1 Product Owner per capability for ≥50% of program duration', severity:2, status:'accepted', owner_role:'program-director' },
+    { kind:'assumption', summary:'Existing SSO/identity stack supports all new cloud-native services', severity:3, status:'open', owner_role:'ciso' },
+    { kind:'assumption', summary:'Hyperscaler enterprise discount of 18% (subject to procurement)', severity:2, status:'open', owner_role:'finops' },
+    { kind:'issue', summary:'AS/400 RPG → Postgres test data not anonymised — blocking Deposits Replatform', severity:4, status:'open', owner_role:'data-steward', mitigation:'Engage TDM team; deliver synthetic dataset by Sprint 6.' },
+    { kind:'issue', summary:'Treasury Solaris servers EOL in 14 months — cutover must finish before then', severity:4, status:'mitigating', owner_role:'head-of-cloud', mitigation:'Lock cutover gate ≤ M-12; escalate slip to Steering.' },
+    { kind:'dependency', summary:'Architecture Studio sign-off required before Phase 2 build starts', severity:3, status:'monitoring', owner_role:'architect' },
+    { kind:'dependency', summary:'FinOps tooling (Cloudability) installed before M2', severity:3, status:'open', owner_role:'finops' },
+    { kind:'dependency', summary:'Snowflake provisioning for unified risk data platform', severity:3, status:'open', owner_role:'head-of-cloud' }
+  ];
+
+  /* ─── DOM helpers ────────────────────────────────────────── */
+  function $(id) { return document.getElementById(id); }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
+    });
+  }
+  function fmtRel(ms) {
+    if (!ms) return 'Never';
+    var sec = Math.floor((Date.now() - ms) / 1000);
+    if (sec < 5)   return 'just now';
+    if (sec < 60)  return sec + 's ago';
+    if (sec < 3600) return Math.floor(sec/60) + 'm ago';
+    if (sec < 86400) return Math.floor(sec/3600) + 'h ago';
+    return Math.floor(sec/86400) + 'd ago';
+  }
+  function newId() {
+    return 'P-' + Date.now().toString(36).slice(-5) + '-' + Math.random().toString(36).slice(2,5);
+  }
+  function ragFromItems(items) {
+    var openHigh = items.filter(function(i){ return i.severity >= 4 && i.status !== 'closed' && i.status !== 'transferred'; }).length;
+    var openMed  = items.filter(function(i){ return i.severity === 3 && i.status !== 'closed' && i.status !== 'transferred'; }).length;
+    if (openHigh >= 2) return { rag:'red',   label:'RED' };
+    if (openHigh === 1 || openMed >= 3) return { rag:'amber', label:'AMBER' };
+    return { rag:'green', label:'GREEN' };
+  }
+
+  /* ─── Renderers ──────────────────────────────────────────── */
+  function renderHeader() {
+    var who = (window.AIDPStudio && AIDPStudio.getTenantShort && AIDPStudio.getTenantShort()) || 'guest';
+    var name = $('pg-tenant-name'); if (name) name.textContent = who;
+    var fresh = $('pg-freshness');
+    if (fresh) {
+      var pill = fresh.querySelector('[data-aidp-fresh-text]');
+      var dot  = fresh.querySelector('.dot');
+      var label = fmtRel(PG.fetchedAt);
+      var stale = PG.fetchedAt && (Date.now() - PG.fetchedAt) > 5 * 60 * 1000;
+      if (pill) pill.textContent = 'Refreshed ' + label;
+      if (dot)  dot.style.background = stale ? 'var(--aidp-amber)' : 'var(--aidp-green)';
+    }
+  }
+
+  function renderKpis() {
+    var live = PG.items.filter(function(i){ return i.status !== 'closed' && i.status !== 'transferred'; });
+    var high = live.filter(function(i){ return i.severity >= 4; });
+    var rag  = ragFromItems(PG.items);
+    var openCRs = PG.changes.filter(function(c){ return c.status !== 'approved' && c.status !== 'rejected' && c.status !== 'withdrawn'; }).length;
+
+    $('pg-kpi-total').textContent = PG.items.length;
+    $('pg-kpi-total-sub').textContent = live.length + ' open · ' + (PG.items.length - live.length) + ' resolved';
+
+    $('pg-kpi-high').textContent = high.length;
+    $('pg-kpi-high-sub').textContent = high.length === 0 ? 'No severe items' : 'Need executive attention';
+
+    $('pg-kpi-crs').textContent = PG.changes.length;
+    $('pg-kpi-crs-sub').textContent = openCRs + ' awaiting decision';
+
+    var ragEl = $('pg-kpi-rag');
+    ragEl.innerHTML = '<span class="pgw-rag ' + rag.rag + '">● ' + rag.label + '</span>';
+    $('pg-kpi-rag-sub').textContent = rag.rag === 'red' ? 'Escalation recommended' :
+                                       rag.rag === 'amber' ? 'Monitor closely' : 'On track';
+  }
+
+  function applyFilters(items) {
+    var f = PG.filters;
+    return items.filter(function (i) {
+      if (f.status && i.status !== f.status) return false;
+      if (f.minSeverity && Number(i.severity || 0) < Number(f.minSeverity)) return false;
+      if (f.owner_role && i.owner_role !== f.owner_role) return false;
+      return true;
+    });
+  }
+
+  function renderRaidKanban() {
+    var body = $('pg-raid-body');
+    if (!body) return;
+    var filtered = applyFilters(PG.items);
+    body.innerHTML = KIND_COLS.map(function (col) {
+      var items = filtered.filter(function(i){ return i.kind === col.kind; });
+      var cards = items.length
+        ? items.map(renderCard).join('')
+        : '<div style="font-size:11px;color:var(--aidp-ink-500);padding:10px;text-align:center">— no items —</div>';
+      return '<div class="pgw-col" data-kind="' + col.kind + '">' +
+        '<div class="pgw-col-head">' +
+          '<h3>' + col.icon + ' ' + escapeHtml(col.label) + '</h3>' +
+          '<span class="ct">' + items.length + '</span>' +
+        '</div>' + cards + '</div>';
+    }).join('');
+
+    // wire card clicks
+    body.querySelectorAll('.pgw-card').forEach(function (el) {
+      el.addEventListener('click', function () {
+        PG.selectedId = el.getAttribute('data-id');
+        renderRaidKanban();
+        renderDetail();
+        wsSave();
+      });
+    });
+  }
+
+  function renderCard(i) {
+    var sel = (i.id === PG.selectedId) ? ' selected' : '';
+    var sevClass = 'sev sev-' + (i.severity || 1);
+    var ownerTxt = i.owner_role ? escapeHtml(i.owner_role) : '—';
+    return '<div class="pgw-card' + sel + '" data-id="' + escapeHtml(i.id) + '">' +
+      '<div class="head">' +
+        '<span class="' + sevClass + '">S' + (i.severity || 1) + '</span>' +
+        '<span style="font-family:var(--aidp-f-mono);font-size:10px;color:var(--aidp-ink-500)">' + escapeHtml(i.status || 'open') + '</span>' +
+      '</div>' +
+      '<div class="summary">' + escapeHtml(i.summary || '(no summary)') + '</div>' +
+      '<div class="meta">' +
+        '<span>👤 ' + ownerTxt + '</span>' +
+        (i.due_date ? '<span>📅 ' + escapeHtml(i.due_date) + '</span>' : '') +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderDetail() {
+    var el = $('pg-detail');
+    if (!el) return;
+    var item = PG.items.find(function (i) { return i.id === PG.selectedId; });
+    if (!item) {
+      el.innerHTML = '<h3>Select a RAID item</h3>' +
+        '<div class="sub">Click any card above to inspect + edit. Changes auto-save after 0.8s.</div>';
+      return;
+    }
+    var createdLbl = item.created_at
+      ? (typeof item.created_at === 'number' ? new Date(item.created_at).toLocaleDateString() : String(item.created_at))
+      : '—';
+    el.innerHTML =
+      '<h3>' + escapeHtml(item.id) + ' · ' + escapeHtml(item.kind) + '</h3>' +
+      '<div class="sub">Owner: ' + escapeHtml(item.owner_role || '—') + ' · Created ' + escapeHtml(createdLbl) + '</div>' +
+      '<div class="aidp-detail-grid" style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+        field('Summary',    'summary',    item.summary    || '', 'textarea') +
+        field('Mitigation', 'mitigation', item.mitigation || '', 'textarea') +
+        select('Kind',     'kind',     item.kind     || 'risk', KIND_COLS.map(function(k){return k.kind;})) +
+        select('Status',   'status',   item.status   || 'open', STATUSES) +
+        select('Severity', 'severity', String(item.severity || 1), SEVERITIES.map(String)) +
+        select('Owner',    'owner_role', item.owner_role || '', [''].concat(OWNER_ROLES)) +
+        field('Due date (YYYY-MM-DD)', 'due_date', item.due_date || '', 'text') +
+        field('Linked CR id',          'change_request_id', item.change_request_id || '', 'text') +
+      '</div>' +
+      '<div style="margin-top:12px;display:flex;gap:8px">' +
+        '<button class="aidp-btn aidp-btn-sm" onclick="pgCloseItem()">✓ Mark closed</button>' +
+        '<button class="aidp-btn aidp-btn-sm" onclick="pgDuplicateItem()">⎘ Duplicate</button>' +
+        '<div style="flex:1"></div>' +
+        '<button class="aidp-btn aidp-btn-sm" onclick="pgDeselect()">Close panel</button>' +
+      '</div>';
+
+    el.querySelectorAll('[data-field]').forEach(function (input) {
+      input.addEventListener('input', function () { onDetailEdit(input.getAttribute('data-field'), input.value); });
+      input.addEventListener('change', function () { onDetailEdit(input.getAttribute('data-field'), input.value); });
+    });
+
+    function field(label, key, val, kind) {
+      var input = kind === 'textarea'
+        ? '<textarea data-field="' + key + '" rows="2" style="width:100%;font-family:inherit;font-size:12px;padding:6px;border:1px solid var(--aidp-ink-200);border-radius:4px">' + escapeHtml(val) + '</textarea>'
+        : '<input data-field="' + key + '" type="text" value="' + escapeHtml(val) + '" style="width:100%;font-family:inherit;font-size:12px;padding:6px;border:1px solid var(--aidp-ink-200);border-radius:4px"/>';
+      return '<div style="grid-column:1/-1"><label style="font-size:10.5px;font-weight:600;color:var(--aidp-ink-500);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">' + label + '</label>' + input + '</div>';
+    }
+    function select(label, key, val, opts) {
+      var options = opts.map(function (o) {
+        return '<option value="' + escapeHtml(o) + '"' + (String(o) === String(val) ? ' selected' : '') + '>' + (o === '' ? '— none —' : escapeHtml(o)) + '</option>';
+      }).join('');
+      return '<div><label style="font-size:10.5px;font-weight:600;color:var(--aidp-ink-500);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">' + label + '</label>' +
+        '<select data-field="' + key + '" style="width:100%;font-family:inherit;font-size:12px;padding:6px;border:1px solid var(--aidp-ink-200);border-radius:4px;background:#fff">' + options + '</select></div>';
+    }
+  }
+
+  function onDetailEdit(field, val) {
+    var item = PG.items.find(function (i) { return i.id === PG.selectedId; });
+    if (!item) return;
+    item[field] = (field === 'severity') ? Number(val) : val;
+    item.updated_at = Date.now();
+    if (!item.source) item.source = 'manual';
+    wsSave();
+    GovernanceAPI.upsertRaidDebounced(item);
+    renderKpis();
+    renderRaidKanban();
+    updateStatus();
+  }
+
+  function renderChanges() {
+    var body = $('pg-changes-body');
+    var meta = $('pg-changes-meta');
+    if (!body) return;
+    if (!PG.changes.length) {
+      body.innerHTML = '<div class="aidp-state"><div class="icon">📋</div><h2>No change requests yet</h2><p>Use <strong>+ New CR</strong> in the action bar below to raise one.</p></div>';
+      if (meta) meta.textContent = '';
+      return;
+    }
+    var rows = PG.changes.map(function (c) {
+      return '<tr>' +
+        '<td><code>' + escapeHtml(c.id || c.cr_id || '?') + '</code></td>' +
+        '<td>' + escapeHtml(c.title || '(untitled)') + '</td>' +
+        '<td>' + escapeHtml(c.requested_by || '—') + '</td>' +
+        '<td><span class="aidp-chip-' + (c.impact === 'high' ? 'danger' : 'neutral') + '">' + escapeHtml(c.impact || 'unknown') + '</span></td>' +
+        '<td>' + escapeHtml(c.status || 'submitted') + '</td>' +
+        '<td style="font-family:var(--aidp-f-mono);font-size:11px">' + escapeHtml(c.created_at || '—') + '</td>' +
+      '</tr>';
+    }).join('');
+    body.innerHTML = '<table class="aidp-table"><thead><tr>' +
+      '<th>ID</th><th>Title</th><th>Requested by</th><th>Impact</th><th>Status</th><th>Created</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table>';
+    if (meta) meta.textContent = PG.changes.length + ' change requests';
+  }
+
+  function renderSteering() {
+    var body = $('pg-steering-body');
+    if (!body) return;
+    if (!PG.pack) {
+      body.innerHTML = '<div class="aidp-state"><div class="icon">📊</div><h2>No steering pack yet</h2><p>Click <strong>🌐 Generate steering pack</strong> in the action bar below to cross-bind SOW + Actions + RAID and render a programme-level steering pack with RAG status.</p></div>';
+      return;
+    }
+    var p = PG.pack;
+    var ragLabel = (p.rag || 'green').toUpperCase();
+    var ragCls = (p.rag || 'green').toLowerCase();
+    var html = '';
+    html += '<div class="pgw-pack-section"><h4>Programme RAG · ' + escapeHtml(p.cadence || 'biweekly') + '</h4>' +
+      '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">' +
+        '<span class="pgw-rag ' + ragCls + '" style="font-size:13px;padding:5px 14px">● ' + ragLabel + '</span>' +
+        '<span style="font-size:12px;color:var(--aidp-ink-500)">Generated ' + escapeHtml(p.generated_at || '') + '</span>' +
+      '</div></div>';
+    if (p.narrative) {
+      html += '<div class="pgw-pack-section"><h4>Executive narrative</h4><div class="narrative">' + escapeHtml(p.narrative) + '</div></div>';
+    }
+    if (p.milestones && p.milestones.length) {
+      html += '<div class="pgw-pack-section"><h4>Milestones</h4>' +
+        '<table class="aidp-table"><thead><tr><th>Milestone</th><th>Owner</th><th>Due</th><th>Status</th></tr></thead><tbody>' +
+        p.milestones.map(function (m) {
+          return '<tr><td>' + escapeHtml(m.name || m.title || '?') + '</td>' +
+            '<td>' + escapeHtml(m.owner || '—') + '</td>' +
+            '<td>' + escapeHtml(m.due_date || '—') + '</td>' +
+            '<td>' + escapeHtml(m.status || '—') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+    if (p.raid_rollup) {
+      var rr = p.raid_rollup;
+      html += '<div class="pgw-pack-section"><h4>RAID roll-up</h4>' +
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">' +
+          rollupCell('Risks',        rr.risks       || rr.risk        || 0) +
+          rollupCell('Assumptions',  rr.assumptions || rr.assumption  || 0) +
+          rollupCell('Issues',       rr.issues      || rr.issue       || 0) +
+          rollupCell('Dependencies', rr.dependencies|| rr.dependency  || 0) +
+        '</div></div>';
+    }
+    if (p.change_rollup) {
+      var cr = p.change_rollup;
+      html += '<div class="pgw-pack-section"><h4>Change-request roll-up</h4>' +
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">' +
+          rollupCell('Total',     cr.total    || PG.changes.length) +
+          rollupCell('Open',      cr.open     || 0) +
+          rollupCell('Approved',  cr.approved || 0) +
+        '</div></div>';
+    }
+    body.innerHTML = html;
+  }
+  function rollupCell(label, val) {
+    return '<div style="background:var(--aidp-canvas);border:1px solid var(--aidp-ink-200);border-radius:4px;padding:10px 12px">' +
+      '<div style="font-size:10px;font-weight:600;color:var(--aidp-ink-500);text-transform:uppercase;letter-spacing:.04em">' + escapeHtml(label) + '</div>' +
+      '<div style="font-family:var(--aidp-f-head);font-size:22px;font-weight:600;color:var(--aidp-ink-900);margin-top:2px">' + escapeHtml(String(val)) + '</div>' +
+    '</div>';
+  }
+
+  function updateStatus() {
+    var el = $('pg-status-text');
+    if (!el) return;
+    var pending = (window.GovernanceAPI.pendingCount && GovernanceAPI.pendingCount()) || 0;
+    if (pending > 0) {
+      el.innerHTML = PG.items.length + ' RAID items · <span style="color:var(--aidp-amber)">' + pending + ' pending sync</span>';
+    } else {
+      el.innerHTML = PG.items.length + ' RAID items · ' + PG.changes.length + ' CRs · ' + (PG.pack ? 'pack ready' : 'no pack');
+    }
+  }
+
+  function renderAll() {
+    renderHeader();
+    renderKpis();
+    if (PG.tab === 'raid') {
+      $('pg-raid-pane').style.display = '';
+      $('pg-changes-pane').style.display = 'none';
+      $('pg-steering-pane').style.display = 'none';
+      renderRaidKanban();
+      renderDetail();
+    } else if (PG.tab === 'changes') {
+      $('pg-raid-pane').style.display = 'none';
+      $('pg-changes-pane').style.display = '';
+      $('pg-steering-pane').style.display = 'none';
+      renderChanges();
+    } else {
+      $('pg-raid-pane').style.display = 'none';
+      $('pg-changes-pane').style.display = 'none';
+      $('pg-steering-pane').style.display = '';
+      renderSteering();
+    }
+    updateStatus();
+  }
+
+  /* ─── Data loading ───────────────────────────────────────── */
+  function pgRefresh() {
+    return GovernanceAPI.listRaid({}).then(function (resp) {
+      /* Agent contract: returns { user_email, raid, count, buckets, filters, updated_at }
+       * NOT { items }. Accept either for forward-compat with a possible future rename. */
+      var items = (resp && (resp.raid || resp.items)) || [];
+      PG.items = items;
+      PG.fetchedAt = Date.now();
+      wsSave();
+      renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'↻', title:'Refreshed', message:items.length + ' RAID items loaded.' });
+    }).catch(function (err) {
+      console.warn('[PG-WS] refresh failed', err);
+      var box = $('pg-error');
+      if (box) {
+        box.style.display = '';
+        box.className = 'aidp-error';
+        box.innerHTML = '<strong>Could not reach GOVERNANCE agent.</strong> ' + escapeHtml(err.message || String(err)) + ' · Showing cached snapshot.';
+      }
+      renderAll();
+    });
+  }
+
+  /* ─── Action handlers ────────────────────────────────────── */
+  window.pgRefresh = pgRefresh;
+
+  window.pgSetTab = function (tab) {
+    PG.tab = tab;
+    ['raid','changes','steering'].forEach(function (t) {
+      var el = $('pg-tab-' + t);
+      if (el) el.classList.toggle('active', t === tab);
+    });
+    wsSave();
+    renderAll();
+  };
+
+  window.pgDeselect = function () {
+    PG.selectedId = null;
+    wsSave();
+    renderRaidKanban();
+    renderDetail();
+  };
+
+  window.pgCloseItem = function () {
+    var item = PG.items.find(function (i) { return i.id === PG.selectedId; });
+    if (!item) return;
+    item.status = 'closed';
+    item.updated_at = Date.now();
+    GovernanceAPI.upsertRaidDebounced(item);
+    wsSave();
+    renderAll();
+  };
+
+  window.pgDuplicateItem = function () {
+    var item = PG.items.find(function (i) { return i.id === PG.selectedId; });
+    if (!item) return;
+    var nowMs = Date.now();
+    var copy = Object.assign({}, item, {
+      id: newId(),
+      summary: '(copy) ' + (item.summary || ''),
+      status: 'open',
+      source: item.source || 'manual',
+      created_at: nowMs,
+      updated_at: nowMs
+    });
+    PG.items.push(copy);
+    PG.selectedId = copy.id;
+    GovernanceAPI.upsertRaidDebounced(copy);
+    wsSave();
+    renderAll();
+  };
+
+  window.pgLoadSample = function () {
+    if (PG.items.length > 0 && !confirm('Replace ' + PG.items.length + ' existing items with the 12-item sample?')) return;
+    /* Agent contract: created_at/updated_at MUST be numbers (ms epoch), source required. */
+    var nowMs = Date.now();
+    PG.items = SAMPLE_ITEMS.map(function (s, idx) {
+      return Object.assign({
+        id: 'P-' + String(idx + 1).padStart(3,'0'),
+        source: 'manual',
+        created_at: nowMs,
+        updated_at: nowMs
+      }, s);
+    });
+    wsSave();
+    renderAll();
+    // fire-and-forget persist
+    PG.items.forEach(function (it) { GovernanceAPI.upsertRaidDebounced(it); });
+    if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'📥', title:'Sample loaded', message:'12 banking RAID items queued for save.' });
+  };
+
+  window.pgAddItem = function () {
+    var kindCol = KIND_COLS[0];
+    var nowMs = Date.now();
+    var item = {
+      id: newId(),
+      kind: kindCol.kind,
+      summary: 'New ' + kindCol.kind,
+      severity: 3,
+      status: 'open',
+      source: 'manual',
+      created_at: nowMs,
+      updated_at: nowMs
+    };
+    PG.items.push(item);
+    PG.selectedId = item.id;
+    GovernanceAPI.upsertRaidDebounced(item);
+    wsSave();
+    renderAll();
+  };
+
+  /* CR_KINDS · matches @aidp/governance-engine */
+  var CR_KINDS = ['scope','milestone','staffing','pricing','technical','process','compliance'];
+
+  window.pgNewChangeRequest = function () {
+    var title = prompt('Change request title:');
+    if (!title) return;
+    var kind = prompt('Kind (scope | milestone | staffing | pricing | technical | process | compliance):', 'scope') || 'scope';
+    if (CR_KINDS.indexOf(kind) === -1) kind = 'scope';
+    /* Canonical CR payload · validation requires id/title/kind/status/raised_by.
+     * status MUST be one of raised|triaging|approved|rejected|deferred|applied|withdrawn. */
+    var cr = {
+      id: 'CR-' + Date.now().toString(36).slice(-5),
+      title: title,
+      kind: kind,
+      status: 'raised',
+      raised_by: (window.AIDPStudio && AIDPStudio.getUserEmail && AIDPStudio.getUserEmail()) || 'guest@aidp.demo',
+      raised_at: Date.now()
+    };
+    GovernanceAPI.changeRequest(cr).then(function (resp) {
+      if (resp && resp.saved) cr.id = resp.saved;
+      if (resp && resp.status) cr.status = resp.status;
+      PG.changes.push(cr);
+      wsSave();
+      PG.tab = 'changes';
+      renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'📋', title:'Change request raised', message:cr.id + ' raised.' });
+    }).catch(function (err) {
+      PG.changes.push(cr); // optimistic — keep local even if backend rejected
+      wsSave();
+      PG.tab = 'changes';
+      renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'warn', icon:'⚠', title:'CR saved locally', message:'Backend error: ' + (err.message || err) });
+    });
+  };
+
+  window.pgSeedFromSow = function () {
+    if (!confirm('Seed RAID register from SOW (Risks & Assumptions sections)?')) return;
+    GovernanceAPI.seedRaid('sow').then(function (resp) {
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'🌱', title:'Seeded from SOW', message:(resp && resp.seeded_count) ? (resp.seeded_count + ' items added') : 'Done' });
+      return pgRefresh();
+    }).catch(function (err) {
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'err', icon:'⚠', title:'Seed failed', message:err.message || String(err) });
+    });
+  };
+
+  window.pgGenerateSteeringPack = function () {
+    if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'info', icon:'🌐', title:'Generating steering pack…', message:'Cross-binding SOW + Actions + RAID.' });
+    GovernanceAPI.steeringPack({ cadence:'biweekly', format:'json', persist:true }).then(function (resp) {
+      PG.pack = (resp && resp.pack) || resp;
+      if (PG.pack && !PG.pack.generated_at) PG.pack.generated_at = new Date().toISOString().slice(0,19) + 'Z';
+      wsSave();
+      PG.tab = 'steering';
+      renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'✓', title:'Steering pack ready', message:'RAG: ' + ((PG.pack && PG.pack.rag) || 'unknown').toUpperCase() });
+    }).catch(function (err) {
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'err', icon:'⚠', title:'Pack failed', message:err.message || String(err) });
+    });
+  };
+
+  window.pgExportXlsx = function () {
+    if (!window.DI || !window.DI.export || !window.DI.export.workbook) {
+      alert('Excel export library not available on this page.');
+      return;
+    }
+    var ts = new Date().toISOString().slice(0,10);
+    var raidRows = PG.items.map(function (i) {
+      return {
+        ID: i.id, Kind: i.kind, Severity: i.severity, Status: i.status,
+        Owner: i.owner_role || '', Summary: i.summary || '',
+        Mitigation: i.mitigation || '', Due: i.due_date || '',
+        Created: i.created_at || '', Updated: i.updated_at || ''
+      };
+    });
+    var crRows = PG.changes.map(function (c) {
+      return {
+        ID: c.id, Title: c.title || '', RequestedBy: c.requested_by || '',
+        Impact: c.impact || '', Status: c.status || '', Created: c.created_at || ''
+      };
+    });
+    var sheets = [
+      { name:'RAID',            rows: raidRows, headers:['ID','Kind','Severity','Status','Owner','Summary','Mitigation','Due','Created','Updated'] },
+      { name:'ChangeRequests',  rows: crRows,   headers:['ID','Title','RequestedBy','Impact','Status','Created'] }
+    ];
+    if (PG.pack) {
+      sheets.push({
+        name:'SteeringPack',
+        rows: [{ RAG: PG.pack.rag || '', Cadence: PG.pack.cadence || '', GeneratedAt: PG.pack.generated_at || '', Narrative: PG.pack.narrative || '' }],
+        headers:['RAG','Cadence','GeneratedAt','Narrative']
+      });
+    }
+    window.DI.export.workbook('aidp-program-governance-' + ts + '.xlsx', sheets);
+  };
+
+  window.pgSendToOperations = function () {
+    var openIssues = PG.items.filter(function (i) { return i.kind === 'issue' && i.status !== 'closed'; });
+    try {
+      localStorage.setItem('aidp_handoff_operations_v1', JSON.stringify({
+        source:'governance',
+        sent_at: new Date().toISOString(),
+        open_issues: openIssues,
+        rag: ragFromItems(PG.items).rag,
+        all_items: PG.items
+      }));
+    } catch (e) {}
+    if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'→', title:'Sent to Operations', message:openIssues.length + ' open issues + RAG handed off.' });
+    setTimeout(function () { window.location.href = 'operations'; }, 600);
+  };
+
+  /* ─── View toggle ────────────────────────────────────────── */
+  window.setPgView = function (view) {
+    var legacy = document.getElementById('pg-legacy-view');
+    var ws     = document.getElementById('pg-workspace');
+    var btnL   = document.getElementById('pg-view-legacy');
+    var btnW   = document.getElementById('pg-view-workspace');
+    var toLegacy = (view === 'legacy');
+    if (legacy) legacy.style.display = toLegacy ? '' : 'none';
+    if (ws)     ws.style.display     = toLegacy ? 'none' : '';
+    if (btnL) {
+      btnL.classList.toggle('active', toLegacy);
+      btnL.style.background = toLegacy ? '#FFFFFF' : 'transparent';
+      btnL.style.color      = toLegacy ? '#0F172A' : '#64748B';
+      btnL.style.boxShadow  = toLegacy ? '0 1px 2px rgba(15,23,42,.08)' : 'none';
+    }
+    if (btnW) {
+      btnW.classList.toggle('active', !toLegacy);
+      btnW.style.background = !toLegacy ? '#FFFFFF' : 'transparent';
+      btnW.style.color      = !toLegacy ? '#0F172A' : '#64748B';
+      btnW.style.boxShadow  = !toLegacy ? '0 1px 2px rgba(15,23,42,.08)' : 'none';
+    }
+    try { localStorage.setItem('aidp_pg_view', view); } catch (e) {}
+    if (!toLegacy && PG.items.length === 0 && PG.fetchedAt === 0) {
+      pgRefresh().catch(function () {});
+    }
+  };
+
+  /* ─── Filter wiring ──────────────────────────────────────── */
+  function wireFilters() {
+    var s = $('pg-f-status');    if (s) s.addEventListener('change', function () { PG.filters.status = s.value; renderRaidKanban(); });
+    var v = $('pg-f-severity');  if (v) v.addEventListener('change', function () { PG.filters.minSeverity = v.value; renderRaidKanban(); });
+    var o = $('pg-f-owner');     if (o) o.addEventListener('change', function () { PG.filters.owner_role = o.value; renderRaidKanban(); });
+  }
+
+  /* ─── Keyboard shortcuts ─────────────────────────────────── */
+  document.addEventListener('keydown', function (e) {
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/i.test(e.target.tagName)) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var ws = document.getElementById('pg-workspace');
+    if (!ws || ws.style.display === 'none') return;
+    switch (e.key.toLowerCase()) {
+      case 'f': pgRefresh(); break;
+      case 's': window.pgLoadSample(); break;
+      case 'a': window.pgAddItem(); break;
+      case 'c': window.pgNewChangeRequest(); break;
+      case 'z': window.pgSeedFromSow(); break;
+      case 'g': window.pgGenerateSteeringPack(); break;
+      case 'x': window.pgExportXlsx(); break;
+    }
+  });
+
+  /* ─── Boot ───────────────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', function () {
+    wsLoad();
+    wireFilters();
+    // Restore preferred view
+    var pref = null;
+    try { pref = localStorage.getItem('aidp_pg_view'); } catch (e) {}
+    if (pref === 'workspace') { window.setPgView('workspace'); }
+    renderAll();
+    // Eager refresh if workspace is the active view OR cache is stale
+    var ws = document.getElementById('pg-workspace');
+    var wsVisible = ws && ws.style.display !== 'none';
+    var stale = !PG.fetchedAt || (Date.now() - PG.fetchedAt) > 10 * 60 * 1000;
+    if (wsVisible || stale) pgRefresh().catch(function () {});
+    try { console.log('[AIDP] Program Governance Workspace v1 ready · items=' + PG.items.length); } catch (e) {}
+  });
+})();
+</script>
+
 </body>
 </html>
+
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
