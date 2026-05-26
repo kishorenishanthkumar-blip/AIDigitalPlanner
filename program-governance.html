@@ -854,9 +854,13 @@ if (seeded) {
 (function () {
   'use strict';
 
-  if (!window.GovernanceAPI) {
-    console.warn('[PG-WS] GovernanceAPI not loaded · Workspace tab will be inert.');
-    return;
+  /* GovernanceAPI is loaded with defer · check at call time, not at parse time,
+   * because this inline script runs during HTML parsing (before defer scripts).
+   * Matches the pattern used by requirements.html / actions.html / sow.html. */
+  function hasApi() {
+    if (window.GovernanceAPI) return true;
+    console.warn('[PG-WS] GovernanceAPI not loaded yet · skipping call.');
+    return false;
   }
 
   /* ─── Canonical enums (match GOVERNANCE agent contract) ──── */
@@ -1105,7 +1109,7 @@ if (seeded) {
     item.updated_at = Date.now();
     if (!item.source) item.source = 'manual';
     wsSave();
-    GovernanceAPI.upsertRaidDebounced(item);
+    if (hasApi()) GovernanceAPI.upsertRaidDebounced(item);
     renderKpis();
     renderRaidKanban();
     updateStatus();
@@ -1251,7 +1255,7 @@ if (seeded) {
   function updateStatus() {
     var el = $('pg-status-text');
     if (!el) return;
-    var pending = (window.GovernanceAPI.pendingCount && GovernanceAPI.pendingCount()) || 0;
+    var pending = (window.GovernanceAPI && GovernanceAPI.pendingCount) ? GovernanceAPI.pendingCount() : 0;
     if (pending > 0) {
       el.innerHTML = PG.items.length + ' RAID items · <span style="color:var(--aidp-amber)">' + pending + ' pending sync</span>';
     } else {
@@ -1284,6 +1288,7 @@ if (seeded) {
 
   /* ─── Data loading ───────────────────────────────────────── */
   function pgRefresh() {
+    if (!hasApi()) return Promise.resolve();
     return GovernanceAPI.listRaid({}).then(function (resp) {
       /* Agent contract: returns { user_email, raid, count, buckets, filters, updated_at }
        * NOT { items }. Accept either for forward-compat with a possible future rename. */
@@ -1330,7 +1335,7 @@ if (seeded) {
     if (!item) return;
     item.status = 'closed';
     item.updated_at = Date.now();
-    GovernanceAPI.upsertRaidDebounced(item);
+    if (hasApi()) GovernanceAPI.upsertRaidDebounced(item);
     wsSave();
     renderAll();
   };
@@ -1349,7 +1354,7 @@ if (seeded) {
     });
     PG.items.push(copy);
     PG.selectedId = copy.id;
-    GovernanceAPI.upsertRaidDebounced(copy);
+    if (hasApi()) GovernanceAPI.upsertRaidDebounced(copy);
     wsSave();
     renderAll();
   };
@@ -1369,7 +1374,7 @@ if (seeded) {
     wsSave();
     renderAll();
     // fire-and-forget persist
-    PG.items.forEach(function (it) { GovernanceAPI.upsertRaidDebounced(it); });
+    if (hasApi()) PG.items.forEach(function (it) { GovernanceAPI.upsertRaidDebounced(it); });
     if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'📥', title:'Sample loaded', message:'12 banking RAID items queued for save.' });
   };
 
@@ -1388,7 +1393,7 @@ if (seeded) {
     };
     PG.items.push(item);
     PG.selectedId = item.id;
-    GovernanceAPI.upsertRaidDebounced(item);
+    if (hasApi()) GovernanceAPI.upsertRaidDebounced(item);
     wsSave();
     renderAll();
   };
@@ -1411,6 +1416,11 @@ if (seeded) {
       raised_by: (window.AIDPStudio && AIDPStudio.getUserEmail && AIDPStudio.getUserEmail()) || 'guest@aidp.demo',
       raised_at: Date.now()
     };
+    if (!hasApi()) {
+      PG.changes.push(cr); wsSave(); PG.tab = 'changes'; renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'warn', icon:'⚠', title:'CR saved locally', message:'GovernanceAPI not loaded · will retry on next focus.' });
+      return;
+    }
     GovernanceAPI.changeRequest(cr).then(function (resp) {
       if (resp && resp.saved) cr.id = resp.saved;
       if (resp && resp.status) cr.status = resp.status;
@@ -1430,6 +1440,7 @@ if (seeded) {
 
   window.pgSeedFromSow = function () {
     if (!confirm('Seed RAID register from SOW (Risks & Assumptions sections)?')) return;
+    if (!hasApi()) return;
     GovernanceAPI.seedRaid('sow').then(function (resp) {
       if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'🌱', title:'Seeded from SOW', message:(resp && resp.seeded_count) ? (resp.seeded_count + ' items added') : 'Done' });
       return pgRefresh();
@@ -1439,6 +1450,7 @@ if (seeded) {
   };
 
   window.pgGenerateSteeringPack = function () {
+    if (!hasApi()) return;
     if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'info', icon:'🌐', title:'Generating steering pack…', message:'Cross-binding SOW + Actions + RAID.' });
     GovernanceAPI.steeringPack({ cadence:'biweekly', format:'json', persist:true }).then(function (resp) {
       PG.pack = (resp && resp.pack) || resp;
@@ -1554,6 +1566,7 @@ if (seeded) {
   });
 
   /* ─── Boot ───────────────────────────────────────────────── */
+  /* By DOMContentLoaded, the deferred governance-api.js has loaded · pgRefresh() is safe. */
   document.addEventListener('DOMContentLoaded', function () {
     wsLoad();
     wireFilters();
@@ -1566,8 +1579,8 @@ if (seeded) {
     var ws = document.getElementById('pg-workspace');
     var wsVisible = ws && ws.style.display !== 'none';
     var stale = !PG.fetchedAt || (Date.now() - PG.fetchedAt) > 10 * 60 * 1000;
-    if (wsVisible || stale) pgRefresh().catch(function () {});
-    try { console.log('[AIDP] Program Governance Workspace v1 ready · items=' + PG.items.length); } catch (e) {}
+    if ((wsVisible || stale) && window.GovernanceAPI) pgRefresh().catch(function () {});
+    try { console.log('[AIDP] Program Governance Workspace v1 ready · items=' + PG.items.length + ' · api=' + (!!window.GovernanceAPI)); } catch (e) {}
   });
 })();
 </script>
