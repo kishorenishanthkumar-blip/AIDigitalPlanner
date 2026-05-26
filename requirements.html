@@ -6,14 +6,23 @@
 <title>AI Requirements · DI Platform</title>
 <meta name="description" content="Role-tagged AI-generated requirements with four lenses (Technical · Business · Product · Regulatory) and regulatory clause references."/>
 <link rel="stylesheet" href="assets/theme.css">
+<!-- Phase 0 · shared enterprise tokens + helpers -->
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/audit.js" defer></script>
 <script src="assets/cmdk.js" defer></script>
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
 <script src="assets/export.js" defer></script>
-<script src="assets/export.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
+<!-- Phase 1A · Requirements Workspace -->
+<script src="assets/aidp-api.js"></script>
+<script src="assets/studio-shell.js" defer></script>
+<script src="assets/studio-test.js" defer></script>
+<script src="assets/requirements-api.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -98,23 +107,179 @@ a{color:var(--gold);text-decoration:none}
 
 <div data-di-topbar></div>
 
-<section class="rq-hero">
-  <div class="rq-hero-wrap">
-    <div class="rq-eyebrow">AI REQUIREMENTS · ROLE-TAGGED · 4 LENSES</div>
-    <h1 class="rq-h1">Every requirement, <em>linked to the person who owns it and the regulator that demanded it.</em></h1>
-    <p class="rq-sub">Generated from your Discovery 7R map and RFP responses. Each requirement is tagged with its lens (Technical · Business · Product · Regulatory), the role responsible, and the specific regulatory clauses that motivated it.</p>
-  </div>
-</section>
-
-<div class="rq-filters">
-  <div class="rq-filters-wrap" id="rq-filters">
-    <span style="font-size:11px;color:var(--ink-2);font-weight:600">Filters:</span>
+<!-- View toggle · Legacy 4-lens view ↔ Workspace · enterprise -->
+<div style="background:#fff;border-bottom:1px solid var(--border);padding:10px 24px">
+  <div style="max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div style="display:inline-flex;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:99px;padding:2px">
+      <button id="rq-view-legacy"    class="active" onclick="setRqView('legacy')"    style="background:#FFFFFF;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#0F172A;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.08)">4-Lens view</button>
+      <button id="rq-view-workspace"               onclick="setRqView('workspace')" style="background:transparent;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#64748B;cursor:pointer">Workspace</button>
+    </div>
+    <div style="font-size:11px;color:#64748B" id="rq-view-hint">Switch to Workspace for the live REQUIREMENTS agent · MoSCoW prioritization · INVEST scoring · framework compliance matrix</div>
   </div>
 </div>
 
-<div class="rq-kpis" id="rq-kpis"></div>
+<!-- Legacy 4-lens view -->
+<div id="rq-legacy-view">
+  <section class="rq-hero">
+    <div class="rq-hero-wrap">
+      <div class="rq-eyebrow">AI REQUIREMENTS · ROLE-TAGGED · 4 LENSES</div>
+      <h1 class="rq-h1">Every requirement, <em>linked to the person who owns it and the regulator that demanded it.</em></h1>
+      <p class="rq-sub">Generated from your Discovery 7R map and RFP responses. Each requirement is tagged with its lens (Technical · Business · Product · Regulatory), the role responsible, and the specific regulatory clauses that motivated it.</p>
+    </div>
+  </section>
 
-<main class="rq-main" id="rq-main"></main>
+  <div class="rq-filters">
+    <div class="rq-filters-wrap" id="rq-filters">
+      <span style="font-size:11px;color:var(--ink-2);font-weight:600">Filters:</span>
+    </div>
+  </div>
+
+  <div class="rq-kpis" id="rq-kpis"></div>
+
+  <main class="rq-main" id="rq-main"></main>
+</div>
+
+<!-- Workspace view · enterprise pattern · live REQUIREMENTS agent -->
+<div id="rq-workspace" style="display:none">
+  <div class="aidp-shell">
+
+    <header class="aidp-header">
+      <div>
+        <div class="aidp-bread"><a href="home">Home</a> &nbsp;/&nbsp; <a href="discovery-studio">Discovery</a> &nbsp;/&nbsp; Requirements · Workspace</div>
+        <h1 class="aidp-title">Requirements · Workspace</h1>
+        <p class="aidp-subtitle">Live REQUIREMENTS agent · MoSCoW prioritization · INVEST quality scoring · compliance-framework inference from (domain × sensitivity × region). Edits auto-save to D1.</p>
+      </div>
+      <div class="aidp-context">
+        <span class="aidp-tenant">Tenant: <strong id="rq-tenant-name">…</strong></span>
+        <span class="aidp-freshness" id="rq-freshness"><span class="dot"></span> <span data-aidp-fresh-text>Loading…</span></span>
+      </div>
+    </header>
+
+    <!-- KPI strip -->
+    <div class="aidp-kpis">
+      <div class="aidp-kpi"><div class="lbl">Total requirements</div><div class="val" id="rq-kpi-total">—</div><div class="sub" id="rq-kpi-total-sub">&nbsp;</div></div>
+      <div class="aidp-kpi"><div class="lbl">Must-have (MoSCoW)</div><div class="val" id="rq-kpi-must" style="color:var(--aidp-red)">—</div><div class="sub" id="rq-kpi-must-sub">&nbsp;</div></div>
+      <div class="aidp-kpi"><div class="lbl">By type</div><div class="val" id="rq-kpi-type" style="font-family:var(--aidp-f-ui);font-size:14px">—</div><div class="sub" id="rq-kpi-type-sub">&nbsp;</div></div>
+      <div class="aidp-kpi positive"><div class="lbl">INVEST quality (avg)</div><div class="val" id="rq-kpi-invest">—</div><div class="sub" id="rq-kpi-invest-sub">&nbsp;</div></div>
+    </div>
+
+    <!-- Filter rail · with view-tabs (List | Compliance matrix) -->
+    <div class="aidp-filters">
+      <div class="aidp-filter">
+        <label for="rq-f-type">Type</label>
+        <select id="rq-f-type" data-aidp-filter="type">
+          <option value="">All types</option>
+          <option value="functional">functional</option>
+          <option value="nfr">nfr</option>
+          <option value="compliance">compliance</option>
+          <option value="integration">integration</option>
+        </select>
+      </div>
+      <div class="aidp-filter">
+        <label for="rq-f-priority">Priority</label>
+        <select id="rq-f-priority" data-aidp-filter="priority">
+          <option value="">All priorities</option>
+          <option value="must">must</option>
+          <option value="should">should</option>
+          <option value="could">could</option>
+          <option value="wont">wont</option>
+        </select>
+      </div>
+      <div class="aidp-filter">
+        <label for="rq-f-framework">Framework</label>
+        <select id="rq-f-framework" data-aidp-filter="framework"><option value="">All</option></select>
+      </div>
+      <div class="aidp-filter-divider"></div>
+      <div class="aidp-source-toggle" role="tablist" aria-label="View mode">
+        <button id="rq-tab-list"    class="active" data-aidp-source="list"  onclick="rqSetTab('list')">📋 List</button>
+        <button id="rq-tab-matrix"               data-aidp-source="matrix" onclick="rqSetTab('matrix')">🛡 Compliance matrix</button>
+      </div>
+      <div class="aidp-grow"></div>
+      <button class="aidp-btn aidp-btn-sm" onclick="rqRefresh()" title="Reload from D1 (F)">↻ Refresh</button>
+    </div>
+
+    <!-- Error banner -->
+    <div id="rq-error" style="display:none"></div>
+
+    <!-- MAIN · switches between list and matrix -->
+    <div id="rq-list-pane">
+      <div class="aidp-workspace">
+        <div class="aidp-table-wrap">
+          <div class="aidp-table-header">
+            <h3>Requirements</h3>
+            <div class="aidp-table-meta" id="rq-tbl-meta">&nbsp;</div>
+          </div>
+          <div id="rq-tbl-body"></div>
+        </div>
+
+        <div>
+          <div class="aidp-detail" id="rq-detail">
+            <h3 id="rq-detail-name">Select a requirement</h3>
+            <div class="sub">Click a row to inspect + edit. Changes auto-save after 0.8s.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compliance matrix pane -->
+    <div id="rq-matrix-pane" style="display:none">
+      <div class="aidp-table-wrap">
+        <div class="aidp-table-header">
+          <h3>Compliance coverage matrix</h3>
+          <div class="aidp-table-meta" id="rq-matrix-meta">&nbsp;</div>
+        </div>
+        <div id="rq-matrix-body"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sticky action bar -->
+  <div class="aidp-actions">
+    <div class="aidp-actions-inner">
+      <div class="aidp-actions-status" id="rq-status">
+        <strong id="rq-status-text">No requirements loaded</strong>
+      </div>
+      <div class="aidp-actions-buttons">
+        <button class="aidp-btn aidp-btn-sm" onclick="rqLoadSample()"       title="Load 12-requirement banking sample (S)">📥 Load sample</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="rqAddRequirement()"   title="Add a new requirement (A)">+ Add</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="rqSuggestCompliance()" title="Suggest compliance frameworks via AIDP (C)">🌐 Suggest via AIDP</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="rqExportXlsx()"       title="Download Excel workbook (X)">⬇ Excel</button>
+        <button class="aidp-btn aidp-btn-primary aidp-btn-sm" onclick="rqSendToSow()" title="Send to Draft SOW">Send to SOW →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compliance suggest modal -->
+  <div id="rq-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:100;align-items:center;justify-content:center;padding:20px" onclick="if(event.target.id==='rq-modal-bg')rqCloseModal()">
+    <div style="background:#fff;border-radius:10px;max-width:520px;width:100%;padding:24px;box-shadow:0 24px 60px rgba(15,23,42,.25);font-family:var(--aidp-f-ui)">
+      <h3 style="margin:0 0 6px;font-size:16px;font-weight:600;color:var(--aidp-ink-900)">Suggest compliance requirements</h3>
+      <p style="margin:0 0 18px;font-size:13px;color:var(--aidp-ink-600)">The agent infers banking compliance frameworks for the (domain × sensitivity × region) tuple and generates boilerplate compliance requirements you can review + customize.</p>
+      <div style="display:grid;gap:10px">
+        <div><label style="display:block;font-size:10px;font-weight:600;letter-spacing:.05em;color:var(--aidp-ink-500);text-transform:uppercase;margin-bottom:5px">Domain</label>
+          <select id="rq-m-domain" style="width:100%;padding:8px 10px;border:1px solid var(--aidp-ink-300);border-radius:5px;font-size:13px">
+            <option>payments</option><option>cards</option><option>deposits</option><option>lending</option><option>trade</option><option>treasury</option><option>compliance</option><option>wealth</option><option>core-banking</option><option>channels</option><option>ops</option><option>other</option>
+          </select></div>
+        <div><label style="display:block;font-size:10px;font-weight:600;letter-spacing:.05em;color:var(--aidp-ink-500);text-transform:uppercase;margin-bottom:5px">Sensitivity</label>
+          <select id="rq-m-sens" style="width:100%;padding:8px 10px;border:1px solid var(--aidp-ink-300);border-radius:5px;font-size:13px">
+            <option>regulated</option><option>confidential</option><option>internal</option><option>public</option>
+          </select></div>
+        <div><label style="display:block;font-size:10px;font-weight:600;letter-spacing:.05em;color:var(--aidp-ink-500);text-transform:uppercase;margin-bottom:5px">Region</label>
+          <select id="rq-m-region" style="width:100%;padding:8px 10px;border:1px solid var(--aidp-ink-300);border-radius:5px;font-size:13px">
+            <option>na-us</option><option>na-ca</option><option>eu</option><option>uk</option><option>apac-in</option><option>apac-sg</option><option>apac-au</option><option>apac-jp</option><option>mea</option><option>latam</option><option>global</option>
+          </select></div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--aidp-ink-700);margin-top:8px">
+          <input type="checkbox" id="rq-m-persist" checked> Persist generated requirements to D1
+        </label>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px">
+        <button class="aidp-btn" onclick="rqCloseModal()">Cancel</button>
+        <button class="aidp-btn aidp-btn-primary" id="rq-m-go" onclick="rqDoSuggest()">🌐 Suggest now</button>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════════
@@ -442,6 +607,518 @@ function escapeHTML(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c
 /* Bootstrap */
 loadOrGenerate();
 render();
+</script>
+
+<!-- ─── Workspace view module · Phase 1A ─────────────────── -->
+<script>
+(function () {
+  'use strict';
+
+  /* ─── Canonical enum lists (mirror @aidp/requirements-engine) ─── */
+  const ALL_TYPES        = ['functional','nfr','compliance','integration'];
+  const ALL_PRIORITIES   = ['must','should','could','wont'];
+  const ALL_NFR_CATS     = ['performance','scalability','availability','security','usability','maintainability','portability','observability','resilience','compliance-tech'];
+  const ALL_DOMAINS      = ['cards','payments','deposits','lending','trade','treasury','compliance','wealth','core-banking','channels','ops','other'];
+  /* Common banking compliance frameworks (extended on demand by suggest_compliance). */
+  const COMMON_FRAMEWORKS = ['PCI-DSS','SOX','GDPR','CCPA','HIPAA','SOC2','ISO27001','FedRAMP','NIST-CSF','FFIEC','GLBA','PSD2','DORA','MAS-TRM','OSFI-B-13','RBI-IT','APRA-CPS-234'];
+
+  const WS_KEY = 'aidp_requirements_workspace_v1';
+  const RQS = {
+    requirements:  [],          // canonical Requirement[]
+    selectedId:    null,
+    filters:       { type:'', priority:'', framework:'' },
+    tab:           'list',      // 'list' | 'matrix'
+    summary:       null,        // full agent response (count, by_priority, by_type, invest_summary)
+    lastUpdated:   null,
+    initialized:   false
+  };
+
+  function wsSave() {
+    try { localStorage.setItem(WS_KEY, JSON.stringify({
+      requirements: RQS.requirements, lastUpdated: RQS.lastUpdated, summary: RQS.summary
+    })); } catch {}
+  }
+  function wsLoad() {
+    try {
+      const raw = localStorage.getItem(WS_KEY);
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (Array.isArray(p.requirements)) RQS.requirements = p.requirements;
+        RQS.lastUpdated = p.lastUpdated || null;
+        RQS.summary = p.summary || null;
+      }
+    } catch {}
+  }
+
+  function S() { return window.AIDPStudio; }
+  function esc(s) { return S() ? S().escapeHtml(s) : String(s == null ? '' : s); }
+
+  /* ─── Refresh from agent ─────────────────────────────── */
+  async function refresh() {
+    clearError();
+    if (!window.RequirementsAPI) { showError('RequirementsAPI not loaded'); return; }
+    try {
+      const res = await window.RequirementsAPI.list();
+      if (res && res.error) { showError('Agent error: ' + (res.message || res.error)); return; }
+      RQS.requirements = Array.isArray(res?.requirements) ? res.requirements : [];
+      RQS.summary = {
+        count:           res?.count || 0,
+        by_priority:     res?.by_priority || {},
+        by_type:         res?.by_type || {},
+        invest_summary:  res?.invest_summary || [],
+        updated_at:      res?.updated_at || 0
+      };
+      RQS.lastUpdated = res?.updated_at ? new Date(res.updated_at).getTime() : Date.now();
+      wsSave();
+      renderAll();
+    } catch (err) {
+      showError('Refresh failed: ' + (err.message || err));
+    }
+  }
+  window.rqRefresh = refresh;
+
+  /* ─── Renders ────────────────────────────────────────── */
+
+  function renderHeader() {
+    if (S()) S().renderTenantBadge(document.getElementById('rq-tenant-name'));
+    const fresh = document.getElementById('rq-freshness');
+    const text  = fresh?.querySelector('[data-aidp-fresh-text]');
+    if (!fresh || !text) return;
+    if (!RQS.requirements.length && !RQS.lastUpdated) {
+      fresh.className = 'aidp-freshness stale';
+      text.textContent = 'No requirements loaded';
+    } else if (RQS.lastUpdated && (Date.now() - RQS.lastUpdated) > 24*3600*1000) {
+      fresh.className = 'aidp-freshness stale';
+      text.textContent = 'Stale · ' + (S() ? S().fmtFresh(RQS.lastUpdated) : '');
+    } else {
+      fresh.className = 'aidp-freshness';
+      text.textContent = 'Live · ' + (S() ? S().fmtFresh(RQS.lastUpdated) : 'just now');
+    }
+  }
+
+  function renderKpis() {
+    const total = RQS.requirements.length;
+    const byPri = RQS.summary?.by_priority || RQS.requirements.reduce((acc, r) => {
+      const p = r.priority || 'should'; acc[p] = (acc[p] || 0) + 1; return acc;
+    }, {});
+    const byType = RQS.summary?.by_type || RQS.requirements.reduce((acc, r) => {
+      const t = r.type || 'functional'; acc[t] = (acc[t] || 0) + 1; return acc;
+    }, {});
+    const invest = (RQS.summary?.invest_summary || []);
+    const investAvg = invest.length ? Math.round(invest.reduce((s, x) => s + (x.score || 0), 0) / invest.length) : null;
+
+    document.getElementById('rq-kpi-total').textContent = total || '0';
+    document.getElementById('rq-kpi-total-sub').textContent = total === 0 ? 'Click Load sample or Suggest via AIDP' : 'across ' + Object.keys(byType).length + ' types';
+    document.getElementById('rq-kpi-must').textContent = byPri.must || 0;
+    document.getElementById('rq-kpi-must-sub').textContent = total > 0 ? Math.round((byPri.must || 0) / total * 100) + '% of fleet' : ' ';
+    const topType = Object.entries(byType).sort((a,b) => b[1]-a[1])[0];
+    document.getElementById('rq-kpi-type').textContent = topType ? topType[0] : '—';
+    document.getElementById('rq-kpi-type-sub').textContent = topType ? (topType[1] + ' of ' + total) : ' ';
+    document.getElementById('rq-kpi-invest').textContent = investAvg != null ? investAvg + '/100' : '—';
+    document.getElementById('rq-kpi-invest-sub').textContent = invest.length ? 'across ' + invest.length + ' scored' : 'INVEST coverage';
+  }
+
+  function renderFrameworkFilter() {
+    const all = new Set();
+    RQS.requirements.forEach(r => (r.frameworks || []).forEach(f => all.add(f)));
+    const sel = document.getElementById('rq-f-framework');
+    if (!sel) return;
+    const current = RQS.filters.framework;
+    sel.innerHTML = '<option value="">All</option>' + [...all].sort().map(f => '<option value="'+esc(f)+'"'+(f===current?' selected':'')+'>'+esc(f)+'</option>').join('');
+  }
+
+  function visibleReqs() {
+    return RQS.requirements.filter(r => {
+      if (RQS.filters.type     && r.type     !== RQS.filters.type)     return false;
+      if (RQS.filters.priority && r.priority !== RQS.filters.priority) return false;
+      if (RQS.filters.framework && !(r.frameworks || []).includes(RQS.filters.framework)) return false;
+      return true;
+    });
+  }
+
+  function renderTable() {
+    const body = document.getElementById('rq-tbl-body');
+    const meta = document.getElementById('rq-tbl-meta');
+    const rows = visibleReqs();
+    meta.textContent = rows.length + ' of ' + RQS.requirements.length + ' shown';
+
+    if (RQS.requirements.length === 0) {
+      body.innerHTML =
+        '<div class="aidp-state">' +
+          '<div class="icon">📋</div>' +
+          '<h2>No requirements yet</h2>' +
+          '<p>Click <strong>📥 Load sample</strong> for a banking starter pack, or <strong>🌐 Suggest via AIDP</strong> to derive compliance requirements from a (domain × sensitivity × region) tuple.</p>' +
+        '</div>';
+      return;
+    }
+    let html = '<table class="aidp-table">';
+    html += '<thead><tr><th style="min-width:240px">Title</th><th>Type</th><th>Priority</th><th>Capability</th><th>Frameworks</th></tr></thead><tbody>';
+    rows.forEach(r => {
+      const sel = (r.id === RQS.selectedId) ? 'selected' : '';
+      const typeCls = 'aidp-chip-info';
+      const priCls  = r.priority === 'must' ? 'aidp-chip-high' : r.priority === 'should' ? 'aidp-chip-medium' : r.priority === 'could' ? 'aidp-chip-low' : 'aidp-chip-skip';
+      const fws = (r.frameworks || []).map(f => '<span class="aidp-chip aidp-chip-info" style="margin-right:3px">'+esc(f)+'</span>').join('');
+      html += '<tr class="' + sel + '" onclick="rqSelect(\''+esc(r.id)+'\')">';
+      html +=   '<td><div style="font-weight:600;color:var(--aidp-ink-900)">'+esc(r.title || '(no title)')+'</div>' +
+                  (r.description ? '<div style="font-size:10.5px;color:var(--aidp-ink-500);margin-top:2px;max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.description)+'</div>' : '') + '</td>';
+      html +=   '<td><span class="aidp-chip '+typeCls+'">'+esc(r.type || '')+'</span></td>';
+      html +=   '<td><span class="aidp-chip '+priCls+'">'+esc(r.priority || '')+'</span></td>';
+      html +=   '<td style="font-family:var(--aidp-f-mono);font-size:11px;color:var(--aidp-ink-600)">'+esc(r.capability_id || '—')+'</td>';
+      html +=   '<td>'+ (fws || '<span style="color:var(--aidp-ink-400);font-size:11px">—</span>') +'</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    body.innerHTML = html;
+  }
+
+  function renderDetail() {
+    const wrap = document.getElementById('rq-detail');
+    if (!RQS.selectedId) {
+      wrap.innerHTML = '<h3>Select a requirement</h3><div class="sub">Click a row to inspect + edit. Changes auto-save after 0.8s.</div>';
+      return;
+    }
+    const r = RQS.requirements.find(x => x.id === RQS.selectedId);
+    if (!r) return;
+    function selRow(label, field, allowed) {
+      const v = r[field] || '';
+      return '<div class="row"><label>' + label + '</label><select data-field="' + field + '" onchange="rqFieldChange(this)">' +
+        '<option value=""></option>' + allowed.map(a => '<option value="'+a+'"'+(a===v?' selected':'')+'>'+a+'</option>').join('') +
+        '</select></div>';
+    }
+    let html = '';
+    html += '<h3>'+esc(r.title || r.id)+'</h3>';
+    html += '<div class="sub">ID: <code style="font-family:var(--aidp-f-mono);font-size:11px">'+esc(r.id)+'</code></div>';
+    html += '<div class="row"><label>Title</label><input data-field="title" value="'+esc(r.title||'')+'" oninput="rqFieldChange(this)"></div>';
+    html += '<div class="row"><label>Description</label><input data-field="description" value="'+esc(r.description||'')+'" oninput="rqFieldChange(this)"></div>';
+    html += selRow('Type',          'type',          ALL_TYPES);
+    html += selRow('Priority',      'priority',      ALL_PRIORITIES);
+    html += selRow('Domain',        'domain',        ALL_DOMAINS);
+    html += '<div class="row"><label>Capability ID</label><input data-field="capability_id" value="'+esc(r.capability_id||'')+'" oninput="rqFieldChange(this)" placeholder="e.g. cap-cards-tokenization"></div>';
+    if (r.type === 'nfr')         html += selRow('NFR category', 'nfr_category', ALL_NFR_CATS);
+    if (r.type === 'nfr')         html += '<div class="row"><label>Target metric</label><input data-field="target_metric" value="'+esc(r.target_metric||'')+'" oninput="rqFieldChange(this)" placeholder="p99 < 200ms"></div>';
+    if (r.type === 'integration') html += '<div class="row"><label>Integration with</label><input data-field="integration_with" value="'+esc(r.integration_with||'')+'" oninput="rqFieldChange(this)" placeholder="System / API name"></div>';
+    if (r.type === 'compliance') {
+      html += '<div class="row"><label>Frameworks</label><input data-field="frameworks_csv" value="'+esc((r.frameworks||[]).join(', '))+'" oninput="rqFieldChange(this)" placeholder="PCI-DSS, SOX, GDPR"></div>';
+    }
+    /* INVEST card */
+    const invest = (RQS.summary?.invest_summary || []).find(i => i.requirement_id === r.id);
+    if (invest) {
+      html += '<div style="background:var(--aidp-ink-50);border:1px solid var(--aidp-ink-200);border-radius:6px;padding:10px 12px;margin-top:14px">';
+      html +=   '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+      html +=     '<div style="font-size:11px;font-weight:600;color:var(--aidp-ink-700);text-transform:uppercase;letter-spacing:.04em">INVEST score</div>';
+      html +=     '<div style="font-family:var(--aidp-f-mono);font-size:13px;font-weight:600;color:'+(invest.score >= 80 ? 'var(--aidp-green)' : invest.score >= 60 ? 'var(--aidp-amber)' : 'var(--aidp-red)')+'">'+invest.score+'/100</div>';
+      html +=   '</div>';
+      if (invest.issues && invest.issues.length) {
+        html += '<ul style="margin:0;padding-left:18px;font-size:11.5px;color:var(--aidp-ink-600)">' +
+                  invest.issues.map(i => '<li>'+esc(i)+'</li>').join('') +
+                '</ul>';
+      } else {
+        html += '<div style="font-size:11.5px;color:var(--aidp-ink-600)">Independent · Negotiable · Valuable · Estimable · Small · Testable — all clear.</div>';
+      }
+      html += '</div>';
+    }
+    wrap.innerHTML = html;
+  }
+
+  function renderMatrix() {
+    const body = document.getElementById('rq-matrix-body');
+    const meta = document.getElementById('rq-matrix-meta');
+    const complianceReqs = RQS.requirements.filter(r => r.type === 'compliance' && (r.frameworks || []).length > 0);
+    if (complianceReqs.length === 0) {
+      body.innerHTML =
+        '<div class="aidp-state">' +
+          '<div class="icon">🛡</div>' +
+          '<h2>No compliance requirements with frameworks yet</h2>' +
+          '<p>Use <strong>🌐 Suggest via AIDP</strong> to derive boilerplate compliance requirements from a (domain × sensitivity × region) tuple. The matrix will populate once any requirement carries at least one framework tag.</p>' +
+        '</div>';
+      meta.textContent = '';
+      return;
+    }
+    const allFrameworks = [...new Set(complianceReqs.flatMap(r => r.frameworks || []))].sort();
+    meta.textContent = complianceReqs.length + ' compliance reqs × ' + allFrameworks.length + ' frameworks';
+
+    let html = '<table class="aidp-table" style="font-size:11.5px">';
+    html += '<thead><tr><th style="min-width:280px;position:sticky;left:0;background:var(--aidp-ink-50)">Requirement</th>';
+    allFrameworks.forEach(f => html += '<th class="num" style="writing-mode:vertical-rl;transform:rotate(180deg);min-width:32px;padding:14px 4px">'+esc(f)+'</th>');
+    html += '</tr></thead><tbody>';
+    complianceReqs.forEach(r => {
+      html += '<tr onclick="rqSelect(\''+esc(r.id)+'\')">';
+      html += '<td style="position:sticky;left:0;background:var(--aidp-white);font-weight:500">'+esc(r.title || r.id)+'</td>';
+      allFrameworks.forEach(f => {
+        const has = (r.frameworks || []).includes(f);
+        html += '<td class="num" style="text-align:center;background:'+(has ? 'var(--aidp-green-lt)' : '#fff')+';color:'+(has ? 'var(--aidp-green)' : 'var(--aidp-ink-300)')+';font-weight:'+(has?'700':'400')+'" title="'+esc(r.title)+' ↔ '+esc(f)+'">'+(has?'✓':'·')+'</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    body.innerHTML = html;
+  }
+
+  function renderStatusBar() {
+    const t = document.getElementById('rq-status-text');
+    if (!t) return;
+    if (RQS.requirements.length === 0) { t.textContent = 'No requirements loaded'; return; }
+    const byT = RQS.summary?.by_type || {};
+    const pieces = [
+      RQS.requirements.length + ' requirements',
+      (byT.compliance || 0) + ' compliance',
+      (byT.nfr || 0) + ' NFR'
+    ];
+    t.innerHTML = pieces.join(' · ');
+  }
+
+  function renderAll() {
+    renderHeader();
+    renderKpis();
+    renderFrameworkFilter();
+    if (RQS.tab === 'list')   { renderTable(); renderDetail(); }
+    else                       { renderMatrix(); }
+    renderStatusBar();
+  }
+
+  /* ─── Tab switching ──────────────────────────────────── */
+  window.rqSetTab = function (tab) {
+    RQS.tab = tab;
+    document.getElementById('rq-tab-list').classList.toggle('active',   tab === 'list');
+    document.getElementById('rq-tab-matrix').classList.toggle('active', tab === 'matrix');
+    document.getElementById('rq-list-pane').style.display   = (tab === 'list')   ? '' : 'none';
+    document.getElementById('rq-matrix-pane').style.display = (tab === 'matrix') ? '' : 'none';
+    renderAll();
+  };
+
+  /* ─── Row selection + editing ────────────────────────── */
+  window.rqSelect = function (id) {
+    RQS.selectedId = id;
+    if (RQS.tab === 'matrix') rqSetTab('list');   // jump back to list to show detail
+    else { renderTable(); renderDetail(); }
+  };
+
+  window.rqFieldChange = function (el) {
+    if (!RQS.selectedId) return;
+    const r = RQS.requirements.find(x => x.id === RQS.selectedId);
+    if (!r) return;
+    const field = el.getAttribute('data-field');
+    if (field === 'frameworks_csv') {
+      r.frameworks = el.value.split(/[,;]/).map(s => s.trim()).filter(Boolean);
+    } else {
+      r[field] = el.value;
+    }
+    RQS.lastUpdated = Date.now();
+    wsSave();
+    if (window.RequirementsAPI) window.RequirementsAPI.addDebounced(r);
+    renderTable(); renderKpis(); renderFrameworkFilter(); renderStatusBar(); renderHeader();
+  };
+
+  /* ─── Action bar handlers ────────────────────────────── */
+
+  window.rqLoadSample = function () {
+    /* 12-requirement banking starter pack across all 4 types. */
+    const now = Date.now();
+    RQS.requirements = [
+      { id: 'rq-core-p99',         title: 'Core Payments p99 latency',     description: 'p99 response < 200ms for core payment authorisation', type: 'nfr',          nfr_category: 'performance', target_metric: 'p99 < 200ms', priority: 'must',   domain: 'payments', capability_id: 'core-payments' },
+      { id: 'rq-core-tps',         title: 'Core Payments throughput',      description: 'Sustained 5,000 TPS at peak with 50% headroom',         type: 'nfr',          nfr_category: 'scalability', target_metric: '5000 TPS', priority: 'must',   domain: 'payments', capability_id: 'core-payments' },
+      { id: 'rq-core-rto',         title: 'RTO 30 min',                    description: 'Recovery Time Objective ≤ 30 minutes for core services',type: 'nfr',          nfr_category: 'availability', target_metric: 'RTO ≤ 30m', priority: 'must',  domain: 'payments' },
+      { id: 'rq-aml-realtime',     title: 'Real-time AML screening',       description: 'AML must screen every transaction inline within 50ms', type: 'functional',   priority: 'must',  domain: 'compliance', capability_id: 'aml' },
+      { id: 'rq-card-mgmt-soa',    title: 'Card management service API',   description: 'Expose card lifecycle operations as REST + events',     type: 'functional',   priority: 'should',domain: 'cards', capability_id: 'card-mgmt' },
+      { id: 'rq-pci-dss',          title: 'PCI-DSS compliance',            description: 'Card data handling per PCI-DSS v4.0 controls',         type: 'compliance',   frameworks: ['PCI-DSS','SOC2'],   priority: 'must',  domain: 'cards' },
+      { id: 'rq-gdpr',             title: 'GDPR data subject rights',      description: 'Right to access, rectify, erase for EU data subjects',  type: 'compliance',   frameworks: ['GDPR'],             priority: 'must',  domain: 'channels' },
+      { id: 'rq-sox',              title: 'SOX audit trail',               description: 'Immutable audit log of every financial transaction',    type: 'compliance',   frameworks: ['SOX','SOC2'],       priority: 'must',  domain: 'compliance' },
+      { id: 'rq-iso-27001',        title: 'ISO 27001 control alignment',   description: 'Map controls to ISO 27001 Annex A',                    type: 'compliance',   frameworks: ['ISO27001'],         priority: 'should',domain: 'compliance' },
+      { id: 'rq-int-swift-iso',    title: 'SWIFT MT to ISO 20022 bridge',  description: 'Translate inbound MT to ISO 20022 messages',           type: 'integration',  integration_with: 'SWIFT', priority: 'should', domain: 'trade', capability_id: 'trade-finance' },
+      { id: 'rq-int-cbs',          title: 'Core banking sync',             description: 'Bidirectional sync with core banking platform',         type: 'integration',  integration_with: 'Core Banking System', priority: 'should', domain: 'core-banking' },
+      { id: 'rq-obs-traces',       title: 'Distributed tracing',           description: 'OpenTelemetry traces for every cross-service call',     type: 'nfr',          nfr_category: 'observability', priority: 'should', domain: 'ops' }
+    ];
+    RQS.summary = {
+      count: RQS.requirements.length,
+      by_priority: { must: 8, should: 4, could: 0, wont: 0 },
+      by_type:     { functional: 2, nfr: 4, compliance: 4, integration: 2 },
+      invest_summary: []
+    };
+    RQS.lastUpdated = now;
+    wsSave();
+    if (window.RequirementsAPI) RQS.requirements.forEach(r => window.RequirementsAPI.addDebounced(r));
+    if (S()) S().toast('ok', 'Sample loaded', '12 banking requirements across 4 types');
+    renderAll();
+  };
+
+  window.rqAddRequirement = function () {
+    const id = 'rq-' + Math.random().toString(36).slice(2, 8);
+    const newReq = { id, title: 'New requirement', description: '', type: 'functional', priority: 'should', domain: 'other' };
+    RQS.requirements.push(newReq);
+    RQS.selectedId = id;
+    RQS.lastUpdated = Date.now();
+    wsSave();
+    if (window.RequirementsAPI) window.RequirementsAPI.addDebounced(newReq);
+    renderAll();
+    /* Focus the title input so the user can start typing immediately. */
+    setTimeout(() => {
+      const t = document.querySelector('#rq-detail input[data-field="title"]');
+      if (t) { t.focus(); t.select(); }
+    }, 50);
+  };
+
+  /* ─── Compliance suggest modal ───────────────────────── */
+  window.rqSuggestCompliance = function () {
+    document.getElementById('rq-modal-bg').style.display = 'flex';
+  };
+  window.rqCloseModal = function () {
+    document.getElementById('rq-modal-bg').style.display = 'none';
+  };
+  window.rqDoSuggest = async function () {
+    const btn = document.getElementById('rq-m-go');
+    btn.disabled = true; btn.textContent = '⏳ Calling AIDP…';
+    try {
+      if (!window.RequirementsAPI) throw new Error('RequirementsAPI not loaded');
+      const res = await window.RequirementsAPI.suggestCompliance({
+        domain:      document.getElementById('rq-m-domain').value,
+        sensitivity: document.getElementById('rq-m-sens').value,
+        region:      document.getElementById('rq-m-region').value,
+        persist:     document.getElementById('rq-m-persist').checked
+      });
+      const generated = res?.requirements || [];
+      const frameworks = res?.frameworks || [];
+      if (S()) S().toast('ok', 'AIDP suggested ' + generated.length + ' requirements', frameworks.join(', '));
+      /* Merge into local state (by id) */
+      const ids = new Set(RQS.requirements.map(r => r.id));
+      generated.forEach(r => { if (!ids.has(r.id)) RQS.requirements.push(r); });
+      RQS.lastUpdated = Date.now();
+      wsSave();
+      rqCloseModal();
+      await refresh();    // pick up the persisted state from the agent
+    } catch (err) {
+      if (S()) S().toast('err', 'Suggest failed', err.message || String(err));
+      else alert('Suggest failed: ' + (err.message || err));
+    } finally {
+      btn.disabled = false; btn.textContent = '🌐 Suggest now';
+    }
+  };
+
+  /* ─── Excel + handoff ────────────────────────────────── */
+
+  window.rqExportXlsx = function () {
+    if (!(window.DI && window.DI.export && window.DI.export.workbook)) { if (S()) S().toast('err','Excel exporter not loaded'); return; }
+    if (RQS.requirements.length === 0) { if (S()) S().toast('warn','Nothing to export'); return; }
+    const reqHeaders = ['ID','Title','Description','Type','Priority','Domain','Capability','NFR Category','Target Metric','Integration With','Frameworks'];
+    const reqRows = RQS.requirements.map(r => ({
+      'ID': r.id, 'Title': r.title || '', 'Description': r.description || '',
+      'Type': r.type || '', 'Priority': r.priority || '',
+      'Domain': r.domain || '', 'Capability': r.capability_id || '',
+      'NFR Category': r.nfr_category || '', 'Target Metric': r.target_metric || '',
+      'Integration With': r.integration_with || '', 'Frameworks': (r.frameworks || []).join(', ')
+    }));
+    /* Matrix sheet · only when there are compliance reqs */
+    const complianceReqs = RQS.requirements.filter(r => r.type === 'compliance' && (r.frameworks||[]).length > 0);
+    const sheets = [{ name: 'Requirements', headers: reqHeaders, rows: reqRows }];
+    if (complianceReqs.length) {
+      const allFw = [...new Set(complianceReqs.flatMap(r => r.frameworks || []))].sort();
+      const matrixHeaders = ['Requirement'].concat(allFw);
+      const matrixRows = complianceReqs.map(r => {
+        const obj = { 'Requirement': r.title || r.id };
+        allFw.forEach(f => { obj[f] = (r.frameworks||[]).includes(f) ? '✓' : ''; });
+        return obj;
+      });
+      sheets.push({ name: 'Compliance matrix', headers: matrixHeaders, rows: matrixRows });
+    }
+    const params = [
+      { Setting: 'Tenant',       Value: (S() ? S().getUserEmail() : '') },
+      { Setting: 'Total',        Value: RQS.requirements.length },
+      { Setting: 'Compliance',   Value: complianceReqs.length },
+      { Setting: 'Generated',    Value: new Date().toISOString() }
+    ];
+    sheets.push({ name: 'Run parameters', headers: ['Setting','Value'], rows: params });
+    try {
+      window.DI.export.workbook('aidp-requirements.xlsx', sheets);
+      if (S()) S().toast('ok', 'Excel ready');
+    } catch (err) {
+      if (S()) S().toast('err', 'Excel export failed', err.message || err);
+    }
+  };
+
+  window.rqSendToSow = function () {
+    if (RQS.requirements.length === 0) { if (S()) S().toast('warn', 'Load requirements first'); return; }
+    if (S()) S().sendToStudio('sow', { requirements: RQS.requirements, summary: RQS.summary }, { path: 'draft-sow', query: 'from=requirements' });
+    else {
+      try { localStorage.setItem('di_handoff_sow', JSON.stringify({ from:'requirements', ts: Date.now(), requirements: RQS.requirements, summary: RQS.summary })); } catch {}
+      location.href = 'draft-sow?from=requirements';
+    }
+  };
+
+  /* ─── Error banner ───────────────────────────────────── */
+  function showError(msg) { if (S()) S().showError(document.getElementById('rq-error'), msg); }
+  function clearError()   { if (S()) S().clearError(document.getElementById('rq-error')); }
+
+  /* ─── Filter wiring ──────────────────────────────────── */
+  function wireFilters() {
+    ['type','priority','framework'].forEach(name => {
+      const el = document.getElementById('rq-f-' + name);
+      if (!el) return;
+      el.addEventListener('change', e => {
+        RQS.filters[name] = e.target.value;
+        renderAll();
+      });
+    });
+  }
+
+  /* ─── Keyboard shortcuts ─────────────────────────────── */
+  function wireShortcuts() {
+    if (!S()) return;
+    S().wireKeyboardShortcuts([
+      { key: 's', fn: () => rqLoadSample() },
+      { key: 'a', fn: () => rqAddRequirement() },
+      { key: 'c', fn: () => rqSuggestCompliance() },
+      { key: 'x', fn: () => rqExportXlsx() },
+      { key: 'f', fn: () => rqRefresh() },
+      { key: 'escape', fn: () => rqCloseModal() }
+    ], { isVisible: () => document.getElementById('rq-workspace').style.display !== 'none' });
+  }
+
+  /* ─── View toggle ────────────────────────────────────── */
+  window.setRqView = function (view) {
+    const legacy    = document.getElementById('rq-legacy-view');
+    const workspace = document.getElementById('rq-workspace');
+    const btnL      = document.getElementById('rq-view-legacy');
+    const btnW      = document.getElementById('rq-view-workspace');
+    if (view === 'workspace') {
+      legacy.style.display    = 'none';
+      workspace.style.display = '';
+      btnL.style.background = 'transparent'; btnL.style.color = '#64748B'; btnL.style.boxShadow = 'none';
+      btnW.style.background = '#FFFFFF';     btnW.style.color = '#0F172A'; btnW.style.boxShadow = '0 1px 2px rgba(15,23,42,.08)';
+      try { localStorage.setItem('aidp_rq_view', 'workspace'); } catch {}
+      if (!RQS.initialized) {
+        RQS.initialized = true;
+        wsLoad();
+        wireFilters();
+        wireShortcuts();
+        refresh();
+      } else {
+        renderAll();
+      }
+      /* Freshness tick */
+      if (!window._rqTick) {
+        window._rqTick = setInterval(() => {
+          if (workspace.style.display !== 'none') { renderHeader(); renderStatusBar(); }
+        }, 15000);
+      }
+    } else {
+      legacy.style.display    = '';
+      workspace.style.display = 'none';
+      btnL.style.background = '#FFFFFF';     btnL.style.color = '#0F172A'; btnL.style.boxShadow = '0 1px 2px rgba(15,23,42,.08)';
+      btnW.style.background = 'transparent'; btnW.style.color = '#64748B'; btnW.style.boxShadow = 'none';
+      try { localStorage.setItem('aidp_rq_view', 'legacy'); } catch {}
+    }
+  };
+
+  /* ─── Boot ───────────────────────────────────────────── */
+  function boot() {
+    let pref = 'legacy';
+    try { pref = localStorage.getItem('aidp_rq_view') || 'legacy'; } catch {}
+    setTimeout(() => {
+      if (pref === 'workspace') setRqView('workspace');
+    }, 100);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
 </script>
 
 </body>
