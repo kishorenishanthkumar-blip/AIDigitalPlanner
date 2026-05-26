@@ -280,5 +280,8 @@
     downloadBlob, downloadJson
   };
 
-  try { console.log('[AIDP] studio-shell v1 loaded'); } catch {}
+  /* Typo-tolerant alias · `IDPStudio` (no leading A) also works. */
+  window.IDPStudio = window.AIDPStudio;
+
+  try { console.log('[AIDP] studio-shell v1 loaded · also available as IDPStudio'); } catch {}
 })();

@@ -145,5 +145,8 @@
 
   window.AIDPTest = { runStudioTestSuite, openDashboard, tmHealth, TM_BASE_URL };
 
-  try { console.log('[AIDP] studio-test v1 loaded · target', TM_BASE_URL); } catch {}
+  /* Typo-tolerant alias · `IDPTest` (no leading A) also works. */
+  window.IDPTest = window.AIDPTest;
+
+  try { console.log('[AIDP] studio-test v1 loaded · also available as IDPTest · target', TM_BASE_URL); } catch {}
 })();
