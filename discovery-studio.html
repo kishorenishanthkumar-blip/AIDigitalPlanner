@@ -1729,7 +1729,7 @@ function timeAgo(iso) {
       ['Generated', new Date().toISOString()]
     ];
     try {
-      window.DI.export.workbook('aidp-discovery-workspace', [
+      window.DI.export.workbook('aidp-discovery-workspace.xlsx', [
         { name: 'Capabilities',   rows: [header].concat(rows) },
         { name: 'Run parameters', rows: params }
       ]);

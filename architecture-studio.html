@@ -1,11 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Architecture Studio · DI Platform</title>
-<meta name="description" content="Architecture Studio — finalize cloud targets with live pricing across AWS, Azure, GCP, OCI, IBM and Private DC."/>
-<link rel="stylesheet" href="assets/theme.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Architecture Studio · AIDP</title>
+<meta name="description" content="Price banking workloads across 7 clouds · audit-grade evidence for cloud strategy decisions." />
+
+<!-- Shared platform assets -->
 <script src="assets/toasts.js" defer></script>
 <script src="assets/audit.js" defer></script>
 <script src="assets/cmdk.js" defer></script>
@@ -14,771 +15,1221 @@
 <script src="assets/export.js" defer></script>
 <script src="assets/pricing.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+
+<!-- Enterprise typography · Inter for UI, IBM Plex Mono for numbers -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;overflow-x:hidden;min-height:100vh}
-a{color:var(--gold);text-decoration:none}
-button{font-family:var(--f-ui);cursor:pointer;border:none}
+/* ─── Design tokens · enterprise banking palette ──────────────── */
+:root {
+  --ink-900:  #0F172A;
+  --ink-800:  #1E293B;
+  --ink-700:  #334155;
+  --ink-600:  #475569;
+  --ink-500:  #64748B;
+  --ink-400:  #94A3B8;
+  --ink-300:  #CBD5E1;
+  --ink-200:  #E2E8F0;
+  --ink-100:  #F1F5F9;
+  --ink-50:   #F8FAFC;
+  --white:    #FFFFFF;
+  --navy:     #1E40AF;  /* primary action */
+  --navy-dk:  #1E3A8A;
+  --navy-lt:  #DBEAFE;
+  --teal:     #0E7490;
+  --teal-lt:  #CFFAFE;
+  --green:    #15803D;
+  --green-lt: #DCFCE7;
+  --amber:    #B45309;
+  --amber-lt: #FEF3C7;
+  --red:      #B91C1C;
+  --red-lt:   #FEE2E2;
+  --purple:   #6D28D9;
+  --purple-lt:#EDE9FE;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .04);
+  --shadow:    0 1px 3px rgba(15, 23, 42, .08), 0 4px 12px rgba(15, 23, 42, .04);
+  --shadow-lg: 0 4px 20px rgba(15, 23, 42, .10);
+  --radius:    6px;
+  --radius-lg: 10px;
+  --f-ui:      'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --f-mono:    'IBM Plex Mono', 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+}
 
-/* Filters bar */
-.as-filters{background:#fff;border-bottom:1px solid var(--border);padding:13px 24px}
-.as-filters-wrap{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.as-filt{display:flex;flex-direction:column;gap:3px}
-.as-filt .lbl{font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase}
-.as-filt select,.as-filt input{padding:6px 10px;border:1px solid var(--border-2);border-radius:7px;font-size:12px;background:var(--canvas);font-family:inherit;outline:none;color:var(--ink)}
-.as-filt select:focus,.as-filt input:focus{border-color:var(--gold)}
-.as-chips{display:flex;gap:4px;flex-wrap:wrap}
-.as-chip{font-size:10.5px;background:var(--aglow);border:1px solid var(--gold-2);border-radius:99px;padding:4px 9px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
-.as-chip.off{background:var(--canvas);border-color:var(--border);color:var(--ink-2)}
-.as-chip input{accent-color:var(--gold);margin:0}
-.as-refresh{margin-left:auto;font-size:10.5px;color:var(--ink-2);text-align:right;line-height:1.45}
-.as-refresh strong{color:var(--green)}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--f-ui);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-800);
+  background: var(--ink-50);
+  -webkit-font-smoothing: antialiased;
+}
 
-/* Hero */
-.as-hero{padding:24px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fff,var(--canvas))}
-.as-hero-wrap{max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:18px}
-.as-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
-.as-h1{font-family:var(--f-head);font-size:24px;font-weight:600;line-height:1.18}
-.as-h1 em{font-style:italic;color:var(--gold)}
-.as-stats{display:flex;gap:10px;flex-wrap:wrap}
-.as-stat{background:#fff;border:1px solid var(--border);border-radius:10px;padding:9px 14px;min-width:140px;text-align:center}
-.as-stat.ok  {background:var(--green-bg);border-color:var(--green)}
-.as-stat.warn{background:var(--aglow);border-color:var(--gold)}
-.as-stat .lbl{font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase;margin-bottom:2px}
-.as-stat .val{font-family:var(--f-head);font-size:20px;font-weight:600;color:var(--ink)}
-.as-stat.ok   .val{color:#0A8462}
-.as-stat.warn .val{color:var(--gold)}
-.as-stat .sub{font-size:9.5px;color:var(--ink-2);margin-top:1px}
-.as-stat.ok .sub{color:#0A8462;font-weight:700}
+/* ─── Layout shell ─────────────────────────────────────────────── */
+.as-shell {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 24px 96px;  /* room for sticky action bar */
+}
 
-/* Main content */
-.as-main{padding:18px 24px 36px;max-width:1400px;margin:0 auto}
+/* ─── Page header ──────────────────────────────────────────────── */
+.as-header {
+  padding: 20px 0 16px;
+  border-bottom: 1px solid var(--ink-200);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: end;
+}
+.as-bread {
+  font-size: 11px;
+  color: var(--ink-500);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.as-bread a { color: var(--ink-500); text-decoration: none; }
+.as-bread a:hover { color: var(--navy); text-decoration: underline; }
+.as-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink-900);
+  letter-spacing: -.01em;
+  margin: 0 0 4px;
+}
+.as-subtitle {
+  font-size: 13px;
+  color: var(--ink-600);
+  margin: 0;
+}
+.as-context {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.as-tenant {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ink-100);
+  border: 1px solid var(--ink-200);
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--ink-700);
+  font-weight: 500;
+}
+.as-tenant strong { color: var(--ink-900); font-weight: 600; }
+.as-freshness {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--ink-600);
+}
+.as-freshness .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 3px var(--green-lt);
+}
+.as-freshness.stale .dot { background: var(--amber); box-shadow: 0 0 0 3px var(--amber-lt); }
+.as-freshness.error .dot { background: var(--red);   box-shadow: 0 0 0 3px var(--red-lt); }
 
-/* Banner */
-.as-banner{background:#FFFCF4;border:1px solid var(--gold-2);border-radius:10px;padding:11px 14px;font-size:12px;color:#7A5F10;margin-bottom:14px;display:flex;align-items:center;gap:10px;line-height:1.55}
-.as-banner strong{color:var(--gold)}
-.as-banner .right{margin-left:auto;display:flex;gap:6px}
-.as-banner button{background:transparent;border:1px solid var(--gold);color:var(--gold);font-size:11px;font-weight:700;border-radius:6px;padding:3px 9px;cursor:pointer;font-family:inherit}
+/* ─── KPI strip ────────────────────────────────────────────────── */
+.as-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 16px 0 0;
+}
+.as-kpi {
+  background: var(--white);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-sm);
+}
+.as-kpi .lbl {
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.as-kpi .val {
+  font-family: var(--f-mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink-900);
+  line-height: 1.1;
+}
+.as-kpi .sub {
+  font-size: 11px;
+  color: var(--ink-500);
+  margin-top: 2px;
+}
+.as-kpi.positive .val { color: var(--green); }
+.as-kpi.warning .val  { color: var(--amber); }
 
-/* Pricing grid table */
-.as-grid{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:auto;-webkit-overflow-scrolling:touch}
-.as-grid table{border-collapse:collapse;font-size:12px;min-width:1100px;width:100%}
-.as-grid thead th{background:var(--canvas);font-size:9.5px;font-weight:700;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:5}
-.as-grid thead th.cloud{text-align:center;border-left:1px solid var(--border)}
-.as-grid thead th.cloud.chosen{background:var(--aglow);color:var(--gold)}
-.as-grid td{padding:11px 12px;border-bottom:1px solid var(--canvas-2);vertical-align:top}
-.as-grid tr:hover td{background:var(--canvas)}
-.as-cap-name{font-weight:700;font-size:12.5px}
-.as-cap-stack{font-size:10.5px;color:var(--ink-2);margin-top:2px}
-.as-verdict{display:inline-block;padding:3px 8px;border-radius:99px;color:#fff;font-size:9px;font-weight:700;letter-spacing:.04em}
-.as-cell{text-align:right;font-family:var(--f-mono);font-size:12px;border-left:1px solid var(--canvas-2);padding:8px 10px}
-.as-cell.chosen{background:var(--aglow);font-weight:700;color:var(--gold)}
-.as-cell .mo{display:block;font-size:11px}
-.as-cell .yr{display:block;font-size:9.5px;color:var(--ink-2);margin-top:1px}
-.as-cell .yr.chosen{color:var(--gold)}
-.as-cell .pick{display:block;font-size:9px;color:var(--ink-3);margin-top:3px;cursor:pointer;font-family:var(--f-ui)}
-.as-cell .pick:hover{color:var(--gold);text-decoration:underline}
-.as-cell.chosen .pick{color:var(--gold);font-weight:700}
-.as-cell.chosen .pick::before{content:'✓ chosen';color:#0A8462;font-weight:700}
-.as-cell.chosen .pick > .pick-text{display:none}
-.as-grid tfoot td{background:var(--aglow);font-weight:700;font-size:13px;color:var(--ink);border-bottom:none}
-.as-grid tfoot td.total{font-family:var(--f-mono)}
+/* ─── Filter rail ──────────────────────────────────────────────── */
+.as-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 12px;
+  padding: 12px 14px;
+  background: var(--white);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+.as-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.as-filter label {
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+  font-weight: 600;
+}
+.as-filter select, .as-filter input {
+  font-family: var(--f-ui);
+  font-size: 13px;
+  padding: 5px 8px;
+  border: 1px solid var(--ink-300);
+  border-radius: 4px;
+  background: var(--white);
+  color: var(--ink-900);
+  min-width: 110px;
+}
+.as-filter select:focus, .as-filter input:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px var(--navy-lt);
+}
+.as-filter-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--ink-200);
+}
+.as-source-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--ink-100);
+  border-radius: 6px;
+  padding: 2px;
+  margin-left: auto;
+}
+.as-source-toggle button {
+  background: transparent;
+  border: 0;
+  padding: 5px 10px;
+  font-family: var(--f-ui);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-600);
+  cursor: pointer;
+  border-radius: 4px;
+}
+.as-source-toggle button.active {
+  background: var(--white);
+  color: var(--ink-900);
+  box-shadow: var(--shadow-sm);
+}
 
-/* Sources strip */
-.as-sources{background:#FFFCF4;border:1px dashed var(--gold-2);border-radius:11px;padding:12px 16px;font-size:11.5px;color:#7A5F10;line-height:1.55;margin-top:14px}
-.as-sources strong{color:var(--gold)}
-.as-sources .pill{display:inline-block;background:#fff;border:1px solid var(--gold-2);border-radius:6px;padding:2px 8px;margin:3px 4px 0 0;font-size:11px;color:var(--ink)}
-.as-sources .pill a{color:var(--gold)}
-.as-sources .note{margin-top:8px;font-size:10.5px;color:#9C7C20}
+/* ─── Data table ───────────────────────────────────────────────── */
+.as-table-wrap {
+  background: var(--white);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.as-table-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--ink-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--ink-50);
+}
+.as-table-header h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-800);
+}
+.as-table-meta {
+  font-size: 11px;
+  color: var(--ink-500);
+  font-family: var(--f-mono);
+}
+.as-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.as-table th, .as-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--ink-100);
+}
+.as-table th {
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+  font-weight: 600;
+  background: var(--ink-50);
+  border-bottom: 2px solid var(--ink-200);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.as-table th.num, .as-table td.num {
+  text-align: right;
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.as-table tbody tr:hover { background: var(--ink-50); }
+.as-table tbody tr.cheapest-cell { background: var(--green-lt); }
+.as-table .cap-name { font-weight: 500; color: var(--ink-900); }
+.as-table .cap-stack {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--ink-500);
+  margin-top: 1px;
+}
+.as-table tfoot td {
+  font-weight: 600;
+  background: var(--ink-50);
+  border-top: 2px solid var(--ink-200);
+  border-bottom: 0;
+}
 
-/* CTA strip */
-.as-cta{margin-top:18px;background:var(--ink);color:#fff;border-radius:12px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}
-.as-cta .lbl{font-size:10px;font-weight:700;color:var(--gold-3);letter-spacing:.1em;text-transform:uppercase}
-.as-cta .h{font-size:14px;font-weight:600;margin-top:2px}
-.as-cta .sub{font-size:11.5px;color:#8AA4C8;margin-top:3px}
-.as-cta .actions{display:flex;gap:8px;flex-wrap:wrap}
-.as-cta .primary{background:var(--gold);border:none;color:#fff;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
-.as-cta .ghost{background:transparent;border:1px solid #243655;color:var(--gold-3);border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+/* Verdict chips · subdued enterprise palette */
+.chip {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-family: var(--f-ui);
+}
+.chip-rehost   { background: var(--ink-100);   color: var(--ink-700); }
+.chip-replat   { background: var(--teal-lt);   color: var(--teal); }
+.chip-refact   { background: var(--navy-lt);   color: var(--navy-dk); }
+.chip-rearch   { background: var(--purple-lt); color: var(--purple); }
+.chip-rebuild  { background: var(--amber-lt);  color: var(--amber); }
+.chip-replace  { background: var(--red-lt);    color: var(--red); }
+.chip-retain   { background: var(--ink-200);   color: var(--ink-700); }
 
-/* Empty state */
-.as-empty{text-align:center;padding:60px 20px;background:#fff;border:1px solid var(--border);border-radius:14px;color:var(--ink-2)}
-.as-empty h2{font-family:var(--f-head);font-size:20px;color:var(--ink);margin-bottom:8px}
-.as-empty p{font-size:13px;max-width:480px;margin:0 auto 14px;line-height:1.55}
-.as-empty .actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
-.as-empty .actions a,.as-empty .actions button{background:var(--gold);color:#fff;border:none;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit;cursor:pointer}
-.as-empty .actions .ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+/* Cell · cheapest highlight */
+.as-table td.num.cheapest {
+  background: var(--green-lt);
+  color: var(--green);
+  font-weight: 600;
+  position: relative;
+}
+.as-table td.num.cheapest::after {
+  content: '●';
+  position: absolute;
+  top: 4px; right: 4px;
+  font-size: 7px;
+  color: var(--green);
+}
 
-/* Provenance modal */
-.as-modal-bg{position:fixed;inset:0;background:rgba(20,33,58,.4);display:none;align-items:center;justify-content:center;z-index:99980}
-.as-modal-bg.open{display:flex}
-.as-modal{background:#fff;border-radius:14px;max-width:520px;width:90vw;padding:22px;box-shadow:var(--shadow-lg);font-family:var(--f-ui);max-height:90vh;overflow-y:auto}
-.as-modal h3{font-family:var(--f-head);font-size:18px;color:var(--ink);margin-bottom:10px}
-.as-modal .row{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px dashed var(--border)}
-.as-modal .row span{color:var(--ink-2)}
-.as-modal .row strong{color:var(--ink);font-family:var(--f-mono)}
-.as-modal .close{background:var(--gold);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;margin-top:14px;cursor:pointer}
+/* ─── States ───────────────────────────────────────────────────── */
+.as-state {
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--white);
+  border: 1px dashed var(--ink-300);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+.as-state .icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: .5;
+}
+.as-state h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  color: var(--ink-900);
+  font-weight: 600;
+}
+.as-state p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--ink-600);
+}
+.as-state .actions {
+  display: inline-flex;
+  gap: 8px;
+}
+.as-error {
+  padding: 12px 14px;
+  background: var(--red-lt);
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  color: var(--red);
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.as-error .ic { font-size: 18px; }
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.fadeUp{animation:fadeUp .35s ease both}
+/* Skeleton */
+.as-skel {
+  height: 14px;
+  background: linear-gradient(90deg, var(--ink-100) 0%, var(--ink-200) 50%, var(--ink-100) 100%);
+  background-size: 200% 100%;
+  animation: skel 1.4s ease-in-out infinite;
+  border-radius: 4px;
+}
+@keyframes skel {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Buttons ──────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--f-ui);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all .12s;
+  text-decoration: none;
+  background: var(--white);
+  color: var(--ink-800);
+  border-color: var(--ink-300);
+  line-height: 1;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--ink-500); background: var(--ink-50); }
+.btn-primary {
+  background: var(--navy);
+  color: var(--white);
+  border-color: var(--navy);
+}
+.btn-primary:hover { background: var(--navy-dk); border-color: var(--navy-dk); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--ink-700); }
+.btn-ghost:hover { background: var(--ink-100); border-color: var(--ink-200); }
+.btn-sm { padding: 4px 10px; font-size: 11.5px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ─── Sticky action bar ────────────────────────────────────────── */
+.as-actions {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--white);
+  border-top: 1px solid var(--ink-200);
+  box-shadow: 0 -2px 8px rgba(15, 23, 42, .04);
+  padding: 12px 24px;
+  z-index: 50;
+}
+.as-actions-inner {
+  max-width: 1500px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.as-actions-status {
+  font-size: 12px;
+  color: var(--ink-600);
+}
+.as-actions-status strong {
+  color: var(--ink-900);
+  font-family: var(--f-mono);
+}
+.as-actions-buttons { display: flex; gap: 8px; }
+
+/* ─── Live AIDP comparison panel ───────────────────────────────── */
+.as-live {
+  margin: 16px 0;
+  background: var(--white);
+  border: 2px solid var(--navy);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.as-live-header {
+  background: var(--navy);
+  color: var(--white);
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.as-live-header h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.as-live-header .sub {
+  font-size: 11px;
+  opacity: .85;
+  font-family: var(--f-mono);
+}
+.as-live-close {
+  background: transparent;
+  border: 0;
+  color: var(--white);
+  font-size: 18px;
+  cursor: pointer;
+  opacity: .7;
+}
+.as-live-close:hover { opacity: 1; }
+
+/* ─── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .as-kpis { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+  .as-shell { padding: 0 12px 100px; }
+  .as-header { grid-template-columns: 1fr; }
+  .as-context { align-items: flex-start; }
+  .as-kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .as-kpi .val { font-size: 16px; }
+  .as-filters { gap: 8px; }
+  .as-filter-divider { display: none; }
+  .as-table th, .as-table td { padding: 6px 8px; font-size: 11.5px; }
+  .as-actions-inner { flex-direction: column; align-items: stretch; }
+}
 </style>
 </head>
 <body>
 
+<!-- Shared top bar (auto-mounted by top-bar.js) -->
 <div data-di-topbar></div>
 
-<!-- Filters -->
-<div class="as-filters">
-  <div class="as-filters-wrap">
-    <div class="as-filt"><div class="lbl">REGION</div><select id="f-region"></select></div>
-    <div class="as-filt"><div class="lbl">PRICING MODEL</div><select id="f-model"></select></div>
-    <div class="as-filt"><div class="lbl">CURRENCY</div><select id="f-currency"></select></div>
-    <div class="as-filt"><div class="lbl">DISCOUNT</div><input id="f-discount" type="number" min="0" max="60" step="1" value="0" style="width:74px">%</div>
-    <div class="as-filt">
-      <div class="lbl">INCLUDE</div>
-      <div class="as-chips">
-        <label class="as-chip"><input type="checkbox" id="c-compute" checked>Compute</label>
-        <label class="as-chip"><input type="checkbox" id="c-storage" checked>Storage</label>
-        <label class="as-chip"><input type="checkbox" id="c-egress"  checked>Egress</label>
-        <label class="as-chip off"><input type="checkbox" id="c-support">Support</label>
+<main class="as-shell">
+
+  <!-- Page header -->
+  <header class="as-header">
+    <div>
+      <div class="as-bread">
+        <a href="home">Home</a> · <a href="discovery-studio">Discovery</a> · <span>Architecture</span>
+      </div>
+      <h1 class="as-title">Architecture Studio</h1>
+      <p class="as-subtitle">Price banking workloads across 7 clouds · evidence for cloud strategy decisions.</p>
+    </div>
+    <div class="as-context">
+      <span class="as-tenant" id="as-tenant">
+        Tenant: <strong id="as-tenant-name">Loading…</strong> · Region: <strong id="as-tenant-region">na-east</strong>
+      </span>
+      <span class="as-freshness" id="as-freshness">
+        <span class="dot"></span> <span id="as-fresh-text">Initializing…</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- KPI strip -->
+  <div class="as-kpis" id="as-kpis">
+    <div class="as-kpi"><div class="lbl">Total monthly</div><div class="val" id="kpi-total" aria-busy="true" aria-label="Total monthly cost loading"><div class="as-skel" style="width:80%" role="presentation"></div></div><div class="sub" id="kpi-total-sub">&nbsp;</div></div>
+    <div class="as-kpi positive"><div class="lbl">Cheapest cloud</div><div class="val" id="kpi-cheapest" aria-busy="true" aria-label="Cheapest cloud loading"><div class="as-skel" style="width:60%" role="presentation"></div></div><div class="sub" id="kpi-cheapest-sub">&nbsp;</div></div>
+    <div class="as-kpi warning"><div class="lbl">Most expensive</div><div class="val" id="kpi-priciest" aria-busy="true" aria-label="Most expensive cloud loading"><div class="as-skel" style="width:60%" role="presentation"></div></div><div class="sub" id="kpi-priciest-sub">&nbsp;</div></div>
+    <div class="as-kpi"><div class="lbl">Capabilities priced</div><div class="val" id="kpi-count" aria-busy="true" aria-label="Capability count loading"><div class="as-skel" style="width:30%" role="presentation"></div></div><div class="sub" id="kpi-count-sub">&nbsp;</div></div>
+  </div>
+
+  <!-- Filter rail -->
+  <div class="as-filters">
+    <div class="as-filter">
+      <label for="f-region">Region</label>
+      <select id="f-region">
+        <option value="na-east">North America · East</option>
+        <option value="na-west">North America · West</option>
+        <option value="eu-west">EU · West</option>
+        <option value="eu-central">EU · Central</option>
+        <option value="apac-sg">APAC · Singapore</option>
+        <option value="apac-in">APAC · India</option>
+        <option value="apac-jp">APAC · Japan</option>
+      </select>
+    </div>
+    <div class="as-filter">
+      <label for="f-currency">Currency</label>
+      <select id="f-currency">
+        <option value="USD">USD</option>
+        <option value="EUR">EUR</option>
+        <option value="GBP">GBP</option>
+        <option value="SGD">SGD</option>
+        <option value="INR">INR</option>
+      </select>
+    </div>
+    <div class="as-filter">
+      <label for="f-discount">Enterprise discount</label>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input id="f-discount" type="number" min="0" max="60" value="0" step="1" style="width:80px;min-width:0">
+        <span style="font-size:13px;color:var(--ink-500);font-weight:500">%</span>
       </div>
     </div>
-    <div class="as-refresh" id="refresh-info"></div>
+    <div class="as-filter-divider"></div>
+    <div class="as-source-toggle" role="tablist" aria-label="Pricing source">
+      <button id="src-local" class="active" onclick="setSource('local')">📊 Local pricing-lib</button>
+      <button id="src-live" onclick="setSource('live')">🌐 Live AIDP agent</button>
+    </div>
+  </div>
+
+  <!-- Error banner -->
+  <div id="as-error" style="display:none"></div>
+
+  <!-- Main content area · table OR empty state -->
+  <div id="as-main"></div>
+
+  <!-- Live AIDP comparison panel -->
+  <div id="as-live-panel"></div>
+
+</main>
+
+<!-- Sticky action bar -->
+<div class="as-actions">
+  <div class="as-actions-inner">
+    <div class="as-actions-status" id="as-status">
+      <strong id="as-status-total">$0</strong> total monthly · <strong id="as-status-count">0</strong> capabilities · Source: <strong id="as-status-source">Local</strong>
+    </div>
+    <div class="as-actions-buttons">
+      <button class="btn btn-ghost btn-sm" onclick="loadSample()" title="Load 13-capability sample (S)">📥 Load sample</button>
+      <button class="btn btn-sm" onclick="exportXlsx()" title="Download Excel workbook (X)">⬇ Excel</button>
+      <button class="btn btn-sm" onclick="crossCheckBackend()" title="Cross-check via AIDP architecture agent (C)">🌐 Cross-check via AIDP</button>
+      <button class="btn btn-sm" onclick="generateEvp()" title="Open EVP summary">EVP summary</button>
+      <button class="btn btn-primary btn-sm" onclick="sendToGovernance()" title="Send to Program Governance">Send to Governance →</button>
+    </div>
   </div>
 </div>
 
-<!-- Hero -->
-<section class="as-hero" id="as-hero"></section>
-
-<!-- Main content -->
-<main class="as-main" id="as-main"></main>
-
-<!-- Provenance modal -->
-<div class="as-modal-bg" id="as-modal-bg" onclick="if(event.target===this)closeModal()">
-  <div class="as-modal" id="as-modal-body"></div>
-</div>
-
 <script>
-/* ═══════════════════════════════════════════════════════
-   Architecture Studio · Phase 15b
-   Reads Discovery 7R handoff from localStorage, renders
-   6-cloud pricing grid, allows per-capability cloud picks.
-═══════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════
+   Architecture Studio · v0.5 enterprise rewrite
+   Wired to live @aidp/agent-architecture via aidp-api.js
+═════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
 
-/* ── State ──────────────────────────────────────────── */
-const ARCH_KEY = 'di_architecture_v1';
-let STATE = {
-  region: 'na-east',
-  model: '3-yr-savings',
-  currency: 'USD',
-  discount: 0,
-  include: { compute: true, storage: true, egress: true, support: false },
-  picks: {},        // capabilityId → chosen cloud
-  capabilities: [], // [{ id, name, verdict, ... }]
-  source: null      // 'discovery' or 'manual'
-};
+  const STORE_KEY = 'aidp_arch_state_v5';
+  const HANDOFF_KEY = 'di_handoff_architecture';
 
-const CLOUDS = ['AWS','AZURE','GCP','OCI','IBM','PRIVATE-DC'];
-const CLOUD_LABEL = { AWS:'AWS', AZURE:'Azure', GCP:'GCP', OCI:'OCI', IBM:'IBM', 'PRIVATE-DC':'Private DC' };
-const CLOUD_BADGE_COLOR = { AWS:'#FF9900', AZURE:'#0078D4', GCP:'#0F9D58', OCI:'#F80000', IBM:'#1F70C1', 'PRIVATE-DC':'#5B6B8A' };
+  // 7-cloud roster (matches pricing-lib + agent)
+  const CLOUDS = ['aws', 'azure', 'gcp', 'oci', 'ibm', 'private-dc', 'saas'];
+  const CLOUD_LABEL = {
+    aws: 'AWS', azure: 'Azure', gcp: 'GCP', oci: 'OCI',
+    ibm: 'IBM', 'private-dc': 'Private DC', saas: 'SaaS'
+  };
+  const VERDICT_META = {
+    REHOST:  { label: 'Rehost',     cls: 'chip-rehost' },
+    REPLAT:  { label: 'Replatform', cls: 'chip-replat' },
+    REFACT:  { label: 'Refactor',   cls: 'chip-refact' },
+    REARCH:  { label: 'Rearch',     cls: 'chip-rearch' },
+    REBUILD: { label: 'Rebuild',    cls: 'chip-rebuild' },
+    REPLACE: { label: 'Replace',    cls: 'chip-replace' },
+    RETAIN:  { label: 'Retain',     cls: 'chip-retain' }
+  };
 
-const VERDICT_META = {
-  REHOST:   { name:'Rehost',     color:'#3D8EFF' },
-  REPLAT:   { name:'Replatform', color:'#0FD49A' },
-  REFACT:   { name:'Refactor',   color:'#FF8030' },
-  REARCH:   { name:'Rearchitect',color:'#FF4D6A' },
-  REBUILD:  { name:'Rebuild',    color:'#9B72FF' },
-  REPLACE:  { name:'Replace',    color:'#A0357A' },
-  RETAIN:   { name:'Retain',     color:'#5B6B8A' }
-};
+  const STATE = {
+    region: 'na-east',
+    currency: 'USD',
+    discount: 0,
+    capabilities: [],        // [{ id, name, verdict, current, future, ... }]
+    picks: {},
+    source: 'local',         // 'local' | 'live'
+    lastUpdated: null,
+    livePricing: null
+  };
 
-const REGION_LABEL = {
-  'na-east':'NA · us-east-1 / eastus / us-east1',
-  'na-west':'NA · us-west-2 / westus2 / us-west1',
-  'eu-west':'EU · eu-west-1 / westeurope / europe-west1',
-  'eu-central':'EU · eu-central-1 / germanywestcentral / europe-west3',
-  'apac-singapore':'APAC · ap-southeast-1 / southeastasia',
-  'apac-mumbai':'APAC · ap-south-1 / centralindia',
-  'apac-sydney':'APAC · ap-southeast-2 / australiaeast',
-  'sea-jakarta':'SEA · ap-southeast-3',
-  'swa-dubai':'SWA · me-central-1 / uaenorth'
-};
-const MODEL_LABEL = {
-  'on-demand':'On-demand',
-  '1-yr-reserved':'1-year reserved',
-  '3-yr-savings':'3-year Savings Plan',
-  'spot':'Spot / preemptible'
-};
-
-/* ── State persistence ──────────────────────────────── */
-function saveState() { try { localStorage.setItem(ARCH_KEY, JSON.stringify(STATE)); } catch(e){} }
-function loadState() {
-  try { const raw = localStorage.getItem(ARCH_KEY); if (raw) STATE = Object.assign(STATE, JSON.parse(raw)); }
-  catch(e) {}
-}
-
-/* ── Discovery handoff ──────────────────────────────── */
-function consumeHandoff() {
-  try {
-    const raw = localStorage.getItem('di_handoff_architecture');
-    if (!raw) return false;
-    const h = JSON.parse(raw);
-    if (h && h.capabilities && h.capabilities.length) {
-      STATE.capabilities = h.capabilities;
-      // Initialize picks from recommended verdict's natural stack
-      h.capabilities.forEach(c => {
-        if (!STATE.picks[c.id]) {
-          const stackMap = { AWS:'AWS', AZURE:'AZURE', GCP:'GCP', OCI:'OCI', IBM:'IBM', 'SaaS':'AWS', 'PRIVATE-DC':'PRIVATE-DC' };
-          STATE.picks[c.id] = stackMap[c.stack] || 'AWS';
-        }
-      });
-      STATE.source = 'discovery';
-      // Optional: clear the handoff so we don't re-import on every visit
-      // localStorage.removeItem('di_handoff_architecture');
-      saveState();
-      return true;
-    }
-  } catch (e) {}
-  return false;
-}
-
-/* ── Filter wiring ──────────────────────────────────── */
-function initFilters() {
-  const reg = document.getElementById('f-region');
-  reg.innerHTML = Object.keys(REGION_LABEL).map(k => '<option value="' + k + '"' + (STATE.region === k ? ' selected' : '') + '>' + REGION_LABEL[k] + '</option>').join('');
-  reg.addEventListener('change', e => { STATE.region = e.target.value; saveState(); render(); });
-
-  const mod = document.getElementById('f-model');
-  mod.innerHTML = Object.keys(MODEL_LABEL).map(k => '<option value="' + k + '"' + (STATE.model === k ? ' selected' : '') + '>' + MODEL_LABEL[k] + '</option>').join('');
-  mod.addEventListener('change', e => { STATE.model = e.target.value; saveState(); render(); });
-
-  const cur = document.getElementById('f-currency');
-  cur.innerHTML = window.DI.pricing.currencies.map(k => '<option value="' + k + '"' + (STATE.currency === k ? ' selected' : '') + '>' + k + '</option>').join('');
-  cur.addEventListener('change', e => { STATE.currency = e.target.value; saveState(); render(); });
-
-  const disc = document.getElementById('f-discount');
-  disc.value = STATE.discount;
-  disc.addEventListener('input', e => { STATE.discount = +e.target.value; saveState(); render(); });
-
-  ['compute','storage','egress','support'].forEach(k => {
-    const el = document.getElementById('c-' + k);
-    el.checked = !!STATE.include[k];
-    el.addEventListener('change', e => {
-      STATE.include[k] = e.target.checked;
-      const chip = e.target.parentNode;
-      chip.classList.toggle('off', !e.target.checked);
-      saveState();
-      render();
-    });
-    // initialize chip class
-    if (!STATE.include[k]) el.parentNode.classList.add('off');
-  });
-
-  document.getElementById('refresh-info').innerHTML =
-    'Last refresh: <strong>●</strong> ' + new Date(window.DI.pricing.refreshedAt).toLocaleDateString() + '<br>' +
-    'AWS · Azure · GCP · OCI · IBM ' + (window.DI.pricing.isLive ? '· LIVE' : '· cached snapshot');
-}
-
-/* ── Currency formatter ─────────────────────────────── */
-function fmtMoney(n) {
-  if (!isFinite(n)) return '—';
-  const c = STATE.currency || 'USD';
-  if (n >= 1000000) return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:1 }).format(n/1000000).replace(/\.0$/,'') + 'M';
-  if (n >= 10000)   return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:0 }).format(n);
-  return new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:0 }).format(n);
-}
-
-/* ── Render hero ────────────────────────────────────── */
-function renderHero() {
-  const caps = STATE.capabilities;
-  const includeComponents = Object.keys(STATE.include).filter(k => STATE.include[k]);
-  let totalMonthly = 0, totalLegacy = 0;
-  if (caps.length) {
-    const fut  = window.DI.pricing.compute3Yr(caps, { region:STATE.region, model:STATE.model, currency:STATE.currency, discount:STATE.discount, components:includeComponents });
-    const leg  = window.DI.pricing.legacyTco(caps);
-    fut.forEach((f, i) => {
-      // Use the user's picked cloud (override recommendation)
-      const cloud = STATE.picks[f.capabilityId] || f.chosenCloud;
-      totalMonthly += (f.allClouds[cloud] && f.allClouds[cloud].total) || 0;
-    });
-    leg.forEach(l => { totalLegacy += l.monthly; });
+  // ─── Persistence ─────────────────────────────────────────────
+  function saveState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(STATE)); } catch (e) {}
   }
-  const tcoFut = totalMonthly * 36;
-  const tcoLeg = totalLegacy * 36;
-  const savings = tcoLeg - tcoFut;
-  const pct = tcoLeg ? Math.round((savings / tcoLeg) * 100) : 0;
-
-  const el = document.getElementById('as-hero');
-  el.innerHTML =
-    '<div class="as-hero-wrap">' +
-      '<div>' +
-        '<div class="as-eyebrow">ARCHITECTURE · ' + caps.length + ' CAPABILITIES · 3-YEAR TCO</div>' +
-        '<h1 class="as-h1">Live cloud pricing applied to your 7R plan, <em>updated daily.</em></h1>' +
-      '</div>' +
-      '<div class="as-stats">' +
-        '<div class="as-stat"><div class="lbl">LEGACY TCO</div><div class="val">' + fmtMoney(tcoLeg) + '</div><div class="sub">3-yr · current state</div></div>' +
-        '<div class="as-stat warn"><div class="lbl">FUTURE (CLOUD) TCO</div><div class="val">' + fmtMoney(tcoFut) + '</div><div class="sub">3-yr · all-in</div></div>' +
-        '<div class="as-stat ok"><div class="lbl">3-YEAR SAVINGS</div><div class="val">' + (savings >= 0 ? fmtMoney(savings) : '—') + '</div><div class="sub">↓ ' + pct + '%</div></div>' +
-      '</div>' +
-    '</div>';
-}
-
-/* ── Render main (table or empty state) ─────────────── */
-function render() {
-  renderHero();
-  const main = document.getElementById('as-main');
-  const caps = STATE.capabilities;
-
-  if (!caps.length) {
-    main.innerHTML =
-      '<div class="as-empty fadeUp">' +
-        '<h2>No capabilities loaded yet</h2>' +
-        '<p>Architecture Studio works best when it receives a 7R map from Discovery Studio. Go to Discovery, pick your capabilities, then click <strong>Send to Architecture</strong> at the end of the wizard.</p>' +
-        '<div class="actions">' +
-          '<a href="discovery-studio.html">Open Discovery Studio →</a>' +
-          '<button class="ghost" onclick="loadSampleCaps()">Load sample (13 capabilities)</button>' +
-        '</div>' +
-      '</div>';
-    return;
-  }
-
-  // Banner if source = discovery
-  let banner = '';
-  if (STATE.source === 'discovery') {
-    banner = '<div class="as-banner">📥 <div>Imported <strong>' + caps.length + ' capabilities</strong> from Discovery Studio. Each capability\'s 7R verdict and target cloud are pre-loaded; you can override any pick below.</div>' +
-      '<div class="right"><button onclick="goBackToDiscovery()">↻ Re-run Discovery</button></div></div>';
-  }
-
-  // Compute prices per capability per cloud
-  const includeComponents = Object.keys(STATE.include).filter(k => STATE.include[k]);
-  const rows = caps.map(cap => {
-    const all = window.DI.pricing.estimate({ capabilityId: cap.id, verdict: cap.verdict }, {
-      region: STATE.region, model: STATE.model, currency: STATE.currency, discount: STATE.discount, components: includeComponents
-    });
-    return { cap, all };
-  });
-
-  // Totals per cloud (monthly)
-  const totals = {};
-  CLOUDS.forEach(c => totals[c] = 0);
-  let pickedTotal = 0;
-  rows.forEach(r => {
-    CLOUDS.forEach(c => { totals[c] += r.all[c].total; });
-    const picked = STATE.picks[r.cap.id] || 'AWS';
-    pickedTotal += r.all[picked].total;
-  });
-
-  // Build table
-  let html = banner + '<div class="as-grid fadeUp"><table>';
-  html += '<thead><tr>' +
-    '<th>Capability</th><th>7R</th>' +
-    CLOUDS.map(c => '<th class="cloud" data-cloud="' + c + '">' + CLOUD_LABEL[c] + '<br><span style="font-weight:400;font-size:9px;color:' + CLOUD_BADGE_COLOR[c] + '">●</span></th>').join('') +
-  '</tr></thead><tbody>';
-  rows.forEach(r => {
-    const picked = STATE.picks[r.cap.id] || 'AWS';
-    html += '<tr>';
-    html += '<td><div class="as-cap-name">' + r.cap.name + '</div><div class="as-cap-stack">' + (r.cap.current || '') + ' → ' + (r.cap.future || '') + '</div></td>';
-    const v = VERDICT_META[r.cap.verdict] || VERDICT_META.RETAIN;
-    html += '<td><span class="as-verdict" style="background:' + v.color + '">' + v.name.toUpperCase() + '</span></td>';
-    CLOUDS.forEach(c => {
-      const cell = r.all[c];
-      const isChosen = c === picked;
-      html += '<td class="as-cell ' + (isChosen ? 'chosen' : '') + '" data-cap="' + r.cap.id + '" data-cloud="' + c + '">' +
-        '<span class="mo">' + fmtMoney(cell.total) + '</span>' +
-        '<span class="yr ' + (isChosen ? 'chosen' : '') + '">3y · ' + fmtMoney(cell.tco3yr) + '</span>' +
-        '<span class="pick" onclick="pickCloud(\'' + r.cap.id + '\',\'' + c + '\')"><span class="pick-text">pick</span></span>' +
-        '<span class="pick" style="margin-top:0" onclick="event.stopPropagation();showProvenance(\'' + r.cap.id + '\',\'' + c + '\')" title="Source of this number">⋯ source</span>' +
-        '<span class="pick" style="margin-top:0" onclick="event.stopPropagation();showBlueprint(\'' + r.cap.id + '\',\'' + c + '\')" title="Architecture blueprint">🗺 blueprint</span>' +
-        '<span class="pick" style="margin-top:0" onclick="event.stopPropagation();showSpecs(\'' + r.cap.id + '\',\'' + c + '\')" title="9-layer infra spec">🔧 specs</span>' +
-      '</td>';
-    });
-    html += '</tr>';
-  });
-  html += '</tbody>';
-  // Totals row
-  html += '<tfoot><tr>' +
-    '<td colspan="2">TOTAL · ' + caps.length + ' capabilities · monthly</td>' +
-    CLOUDS.map(c => {
-      const cls = totals[c] === Math.min.apply(null, CLOUDS.map(k => totals[k])) ? 'chosen' : '';
-      return '<td class="as-cell total ' + cls + '"><span class="mo">' + fmtMoney(totals[c]) + '</span><span class="yr">3y · ' + fmtMoney(totals[c]*36) + '</span></td>';
-    }).join('') +
-  '</tr></tfoot>';
-  html += '</table></div>';
-
-  // Sources strip
-  html += '<div class="as-sources">' +
-    '<strong>📡 Pricing sources (auto-refreshed):</strong>' +
-    window.DI.pricing.sources.map(s => '<span class="pill">' + s.cloud + ' · <a href="' + s.url + '" target="_blank">' + s.label + '</a></span>').join('') +
-    '<div class="note">⚠ Prices shown are public list prices snapshotted ' + new Date(window.DI.pricing.refreshedAt).toLocaleDateString() + '. Your enterprise rate may be 15-30% lower — adjust the discount field above to apply your contracted rate.</div>' +
-  '</div>';
-
-  // CTA strip
-  html += '<div class="as-cta fadeUp">' +
-    '<div><div class="lbl">ARCHITECTURE FINALIZED</div>' +
-      '<div class="h">Picked cloud per capability · ' + fmtMoney(pickedTotal) + '/mo · ' + fmtMoney(pickedTotal*36) + ' over 3 years.</div>' +
-      '<div class="sub">Send to Governance to seed the RAID + cost model + timeline, or generate the EVP summary now.</div>' +
-    '</div>' +
-    '<div class="actions">' +
-      '<button class="primary" onclick="generateEvp()">Generate EVP Summary →</button>' +
-      '<button class="ghost" onclick="sendToGovernance()">Send to Governance →</button>' +
-      '<button class="ghost" onclick="exportArchitectureXLSX()">⬇ Excel</button>' +
-      '<button class="ghost" onclick="goBackToDiscovery()">↺ Back to Discovery</button>' +
-    '</div>' +
-  '</div>';
-
-  main.innerHTML = html;
-}
-
-function exportArchitectureXLSX() {
-  if (!(window.DI && window.DI.export)) {
-    window.DI && window.DI.toast && window.DI.toast({ kind:'err', title:'Export', message:'Excel exporter not loaded — refresh and retry.' });
-    return;
-  }
-  const disc = (function(){ try { return JSON.parse(localStorage.getItem('di_discovery_v1')||'null'); } catch(e){ return null; } })();
-  const caps = (disc && disc.results && disc.results.capabilities) || [];
-  const CLOUDS = ['aws','azure','gcp','oci','ibm','private'];
-  const rows = caps.map(c => {
-    const row = { Capability:c.name, Verdict:c.verdictName, Picked:(STATE.picks||{})[c.id] || '' };
-    CLOUDS.forEach(cl => {
-      try {
-        const p = window.DI.pricing && window.DI.pricing.cost(c.id, cl, c.verdict, STATE.discount || 0);
-        row[cl.toUpperCase()] = p ? Math.round(p.monthly) : '';
-      } catch(e) { row[cl.toUpperCase()] = ''; }
-    });
-    return row;
-  });
-  const stamp = new Date().toISOString().slice(0,10);
-  window.DI.export.workbook('architecture-' + stamp + '.xlsx', [
-    { name:'Architecture', rows, colWidths:[26, 12, 10, 12, 12, 12, 12, 12, 12] }
-  ]);
-}
-
-function exportArchitectureXLSX() {
-  if (!(window.DI && window.DI.export)) { window.DI && window.DI.toast && window.DI.toast({ kind:'err', title:'Export', message:'Excel exporter not loaded — refresh and retry.' }); return; }
-  const disc = (function(){ try { return JSON.parse(localStorage.getItem('di_discovery_v1')||'null'); } catch(e){ return null; } })();
-  const caps = (disc && disc.results && disc.results.capabilities) || [];
-  const CLOUDS = ['aws','azure','gcp','oci','ibm','private'];
-  const rows = caps.map(c => {
-    const row = { Capability:c.name, Verdict:c.verdictName, Picked:(STATE.picks||{})[c.id] || '' };
-    CLOUDS.forEach(cl => {
-      try {
-        const p = window.DI.pricing && window.DI.pricing.cost(c.id, cl, c.verdict, STATE.discount || 0);
-        row[cl.toUpperCase()] = p ? Math.round(p.monthly) : '';
-      } catch(e) { row[cl.toUpperCase()] = ''; }
-    });
-    return row;
-  });
-  const stamp = new Date().toISOString().slice(0,10);
-  window.DI.export.workbook('architecture-' + stamp + '.xlsx', [
-    { name:'Architecture', rows, colWidths:[26, 12, 10, 12, 12, 12, 12, 12, 12] }
-  ]);
-}
-
-/* ── Cell actions ───────────────────────────────────── */
-function pickCloud(capId, cloud) {
-  STATE.picks[capId] = cloud;
-  saveState();
-  render();
-  window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'☁', title:'Pick updated', message: 'Now using ' + CLOUD_LABEL[cloud] + ' for this capability.', duration:2000 });
-}
-
-function showProvenance(capId, cloud) {
-  const all = window.DI.pricing.estimate({ capabilityId: capId, verdict: (STATE.capabilities.find(c=>c.id===capId)||{}).verdict || 'REPLAT' }, {
-    region: STATE.region, model: STATE.model, currency: STATE.currency, discount: STATE.discount,
-    components: Object.keys(STATE.include).filter(k => STATE.include[k])
-  });
-  const c = all[cloud];
-  const cap = STATE.capabilities.find(x => x.id === capId);
-  let body = '<h3>Source · ' + (cap && cap.name) + ' · ' + CLOUD_LABEL[cloud] + '</h3>';
-  ['compute','storage','egress','support'].forEach(k => {
-    if (c[k] !== undefined && c['_unit_' + k]) {
-      body += '<div class="row"><span>' + k.charAt(0).toUpperCase() + k.slice(1) + '</span><strong>' + fmtMoney(c[k]) + '/mo</strong></div>';
-      body += '<div class="row"><span style="font-size:11px;color:var(--ink-3)">SKU: ' + c['_sku_' + k] + '</span><span style="font-size:11px;color:var(--ink-3);font-family:var(--f-mono)">' + c['_unit_' + k] + '</span></div>';
-    }
-  });
-  body += '<div class="row" style="margin-top:6px"><span>Region adjustment</span><strong>' + REGION_LABEL[STATE.region] + '</strong></div>';
-  body += '<div class="row"><span>Pricing model</span><strong>' + MODEL_LABEL[STATE.model] + '</strong></div>';
-  body += '<div class="row"><span>Currency</span><strong>' + STATE.currency + '</strong></div>';
-  body += '<div class="row"><span>Discount applied</span><strong>' + STATE.discount + '%</strong></div>';
-  body += '<div class="row"><span>Snapshot date</span><strong>' + new Date(window.DI.pricing.refreshedAt).toLocaleDateString() + '</strong></div>';
-  body += '<div class="row"><span>Total · monthly</span><strong style="color:var(--gold)">' + fmtMoney(c.total) + '</strong></div>';
-  body += '<div class="row"><span>3-year TCO</span><strong style="color:var(--gold)">' + fmtMoney(c.tco3yr) + '</strong></div>';
-  body += '<button class="close" onclick="closeModal()">Close</button>';
-  document.getElementById('as-modal-body').innerHTML = body;
-  document.getElementById('as-modal-bg').classList.add('open');
-}
-function closeModal() { document.getElementById('as-modal-bg').classList.remove('open'); }
-
-
-/* Phase 22.2 — 9-layer infrastructure spec modal */
-function showSpecs(capId, cloud) {
-  const cap = (function(){
+  function loadState() {
     try {
-      const disc = JSON.parse(localStorage.getItem('di_discovery_v1')||'null');
-      return (disc && disc.results && disc.results.capabilities || []).find(x => x.id === capId);
-    } catch(e) { return null; }
-  })();
-  if (!cap) return;
-  const verdict = cap.verdict || 'REPLAT';
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) Object.assign(STATE, JSON.parse(raw));
+    } catch (e) {}
+    // DEF-006 fix · Check for Discovery handoff. Consume-once: clear handoff slot
+    // after we read it so the same payload doesn't re-overwrite future user edits.
+    try {
+      const h = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+      if (h && h.capabilities && h.capabilities.length && !STATE.capabilities.length) {
+        STATE.capabilities = h.capabilities;
+        STATE.lastUpdated = Date.now();
+        saveState();
+        localStorage.removeItem(HANDOFF_KEY);
+      }
+    } catch (e) {}
+  }
 
-  const services = (window.DI && window.DI.pricing && typeof window.DI.pricing.services === 'function')
-    ? (window.DI.pricing.services(cloud, verdict) || {})
-    : {};
+  // ─── Render helpers ──────────────────────────────────────────
+  // DEF-002 fix · honour selected currency (symbol + locale).
+  const CCY_SYMBOL = { USD: '$', EUR: '€', GBP: '£', SGD: 'S$', INR: '₹' };
+  const CCY_LOCALE = { USD: 'en-US', EUR: 'de-DE', GBP: 'en-GB', SGD: 'en-SG', INR: 'en-IN' };
+  function fmtCurrency(n) {
+    if (typeof n !== 'number' || !isFinite(n)) return '—';
+    const cur = STATE && STATE.currency ? STATE.currency : 'USD';
+    const sym = CCY_SYMBOL[cur] || '$';
+    const loc = CCY_LOCALE[cur] || 'en-US';
+    return sym + Math.round(n).toLocaleString(loc);
+  }
+  // DEF-011 fix · add day handling so anything older than 24h reads e.g. "3d ago".
+  function fmtFresh(ts) {
+    if (!ts) return 'Never';
+    const sec = Math.floor((Date.now() - ts) / 1000);
+    if (sec < 60) return sec + 's ago';
+    if (sec < 3600) return Math.floor(sec / 60) + 'm ago';
+    if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
+    const d = Math.floor(sec / 86400);
+    return d + 'd ago';
+  }
+  // DEF-012 helper · "data older than 24h" check used to flip the freshness pill stale.
+  function isStale(ts) {
+    if (!ts) return true;
+    return (Date.now() - ts) > 24 * 3600 * 1000;
+  }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
 
-  // 9-layer specification — each layer lists primary services per cloud, with sizing assumptions
-  const cloudName = ({ aws:'AWS', azure:'Azure', gcp:'GCP', oci:'OCI', ibm:'IBM Cloud', private:'Private DC' })[cloud] || cloud.toUpperCase();
-  const SPEC = [
-    { layer:'1 · Compute',        ic:'🖥', svc: pickSvc(cloud, ['compute','aws':'EC2 m6i.2xlarge + Auto Scaling','azure':'Azure VMs D8s v5 + VMSS','gcp':'Compute Engine n2-standard-8 + MIG','oci':'OCI VM.Standard3.Flex','ibm':'IBM Virtual Server bx2.8x32','private':'VMware vSphere 8 + DRS']),
-      sizing:'8 vCPU · 32GB RAM per node · 6 nodes (3 AZ × 2)',
-      notes:'Auto-scaled by CPU 60% target · spot/preemptible 30% blend in non-prod' },
-    { layer:'2 · Networking',     ic:'🔌', svc: pickSvc(cloud, ['network','aws':'VPC + ALB + Transit Gateway + Route53','azure':'VNet + Application Gateway + Front Door + Private DNS','gcp':'VPC + Cloud Load Balancing + Cloud DNS','oci':'VCN + Flexible LB + DNS','ibm':'VPC + Application LB + IBM Cloud DNS','private':'F5 BIG-IP + BGP + Infoblox DNS']),
-      sizing:'10 Gbps inter-AZ · sub-2 ms p99 latency',
-      notes:'WAF in front · TLS 1.3 only · IPv6 dual-stack' },
-    { layer:'3 · Database',       ic:'🗄', svc: pickSvc(cloud, ['db','aws':'Aurora PostgreSQL r6g.2xlarge · 3 AZ','azure':'Azure SQL Hyperscale GP_Gen5_8','gcp':'Cloud SQL PostgreSQL HA 8 vCPU','oci':'Autonomous DB 8 OCPU','ibm':'Db2 on Cloud Enterprise 16 vCPU','private':'PostgreSQL 16 on bare metal + Patroni HA']),
-      sizing:'500 GB primary · 2 read replicas · PITR 35d',
-      notes:'Encrypted at rest (CMK) · Column-level encryption for PII' },
-    { layer:'4 · Security',       ic:'🔐', svc: pickSvc(cloud, ['security','aws':'IAM + KMS + GuardDuty + Security Hub + WAF','azure':'Entra ID + Key Vault + Defender + Sentinel','gcp':'IAM + KMS + Security Command Center','oci':'IAM + Vault + Cloud Guard','ibm':'IAM + Key Protect + QRadar on Cloud','private':'CyberArk + Thales HSM + Splunk SIEM']),
-      sizing:'FIPS 140-2 L3 HSM · 90-day key rotation',
-      notes:'Zero trust · mTLS · OAuth 2.1 + OIDC · just-in-time admin via PAM' },
-    { layer:'5 · Containers',     ic:'📦', svc: pickSvc(cloud, ['containers','aws':'EKS 1.30 + Karpenter + Fargate Spot','azure':'AKS 1.30 + Virtual Nodes (ACI)','gcp':'GKE Autopilot 1.30','oci':'OKE 1.30 + Virtual Nodes','ibm':'IKS / Red Hat OpenShift on IBM','private':'OpenShift 4.16 on RHEL / vSphere']),
-      sizing:'3 control plane · 6 worker pools · GitOps via Argo CD',
-      notes:'Service mesh (Istio) for mTLS · OPA Gatekeeper policies' },
-    { layer:'6 · AI / ML',        ic:'🧠', svc: pickSvc(cloud, ['ai','aws':'Bedrock + SageMaker + Comprehend','azure':'Azure AI Foundry + Azure OpenAI + ML Studio','gcp':'Vertex AI + Gemini + Document AI','oci':'OCI Generative AI + Data Science','ibm':'watsonx.ai + watsonx.governance','private':'NVIDIA Triton + Kubeflow + on-prem GPU pool']),
-      sizing:'A100 / H100 GPUs for inference · vector store 32 GB',
-      notes:'Model evals · PII redaction in prompts · audit trail of LLM calls' },
-    { layer:'7 · Web apps',       ic:'🌐', svc: pickSvc(cloud, ['web','aws':'CloudFront + S3 + Lambda@Edge','azure':'Azure Front Door + Static Web Apps + CDN','gcp':'Cloud CDN + Cloud Storage + Cloud Run','oci':'OCI CDN + Object Storage + Functions','ibm':'IBM CDN + Cloud Object Storage + Code Engine','private':'NGINX + Varnish + on-prem object store']),
-      sizing:'Global PoPs · TLS termination at edge · HTTP/3',
-      notes:'CSP + SRI · Subresource integrity · Strict-Transport-Security' },
-    { layer:'8 · Desktop apps',   ic:'🖱', svc: pickSvc(cloud, ['desktop','aws':'WorkSpaces + AppStream 2.0','azure':'Windows 365 Cloud PC + Azure Virtual Desktop','gcp':'Chrome Enterprise + Cameyo','oci':'Citrix on OCI','ibm':'Citrix Cloud on IBM','private':'Citrix XenApp + VMware Horizon']),
-      sizing:'200 concurrent users · 4 vCPU · 16 GB / session',
-      notes:'CISO-approved gold image · MFA at session start · DLP enforced' },
-    { layer:'9 · Legacy apps',    ic:'🏛', svc: pickSvc(cloud, ['legacy','aws':'Mainframe Modernization + AppStream + DMS','azure':'Heirloom on Azure + Database Migration Service','gcp':'AS/400 → GCP via Astadia','oci':'Heritage on Oracle stack · COBOL emulator','ibm':'Z on IBM Cloud + LinuxONE','private':'IBM z16 mainframe + AS/400 + COBOL/CICS']),
-      sizing: verdict === 'RETAIN' ? 'Retained in-place · IBM z/OS or i' : (verdict === 'REPLACE' ? 'Decommissioned · functionality re-platformed' : 'Strangler pattern · 18-36 month phase-out'),
-      notes:'Homogeneous (lift-and-shift) and heterogeneous (re-platform) · COBOL/JCL/CICS/IMS/Db2 inventory' }
-  ];
+  // ─── Header context ──────────────────────────────────────────
+  function renderHeader() {
+    const userEmail = (window.AIDP && window.AIDP.getUserEmail) ? window.AIDP.getUserEmail() : 'guest@aidp.demo';
+    const tenantShort = userEmail.split('@')[0];
+    document.getElementById('as-tenant-name').textContent = tenantShort;
+    document.getElementById('as-tenant-region').textContent = STATE.region;
+    const fresh = document.getElementById('as-freshness');
+    const freshText = document.getElementById('as-fresh-text');
+    if (!STATE.lastUpdated) {
+      fresh.className = 'as-freshness stale';
+      freshText.textContent = 'No data loaded';
+    } else if (isStale(STATE.lastUpdated)) {
+      // DEF-012 · explicit stale state when data >24h old.
+      fresh.className = 'as-freshness stale';
+      freshText.textContent = 'Stale · ' + fmtFresh(STATE.lastUpdated);
+    } else {
+      fresh.className = 'as-freshness';
+      freshText.textContent = 'Live · ' + fmtFresh(STATE.lastUpdated);
+    }
+  }
 
-  // The pickSvc helper above isn't valid JS — use plain object lookup
-  function lookup(cloud, table) { return table[cloud] || table['aws']; }
+  // ─── KPI strip ───────────────────────────────────────────────
+  function renderKpis(pricingByCloud, totals) {
+    if (!pricingByCloud || !STATE.capabilities.length) {
+      ['kpi-total','kpi-cheapest','kpi-priciest','kpi-count'].forEach(id => {
+        document.getElementById(id).textContent = '—';
+      });
+      document.getElementById('kpi-count').textContent = '0';
+      ['kpi-total-sub','kpi-cheapest-sub','kpi-priciest-sub','kpi-count-sub'].forEach(id => {
+        document.getElementById(id).innerHTML = '&nbsp;';
+      });
+      return;
+    }
+    // Only consider clouds that returned non-zero totals (skip unsupported clouds like saas in DI.pricing)
+    const nonZero = CLOUDS.filter(c => (totals[c] || 0) > 0);
+    const ranking = (nonZero.length ? nonZero : CLOUDS);
+    const minCloud = ranking.reduce((m, c) => totals[c] < totals[m] ? c : m, ranking[0]);
+    const maxCloud = ranking.reduce((m, c) => totals[c] > totals[m] ? c : m, ranking[0]);
+    const min = totals[minCloud];
+    const max = totals[maxCloud];
+    document.getElementById('kpi-total').textContent = fmtCurrency(min);
+    document.getElementById('kpi-total-sub').textContent = '/month · ' + fmtCurrency(min * 12) + '/year';
+    document.getElementById('kpi-cheapest').textContent = CLOUD_LABEL[minCloud];
+    document.getElementById('kpi-cheapest-sub').textContent = fmtCurrency(min) + '/mo';
+    document.getElementById('kpi-priciest').textContent = CLOUD_LABEL[maxCloud];
+    document.getElementById('kpi-priciest-sub').textContent = fmtCurrency(max) + '/mo · +' + fmtCurrency(max - min) + ' vs cheapest';
+    document.getElementById('kpi-count').textContent = STATE.capabilities.length;
+    document.getElementById('kpi-count-sub').textContent = (STATE.capabilities.filter(c => c.critical).length || 0) + ' critical';
+    // DEF-014 · drop aria-busy once values are filled.
+    ['kpi-total','kpi-cheapest','kpi-priciest','kpi-count'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.removeAttribute('aria-busy');
+    });
+  }
 
-  // Re-build SPEC properly
-  const PICKS = {
-    compute: { aws:'EC2 m6i.2xlarge + Auto Scaling', azure:'Azure VMs D8s v5 + VMSS', gcp:'Compute Engine n2-standard-8 + MIG', oci:'OCI VM.Standard3.Flex', ibm:'IBM Virtual Server bx2.8x32', private:'VMware vSphere 8 + DRS' },
-    network: { aws:'VPC + ALB + Transit Gateway + Route53', azure:'VNet + Application Gateway + Front Door + Private DNS', gcp:'VPC + Cloud Load Balancing + Cloud DNS', oci:'VCN + Flexible LB + DNS', ibm:'VPC + Application LB + IBM Cloud DNS', private:'F5 BIG-IP + BGP + Infoblox DNS' },
-    db:      { aws:'Aurora PostgreSQL r6g.2xlarge · 3 AZ', azure:'Azure SQL Hyperscale GP_Gen5_8', gcp:'Cloud SQL PostgreSQL HA 8 vCPU', oci:'Autonomous DB 8 OCPU', ibm:'Db2 on Cloud Enterprise 16 vCPU', private:'PostgreSQL 16 on bare metal + Patroni HA' },
-    security:{ aws:'IAM + KMS + GuardDuty + Security Hub + WAF', azure:'Entra ID + Key Vault + Defender + Sentinel', gcp:'IAM + KMS + Security Command Center', oci:'IAM + Vault + Cloud Guard', ibm:'IAM + Key Protect + QRadar on Cloud', private:'CyberArk + Thales HSM + Splunk SIEM' },
-    k8s:     { aws:'EKS 1.30 + Karpenter + Fargate Spot', azure:'AKS 1.30 + Virtual Nodes (ACI)', gcp:'GKE Autopilot 1.30', oci:'OKE 1.30 + Virtual Nodes', ibm:'IKS / Red Hat OpenShift on IBM', private:'OpenShift 4.16 on RHEL / vSphere' },
-    ai:      { aws:'Bedrock + SageMaker + Comprehend', azure:'Azure AI Foundry + Azure OpenAI + ML Studio', gcp:'Vertex AI + Gemini + Document AI', oci:'OCI Generative AI + Data Science', ibm:'watsonx.ai + watsonx.governance', private:'NVIDIA Triton + Kubeflow + on-prem GPU pool' },
-    web:     { aws:'CloudFront + S3 + Lambda@Edge', azure:'Azure Front Door + Static Web Apps + CDN', gcp:'Cloud CDN + Cloud Storage + Cloud Run', oci:'OCI CDN + Object Storage + Functions', ibm:'IBM CDN + Cloud Object Storage + Code Engine', private:'NGINX + Varnish + on-prem object store' },
-    desktop: { aws:'WorkSpaces + AppStream 2.0', azure:'Windows 365 Cloud PC + Azure Virtual Desktop', gcp:'Chrome Enterprise + Cameyo', oci:'Citrix on OCI', ibm:'Citrix Cloud on IBM', private:'Citrix XenApp + VMware Horizon' },
-    legacy:  { aws:'Mainframe Modernization + AppStream + DMS', azure:'Heirloom on Azure + Database Migration Service', gcp:'AS/400 → GCP via Astadia', oci:'Heritage on Oracle stack · COBOL emulator', ibm:'Z on IBM Cloud + LinuxONE', private:'IBM z16 mainframe + AS/400 + COBOL/CICS' }
+  // ─── Main render ─────────────────────────────────────────────
+  function render() {
+    renderHeader();
+    const main = document.getElementById('as-main');
+    document.getElementById('as-error').style.display = 'none';
+
+    if (!STATE.capabilities.length) {
+      main.innerHTML =
+        '<div class="as-state">' +
+          '<div class="icon">🏛</div>' +
+          '<h2>No capabilities to price</h2>' +
+          '<p>Architecture Studio needs a 7R capability map from Discovery. Pick one of the options below to get started.</p>' +
+          '<div class="actions">' +
+            '<button class="btn btn-primary" onclick="loadSample()">Load sample · 13 capabilities</button>' +
+            '<a class="btn" href="discovery-studio">Open Discovery Studio →</a>' +
+          '</div>' +
+        '</div>';
+      renderKpis(null);
+      updateStatusBar();
+      return;
+    }
+
+    // Compute local pricing
+    const pricingByCloud = computePricing();
+    const totals = {};
+    CLOUDS.forEach(c => { totals[c] = 0; });
+    pricingByCloud.forEach(row => {
+      CLOUDS.forEach(c => { totals[c] += row[c] || 0; });
+    });
+    const nonZeroClouds = CLOUDS.filter(c => (totals[c] || 0) > 0);
+    const minCloud = (nonZeroClouds.length ? nonZeroClouds : CLOUDS).reduce(
+      (m, c) => totals[c] < totals[m] ? c : m,
+      (nonZeroClouds.length ? nonZeroClouds : CLOUDS)[0]
+    );
+
+    renderKpis(pricingByCloud, totals);
+
+    // Build table
+    let html = '<div class="as-table-wrap">';
+    html +=   '<div class="as-table-header">';
+    html +=     '<h3>Pricing matrix · ' + STATE.capabilities.length + ' capabilities × 7 clouds</h3>';
+    html +=     '<div class="as-table-meta">Source: ' + (STATE.source === 'live' ? 'AIDP agent' : 'pricing-lib v0.1') + ' · ' + fmtFresh(STATE.lastUpdated) + '</div>';
+    html +=   '</div>';
+    html += '<table class="as-table">';
+    html += '<thead><tr>';
+    html +=   '<th style="min-width:200px">Capability</th>';
+    html +=   '<th>7R</th>';
+    CLOUDS.forEach(c => { html += '<th class="num">' + CLOUD_LABEL[c] + '</th>'; });
+    html += '</tr></thead><tbody>';
+
+    pricingByCloud.forEach((row, i) => {
+      const cap = STATE.capabilities[i];
+      const verdict = VERDICT_META[cap.verdict] || VERDICT_META.RETAIN;
+      html += '<tr>';
+      html +=   '<td>';
+      html +=     '<div class="cap-name">' + escapeHtml(cap.name || 'Unnamed') + '</div>';
+      if (cap.current) html += '<div class="cap-stack">' + escapeHtml(cap.current) + ' → ' + escapeHtml(cap.future || '?') + '</div>';
+      html +=   '</td>';
+      html +=   '<td><span class="chip ' + verdict.cls + '">' + verdict.label + '</span></td>';
+      // Find cheapest for this row (skip clouds with zero pricing — they're unsupported, not free)
+      const rowNonZero = CLOUDS.filter(c => (row[c] || 0) > 0);
+      const rowPool = rowNonZero.length ? rowNonZero : CLOUDS;
+      const rowMin = rowPool.reduce((m, c) => (row[c] < row[m]) ? c : m, rowPool[0]);
+      CLOUDS.forEach(c => {
+        const val = row[c] || 0;
+        const isMin = c === rowMin && val > 0;
+        const naReason = row['_na_' + c];
+        let cell;
+        if (val > 0) {
+          cell = fmtCurrency(val);
+        } else if (naReason) {
+          // DEF-013 · explicit N/A with tooltip for regulated rule-outs.
+          cell = '<span style="color:var(--ink-400);font-style:italic" title="' + escapeHtml(naReason) + '">' + escapeHtml(naReason) + '</span>';
+        } else {
+          cell = '<span style="color:var(--ink-400)">—</span>';
+        }
+        html += '<td class="num' + (isMin ? ' cheapest' : '') + '">' + cell + '</td>';
+      });
+      html += '</tr>';
+    });
+
+    html += '</tbody>';
+    // Totals row
+    html += '<tfoot><tr>';
+    html += '<td colspan="2">Total · monthly</td>';
+    CLOUDS.forEach(c => {
+      const v = totals[c] || 0;
+      const isMin = c === minCloud && v > 0;
+      // DEF-013 · note SaaS column as N/A explicitly so the totals row matches the body.
+      let cell;
+      if (v > 0) cell = fmtCurrency(v);
+      else if (c === 'saas') cell = '<span style="color:var(--ink-400);font-style:italic" title="SaaS not modelled in pricing-lib · per-capability ruling shown above">N/A</span>';
+      else cell = '<span style="color:var(--ink-400)">—</span>';
+      html += '<td class="num' + (isMin ? ' cheapest' : '') + '">' + cell + '</td>';
+    });
+    html += '</tr></tfoot>';
+    html += '</table></div>';
+
+    main.innerHTML = html;
+    updateStatusBar(totals[minCloud]);
+  }
+
+  // ─── Pricing computation (local) ─────────────────────────────
+  // DEF-001/013 · the pricing-lib does not stock a SaaS column; we display N/A.
+  // For regulated/critical capabilities we additionally tag the reason so
+  // analysts know SaaS is ruled out by policy, not pricing.
+  function computePricing() {
+    return STATE.capabilities.map(cap => {
+      const row = {};
+      const regulated = !!(cap.regulated || cap.critical);
+      if (window.DI && window.DI.pricing && window.DI.pricing.estimate) {
+        const est = window.DI.pricing.estimate(
+          { capabilityId: cap.id, verdict: cap.verdict },
+          { region: STATE.region, currency: STATE.currency, discount: STATE.discount,
+            components: ['compute','storage','egress','support'] }
+        );
+        CLOUDS.forEach(c => {
+          if (c === 'saas') {
+            // SaaS not modelled in pricing-lib · mark explicitly so consumers (UI/export)
+            // can show N/A reason instead of $0.
+            row[c] = 0;
+            row['_na_' + c] = regulated ? 'N/A · regulated' : 'N/A';
+            return;
+          }
+          const cloudKey = c === 'private-dc' ? 'PRIVATE-DC' : c.toUpperCase();
+          row[c] = (est[cloudKey] && est[cloudKey].total) || 0;
+        });
+      } else {
+        // Fallback · synthetic estimates so the page never breaks
+        const discount = (STATE.discount || 0) / 100;
+        const base = (cap.critical ? 1.8 : 1.0) * 1200;
+        const factor = { aws: 1.0, azure: 1.05, gcp: 0.92, oci: 0.85, ibm: 1.15, 'private-dc': 1.4, saas: 0.7 };
+        CLOUDS.forEach(c => {
+          if (c === 'saas' && regulated) {
+            row[c] = 0;
+            row['_na_' + c] = 'N/A · regulated';
+            return;
+          }
+          row[c] = Math.round(base * factor[c] * (1 - discount));
+        });
+      }
+      return row;
+    });
+  }
+
+  // ─── Status bar ──────────────────────────────────────────────
+  function updateStatusBar(total) {
+    const totalEl = document.getElementById('as-status-total');
+    const countEl = document.getElementById('as-status-count');
+    const srcEl   = document.getElementById('as-status-source');
+    if (totalEl) totalEl.textContent = total ? fmtCurrency(total) : '$0';
+    if (countEl) countEl.textContent = STATE.capabilities.length;
+    if (srcEl)   srcEl.textContent = STATE.source === 'live' ? 'Live AIDP agent' : 'Local pricing-lib';
+  }
+
+  // ─── Source toggle ───────────────────────────────────────────
+  // DEF-003/009 · update button state synchronously and clear the live panel when
+  // switching back to local so users don't see stale AIDP comparison data.
+  window.setSource = function (src) {
+    STATE.source = src;
+    const localBtn = document.getElementById('src-local');
+    const liveBtn  = document.getElementById('src-live');
+    if (localBtn) localBtn.classList.toggle('active', src === 'local');
+    if (liveBtn)  liveBtn.classList.toggle('active', src === 'live');
+    saveState();
+    if (src === 'local') {
+      const panel = document.getElementById('as-live-panel');
+      if (panel) panel.innerHTML = '';
+      render();
+      updateStatusBar();
+      return;
+    }
+    // Source === 'live'
+    if (!STATE.capabilities.length) {
+      render();
+      showError('Load capabilities first · then toggle Live to fetch AIDP agent pricing.');
+      return;
+    }
+    crossCheckBackend();
   };
-  const LAYERS = [
-    { layer:'1 · Compute',      ic:'🖥', svc: lookup(cloud, PICKS.compute),  sizing:'8 vCPU · 32GB RAM per node · 6 nodes (3 AZ × 2)',  notes:'Auto-scaled by CPU 60% target · spot/preemptible 30% blend in non-prod' },
-    { layer:'2 · Networking',   ic:'🔌', svc: lookup(cloud, PICKS.network),  sizing:'10 Gbps inter-AZ · sub-2 ms p99 latency',           notes:'WAF in front · TLS 1.3 only · IPv6 dual-stack' },
-    { layer:'3 · Database',     ic:'🗄', svc: lookup(cloud, PICKS.db),       sizing:'500 GB primary · 2 read replicas · PITR 35d',      notes:'Encrypted at rest (CMK) · Column-level encryption for PII' },
-    { layer:'4 · Security',     ic:'🔐', svc: lookup(cloud, PICKS.security), sizing:'FIPS 140-2 L3 HSM · 90-day key rotation',           notes:'Zero trust · mTLS · OAuth 2.1 + OIDC · just-in-time admin via PAM' },
-    { layer:'5 · Containers',   ic:'📦', svc: lookup(cloud, PICKS.k8s),      sizing:'3 control plane · 6 worker pools · GitOps via Argo CD', notes:'Service mesh (Istio) for mTLS · OPA Gatekeeper policies' },
-    { layer:'6 · AI / ML',      ic:'🧠', svc: lookup(cloud, PICKS.ai),       sizing:'A100 / H100 GPUs for inference · vector store 32 GB', notes:'Model evals · PII redaction in prompts · audit trail of LLM calls' },
-    { layer:'7 · Web apps',     ic:'🌐', svc: lookup(cloud, PICKS.web),      sizing:'Global PoPs · TLS termination at edge · HTTP/3',    notes:'CSP + SRI · Subresource integrity · Strict-Transport-Security' },
-    { layer:'8 · Desktop apps', ic:'🖱', svc: lookup(cloud, PICKS.desktop),  sizing:'200 concurrent users · 4 vCPU · 16 GB / session',  notes:'CISO-approved gold image · MFA at session start · DLP enforced' },
-    { layer:'9 · Legacy apps',  ic:'🏛', svc: lookup(cloud, PICKS.legacy),
-      sizing: verdict === 'RETAIN' ? 'Retained in-place · IBM z/OS or i'
-            : verdict === 'REPLACE' ? 'Decommissioned · functionality re-platformed'
-            : 'Strangler pattern · 18-36 month phase-out',
-      notes:'Homogeneous (lift-and-shift) and heterogeneous (re-platform) · COBOL/JCL/CICS/IMS/Db2 inventory' }
-  ];
 
-  let host = document.getElementById('di-specs-modal');
-  if (host) host.remove();
-  host = document.createElement('div');
-  host.id = 'di-specs-modal';
-  host.style.cssText = 'position:fixed;inset:0;background:rgba(20,33,58,.5);display:flex;align-items:center;justify-content:center;z-index:99990;font-family:var(--f-ui)';
-
-  let rowsHtml = '';
-  LAYERS.forEach(l => {
-    rowsHtml +=
-      '<div style="display:grid;grid-template-columns:200px 1fr 160px;gap:12px;padding:12px 14px;border-bottom:1px solid #E2E7F1;align-items:start">' +
-        '<div><div style="font-size:11px;font-weight:700;color:var(--ink);letter-spacing:.06em;text-transform:uppercase">' + l.ic + ' ' + l.layer + '</div>' +
-          '<div style="font-size:10.5px;color:var(--ink-2);margin-top:5px">' + l.notes + '</div></div>' +
-        '<div><div style="font-size:12.5px;font-weight:600;color:var(--ink);font-family:var(--f-mono)">' + l.svc + '</div></div>' +
-        '<div style="font-size:11px;color:var(--ink-2);text-align:right;line-height:1.45">' + l.sizing + '</div>' +
-      '</div>';
-  });
-
-  host.innerHTML =
-    '<div style="background:#fff;border-radius:14px;max-width:920px;width:94vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px -16px rgba(20,33,58,.4)">' +
-      '<div style="padding:18px 22px;background:linear-gradient(180deg,#FFFCF4,#fff);border-bottom:1px solid #E2E7F1;display:flex;justify-content:space-between;align-items:center">' +
-        '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase">9-LAYER INFRASTRUCTURE SPEC</div>' +
-          '<div style="font-family:var(--f-head);font-size:18px;font-weight:600;color:var(--ink);margin-top:3px">' + cap.name + ' · ' + cloudName + ' · ' + verdict + '</div>' +
-          '<div style="font-size:11.5px;color:var(--ink-2);margin-top:3px">Sizing assumptions are typical for tier-1 retail bank · adjust in your detailed design</div></div>' +
-        '<button onclick="document.getElementById(\'di-specs-modal\').remove()" style="background:#fff;border:1px solid #E2E7F1;border-radius:8px;padding:7px 13px;font-size:12px;color:var(--ink);cursor:pointer;font-family:inherit">Close ✕</button>' +
-      '</div>' +
-      '<div style="overflow-y:auto;flex:1">' + rowsHtml + '</div>' +
-      '<div style="padding:11px 22px;background:var(--canvas);border-top:1px solid var(--border);font-size:10.5px;color:var(--ink-2);display:flex;justify-content:space-between">' +
-        '<span>Includes legacy: <strong>homogeneous</strong> (lift-and-shift COBOL → emulator) + <strong>heterogeneous</strong> (re-platform → Java/Spring) + <strong>mainframe</strong> (IBM z, AS/400)</span>' +
-        '<span style="color:var(--gold);font-weight:700">Phase 22.2 · DI Platform</span>' +
-      '</div>' +
-    '</div>';
-
-  host.addEventListener('click', e => { if (e.target === host) host.remove(); });
-  document.body.appendChild(host);
-
-  if (window.DI && window.DI.audit) window.DI.audit.log('architecture', 'specs-view', { capId, cloud, verdict });
-}
-
-/* Phase 21.4 — Per-cloud architecture blueprint (auto-generated SVG) */
-const CLOUD_PALETTE = {
-  AWS:        { primary:'#FF9900', dark:'#232F3E', label:'AWS' },
-  AZURE:      { primary:'#0078D4', dark:'#1F3A5F', label:'Azure' },
-  GCP:        { primary:'#4285F4', dark:'#202124', label:'GCP' },
-  OCI:        { primary:'#F80000', dark:'#3F2A2A', label:'Oracle Cloud' },
-  IBM:        { primary:'#0F62FE', dark:'#161616', label:'IBM Cloud' },
-  'PRIVATE-DC': { primary:'#5B6B8A', dark:'#1A2238', label:'Private DC' }
-};
-
-function showBlueprint(capId, cloud) {
-  const cap = STATE.capabilities.find(x => x.id === capId);
-  const services = (window.DI.pricing && window.DI.pricing.services(cloud)) || {};
-  const palette = CLOUD_PALETTE[cloud] || CLOUD_PALETTE.AWS;
-  const capName = (cap && cap.name) || capId;
-  const verdict = (cap && cap.verdict) || 'REPLAT';
-  const verdictPattern = ({
-    REHOST:  'lift-and-shift: containerise existing app',
-    REPLAT:  'managed-service swap: same logic, vendor takes ops',
-    REFACT:  'API-first decomposition with event backbone',
-    REARCH:  'event-driven microservices with separate compute / data planes',
-    REBUILD: 'green-field with the same product surface',
-    REPLACE: 'SaaS swap behind anti-corruption layer',
-    RETAIN:  'wrap legacy behind APIs for downstream consumers'
-  })[verdict] || 'managed services with HA';
-
-  /* Build the SVG diagram */
-  const w = 760, h = 400;
-  const svg =
-    '<svg viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg" style="background:#F8FAFD;border-radius:9px;width:100%;height:auto;display:block">' +
-      /* Cloud bounding box */
-      '<rect x="20" y="20" width="' + (w-40) + '" height="' + (h-40) + '" rx="14" fill="#fff" stroke="' + palette.primary + '" stroke-width="1.5" stroke-dasharray="5 4"/>' +
-      '<text x="36" y="44" font-family="Outfit, sans-serif" font-size="13" font-weight="700" fill="' + palette.dark + '">' + palette.label + ' · ' + verdict + ' blueprint</text>' +
-      /* Ingress */
-      '<rect x="36" y="68" width="120" height="50" rx="8" fill="' + palette.primary + '" opacity="0.10" stroke="' + palette.primary + '"/>' +
-      '<text x="96" y="90" text-anchor="middle" font-family="Outfit" font-size="11" font-weight="700" fill="' + palette.dark + '">INGRESS</text>' +
-      '<text x="96" y="105" text-anchor="middle" font-family="Outfit" font-size="9" fill="#5B6B8A">' + (cloud === 'AWS' ? 'ALB + WAF + CloudFront' : cloud === 'AZURE' ? 'Front Door + App Gateway' : cloud === 'GCP' ? 'Cloud Load Balancer' : cloud === 'OCI' ? 'OCI WAF + LBaaS' : cloud === 'IBM' ? 'IBM Cloud LB + WAF' : 'NGINX + ModSecurity') + '</text>' +
-      /* Compute tier */
-      '<rect x="190" y="68" width="200" height="50" rx="8" fill="' + palette.primary + '" opacity="0.10" stroke="' + palette.primary + '"/>' +
-      '<text x="290" y="90" text-anchor="middle" font-family="Outfit" font-size="11" font-weight="700" fill="' + palette.dark + '">COMPUTE</text>' +
-      '<text x="290" y="105" text-anchor="middle" font-family="Outfit" font-size="9" fill="#5B6B8A">' + (services.k8s || 'Kubernetes') + ' · ' + (verdict === 'REARCH' ? 'microservices' : 'app tier') + '</text>' +
-      /* Cache */
-      '<rect x="430" y="68" width="120" height="50" rx="8" fill="' + palette.primary + '" opacity="0.10" stroke="' + palette.primary + '"/>' +
-      '<text x="490" y="90" text-anchor="middle" font-family="Outfit" font-size="11" font-weight="700" fill="' + palette.dark + '">CACHE</text>' +
-      '<text x="490" y="105" text-anchor="middle" font-family="Outfit" font-size="9" fill="#5B6B8A">' + (services.cache || 'Redis') + '</text>' +
-      /* CDN */
-      '<rect x="584" y="68" width="140" height="50" rx="8" fill="' + palette.primary + '" opacity="0.10" stroke="' + palette.primary + '"/>' +
-      '<text x="654" y="90" text-anchor="middle" font-family="Outfit" font-size="11" font-weight="700" fill="' + palette.dark + '">CDN / EDGE</text>' +
-      '<text x="654" y="105" text-anchor="middle" font-family="Outfit" font-size="9" fill="#5B6B8A">' + (services.cdn || 'CDN') + '</text>' +
-      /* Connectors */
-      '<line x1="156" y1="93" x2="190" y2="93" stroke="' + palette.primary + '" stroke-width="2"/>' +
-      '<line x1="390" y1="93" x2="430" y2="93" stroke="' + palette.primary + '" stroke-width="2"/>' +
-      /* Event tier */
-      '<rect x="36" y="158" width="220" height="50" rx="8" fill="' + palette.primary + '" opacity="0.08" stroke="' + palette.primary + '"/>' +
-      '<text x="146" y="180" text-anchor="middle" font-family="Outfit" font-size="11" font-weight="700" fill="' + palette.dark + '">EVENT BACKBONE</text>' +
-      '<text x="146" y="195" text-anchor="middle" font-family="Outfit" font-size="9" fill="#5B6B8A">' + (services.stream || 'Stream') + ' · ' + (services.mq || 'Queue') + '</text>' +
-      /* Database tier */
-      '<rect x="284" y="158" width="220" height="50" rx="8" fill="' + palette.primary + '" opacity="0.08" stroke="' + palette.primary + '"/>' +
-      '<text x="394" y="180" text-anchor="middle" font-family="Outfit" font-size="11" font-weight="700" fill="' + palette.dark + '">DATABASE TIER</text>' +
-      '<text x="394" y="195" text-anchor="middle" font-family="Outfit" font-size="9" fill="#5B6B8A">' + (services.db || 'Database') + '</text>' +
-      /* Observability */
-      '<rect x="534" y="158" width="190" height="50" rx="8" fill="#E2E7F1" stroke="#5B6B8A" stroke-dasharray="3 3"/>' +
-      '<text x="629" y="180" text-anchor="middle" font-family="Outfit" font-size="11" font-weight="700" fill="#1A2238">OBSERVABILITY</text>' +
-      '<text x="629" y="195" text-anchor="middle" font-family="Outfit" font-size="9" fill="#5B6B8A">' + (cloud === 'AWS' ? 'CloudWatch + X-Ray' : cloud === 'AZURE' ? 'Azure Monitor + App Insights' : cloud === 'GCP' ? 'Cloud Operations' : 'OpenTelemetry') + '</text>' +
-      /* Identity + Security row */
-      '<rect x="36" y="240" width="220" height="50" rx="8" fill="#FFF7E6" stroke="#C8921A"/>' +
-      '<text x="146" y="262" text-anchor="middle" font-family="Outfit" font-size="11" font-weight="700" fill="#C8921A">IDENTITY · KMS</text>' +
-      '<text x="146" y="277" text-anchor="middle" font-family="Outfit" font-size="9" fill="#7A5F10">' + (cloud === 'AWS' ? 'IAM + KMS + Secrets Mgr' : cloud === 'AZURE' ? 'Entra ID + Key Vault' : cloud === 'GCP' ? 'IAM + KMS + Secret Mgr' : cloud === 'OCI' ? 'OCI Identity + Vault' : cloud === 'IBM' ? 'IAM + Hyper Protect' : 'OpenLDAP + HashiCorp Vault') + '</text>' +
-      /* Integration */
-      '<rect x="284" y="240" width="220" height="50" rx="8" fill="#FFF7E6" stroke="#C8921A"/>' +
-      '<text x="394" y="262" text-anchor="middle" font-family="Outfit" font-size="11" font-weight="700" fill="#C8921A">INTEGRATION</text>' +
-      '<text x="394" y="277" text-anchor="middle" font-family="Outfit" font-size="9" fill="#7A5F10">ISO 20022 · SWIFT · Open Banking APIs</text>' +
-      /* Network */
-      '<rect x="534" y="240" width="190" height="50" rx="8" fill="#FFF7E6" stroke="#C8921A"/>' +
-      '<text x="629" y="262" text-anchor="middle" font-family="Outfit" font-size="11" font-weight="700" fill="#C8921A">PRIVATE LINK</text>' +
-      '<text x="629" y="277" text-anchor="middle" font-family="Outfit" font-size="9" fill="#7A5F10">' + (cloud === 'AWS' ? 'PrivateLink + Transit Gateway' : cloud === 'AZURE' ? 'Private Endpoint + Virtual WAN' : 'VPC Peering + Interconnect') + '</text>' +
-      /* Footer note */
-      '<text x="' + (w/2) + '" y="' + (h-26) + '" text-anchor="middle" font-family="Outfit" font-size="10" fill="#5B6B8A">Pattern: ' + verdictPattern + '</text>' +
-    '</svg>';
-
-  let body = '<h3>Architecture · ' + capName + ' · ' + palette.label + '</h3>' +
-    '<div class="row" style="border:none;padding:0;margin-bottom:10px">' +
-      '<span>7R pattern</span><strong style="background:#FFF7E6;color:#C8921A;padding:2px 9px;border-radius:99px;font-size:10px;font-weight:700">' + verdict + '</strong>' +
-    '</div>' +
-    svg +
-    '<div style="margin-top:10px;font-size:11.5px;color:var(--ink-2);line-height:1.55">' +
-      '<strong style="color:var(--ink)">Highlights:</strong> ' +
-      'Compute: <strong>' + (services.k8s || '?') + '</strong> · ' +
-      'Database: <strong>' + (services.db || '?') + '</strong> · ' +
-      'Event: <strong>' + (services.stream || '?') + '</strong> · ' +
-      'Cache: <strong>' + (services.cache || '?') + '</strong> · ' +
-      'CDN: <strong>' + (services.cdn || '?') + '</strong>' +
-    '</div>' +
-    '<button class="close" onclick="closeModal()">Close</button>';
-
-  document.getElementById('as-modal-body').innerHTML = body;
-  // Widen the modal for the SVG
-  document.getElementById('as-modal-body').style.maxWidth = '820px';
-  document.getElementById('as-modal-bg').classList.add('open');
-
-  if (window.DI && window.DI.audit) window.DI.audit.log('architecture', 'blueprint-view', { capId, cloud });
-}
-
-/* ── CTA actions ────────────────────────────────────── */
-function loadSampleCaps() {
-  const caps = [
-    { id:'core-payments',   name:'Core Banking · Payments', current:'COBOL · IBM z/OS · Batch settle', future:'EKS + Aurora MySQL', stack:'AWS',   verdict:'REARCH', risk:'High', eff:'9-12 mo' },
-    { id:'core-deposits',   name:'Core Banking · Deposits', current:'AS/400 · RPG',                    future:'AKS + Postgres HA',  stack:'AZURE', verdict:'REPLAT', risk:'Low',  eff:'4-6 mo' },
-    { id:'core-loans',      name:'Core Banking · Loans',    current:'UNIX AIX · Java EE',              future:'GKE + Spanner',      stack:'GCP',   verdict:'REFACT', risk:'Med',  eff:'6-9 mo' },
-    { id:'trade-finance',   name:'Trade Finance',           current:'COBOL · SWIFT MT',                future:'ISO 20022 streaming',stack:'AWS',   verdict:'REFACT', risk:'Med',  eff:'6-9 mo' },
-    { id:'treasury',        name:'Treasury',                current:'Solaris · C++ · Oracle 11g',      future:'Postgres HA · Kafka',stack:'OCI',   verdict:'REPLAT', risk:'Low',  eff:'4-6 mo' },
-    { id:'card-fulfill',    name:'Cards · Fulfillment',     current:'Windows · .NET Framework',        future:'.NET 8 · Container Apps', stack:'AZURE', verdict:'REHOST', risk:'Low', eff:'2-3 mo' },
-    { id:'card-mgmt',       name:'Cards · Management',      current:'On-prem mainframe',               future:'EKS + DynamoDB',     stack:'AWS',   verdict:'REFACT', risk:'Med',  eff:'6-9 mo' },
-    { id:'card-tx',         name:'Cards · Transactions',    current:'COBOL · batch',                    future:'Event-driven Kafka', stack:'AWS',   verdict:'REFACT', risk:'Med',  eff:'6-9 mo' },
-    { id:'acq-consumer',    name:'Acquisition · Consumer',  current:'Web portal · Java',                future:'Headless API + KYC', stack:'AWS',   verdict:'REFACT', risk:'Med',  eff:'6-9 mo' },
-    { id:'acq-corporate',   name:'Acquisition · Corporate', current:'Salesforce + custom',              future:'Salesforce + API hub', stack:'SaaS', verdict:'REPLAT', risk:'Low', eff:'3-5 mo' },
-    { id:'account-mgmt',    name:'Account Management',      current:'On-prem Java EE',                  future:'Cloud-native microservices', stack:'AWS', verdict:'REFACT', risk:'Med', eff:'6-9 mo' },
-    { id:'risk-comp',       name:'Risk & Compliance',       current:'Mix · Excel + SQL Server',         future:'Unified risk data platform', stack:'AWS', verdict:'REARCH', risk:'High', eff:'10-12 mo' },
-    { id:'aml',             name:'AML / Fraud',             current:'Vendor v3.2 · batch screening',    future:'Async event-driven',  stack:'AWS', verdict:'REARCH', risk:'High', eff:'10-12 mo' }
-  ];
-  STATE.capabilities = caps;
-  STATE.source = 'sample';
-  caps.forEach(c => { if (!STATE.picks[c.id]) STATE.picks[c.id] = (c.stack === 'SaaS' ? 'AWS' : c.stack); });
-  saveState();
-  render();
-  window.DI && window.DI.toast && window.DI.toast({ kind:'ok', title:'Sample loaded', message:'13 sample capabilities loaded. Adjust filters and try the pricing grid.' });
-}
-
-function goBackToDiscovery() { location.href = 'discovery-studio.html'; }
-
-function sendToGovernance() {
-  const includeComponents = Object.keys(STATE.include).filter(k => STATE.include[k]);
-  const handoff = {
-    source: 'architecture',
-    sentAt: new Date().toISOString(),
-    capabilities: STATE.capabilities.map(c => {
-      const cloud = STATE.picks[c.id] || 'AWS';
-      const all = window.DI.pricing.estimate({ capabilityId:c.id, verdict:c.verdict }, { region:STATE.region, model:STATE.model, currency:STATE.currency, discount:STATE.discount, components:includeComponents });
-      return Object.assign({}, c, { chosenCloud: cloud, monthly: all[cloud].total, tco3yr: all[cloud].tco3yr });
-    }),
-    filters: { region:STATE.region, model:STATE.model, currency:STATE.currency, discount:STATE.discount }
+  // ─── Backend cross-check ─────────────────────────────────────
+  window.crossCheckBackend = async function () {
+    const panel = document.getElementById('as-live-panel');
+    if (!window.AIDP || !window.AIDP.callAgent) {
+      showError('AIDP API client not loaded. Refresh the page and try again.');
+      return;
+    }
+    if (!STATE.capabilities.length) {
+      showError('No capabilities loaded. Click "Load sample" or open Discovery Studio first.');
+      return;
+    }
+    panel.innerHTML = '<div class="as-live"><div class="as-live-header"><h4>⏳ Calling architecture agent</h4><div class="sub">Pricing across 7 clouds…</div></div></div>';
+    const apiCaps = STATE.capabilities.map(c => ({
+      id:           c.id || ('cap-' + Math.random().toString(36).slice(2, 8)),
+      name:         c.name || 'Unnamed',
+      domain:       c.domain || guessDomain(c),
+      current_tech: mapTech(c.current),
+      complexity:   c.critical ? 'very-high' : 'medium',
+      sensitivity:  c.regulated ? 'regulated' : 'confidential',
+      volume:       'high'
+    }));
+    try {
+      // The architecture agent prefers `user_email` over inline `capabilities` when both
+      // are present (handlers.ts:118). callAgent auto-injects user_email from localStorage,
+      // which sends the handler to Discovery for a user with no caps → `no_capabilities`.
+      // Passing user_email:'' (empty string, NOT undefined) suppresses the auto-inject and
+      // forces the inline-capabilities path on the agent.
+      const result = await window.AIDP.callAgent('ARCHITECTURE', 'architecture_compare_clouds', {
+        user_email: '',
+        capabilities: apiCaps,
+        region: STATE.region
+      });
+      // DEF-008 · callAgent returns { raw: text } when the server response isn't JSON.
+      if (result && typeof result.raw === 'string') {
+        panel.innerHTML = '<div class="as-error"><span class="ic">⚠</span><div>Agent returned non-JSON payload.<br><small style="color:var(--ink-500);font-weight:400">Raw: <code>' + escapeHtml(result.raw.slice(0, 280)) + '…</code></small></div></div>';
+        return;
+      }
+      const cmp = result && result.comparison;
+      // Accept both shapes: new agent returns `ranked` array; legacy returns `by_cloud` object.
+      let rows = [];
+      if (cmp && Array.isArray(cmp.ranked) && cmp.ranked.length) {
+        rows = cmp.ranked.map(r => ({
+          cloud:     r.cloud,
+          monthly:   r.total_monthly_usd || 0,
+          annual:    r.total_annual_usd  || (r.total_monthly_usd || 0) * 12,
+          deltaPct:  r.delta_vs_cheapest_pct || 0,
+          notes:     r.notes || ''
+        }));
+      } else if (cmp && cmp.by_cloud && typeof cmp.by_cloud === 'object') {
+        rows = Object.keys(cmp.by_cloud).map(c => ({
+          cloud:    c,
+          monthly:  cmp.by_cloud[c].total_monthly_usd || 0,
+          annual:   cmp.by_cloud[c].total_annual_usd || (cmp.by_cloud[c].total_monthly_usd || 0) * 12,
+          deltaPct: 0,
+          notes:    ''
+        }));
+      }
+      if (!rows.length) {
+        panel.innerHTML = '<div class="as-error"><span class="ic">⚠</span><div>Backend returned no comparison data.<br><small style="color:var(--ink-500);font-weight:400">Raw response: <code>' + escapeHtml(JSON.stringify(result).slice(0, 280)) + '…</code></small></div></div>';
+        return;
+      }
+      rows.sort((a, b) => a.monthly - b.monthly);
+      renderLivePanel(rows, cmp);
+    } catch (err) {
+      panel.innerHTML = '<div class="as-error"><span class="ic">⚠</span><div>Backend call failed: ' + escapeHtml(err.message || String(err)) + '</div></div>';
+    }
   };
-  try { localStorage.setItem('di_handoff_governance', JSON.stringify(handoff)); } catch(e){}
-  window.DI && window.DI.toast && window.DI.toast({ kind:'ok', icon:'📤', title:'Sent to Program Governance', message: STATE.capabilities.length + ' capabilities + pricing handed off.', duration:3500 });
-  setTimeout(() => { location.href = 'program-governance.html?from=architecture'; }, 800);
-}
 
-function generateEvp() {
-  // Stash the architecture state for the EVP page to consume
-  const includeComponents = Object.keys(STATE.include).filter(k => STATE.include[k]);
-  const payload = {
-    source: 'architecture',
-    sentAt: new Date().toISOString(),
-    capabilities: STATE.capabilities.map(c => {
-      const cloud = STATE.picks[c.id] || 'AWS';
-      const all = window.DI.pricing.estimate({ capability
+  function renderLivePanel(rows, cmp) {
+    const panel = document.getElementById('as-live-panel');
+    const cheapestMo = rows[0].monthly;
+    let html = '<div class="as-live">';
+    html += '<div class="as-live-header">';
+    html += '<div><h4>🌐 Live pricing · AIDP architecture agent</h4>';
+    html += '<div class="sub">Sourced ' + fmtFresh(Date.now()) + ' · region ' + escapeHtml(STATE.region) + ' · ' + STATE.capabilities.length + ' capabilities · cheapest <strong>' + escapeHtml((cmp && cmp.cheapest) || rows[0].cloud).toUpperCase() + '</strong></div></div>';
+    html += '<button class="as-live-close" onclick="document.getElementById(\'as-live-panel\').innerHTML=\'\'" title="Close">✕</button>';
+    html += '</div>';
+    html += '<table class="as-table">';
+    html += '<thead><tr><th>Cloud</th><th class="num">Monthly</th><th class="num">Annual</th><th class="num">Δ vs cheapest</th><th>Notes</th></tr></thead><tbody>';
+    rows.forEach((r, i) => {
+      const isMin = i === 0;
+      const deltaUsd = r.monthly - cheapestMo;
+      html += '<tr>';
+      html += '<td><strong>' + escapeHtml((r.cloud || '').toUpperCase()) + '</strong></td>';
+      html += '<td class="num' + (isMin ? ' cheapest' : '') + '">' + fmtCurrency(r.monthly) + '</td>';
+      html += '<td class="num">' + fmtCurrency(r.annual) + '</td>';
+      html += '<td class="num">' + (isMin ? '—' : '+' + fmtCurrency(deltaUsd) + ' (' + (r.deltaPct || 0).toFixed(1) + '%)') + '</td>';
+      html += '<td style="font-size:11px;color:var(--ink-600)">' + (isMin ? '<span class="chip chip-replat">✓ Cheapest</span>' : escapeHtml(r.notes || '')) + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '</div>';
+    panel.innerHTML = html;
+  }
+
+  function showError(msg) {
+    const e = document.getElementById('as-error');
+    e.className = 'as-error';
+    e.innerHTML = '<span class="ic">⚠</span><div>' + escapeHtml(msg) + '</div>';
+    e.style.display = 'flex';
+  }
+
+  // ─── Helpers: shape mapping ──────────────────────────────────
+  function guessDomain(cap) {
+    const g = (cap.g || '').toLowerCase();
+    if (g === 'cards')   return 'cards';
+    if (g === 'core')    return 'payments';
+    if (g === 'risk')    return 'compliance';
+    if (g === 'cust')    return 'channels';
+    if (g === 'markets') return 'trade';
+    return 'other';
+  }
+  function mapTech(current) {
+    const s = (current || '').toLowerCase();
+    if (s.includes('cobol') || s.includes('z/os') || s.includes('mainframe')) return 'cobol-mainframe';
+    if (s.includes('java') && s.includes('ee'))     return 'java-monolith';
+    if (s.includes('.net') || s.includes('dotnet')) return 'dotnet-monolith';
+    if (s.includes('saas') || s.includes('vendor')) return 'saas-pkg';
+    if (s.includes('aix') || s.includes('solaris')) return 'java-monolith';
+    return 'java-monolith';
+  }
+
+  // ─── Load sample ─────────────────────────────────────────────
+  window.loadSample = function () {
+    STATE.capabilities = [
+      { id:'core-payments', name:'Core Banking · Payments', critical:true, regulated:true, current:'COBOL · IBM z/OS · Batch settle', future:'EKS + Aurora MySQL', g:'core', verdict:'REARCH' },
+      { id:'core-deposits', name:'Core Banking · Deposits', regulated:true, current:'AS/400 · RPG · Green-screen', future:'AKS + Postgres HA', g:'core', verdict:'REPLAT' },
+      { id:'core-loans', name:'Core Banking · Loans', current:'UNIX AIX · Java EE', future:'GKE + Spanner + Kafka', g:'core', verdict:'REFACT' },
+      { id:'trade-finance', name:'Trade Finance', current:'COBOL · SWIFT MT batches', future:'ISO 20022 streaming gateway', g:'core', verdict:'REFACT' },
+      { id:'treasury', name:'Treasury', regulated:true, current:'Solaris · Custom C++ · Oracle 11g', future:'Postgres HA · Kafka', g:'core', verdict:'REPLAT' },
+      { id:'card-fulfill', name:'Card fulfillment', current:'Windows · .NET Framework', future:'.NET 8 · Container Apps', g:'cards', verdict:'REHOST' },
+      { id:'card-mgmt', name:'Card management', current:'On-prem mainframe', future:'EKS + DynamoDB', g:'cards', verdict:'REFACT' },
+      { id:'card-tx', name:'Transaction management', critical:true, regulated:true, current:'COBOL · batch', future:'Event-driven Kafka', g:'cards', verdict:'REFACT' },
+      { id:'aml', name:'AML / Fraud', critical:true, regulated:true, current:'Vendor v3.2 · Batch screening', future:'Async event-driven · Real-time', g:'risk', verdict:'REARCH' },
+      { id:'audit', name:'Audit & regulatory reporting', regulated:true, current:'Manual Excel + DW', future:'Snowflake + dbt', g:'risk', verdict:'REPLAT' },
+      { id:'equities', name:'Equities trading', current:'Solaris · C++ · FIX gateway', future:'Java 21 · Kafka · low-latency edge', g:'markets', verdict:'REFACT' },
+      { id:'custody', name:'Securities custody', critical:true, regulated:true, current:'Legacy mainframe', future:'Hybrid · core retained + cloud APIs', g:'markets', verdict:'REPLAT' },
+      { id:'settlement', name:'Settlement & clearing', critical:true, regulated:true, current:'COBOL batch · 3-day T+3', future:'Event-driven · T+1 ready', g:'markets', verdict:'REARCH' }
+    ];
+    STATE.lastUpdated = Date.now();
+    saveState();
+    render();
+    if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', title:'Sample loaded', message:'13 banking capabilities loaded · pricing computed.' });
+  };
+
+  // ─── Top-level actions ───────────────────────────────────────
+  // DEF-005 · wire Excel export against assets/export.js workbook helper.
+  window.exportXlsx = function () {
+    if (!(window.DI && window.DI.export && window.DI.export.workbook)) {
+      if (window.DI && window.DI.toast) window.DI.toast({ kind:'err', title:'Excel exporter missing', message:'assets/export.js failed to load. Hard-refresh and retry.' });
+      else alert('Excel exporter not loaded. Refresh and retry.');
+      return;
+    }
+    if (!STATE.capabilities.length) {
+      if (window.DI && window.DI.toast) window.DI.toast({ kind:'warn', title:'Nothing to export', message:'Load capabilities first.' });
+      else alert('Nothing to export · load capabilities first.');
+      return;
+    }
+    const pricing = computePricing();
+    const matrixHeader = ['Capability', '7R', 'Current', 'Future'].concat(CLOUDS.map(c => CLOUD_LABEL[c] + ' (' + STATE.currency + '/mo)'));
+    const matrixRows = STATE.capabilities.map((cap, i) => {
+      const row = pricing[i];
+      const cells = [cap.name || '', (VERDICT_META[cap.verdict] || {label: cap.verdict || ''}).label, cap.current || '', cap.future || ''];
+      CLOUDS.forEach(c => {
+        const v = row[c] || 0;
+        cells.push(v > 0 ? Math.round(v) : (row['_na_' + c] || (c === 'saas' ? 'N/A' : '—')));
+      });
+      return cells;
+    });
+    // Totals row
+    const totalsRow = ['Total · monthly', '', '', ''];
+    CLOUDS.forEach(c => {
+      const t = pricing.reduce((sum, r) => sum + (r[c] || 0), 0);
+      totalsRow.push(t > 0 ? Math.round(t) : (c === 'saas' ? 'N/A' : '—'));
+    });
+    const params = [
+      ['Setting', 'Value'],
+      ['Region', STATE.region],
+      ['Currency', STATE.currency],
+      ['Discount %', STATE.discount + '%'],
+      ['Source', STATE.source],
+      ['Capabilities', STATE.capabilities.length],
+      ['Generated', new Date().toISOString()]
+    ];
+    try {
+      window.DI.export.workbook('aidp-architecture-pricing.xlsx', [
+        { name: 'Pricing matrix', rows: [matrixHeader].concat(matrixRows).concat([totalsRow]) },
+        { name: 'Run parameters',  rows: params }
+      ]);
+      if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', title:'Excel ready', message:'aidp-architecture-pricing.xlsx downloaded.' });
+    } catch (err) {
+      if (window.DI && window.DI.toast) window.DI.toast({ kind:'err', title:'Excel export failed', message: String(err.message || err) });
+      else alert('Excel export failed: ' + (err.message || err));
+    }
+  };
+  window.generateEvp = function () {
+    location.href = 'evp-summary?source=architecture';
+  };
+  // DEF-007 · pricing matrix is now part of the handoff payload so Governance can
+  // render cost figures without re-computing.
+  window.sendToGovernance = function () {
+    if (!STATE.capabilities.length) {
+      if (window.DI && window.DI.toast) window.DI.toast({ kind:'warn', title:'Nothing to send', message:'Load capabilities first.' });
+      return;
+    }
+    const pricing = computePricing();
+    const totalsByCloud = {};
+    CLOUDS.forEach(c => { totalsByCloud[c] = pricing.reduce((sum, r) => sum + (r[c] || 0), 0); });
+    try {
+      localStorage.setItem('di_handoff_governance', JSON.stringify({
+        from: 'architecture',
+        ts: Date.now(),
+        region: STATE.region,
+        currency: STATE.currency,
+        discount: STATE.discount,
+        source: STATE.source,
+        capabilities: STATE.capabilities,
+        pricing_by_capability: pricing,
+        totals_by_cloud: totalsByCloud
+      }));
+    } catch (e) {}
+    location.href = 'program-governance?from=architecture';
+  };
+
+  // ─── Filter wiring ───────────────────────────────────────────
+  // DEF-010 · when source=live, refresh AIDP agent on filter change so the live
+  // panel doesn't go stale against a new region or discount.
+  function filterChanged() {
+    saveState();
+    render();
+    if (STATE.source === 'live' && STATE.capabilities.length) crossCheckBackend();
+  }
+  function wireFilters() {
+    const reg = document.getElementById('f-region');
+    const cur = document.getElementById('f-currency');
+    const dis = document.getElementById('f-discount');
+    if (reg) { reg.value = STATE.region; reg.addEventListener('change', e => { STATE.region = e.target.value; filterChanged(); }); }
+    if (cur) { cur.value = STATE.currency; cur.addEventListener('change', e => { STATE.currency = e.target.value; filterChanged(); }); }
+    if (dis) { dis.value = STATE.discount; dis.addEventListener('input', e => { STATE.discount = +e.target.value || 0; filterChanged(); }); }
+  }
+
+  // ─── Init ────────────────────────────────────────────────────
+  let _freshTimer = null;
+  let _initialized = false;
+  function init() {
+    // DEF-015 · guard against double init() (HMR, hash-route bounces).
+    if (_initialized) return;
+    _initialized = true;
+    loadState();
+    wireFilters();
+    render();
+    if (_freshTimer) clearInterval(_freshTimer);
+    _freshTimer = setInterval(renderHeader, 30000);
+    wireKeyboardShortcuts();
+  }
+
+  // DEF-016 · keyboard shortcuts: S=load sample, C=cross-check, X=export Excel,
+  // L=toggle local, V=toggle live. Ignored when user is typing in an input/textarea.
+  function wireKeyboardShortcuts() {
+    document.addEventListener('keydown', function (e) {
+      const t = e.target;
+      const tag = t && t.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = (e.key || '').toLowerCase();
+      if (k === 's') { e.preventDefault(); window.loadSample && window.loadSample(); }
+      else if (k === 'c') { e.preventDefault(); window.crossCheckBackend && window.crossCheckBackend(); }
+      else if (k === 'x') { e.preventDefault(); window.exportXlsx && window.exportXlsx(); }
+      else if (k === 'l') { e.preventDefault(); window.setSource && window.setSource('local'); }
+      else if (k === 'v') { e.preventDefault(); window.setSource && window.setSource('live'); }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+</body>
+</html>
