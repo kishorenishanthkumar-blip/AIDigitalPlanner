@@ -256,11 +256,32 @@ function exportPlatformSnapshot() {
       <div class="tile-foot"><span class="tile-status ok">Ready · 38 artifacts</span><span class="tile-cta">Open →</span></div>
     </a>
 
+    <a class="tile" data-tile-id="requirements" href="requirements.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Requirements Studio" onclick="togglePin('requirements',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-pink">📑</div><div class="tile-name">Requirements Studio</div></div>
+      <div class="tile-desc">Functional + non-functional + compliance requirements. MoSCoW prioritization, INVEST scoring, framework matrix.</div>
+      <div class="tile-foot"><span class="tile-status ok">12 requirements</span><span class="tile-cta">Open →</span></div>
+    </a>
+
     <a class="tile" data-tile-id="architecture" href="architecture-studio.html">
       <button class="tile-pin" title="Pin / unpin" aria-label="Pin Architecture Studio" onclick="togglePin('architecture',event)">★</button>
       <div class="tile-head"><div class="tile-icon icon-blue">🏗</div><div class="tile-name">Architecture Studio</div></div>
       <div class="tile-desc">Design your To-Be platform across six targets — Private DC, AWS, Azure, GCP, OCI, IBM Cloud.</div>
       <div class="tile-foot"><span class="tile-status ok">Ready</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="actions" href="actions.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Actions Studio" onclick="togglePin('actions',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#E0F2FE,#BAE6FD);color:#0369A1">✅</div><div class="tile-name">Actions Studio</div></div>
+      <div class="tile-desc">Role-based action backlog · kanban lifecycle · due-date calendar · 16-role taxonomy across CIO/CTO/CISO/etc.</div>
+      <div class="tile-foot"><span class="tile-status ok">12 actions</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="sow" href="sow.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin SOW" onclick="togglePin('sow',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#92400E">📄</div><div class="tile-name">Draft SOW</div></div>
+      <div class="tile-desc">11-section Statement of Work · pricing · milestones · staffing · RAID. Inline markdown editor with live cross-binding errors.</div>
+      <div class="tile-foot"><span class="tile-status ok">v0.1 draft</span><span class="tile-cta">Open →</span></div>
     </a>
 
     <a class="tile" data-tile-id="governance" href="program-governance.html">
@@ -280,8 +301,29 @@ function exportPlatformSnapshot() {
     <a class="tile" data-tile-id="operations" href="operations.html">
       <button class="tile-pin" title="Pin / unpin" aria-label="Pin Operations" onclick="togglePin('operations',event)">★</button>
       <div class="tile-head"><div class="tile-icon icon-green">📈</div><div class="tile-name">Operations</div></div>
-      <div class="tile-desc">Live post-go-live KPIs — incident MTTR, SLO burn rate, batch SLAs, FinOps signals.</div>
+      <div class="tile-desc">Live post-go-live KPIs — incident MTTR, SLO burn rate, DORA metrics, FinOps signals.</div>
       <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="knowledge" href="knowledge.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Knowledge" onclick="togglePin('knowledge',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#EDE9FE,#DDD6FE);color:#5B21B6">📚</div><div class="tile-name">Knowledge</div></div>
+      <div class="tile-desc">Searchable corpus · vector + filter search · regulations, standards, playbooks · per-tenant ingest with citations.</div>
+      <div class="tile-foot"><span class="tile-status ok">Ready</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="iac" href="iac.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin IaC Bundle" onclick="togglePin('iac',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#DCFCE7,#BBF7D0);color:#166534">⚙️</div><div class="tile-name">IaC Bundle</div></div>
+      <div class="tile-desc">Generate Terraform / Helm / GitHub Actions bundles · preview file tree · validate · estimate monthly Cloudflare cost.</div>
+      <div class="tile-foot"><span class="tile-status ok">Ready</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="evp" href="evp-summary.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin EVP Summary" onclick="togglePin('evp',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#FFEDD5,#FED7AA);color:#9A3412">📊</div><div class="tile-name">EVP Summary</div></div>
+      <div class="tile-desc">Executive value proposition · board-ready one-pager · cross-binds Discovery + Architecture + SOW + Governance + Operations.</div>
+      <div class="tile-foot"><span class="tile-status ok">Ready</span><span class="tile-cta">Open →</span></div>
     </a>
 
     <a class="tile" data-tile-id="testing" href="testing-services.html">
