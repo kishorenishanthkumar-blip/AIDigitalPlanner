@@ -1036,10 +1036,12 @@ render();
 
   window.rqSendToSow = function () {
     if (RQS.requirements.length === 0) { if (S()) S().toast('warn', 'Load requirements first'); return; }
-    if (S()) S().sendToStudio('sow', { requirements: RQS.requirements, summary: RQS.summary }, { path: 'draft-sow', query: 'from=requirements' });
+    /* Target the existing legacy `sow.html` route · Phase 1C will add the
+     * Workspace view inside that same file, so this URL keeps working. */
+    if (S()) S().sendToStudio('sow', { requirements: RQS.requirements, summary: RQS.summary }, { path: 'sow', query: 'from=requirements' });
     else {
       try { localStorage.setItem('di_handoff_sow', JSON.stringify({ from:'requirements', ts: Date.now(), requirements: RQS.requirements, summary: RQS.summary })); } catch {}
-      location.href = 'draft-sow?from=requirements';
+      location.href = 'sow?from=requirements';
     }
   };
 
