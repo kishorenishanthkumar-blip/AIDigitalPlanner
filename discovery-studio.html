@@ -1713,25 +1713,37 @@ function timeAgo(iso) {
     if (WS.capabilities.length === 0) {
       wsShowToast('warn', 'Nothing to export'); return;
     }
-    const header = ['ID','Name','Domain','Current tech','Complexity','Sensitivity','Volume','7R','Confidence','Rationale','Source'];
-    const rows = WS.capabilities.map(c => {
+    /* export.js expects { headers: [...], rows: [{colName: value, ...}] } shape.
+     * Passing arrays-of-arrays makes it use Object.keys (numeric indices) as headers. */
+    const capHeaders = ['ID','Name','Domain','Current tech','Complexity','Sensitivity','Volume','7R','Confidence','Rationale','Source'];
+    const capRows = WS.capabilities.map(c => {
       const v = verdictFor(c);
-      return [c.id, c.name, c.domain, c.current_tech, c.complexity, c.sensitivity, c.volume,
-              v.strategy || '', (v.confidence || 0).toFixed(2), v.rationale || '',
-              (WS.sevenRSource === 'live' ? 'AIDP agent' : 'Local engine')];
+      return {
+        'ID':          c.id,
+        'Name':        c.name,
+        'Domain':      c.domain,
+        'Current tech':c.current_tech,
+        'Complexity':  c.complexity,
+        'Sensitivity': c.sensitivity,
+        'Volume':      c.volume,
+        '7R':          v.strategy || '',
+        'Confidence':  (v.confidence || 0).toFixed(2),
+        'Rationale':   v.rationale || '',
+        'Source':      (WS.sevenRSource === 'live' ? 'AIDP agent' : 'Local engine')
+      };
     });
-    const params = [
-      ['Setting','Value'],
-      ['Tenant', getEmail()],
-      ['7R source', WS.sevenRSource],
-      ['Capabilities', WS.capabilities.length],
-      ['Regulated', WS.capabilities.filter(c => c.sensitivity === 'regulated').length],
-      ['Generated', new Date().toISOString()]
+    const paramHeaders = ['Setting','Value'];
+    const paramRows = [
+      { Setting: 'Tenant',       Value: getEmail() },
+      { Setting: '7R source',    Value: WS.sevenRSource },
+      { Setting: 'Capabilities', Value: WS.capabilities.length },
+      { Setting: 'Regulated',    Value: WS.capabilities.filter(c => c.sensitivity === 'regulated').length },
+      { Setting: 'Generated',    Value: new Date().toISOString() }
     ];
     try {
       window.DI.export.workbook('aidp-discovery-workspace.xlsx', [
-        { name: 'Capabilities',   rows: [header].concat(rows) },
-        { name: 'Run parameters', rows: params }
+        { name: 'Capabilities',   headers: capHeaders,   rows: capRows },
+        { name: 'Run parameters', headers: paramHeaders, rows: paramRows }
       ]);
       wsShowToast('ok', 'Excel ready');
     } catch (err) {

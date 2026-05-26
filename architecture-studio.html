@@ -1109,35 +1109,45 @@ body {
       return;
     }
     const pricing = computePricing();
-    const matrixHeader = ['Capability', '7R', 'Current', 'Future'].concat(CLOUDS.map(c => CLOUD_LABEL[c] + ' (' + STATE.currency + '/mo)'));
+    /* export.js needs { headers: [...], rows: [{colName: value}] } shape · arrays
+     * confuse it (Object.keys returns numeric indices that become the header row). */
+    const cloudHeaders = CLOUDS.map(c => CLOUD_LABEL[c] + ' (' + STATE.currency + '/mo)');
+    const matrixHeaders = ['Capability', '7R', 'Current', 'Future'].concat(cloudHeaders);
     const matrixRows = STATE.capabilities.map((cap, i) => {
       const row = pricing[i];
-      const cells = [cap.name || '', (VERDICT_META[cap.verdict] || {label: cap.verdict || ''}).label, cap.current || '', cap.future || ''];
-      CLOUDS.forEach(c => {
+      const obj = {
+        'Capability': cap.name || '',
+        '7R':         (VERDICT_META[cap.verdict] || {label: cap.verdict || ''}).label,
+        'Current':    cap.current || '',
+        'Future':     cap.future || ''
+      };
+      CLOUDS.forEach((c, ci) => {
         const v = row[c] || 0;
-        cells.push(v > 0 ? Math.round(v) : (row['_na_' + c] || (c === 'saas' ? 'N/A' : '—')));
+        obj[cloudHeaders[ci]] = v > 0 ? Math.round(v) : (row['_na_' + c] || (c === 'saas' ? 'N/A' : '—'));
       });
-      return cells;
+      return obj;
     });
-    // Totals row
-    const totalsRow = ['Total · monthly', '', '', ''];
-    CLOUDS.forEach(c => {
+    // Totals row · same shape so it folds in cleanly
+    const totalsObj = { 'Capability': 'Total · monthly', '7R': '', 'Current': '', 'Future': '' };
+    CLOUDS.forEach((c, ci) => {
       const t = pricing.reduce((sum, r) => sum + (r[c] || 0), 0);
-      totalsRow.push(t > 0 ? Math.round(t) : (c === 'saas' ? 'N/A' : '—'));
+      totalsObj[cloudHeaders[ci]] = t > 0 ? Math.round(t) : (c === 'saas' ? 'N/A' : '—');
     });
-    const params = [
-      ['Setting', 'Value'],
-      ['Region', STATE.region],
-      ['Currency', STATE.currency],
-      ['Discount %', STATE.discount + '%'],
-      ['Source', STATE.source],
-      ['Capabilities', STATE.capabilities.length],
-      ['Generated', new Date().toISOString()]
+    matrixRows.push(totalsObj);
+
+    const paramHeaders = ['Setting', 'Value'];
+    const paramRows = [
+      { Setting: 'Region',       Value: STATE.region },
+      { Setting: 'Currency',     Value: STATE.currency },
+      { Setting: 'Discount %',   Value: STATE.discount + '%' },
+      { Setting: 'Source',       Value: STATE.source },
+      { Setting: 'Capabilities', Value: STATE.capabilities.length },
+      { Setting: 'Generated',    Value: new Date().toISOString() }
     ];
     try {
       window.DI.export.workbook('aidp-architecture-pricing.xlsx', [
-        { name: 'Pricing matrix', rows: [matrixHeader].concat(matrixRows).concat([totalsRow]) },
-        { name: 'Run parameters',  rows: params }
+        { name: 'Pricing matrix',  headers: matrixHeaders, rows: matrixRows },
+        { name: 'Run parameters',  headers: paramHeaders,  rows: paramRows }
       ]);
       if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', title:'Excel ready', message:'aidp-architecture-pricing.xlsx downloaded.' });
     } catch (err) {
