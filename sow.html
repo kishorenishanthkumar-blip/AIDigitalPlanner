@@ -6,6 +6,11 @@
 <title>Draft SOW · DI Platform</title>
 <meta name="description" content="Inline-editable draft Statement of Work generated from your Discovery + Architecture + EVP."/>
 <link rel="stylesheet" href="assets/theme.css">
+<!-- Phase 0 · shared enterprise tokens + helpers -->
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/audit.js" defer></script>
 <script src="assets/cmdk.js" defer></script>
@@ -14,6 +19,49 @@
 <script src="assets/export.js" defer></script>
 <script src="assets/pricing.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
+<!-- Phase 1C · SOW Workspace -->
+<script src="assets/aidp-api.js"></script>
+<script src="assets/studio-shell.js" defer></script>
+<script src="assets/studio-test.js" defer></script>
+<script src="assets/sow-api.js" defer></script>
+<!-- EasyMDE (CodeMirror 5 markdown editor) · lazy-loaded by SOW Workspace on first open -->
+<style>
+  /* Section navigator + editor pane styles (scoped to #sow-workspace to avoid clashing with legacy) */
+  #sow-workspace .sw-layout { display:grid; grid-template-columns:220px 1fr 320px; gap:14px; align-items:start; }
+  #sow-workspace .sw-nav { background:var(--aidp-white); border:1px solid var(--aidp-ink-200); border-radius:6px; padding:8px; position:sticky; top:14px; max-height:calc(100vh - 140px); overflow:auto; }
+  #sow-workspace .sw-nav h4 { font-size:10px; font-weight:600; color:var(--aidp-ink-500); text-transform:uppercase; letter-spacing:.06em; padding:4px 8px 6px; margin:0; }
+  #sow-workspace .sw-nav button { display:block; width:100%; text-align:left; background:transparent; border:none; padding:7px 10px; border-radius:4px; font-family:var(--aidp-f-ui); font-size:12.5px; color:var(--aidp-ink-700); cursor:pointer; transition:.1s; }
+  #sow-workspace .sw-nav button:hover { background:var(--aidp-ink-50); color:var(--aidp-ink-900); }
+  #sow-workspace .sw-nav button.active { background:var(--aidp-navy-lt); color:var(--aidp-navy-dk); font-weight:600; }
+  #sow-workspace .sw-nav .order { font-family:var(--aidp-f-mono); font-size:10px; color:var(--aidp-ink-400); margin-right:6px; }
+  #sow-workspace .sw-editor-wrap { background:var(--aidp-white); border:1px solid var(--aidp-ink-200); border-radius:6px; padding:14px 16px; }
+  #sow-workspace .sw-editor-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:10px; }
+  #sow-workspace .sw-editor-head input { font-family:var(--aidp-f-ui); font-size:15px; font-weight:600; color:var(--aidp-ink-900); border:1px solid transparent; padding:4px 6px; border-radius:4px; width:100%; background:transparent; }
+  #sow-workspace .sw-editor-head input:hover, #sow-workspace .sw-editor-head input:focus { border-color:var(--aidp-ink-300); outline:none; background:var(--aidp-white); }
+  #sow-workspace .sw-editor-meta { font-size:10.5px; color:var(--aidp-ink-500); font-family:var(--aidp-f-mono); white-space:nowrap; }
+  #sow-workspace .sw-panel { background:var(--aidp-white); border:1px solid var(--aidp-ink-200); border-radius:6px; padding:12px 14px; margin-bottom:12px; }
+  #sow-workspace .sw-panel h4 { font-size:10px; font-weight:600; color:var(--aidp-ink-500); text-transform:uppercase; letter-spacing:.06em; margin:0 0 8px; }
+  #sow-workspace .sw-panel .row { display:flex; justify-content:space-between; align-items:center; padding:4px 0; font-size:12px; border-bottom:1px solid var(--aidp-ink-100); }
+  #sow-workspace .sw-panel .row:last-child { border-bottom:none; }
+  #sow-workspace .sw-panel .row .k { color:var(--aidp-ink-600); }
+  #sow-workspace .sw-panel .row .v { font-family:var(--aidp-f-mono); color:var(--aidp-ink-900); font-weight:500; }
+  #sow-workspace .sw-panel .row .v.big { font-size:14px; color:var(--aidp-navy); font-weight:600; }
+  #sow-workspace .sw-milestone { display:grid; grid-template-columns:1fr auto; gap:4px 8px; padding:6px 0; font-size:11.5px; border-bottom:1px solid var(--aidp-ink-100); }
+  #sow-workspace .sw-milestone:last-child { border-bottom:none; }
+  #sow-workspace .sw-milestone .name { color:var(--aidp-ink-900); font-weight:500; }
+  #sow-workspace .sw-milestone .date { font-family:var(--aidp-f-mono); font-size:10.5px; color:var(--aidp-ink-500); white-space:nowrap; }
+  #sow-workspace .sw-milestone .bar { grid-column:1 / -1; height:4px; background:var(--aidp-ink-100); border-radius:2px; overflow:hidden; margin-top:3px; }
+  #sow-workspace .sw-milestone .bar > div { height:100%; background:var(--aidp-navy); border-radius:2px; }
+  #sow-workspace .sw-staff-grid { display:grid; grid-template-columns:1fr auto auto; gap:3px 8px; font-size:11.5px; }
+  #sow-workspace .sw-staff-grid .h { font-size:9.5px; font-weight:600; color:var(--aidp-ink-500); text-transform:uppercase; letter-spacing:.05em; padding-bottom:2px; }
+  #sow-workspace .sw-cross-err { background:var(--aidp-red-lt); border:1px solid var(--aidp-red); border-radius:4px; padding:6px 10px; font-size:11.5px; color:var(--aidp-red); margin-bottom:10px; }
+  #sow-workspace textarea.sw-fallback { width:100%; min-height:380px; font-family:var(--aidp-f-mono); font-size:13px; padding:12px; border:1px solid var(--aidp-ink-200); border-radius:4px; resize:vertical; }
+  /* EasyMDE container · keeps the toolbar inside our panel cleanly */
+  #sow-workspace .EasyMDEContainer .editor-toolbar { border-radius:4px 4px 0 0; }
+  #sow-workspace .EasyMDEContainer .CodeMirror { border-radius:0 0 4px 4px; min-height:380px; font-family:var(--aidp-f-mono); font-size:13px; }
+  @media (max-width:1280px) { #sow-workspace .sw-layout { grid-template-columns:180px 1fr; } #sow-workspace .sw-side { grid-column:1 / -1; } }
+  @media (max-width:768px)  { #sow-workspace .sw-layout { grid-template-columns:1fr; } #sow-workspace .sw-nav { position:relative; max-height:none; } }
+</style>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -91,24 +139,142 @@ a{color:var(--gold);text-decoration:none}
 
 <div data-di-topbar></div>
 
-<!-- Toolbar -->
-<div class="sow-tools">
-  <div class="sow-tools-wrap">
-    <div class="status">
-      <span class="pill" id="sow-version">v0.1 · DRAFT</span>
-      <span id="sow-saved">Auto-saved · just now</span>
+<!-- View toggle · Legacy editor ↔ Workspace · enterprise -->
+<div style="background:#fff;border-bottom:1px solid var(--border);padding:10px 24px">
+  <div style="max-width:1500px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div style="display:inline-flex;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:99px;padding:2px">
+      <button id="sw-view-legacy"    class="active" onclick="setSowView('legacy')"    style="background:#FFFFFF;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#0F172A;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.08)">Inline editor</button>
+      <button id="sw-view-workspace"               onclick="setSowView('workspace')" style="background:transparent;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#64748B;cursor:pointer">Workspace</button>
     </div>
-    <div class="actions">
-      <button onclick="exportDOCX()">⬇ DOCX</button>
-      <button onclick="exportPDF()">⬇ PDF</button>
-      <button onclick="addComment()">💬 Add comment</button>
-      <button onclick="bumpVersion()">↗ New version</button>
-      <button class="primary" onclick="sendForReview()">📤 Send for review</button>
-    </div>
+    <div style="font-size:11px;color:#64748B">Workspace · live SOW agent · 11 sections in markdown editor · structured panels for pricing, milestones, staffing, RAID</div>
   </div>
 </div>
 
-<main class="sow-body" id="sow-body"></main>
+<!-- Legacy inline editor -->
+<div id="sow-legacy-view">
+  <!-- Toolbar -->
+  <div class="sow-tools">
+    <div class="sow-tools-wrap">
+      <div class="status">
+        <span class="pill" id="sow-version">v0.1 · DRAFT</span>
+        <span id="sow-saved">Auto-saved · just now</span>
+      </div>
+      <div class="actions">
+        <button onclick="exportDOCX()">⬇ DOCX</button>
+        <button onclick="exportPDF()">⬇ PDF</button>
+        <button onclick="addComment()">💬 Add comment</button>
+        <button onclick="bumpVersion()">↗ New version</button>
+        <button class="primary" onclick="sendForReview()">📤 Send for review</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="sow-body" id="sow-body"></main>
+</div>
+
+<!-- Workspace view · enterprise pattern · live SOW agent -->
+<div id="sow-workspace" style="display:none">
+  <div class="aidp-shell">
+
+    <header class="aidp-header">
+      <div>
+        <div class="aidp-bread"><a href="home">Home</a> &nbsp;/&nbsp; <a href="requirements">Requirements</a> &nbsp;/&nbsp; <a href="actions">Actions</a> &nbsp;/&nbsp; Draft SOW · Workspace</div>
+        <h1 class="aidp-title">Draft SOW · Workspace</h1>
+        <p class="aidp-subtitle">Live SOW agent · 11 sections with EasyMDE markdown editor · structured panels for pricing / milestones / staffing / RAID · cross-binds to Discovery + Architecture + Requirements + Actions on assemble.</p>
+      </div>
+      <div class="aidp-context">
+        <span class="aidp-tenant">Tenant: <strong id="sw-tenant-name">…</strong></span>
+        <span class="aidp-freshness" id="sw-freshness"><span class="dot"></span> <span data-aidp-fresh-text>Loading…</span></span>
+      </div>
+    </header>
+
+    <div class="aidp-kpis">
+      <div class="aidp-kpi"><div class="lbl">Year-1 indicative</div><div class="val" id="sw-kpi-y1">—</div><div class="sub" id="sw-kpi-y1-sub">&nbsp;</div></div>
+      <div class="aidp-kpi"><div class="lbl">Effort</div><div class="val" id="sw-kpi-eff">—</div><div class="sub" id="sw-kpi-eff-sub">&nbsp;</div></div>
+      <div class="aidp-kpi positive"><div class="lbl">Sections</div><div class="val" id="sw-kpi-sec">—</div><div class="sub" id="sw-kpi-sec-sub">&nbsp;</div></div>
+      <div class="aidp-kpi" id="sw-kpi-cbe-card"><div class="lbl">Cross-binding errors</div><div class="val" id="sw-kpi-cbe">—</div><div class="sub" id="sw-kpi-cbe-sub">&nbsp;</div></div>
+    </div>
+
+    <div class="aidp-filters">
+      <div class="aidp-filter">
+        <label for="sw-f-currency">Currency</label>
+        <select id="sw-f-currency"><option>USD</option><option>EUR</option><option>GBP</option><option>SGD</option><option>INR</option><option>JPY</option><option>CAD</option><option>AUD</option></select>
+      </div>
+      <div class="aidp-filter">
+        <label for="sw-f-region">Region</label>
+        <select id="sw-f-region"><option>global</option><option>na-us</option><option>na-ca</option><option>eu</option><option>uk</option><option>apac-in</option><option>apac-sg</option><option>apac-au</option><option>apac-jp</option><option>mea</option><option>latam</option></select>
+      </div>
+      <div class="aidp-filter">
+        <label for="sw-f-contingency">Contingency %</label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input id="sw-f-contingency" type="number" min="0" max="50" value="10" step="1" style="width:80px;min-width:0">
+          <span style="font-size:13px;color:var(--aidp-ink-500);font-weight:500">%</span>
+        </div>
+      </div>
+      <div class="aidp-grow"></div>
+      <button class="aidp-btn aidp-btn-sm" onclick="swRefresh()" title="Reload from D1 (F)">↻ Refresh</button>
+    </div>
+
+    <div id="sw-error" style="display:none"></div>
+    <div id="sw-cross-errs"></div>
+
+    <!-- MAIN · 3-column layout: nav | editor | structured panels -->
+    <div class="sw-layout">
+
+      <!-- Section navigator -->
+      <aside class="sw-nav" id="sw-nav">
+        <h4>Sections</h4>
+        <div id="sw-nav-body"><div style="padding:10px;font-size:11.5px;color:var(--aidp-ink-400)">Loading…</div></div>
+      </aside>
+
+      <!-- Editor pane -->
+      <div class="sw-editor-wrap">
+        <div class="sw-editor-head">
+          <input id="sw-section-title" placeholder="Section title" oninput="swTitleChange(this.value)">
+          <div class="sw-editor-meta" id="sw-section-meta">&nbsp;</div>
+        </div>
+        <div id="sw-editor-host">
+          <div style="padding:60px 20px;text-align:center;color:var(--aidp-ink-500);font-size:13px">
+            Select a section on the left, or click <strong>🌐 Assemble via AIDP</strong> below to draft a fresh SOW.
+          </div>
+        </div>
+      </div>
+
+      <!-- Structured side panels -->
+      <div class="sw-side">
+        <div class="sw-panel">
+          <h4>Pricing</h4>
+          <div id="sw-panel-pricing"><div style="font-size:11.5px;color:var(--aidp-ink-400)">No SOW yet</div></div>
+        </div>
+        <div class="sw-panel">
+          <h4>Milestones</h4>
+          <div id="sw-panel-milestones"><div style="font-size:11.5px;color:var(--aidp-ink-400)">No SOW yet</div></div>
+        </div>
+        <div class="sw-panel">
+          <h4>Staffing</h4>
+          <div id="sw-panel-staffing"><div style="font-size:11.5px;color:var(--aidp-ink-400)">No SOW yet</div></div>
+        </div>
+        <div class="sw-panel">
+          <h4>RAID</h4>
+          <div id="sw-panel-raid"><div style="font-size:11.5px;color:var(--aidp-ink-400)">No SOW yet</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="aidp-actions">
+    <div class="aidp-actions-inner">
+      <div class="aidp-actions-status" id="sw-status"><strong id="sw-status-text">No SOW loaded</strong></div>
+      <div class="aidp-actions-buttons">
+        <button class="aidp-btn aidp-btn-sm" onclick="swAssembleAidp()" title="Re-assemble SOW via AIDP (R)">🌐 Assemble via AIDP</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="swExportMd()"    title="Download as Markdown (M)">⬇ Markdown</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="swExportXlsx()"  title="Download Excel workbook (X)">⬇ Excel</button>
+        <button class="aidp-btn aidp-btn-primary aidp-btn-sm" onclick="swSendToGovernance()" title="Send to Governance">Send to Governance →</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════════
@@ -275,7 +441,7 @@ function render() {
     '<h3>Provenance</h3>' +
     '<div class="row"><span>Generated</span><strong style="font-family:var(--f-mono)">' + new Date().toLocaleString() + '</strong></div>' +
     '<div class="row"><span>Source</span><strong>Architecture v1.0</strong></div>' +
-    '<div class="row"><span>Author</span><strong>Nishi</strong></div>' +
+    '<div class="row"><span>Author</span><strong>Niche-I</strong></div>' +
     '<div class="row"><span>Status</span><strong style="color:var(--gold)">' + SOW.status + '</strong></div>' +
   '</div>';
   sideHtml += '</aside>';
@@ -401,6 +567,517 @@ function addComment() {
 /* ── Bootstrap ──────────────────────────────────────── */
 loadInput();
 render();
+</script>
+
+<!-- ─── Workspace view module · Phase 1C ─────────────────── -->
+<script>
+(function () {
+  'use strict';
+
+  const WS_KEY = 'aidp_sow_workspace_v1';
+  const SW = {
+    sow: null,                    // full SOW object from agent
+    cross_binding_errors: [],
+    selectedSectionId: null,
+    lastUpdated: null,
+    initialized: false,
+    mde: null                     // EasyMDE instance (lazy)
+  };
+
+  function S() { return window.AIDPStudio; }
+  function esc(s) { return S() ? S().escapeHtml(s) : String(s == null ? '' : s); }
+  function fmtCurrency(n, ccy) { return S() ? S().fmtCurrency(n, ccy || (SW.sow && SW.sow.currency) || 'USD') : ('$' + Math.round(n||0).toLocaleString()); }
+  function fmtNumber(n) { return S() ? S().fmtNumber(n) : String(n); }
+  function fmtDate(t)   { return S() ? S().fmtDate(t)  : ''; }
+
+  function wsSave() {
+    try { localStorage.setItem(WS_KEY, JSON.stringify({
+      sow: SW.sow, cross_binding_errors: SW.cross_binding_errors,
+      lastUpdated: SW.lastUpdated, selectedSectionId: SW.selectedSectionId
+    })); } catch {}
+  }
+  function wsLoad() {
+    try {
+      const raw = localStorage.getItem(WS_KEY);
+      if (raw) {
+        const p = JSON.parse(raw);
+        SW.sow = p.sow || null;
+        SW.cross_binding_errors = p.cross_binding_errors || [];
+        SW.lastUpdated = p.lastUpdated || null;
+        SW.selectedSectionId = p.selectedSectionId || null;
+      }
+    } catch {}
+  }
+
+  /* ─── EasyMDE lazy loader ────────────────────────────── */
+
+  let _mdeReady = null;
+  function loadEasyMDE() {
+    if (_mdeReady) return _mdeReady;
+    _mdeReady = new Promise((resolve, reject) => {
+      if (window.EasyMDE) return resolve(window.EasyMDE);
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'https://unpkg.com/easymde/dist/easymde.min.css';
+      document.head.appendChild(css);
+      const js = document.createElement('script');
+      js.src = 'https://unpkg.com/easymde/dist/easymde.min.js';
+      js.onload = () => resolve(window.EasyMDE);
+      js.onerror = () => reject(new Error('Failed to load EasyMDE from CDN'));
+      document.head.appendChild(js);
+    });
+    return _mdeReady;
+  }
+
+  /* ─── Agent calls ────────────────────────────────────── */
+
+  async function refresh() {
+    clearError();
+    if (!window.SowAPI) { showError('SowAPI not loaded'); return; }
+    try {
+      /* Try list first · cheap. If no SOW exists yet, prompt the user to assemble. */
+      const lst = await window.SowAPI.list();
+      if (lst && lst.has_sow === false) {
+        SW.sow = null;
+        renderAll();
+        if (S()) S().toast('info', 'No SOW yet', 'Click 🌐 Assemble via AIDP to draft one from upstream context');
+        return;
+      }
+      /* Fetch the full SOW via assemble with persist:false (the agent returns the saved one if it exists) */
+      const r = await window.SowAPI.assemble({ persist: false });
+      if (r && r.sow) {
+        SW.sow = r.sow;
+        SW.cross_binding_errors = r.cross_binding_errors || [];
+        SW.lastUpdated = Date.now();
+        wsSave();
+      }
+      renderAll();
+    } catch (err) {
+      showError('Refresh failed: ' + (err.message || err));
+    }
+  }
+  window.swRefresh = refresh;
+
+  window.swAssembleAidp = async function () {
+    if (!window.SowAPI) { if (S()) S().toast('err','SowAPI not loaded'); return; }
+    if (S()) S().toast('info', 'Assembling SOW via AIDP', 'cross-binds to Discovery + Architecture + Requirements + Actions…');
+    try {
+      const r = await window.SowAPI.assemble({
+        currency:        document.getElementById('sw-f-currency').value,
+        region:          document.getElementById('sw-f-region').value,
+        contingency_pct: (+document.getElementById('sw-f-contingency').value || 10) / 100,
+        persist: true
+      });
+      SW.sow = r?.sow || null;
+      SW.cross_binding_errors = r?.cross_binding_errors || [];
+      SW.lastUpdated = Date.now();
+      wsSave();
+      if (S()) S().toast(SW.cross_binding_errors.length ? 'warn' : 'ok',
+        SW.cross_binding_errors.length ? 'Assembled with ' + SW.cross_binding_errors.length + ' cross-binding error(s)' : 'SOW assembled',
+        SW.sow ? (SW.sow.sections?.length || 0) + ' sections · ' + (SW.sow.id || '') : ''
+      );
+      renderAll();
+    } catch (err) {
+      if (S()) S().toast('err', 'Assemble failed', err.message || String(err));
+    }
+  };
+
+  /* ─── Renders ────────────────────────────────────────── */
+
+  function renderHeader() {
+    if (S()) S().renderTenantBadge(document.getElementById('sw-tenant-name'));
+    const fresh = document.getElementById('sw-freshness');
+    const text  = fresh?.querySelector('[data-aidp-fresh-text]');
+    if (!fresh || !text) return;
+    if (!SW.sow) {
+      fresh.className = 'aidp-freshness stale'; text.textContent = 'No SOW loaded';
+    } else if (SW.lastUpdated && (Date.now() - SW.lastUpdated) > 24*3600*1000) {
+      fresh.className = 'aidp-freshness stale'; text.textContent = 'Stale · ' + (S() ? S().fmtFresh(SW.lastUpdated) : '');
+    } else {
+      fresh.className = 'aidp-freshness'; text.textContent = 'Live · ' + (S() ? S().fmtFresh(SW.lastUpdated) : 'just now');
+    }
+  }
+
+  function renderKpis() {
+    const sow = SW.sow;
+    const pricing = sow?.pricing || {};
+    const milestones = sow?.milestones || [];
+    const sections = sow?.sections || [];
+    const cbe = (SW.cross_binding_errors || []).length;
+
+    const y1 = pricing.total_year1_indicative ?? pricing.total_year1 ?? null;
+    document.getElementById('sw-kpi-y1').textContent = (y1 != null) ? fmtCurrency(y1) : '—';
+    document.getElementById('sw-kpi-y1-sub').textContent = pricing.labour_subtotal != null
+      ? 'labour ' + fmtCurrency(pricing.labour_subtotal) + ' · run-rate ' + fmtCurrency(pricing.architecture_run_rate || 0)
+      : ' ';
+
+    /* Effort: try totalWeeks/duration_weeks across milestones */
+    const weeks = sow?.duration_weeks
+                ?? sow?.total_weeks
+                ?? (milestones.length ? milestones.reduce((m,x) => Math.max(m, x.end_week ?? x.week ?? 0), 0) : null);
+    document.getElementById('sw-kpi-eff').textContent = weeks != null ? weeks + 'w' : '—';
+    document.getElementById('sw-kpi-eff-sub').textContent = milestones.length ? milestones.length + ' milestones' : ' ';
+
+    document.getElementById('sw-kpi-sec').textContent = sections.length;
+    document.getElementById('sw-kpi-sec-sub').textContent = sow ? 'v' + (sow.version || '0.1.0') + ' · ' + (sow.status || 'draft') : ' ';
+
+    document.getElementById('sw-kpi-cbe').textContent = cbe;
+    const cbeCard = document.getElementById('sw-kpi-cbe-card');
+    cbeCard.className = 'aidp-kpi' + (cbe > 0 ? ' danger' : ' positive');
+    document.getElementById('sw-kpi-cbe-sub').textContent = cbe > 0 ? 'see banner above' : 'all upstream agents responded';
+  }
+
+  function renderCrossErrs() {
+    const wrap = document.getElementById('sw-cross-errs');
+    if (!SW.cross_binding_errors?.length) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = SW.cross_binding_errors.map(e =>
+      '<div class="sw-cross-err">⚠ <strong>' + esc(e.agent || e.upstream_agent || 'upstream') + '</strong> · ' + esc(e.message || e.code || JSON.stringify(e)) + '</div>'
+    ).join('');
+  }
+
+  function renderNav() {
+    const body = document.getElementById('sw-nav-body');
+    const sections = (SW.sow?.sections || []).slice().sort((a,b) => (a.order||0) - (b.order||0));
+    if (!sections.length) {
+      body.innerHTML = '<div style="padding:10px;font-size:11.5px;color:var(--aidp-ink-400)">No sections yet</div>';
+      return;
+    }
+    body.innerHTML = sections.map(s =>
+      '<button class="' + (s.id === SW.selectedSectionId ? 'active' : '') + '" onclick="swSelectSection(\'' + esc(s.id) + '\')">' +
+        '<span class="order">' + esc(String(s.order || '')) + '</span>' + esc(s.title || s.id) +
+      '</button>'
+    ).join('');
+  }
+
+  async function renderEditor() {
+    const host  = document.getElementById('sw-editor-host');
+    const titleEl = document.getElementById('sw-section-title');
+    const metaEl  = document.getElementById('sw-section-meta');
+
+    if (!SW.selectedSectionId || !SW.sow) {
+      host.innerHTML = '<div style="padding:60px 20px;text-align:center;color:var(--aidp-ink-500);font-size:13px">Select a section on the left, or click <strong>🌐 Assemble via AIDP</strong> below to draft a fresh SOW.</div>';
+      titleEl.value = '';
+      metaEl.textContent = '';
+      destroyMde();
+      return;
+    }
+    const section = (SW.sow.sections || []).find(s => s.id === SW.selectedSectionId);
+    if (!section) return;
+    titleEl.value = section.title || '';
+    metaEl.textContent = section.id + ' · ' + (section.kind || 'section') + ' · ' + (section.body || '').length + ' chars · order ' + (section.order || '?');
+
+    /* Mount EasyMDE if available · graceful fallback to textarea. */
+    try {
+      destroyMde();
+      host.innerHTML = '<textarea id="sw-mde-input"></textarea>';
+      const EasyMDE = await loadEasyMDE();
+      SW.mde = new EasyMDE({
+        element: document.getElementById('sw-mde-input'),
+        initialValue: section.body || '',
+        spellChecker: false,
+        autofocus: false,
+        status: ['lines','words','cursor'],
+        toolbar: ['bold','italic','heading','|','quote','unordered-list','ordered-list','|','link','image','table','|','preview','side-by-side','fullscreen','|','guide'],
+        minHeight: '380px'
+      });
+      let _t = null;
+      SW.mde.codemirror.on('change', () => {
+        if (!SW.selectedSectionId) return;
+        clearTimeout(_t);
+        _t = setTimeout(() => {
+          const live = SW.sow.sections.find(s => s.id === SW.selectedSectionId);
+          if (!live) return;
+          const newBody = SW.mde.value();
+          if (live.body === newBody) return;
+          live.body = newBody;
+          SW.lastUpdated = Date.now();
+          wsSave();
+          if (window.SowAPI) window.SowAPI.updateSectionDebounced(live.id, newBody);
+          /* Update meta char count in-place */
+          metaEl.textContent = live.id + ' · ' + (live.kind || 'section') + ' · ' + newBody.length + ' chars · order ' + (live.order || '?');
+        }, 250);
+      });
+    } catch (err) {
+      console.warn('[SOW] EasyMDE load failed · using textarea fallback', err);
+      host.innerHTML = '<textarea class="sw-fallback" id="sw-fallback-ta"></textarea>';
+      const ta = document.getElementById('sw-fallback-ta');
+      ta.value = section.body || '';
+      let _t = null;
+      ta.addEventListener('input', () => {
+        clearTimeout(_t);
+        _t = setTimeout(() => {
+          const live = SW.sow.sections.find(s => s.id === SW.selectedSectionId);
+          if (!live) return;
+          live.body = ta.value;
+          SW.lastUpdated = Date.now();
+          wsSave();
+          if (window.SowAPI) window.SowAPI.updateSectionDebounced(live.id, ta.value);
+          metaEl.textContent = live.id + ' · ' + (live.kind || 'section') + ' · ' + ta.value.length + ' chars · order ' + (live.order || '?');
+        }, 250);
+      });
+    }
+  }
+
+  function destroyMde() {
+    if (SW.mde) {
+      try { SW.mde.toTextArea(); SW.mde = null; } catch {}
+    }
+  }
+
+  window.swTitleChange = function (newTitle) {
+    if (!SW.selectedSectionId || !SW.sow) return;
+    const s = SW.sow.sections.find(x => x.id === SW.selectedSectionId);
+    if (!s) return;
+    s.title = newTitle;
+    SW.lastUpdated = Date.now();
+    wsSave();
+    if (window.SowAPI) window.SowAPI.updateSectionDebounced(s.id, s.body, newTitle);
+    renderNav();   // nav button label updates
+  };
+
+  /* ─── Structured side panels ─────────────────────────── */
+
+  function renderPricingPanel() {
+    const p = SW.sow?.pricing;
+    const el = document.getElementById('sw-panel-pricing');
+    if (!p) { el.innerHTML = '<div style="font-size:11.5px;color:var(--aidp-ink-400)">No SOW yet</div>'; return; }
+    const ccy = SW.sow.currency || 'USD';
+    const rows = [];
+    if (p.labour_subtotal       != null) rows.push(['Labour subtotal',          fmtCurrency(p.labour_subtotal, ccy)]);
+    if (p.architecture_run_rate != null) rows.push(['Architecture run-rate',    fmtCurrency(p.architecture_run_rate, ccy)]);
+    if (p.contingency           != null) rows.push(['Contingency',              fmtCurrency(p.contingency, ccy)]);
+    if (p.software_subscriptions!= null) rows.push(['Software subscriptions',   fmtCurrency(p.software_subscriptions, ccy)]);
+    const y1 = p.total_year1_indicative ?? p.total_year1;
+    let html = '';
+    rows.forEach(([k, v]) => html += '<div class="row"><span class="k">' + esc(k) + '</span><span class="v">' + esc(v) + '</span></div>');
+    if (y1 != null) html += '<div class="row" style="border-top:2px solid var(--aidp-ink-200);margin-top:4px;padding-top:8px"><span class="k" style="font-weight:600">Year-1 indicative</span><span class="v big">' + esc(fmtCurrency(y1, ccy)) + '</span></div>';
+    el.innerHTML = html || '<div style="font-size:11.5px;color:var(--aidp-ink-400)">Pricing structured fields not surfaced yet</div>';
+  }
+
+  function renderMilestonesPanel() {
+    const ms = SW.sow?.milestones || [];
+    const el = document.getElementById('sw-panel-milestones');
+    if (!ms.length) { el.innerHTML = '<div style="font-size:11.5px;color:var(--aidp-ink-400)">No milestones</div>'; return; }
+    const maxWeek = Math.max(...ms.map(m => (m.end_week ?? m.week ?? 0)));
+    let html = '';
+    ms.forEach(m => {
+      const start = m.start_week ?? 0;
+      const end   = m.end_week ?? m.week ?? start;
+      const pct   = maxWeek > 0 ? Math.round(((end - start) / maxWeek) * 100) : 0;
+      const offset = maxWeek > 0 ? Math.round((start / maxWeek) * 100) : 0;
+      const label = m.target_date ? fmtDate(m.target_date) : ('W' + start + '–W' + end);
+      html += '<div class="sw-milestone">';
+      html += '<div class="name">' + esc(m.name || m.title || m.id || '—') + '</div>';
+      html += '<div class="date">' + esc(label) + '</div>';
+      html += '<div class="bar"><div style="margin-left:' + offset + '%;width:' + Math.max(pct, 2) + '%"></div></div>';
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  function renderStaffingPanel() {
+    const st = SW.sow?.staffing;
+    const el = document.getElementById('sw-panel-staffing');
+    if (!st) { el.innerHTML = '<div style="font-size:11.5px;color:var(--aidp-ink-400)">No staffing data</div>'; return; }
+    const lines = Array.isArray(st) ? st
+                 : Array.isArray(st.roles) ? st.roles
+                 : Array.isArray(st.breakdown) ? st.breakdown
+                 : Object.entries(st).map(([role, info]) => ({ role, ...(typeof info === 'object' ? info : { fte: info }) }));
+    if (!lines.length) { el.innerHTML = '<div style="font-size:11.5px;color:var(--aidp-ink-400)">Staffing structured fields not surfaced yet</div>'; return; }
+    let html = '<div class="sw-staff-grid"><div class="h">Role</div><div class="h" style="text-align:right">FTE</div><div class="h" style="text-align:right">Weeks</div>';
+    lines.forEach(line => {
+      html += '<div>' + esc(line.role || line.name || line.title || '—') + '</div>';
+      html += '<div style="text-align:right">' + esc(String(line.fte ?? line.headcount ?? '—')) + '</div>';
+      html += '<div style="text-align:right">' + esc(String(line.weeks ?? line.duration_weeks ?? '—')) + '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function renderRaidPanel() {
+    const r = SW.sow?.raid;
+    const el = document.getElementById('sw-panel-raid');
+    if (!r) { el.innerHTML = '<div style="font-size:11.5px;color:var(--aidp-ink-400)">No RAID data</div>'; return; }
+    const items = Array.isArray(r) ? r : (r.items || []);
+    if (!items.length) {
+      /* Maybe the RAID is split by type */
+      const split = ['risks','assumptions','issues','dependencies'].filter(k => Array.isArray(r[k]) && r[k].length);
+      if (!split.length) { el.innerHTML = '<div style="font-size:11.5px;color:var(--aidp-ink-400)">No RAID items</div>'; return; }
+      el.innerHTML = split.map(k => '<div class="row"><span class="k">' + k[0].toUpperCase() + k.slice(1) + '</span><span class="v">' + (r[k].length) + '</span></div>').join('');
+      return;
+    }
+    /* Group by type if items have a type field */
+    const groups = items.reduce((m, it) => { const t = (it.type || it.kind || 'other').toLowerCase(); m[t] = (m[t]||0)+1; return m; }, {});
+    let html = '';
+    Object.entries(groups).forEach(([t, n]) => {
+      html += '<div class="row"><span class="k">' + esc(t[0].toUpperCase() + t.slice(1)) + '</span><span class="v">' + n + '</span></div>';
+    });
+    html += '<div class="row" style="border-top:1px solid var(--aidp-ink-200);margin-top:4px;padding-top:6px"><span class="k">Total RAID items</span><span class="v">' + items.length + '</span></div>';
+    el.innerHTML = html;
+  }
+
+  function renderStatusBar() {
+    const t = document.getElementById('sw-status-text');
+    if (!t) return;
+    if (!SW.sow) { t.textContent = 'No SOW loaded'; return; }
+    const ccy = SW.sow.currency || 'USD';
+    const y1 = SW.sow.pricing?.total_year1_indicative ?? SW.sow.pricing?.total_year1 ?? null;
+    const pieces = [
+      'v' + (SW.sow.version || '0.1.0'),
+      (SW.sow.status || 'draft'),
+      (SW.sow.sections?.length || 0) + ' sections'
+    ];
+    if (y1 != null) pieces.push('Year-1 ' + fmtCurrency(y1, ccy));
+    t.innerHTML = pieces.join(' · ');
+  }
+
+  function renderAll() {
+    renderHeader(); renderKpis(); renderCrossErrs();
+    renderNav();
+    renderEditor();
+    renderPricingPanel(); renderMilestonesPanel(); renderStaffingPanel(); renderRaidPanel();
+    renderStatusBar();
+  }
+
+  /* ─── Section selection ──────────────────────────────── */
+  window.swSelectSection = function (id) {
+    SW.selectedSectionId = id;
+    wsSave();
+    renderNav();
+    renderEditor();
+  };
+
+  /* ─── Export handlers ────────────────────────────────── */
+
+  window.swExportMd = async function () {
+    if (!SW.sow) { if (S()) S().toast('warn', 'No SOW to export'); return; }
+    if (!window.SowAPI) { if (S()) S().toast('err','SowAPI not loaded'); return; }
+    try {
+      const r = await window.SowAPI.export('md');
+      const text = r?.content || r?.markdown || r?.md || JSON.stringify(r, null, 2);
+      const blob = new Blob([text], { type: 'text/markdown' });
+      if (S()) S().downloadBlob('aidp-sow-' + (SW.sow.id || 'draft') + '.md', blob);
+      else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'aidp-sow.md'; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+      }
+      if (S()) S().toast('ok', 'Markdown ready');
+    } catch (err) {
+      if (S()) S().toast('err', 'Export failed', err.message || err);
+    }
+  };
+
+  window.swExportXlsx = function () {
+    if (!(window.DI && window.DI.export && window.DI.export.workbook)) { if (S()) S().toast('err','Excel exporter not loaded'); return; }
+    if (!SW.sow) { if (S()) S().toast('warn','No SOW to export'); return; }
+    const sow = SW.sow;
+    const ccy = sow.currency || 'USD';
+    /* Sections sheet */
+    const secHeaders = ['ID','Title','Kind','Order','Chars','Source signal'];
+    const secRows = (sow.sections || []).map(s => ({
+      'ID': s.id, 'Title': s.title || '', 'Kind': s.kind || '', 'Order': s.order || 0,
+      'Chars': (s.body || '').length, 'Source signal': s.source_signal || ''
+    }));
+    /* Pricing sheet */
+    const p = sow.pricing || {};
+    const pricingRows = Object.entries(p).map(([k, v]) => ({ Setting: k, Value: typeof v === 'number' ? Math.round(v) : String(v) }));
+    /* Milestones sheet */
+    const msHeaders = ['Name','Start week','End week','Target date','Notes'];
+    const msRows = (sow.milestones || []).map(m => ({
+      'Name': m.name || m.title || m.id || '',
+      'Start week': m.start_week ?? '',
+      'End week':   m.end_week ?? m.week ?? '',
+      'Target date': m.target_date ? new Date(m.target_date).toISOString().slice(0,10) : '',
+      'Notes': m.notes || ''
+    }));
+    const params = [
+      { Setting:'Tenant',  Value: (S() ? S().getUserEmail() : '') },
+      { Setting:'SOW ID',  Value: sow.id || '' },
+      { Setting:'Version', Value: sow.version || '0.1.0' },
+      { Setting:'Status',  Value: sow.status || 'draft' },
+      { Setting:'Currency',Value: ccy },
+      { Setting:'Region',  Value: sow.region || '' },
+      { Setting:'Year-1 indicative', Value: (p.total_year1_indicative ?? p.total_year1 ?? '') },
+      { Setting:'Generated', Value: new Date().toISOString() }
+    ];
+    try {
+      const sheets = [
+        { name: 'Sections',       headers: secHeaders, rows: secRows },
+        { name: 'Pricing',        headers: ['Setting','Value'], rows: pricingRows },
+        { name: 'Milestones',     headers: msHeaders, rows: msRows },
+        { name: 'Run parameters', headers: ['Setting','Value'], rows: params }
+      ];
+      window.DI.export.workbook('aidp-sow-' + (sow.id || 'draft') + '.xlsx', sheets);
+      if (S()) S().toast('ok', 'Excel ready');
+    } catch (err) {
+      if (S()) S().toast('err', 'Excel export failed', err.message || err);
+    }
+  };
+
+  window.swSendToGovernance = function () {
+    if (!SW.sow) { if (S()) S().toast('warn', 'Assemble or load a SOW first'); return; }
+    if (S()) S().sendToStudio('governance', { sow: SW.sow }, { path: 'program-governance', query: 'from=sow' });
+    else {
+      try { localStorage.setItem('di_handoff_governance', JSON.stringify({ from:'sow', ts: Date.now(), sow: SW.sow })); } catch {}
+      location.href = 'program-governance?from=sow';
+    }
+  };
+
+  /* ─── Error banner ───────────────────────────────────── */
+  function showError(msg) { if (S()) S().showError(document.getElementById('sw-error'), msg); }
+  function clearError()   { if (S()) S().clearError(document.getElementById('sw-error')); }
+
+  /* ─── Keyboard shortcuts ─────────────────────────────── */
+  function wireShortcuts() {
+    if (!S()) return;
+    S().wireKeyboardShortcuts([
+      { key:'r', fn: () => swAssembleAidp() },
+      { key:'m', fn: () => swExportMd() },
+      { key:'x', fn: () => swExportXlsx() },
+      { key:'f', fn: () => swRefresh() }
+    ], { isVisible: () => document.getElementById('sow-workspace').style.display !== 'none' });
+  }
+
+  /* ─── View toggle ────────────────────────────────────── */
+  window.setSowView = function (view) {
+    const legacy = document.getElementById('sow-legacy-view');
+    const ws     = document.getElementById('sow-workspace');
+    const btnL   = document.getElementById('sw-view-legacy');
+    const btnW   = document.getElementById('sw-view-workspace');
+    if (view === 'workspace') {
+      legacy.style.display = 'none'; ws.style.display = '';
+      btnL.style.background='transparent'; btnL.style.color='#64748B'; btnL.style.boxShadow='none';
+      btnW.style.background='#FFFFFF';     btnW.style.color='#0F172A'; btnW.style.boxShadow='0 1px 2px rgba(15,23,42,.08)';
+      try { localStorage.setItem('aidp_sow_view', 'workspace'); } catch {}
+      if (!SW.initialized) {
+        SW.initialized = true;
+        wsLoad();
+        wireShortcuts();
+        if (SW.sow) renderAll(); else refresh();
+      } else renderAll();
+      if (!window._swTick) {
+        window._swTick = setInterval(() => {
+          if (ws.style.display !== 'none') { renderHeader(); renderStatusBar(); }
+        }, 15000);
+      }
+    } else {
+      legacy.style.display = ''; ws.style.display = 'none';
+      btnL.style.background='#FFFFFF';     btnL.style.color='#0F172A'; btnL.style.boxShadow='0 1px 2px rgba(15,23,42,.08)';
+      btnW.style.background='transparent'; btnW.style.color='#64748B'; btnW.style.boxShadow='none';
+      try { localStorage.setItem('aidp_sow_view', 'legacy'); } catch {}
+      destroyMde();
+    }
+  };
+
+  function boot() {
+    let pref = 'legacy';
+    try { pref = localStorage.getItem('aidp_sow_view') || 'legacy'; } catch {}
+    setTimeout(() => { if (pref === 'workspace') setSowView('workspace'); }, 100);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
 </script>
 
 </body>
