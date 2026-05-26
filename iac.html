@@ -754,14 +754,25 @@ if (window.DI && window.DI.audit) window.DI.audit.log('iac', 'open', {});
   function renderCost() {
     var el = $('iac-cost-body');
     if (!IAC.cost) { el.innerHTML = '<div class="aidp-state"><div class="icon">💰</div><h2>No estimate yet</h2><p>Click <strong>💰 Estimate</strong> below.</p></div>'; return; }
-    var bd = IAC.cost.breakdown || {};
+    /* Contract: IacCostEstimate = { monthly_usd: number, breakdown: IacCostLine[], notes: string[] }
+     * where IacCostLine = { category, label, monthly_usd, detail? } */
+    var lines = Array.isArray(IAC.cost.breakdown) ? IAC.cost.breakdown : [];
     var monthly = IAC.cost.monthly_usd != null ? '$' + IAC.cost.monthly_usd.toFixed(2) : '—';
+    var notes = Array.isArray(IAC.cost.notes) ? IAC.cost.notes : [];
     el.innerHTML = '<div style="display:flex;align-items:baseline;gap:14px;margin-bottom:14px">' +
       '<span style="font-family:var(--aidp-f-head);font-size:28px;font-weight:600">' + monthly + '</span>' +
       '<span style="font-size:12px;color:var(--aidp-ink-500)">/ month (estimated)</span></div>' +
-      '<table class="aidp-table"><thead><tr><th>Category</th><th style="text-align:right">USD / month</th></tr></thead><tbody>' +
-      Object.keys(bd).map(k => '<tr><td>' + escapeHtml(k) + '</td><td style="text-align:right;font-family:var(--aidp-f-mono)">$' + (typeof bd[k] === 'number' ? bd[k].toFixed(2) : bd[k]) + '</td></tr>').join('') +
-      '</tbody></table>';
+      (lines.length
+        ? '<table class="aidp-table"><thead><tr><th>Category</th><th>Label</th><th>Detail</th><th style="text-align:right">USD / month</th></tr></thead><tbody>' +
+            lines.map(function (l) {
+              return '<tr><td>' + escapeHtml(l.category || '?') + '</td>' +
+                '<td>' + escapeHtml(l.label || '') + '</td>' +
+                '<td style="font-size:11px;color:var(--aidp-ink-500)">' + escapeHtml(l.detail || '') + '</td>' +
+                '<td style="text-align:right;font-family:var(--aidp-f-mono)">$' + (typeof l.monthly_usd === 'number' ? l.monthly_usd.toFixed(2) : '0.00') + '</td></tr>';
+            }).join('') +
+          '</tbody></table>'
+        : '<div style="font-size:12px;color:var(--aidp-ink-500)">No cost lines · check that the inventory has at least one worker.</div>') +
+      (notes.length ? '<div style="margin-top:10px;font-size:11.5px;color:var(--aidp-ink-700)"><strong>Notes:</strong><ul style="margin:4px 0 0 18px">' + notes.map(function (n) { return '<li>' + escapeHtml(n) + '</li>'; }).join('') + '</ul></div>' : '');
   }
   function renderFile() {
     var el = $('iac-file-body'), titleEl = $('iac-file-title');
