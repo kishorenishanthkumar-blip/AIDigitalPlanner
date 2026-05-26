@@ -6,14 +6,23 @@
 <title>Role-Based Actions · DI Platform</title>
 <meta name="description" content="Top filters → executive KPIs → role-prioritized actions table → drill-down with leadership recommendation and outcome band."/>
 <link rel="stylesheet" href="assets/theme.css">
+<!-- Phase 0 · shared enterprise tokens + helpers -->
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/audit.js" defer></script>
 <script src="assets/cmdk.js" defer></script>
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
 <script src="assets/export.js" defer></script>
-<script src="assets/export.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
+<!-- Phase 1B · Actions Workspace -->
+<script src="assets/aidp-api.js"></script>
+<script src="assets/studio-shell.js" defer></script>
+<script src="assets/studio-test.js" defer></script>
+<script src="assets/actions-api.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -114,26 +123,176 @@ a{color:var(--gold);text-decoration:none}
 
 <div data-di-topbar></div>
 
-<section class="ac-hero">
-  <div class="ac-hero-wrap">
-    <div class="ac-eyebrow">ROLE-BASED ACTIONS · EXECUTIVE VIEW</div>
-    <h1 class="ac-h1">Every owner sees only what's <em>theirs</em>, ranked by priority and dollar impact.</h1>
-  </div>
-</section>
-
-<div class="ac-filters">
-  <div class="ac-filters-wrap">
-    <div class="ac-filt"><div class="lbl">ROLE</div><select id="f-role"></select></div>
-    <div class="ac-filt"><div class="lbl">PRIORITY</div><select id="f-priority"><option value="all">All</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option></select></div>
-    <div class="ac-filt"><div class="lbl">STATUS</div><select id="f-status"><option value="all">All</option><option>Open</option><option>In Progress</option><option>Blocked</option><option>Done</option></select></div>
-    <div class="ac-filt"><div class="lbl">TIMELINE</div><select id="f-timeline"><option value="all">All</option><option value="overdue">Overdue</option><option value="7d">Next 7 days</option><option value="30d">Next 30 days</option><option value="90d">Next 90 days</option></select></div>
-    <div class="ac-filt ac-search"><div class="lbl">SEARCH</div><input id="f-search" placeholder="Filter by id, title, or owner…"/></div>
+<!-- View toggle · Legacy executive ↔ Workspace · enterprise -->
+<div style="background:#fff;border-bottom:1px solid var(--border);padding:10px 24px">
+  <div style="max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div style="display:inline-flex;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:99px;padding:2px">
+      <button id="ac-view-legacy"    class="active" onclick="setAcView('legacy')"    style="background:#FFFFFF;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#0F172A;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.08)">Executive view</button>
+      <button id="ac-view-workspace"               onclick="setAcView('workspace')" style="background:transparent;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#64748B;cursor:pointer">Workspace</button>
+    </div>
+    <div style="font-size:11px;color:#64748B">Workspace · live ACTIONS agent · kanban + due-date calendar · 16-role taxonomy · auto-save to D1</div>
   </div>
 </div>
 
-<div class="ac-kpis" id="ac-kpis"></div>
+<!-- Legacy executive view -->
+<div id="ac-legacy-view">
+  <section class="ac-hero">
+    <div class="ac-hero-wrap">
+      <div class="ac-eyebrow">ROLE-BASED ACTIONS · EXECUTIVE VIEW</div>
+      <h1 class="ac-h1">Every owner sees only what's <em>theirs</em>, ranked by priority and dollar impact.</h1>
+    </div>
+  </section>
 
-<main class="ac-main" id="ac-main"></main>
+  <div class="ac-filters">
+    <div class="ac-filters-wrap">
+      <div class="ac-filt"><div class="lbl">ROLE</div><select id="f-role"></select></div>
+      <div class="ac-filt"><div class="lbl">PRIORITY</div><select id="f-priority"><option value="all">All</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option></select></div>
+      <div class="ac-filt"><div class="lbl">STATUS</div><select id="f-status"><option value="all">All</option><option>Open</option><option>In Progress</option><option>Blocked</option><option>Done</option></select></div>
+      <div class="ac-filt"><div class="lbl">TIMELINE</div><select id="f-timeline"><option value="all">All</option><option value="overdue">Overdue</option><option value="7d">Next 7 days</option><option value="30d">Next 30 days</option><option value="90d">Next 90 days</option></select></div>
+      <div class="ac-filt ac-search"><div class="lbl">SEARCH</div><input id="f-search" placeholder="Filter by id, title, or owner…"/></div>
+    </div>
+  </div>
+
+  <div class="ac-kpis" id="ac-kpis"></div>
+
+  <main class="ac-main" id="ac-main"></main>
+</div>
+
+<!-- Workspace view · enterprise pattern · live ACTIONS agent -->
+<div id="ac-workspace" style="display:none">
+  <div class="aidp-shell">
+
+    <header class="aidp-header">
+      <div>
+        <div class="aidp-bread"><a href="home">Home</a> &nbsp;/&nbsp; <a href="requirements">Requirements</a> &nbsp;/&nbsp; Actions · Workspace</div>
+        <h1 class="aidp-title">Actions · Workspace</h1>
+        <p class="aidp-subtitle">Live ACTIONS agent · 16-role taxonomy · P0–P3 prioritization · status lifecycle · due-date calendar. Generates role-tagged action plans from Discovery + Architecture + Requirements.</p>
+      </div>
+      <div class="aidp-context">
+        <span class="aidp-tenant">Tenant: <strong id="ac-tenant-name">…</strong></span>
+        <span class="aidp-freshness" id="ac-freshness"><span class="dot"></span> <span data-aidp-fresh-text>Loading…</span></span>
+      </div>
+    </header>
+
+    <div class="aidp-kpis">
+      <div class="aidp-kpi"><div class="lbl">Total actions</div><div class="val" id="ac-kpi-total">—</div><div class="sub" id="ac-kpi-total-sub">&nbsp;</div></div>
+      <div class="aidp-kpi danger"><div class="lbl">P0 critical</div><div class="val" id="ac-kpi-p0">—</div><div class="sub" id="ac-kpi-p0-sub">&nbsp;</div></div>
+      <div class="aidp-kpi warning"><div class="lbl">Past due</div><div class="val" id="ac-kpi-overdue">—</div><div class="sub" id="ac-kpi-overdue-sub">&nbsp;</div></div>
+      <div class="aidp-kpi positive"><div class="lbl">Done</div><div class="val" id="ac-kpi-done">—</div><div class="sub" id="ac-kpi-done-sub">&nbsp;</div></div>
+    </div>
+
+    <div class="aidp-filters">
+      <div class="aidp-filter">
+        <label for="ac-f-role">Owner role</label>
+        <select id="ac-f-role"><option value="">All roles</option>
+          <option value="cio">CIO</option><option value="cto">CTO</option><option value="ciso">CISO</option>
+          <option value="head-of-engineering">Head of Engineering</option>
+          <option value="head-of-cloud">Head of Cloud</option>
+          <option value="head-of-compliance">Head of Compliance</option>
+          <option value="head-of-data">Head of Data</option>
+          <option value="head-of-ops">Head of Ops</option>
+          <option value="program-director">Program Director</option>
+          <option value="architect">Architect</option>
+          <option value="engineer">Engineer</option>
+          <option value="sre">SRE</option>
+          <option value="devsecops">DevSecOps</option>
+          <option value="product-owner">Product Owner</option>
+          <option value="finops">FinOps</option>
+          <option value="change-mgr">Change Manager</option>
+        </select>
+      </div>
+      <div class="aidp-filter">
+        <label for="ac-f-status">Status</label>
+        <select id="ac-f-status"><option value="">All</option>
+          <option>proposed</option><option>accepted</option><option>in-progress</option>
+          <option>blocked</option><option>done</option><option>cancelled</option>
+        </select>
+      </div>
+      <div class="aidp-filter">
+        <label for="ac-f-category">Category</label>
+        <select id="ac-f-category"><option value="">All</option>
+          <option>discovery</option><option>design</option><option>compliance</option>
+          <option>sourcing</option><option>governance</option><option>build</option>
+          <option>migrate</option><option>validate</option><option>operate</option>
+          <option>decommission</option>
+        </select>
+      </div>
+      <div class="aidp-filter">
+        <label for="ac-f-priority">Priority</label>
+        <select id="ac-f-priority"><option value="">All</option>
+          <option>p0</option><option>p1</option><option>p2</option><option>p3</option>
+        </select>
+      </div>
+      <div class="aidp-filter-divider"></div>
+      <div class="aidp-source-toggle" role="tablist" aria-label="View mode">
+        <button id="ac-tab-table"    class="active" onclick="acSetTab('table')">📋 Table</button>
+        <button id="ac-tab-kanban"                onclick="acSetTab('kanban')">📌 Kanban</button>
+        <button id="ac-tab-calendar"              onclick="acSetTab('calendar')">📅 Calendar</button>
+      </div>
+      <div class="aidp-grow"></div>
+      <button class="aidp-btn aidp-btn-sm" onclick="acRefresh()" title="Reload from D1 (F)">↻ Refresh</button>
+    </div>
+
+    <div id="ac-error" style="display:none"></div>
+
+    <!-- Table view -->
+    <div id="ac-table-pane">
+      <div class="aidp-workspace">
+        <div class="aidp-table-wrap">
+          <div class="aidp-table-header">
+            <h3>Actions</h3>
+            <div class="aidp-table-meta" id="ac-tbl-meta">&nbsp;</div>
+          </div>
+          <div id="ac-tbl-body"></div>
+        </div>
+        <div>
+          <div class="aidp-detail" id="ac-detail">
+            <h3>Select an action</h3>
+            <div class="sub">Click a row to inspect + edit. Changes auto-save after 0.8s.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kanban view · 6 columns by status -->
+    <div id="ac-kanban-pane" style="display:none">
+      <div class="aidp-table-wrap" style="overflow:auto">
+        <div class="aidp-table-header">
+          <h3>Kanban · by status</h3>
+          <div class="aidp-table-meta" id="ac-kanban-meta">&nbsp;</div>
+        </div>
+        <div id="ac-kanban-body" style="display:grid;grid-template-columns:repeat(6, minmax(220px, 1fr));gap:10px;padding:14px;background:var(--aidp-ink-50);min-height:400px"></div>
+      </div>
+    </div>
+
+    <!-- Calendar view · due-date heatmap -->
+    <div id="ac-calendar-pane" style="display:none">
+      <div class="aidp-table-wrap">
+        <div class="aidp-table-header">
+          <h3>Calendar · by due date</h3>
+          <div class="aidp-table-meta" id="ac-calendar-meta">&nbsp;</div>
+        </div>
+        <div id="ac-calendar-body" style="padding:14px"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="aidp-actions">
+    <div class="aidp-actions-inner">
+      <div class="aidp-actions-status" id="ac-status">
+        <strong id="ac-status-text">No actions loaded</strong>
+      </div>
+      <div class="aidp-actions-buttons">
+        <button class="aidp-btn aidp-btn-sm" onclick="acLoadSample()"  title="Load 14-action sample (S)">📥 Load sample</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="acAddAction()"   title="Add new action (A)">+ Add</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="acGenerateAidp()" title="Generate role-tagged actions from upstream agents (G)">🌐 Generate via AIDP</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="acExportXlsx()"  title="Download Excel workbook (X)">⬇ Excel</button>
+        <button class="aidp-btn aidp-btn-primary aidp-btn-sm" onclick="acSendToGovernance()" title="Send to Governance">Send to Governance →</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════════
@@ -424,7 +583,7 @@ function renderTable() {
           '<div class="drill-h">DESCRIPTION</div>' +
           '<div class="desc">' + escapeHTML(a.desc) + '</div>' +
           '<div class="drill-h">LEADERSHIP RECOMMENDATION</div>' +
-          '<div class="reco"><div class="h">From Nishi · ' + a.role + ' lens</div><div class="body">' + escapeHTML(a.recommendation) + '</div></div>' +
+          '<div class="reco"><div class="h">From Niche-I · ' + a.role + ' lens</div><div class="body">' + escapeHTML(a.recommendation) + '</div></div>' +
           (a.sourceLink ? '<div style="margin-top:10px;font-size:11px"><a href="' + a.sourceLink + '" style="color:var(--gold);font-weight:700">Open source artifact →</a></div>' : '') +
         '</div>' +
         '<div class="drill-section">' +
@@ -513,6 +672,538 @@ function render() { renderKpis(); renderTable(); }
 loadOrGenerate();
 initFilters();
 render();
+</script>
+
+<!-- ─── Workspace view module · Phase 1B ─────────────────── -->
+<script>
+(function () {
+  'use strict';
+
+  const ALL_STATUSES   = ['proposed','accepted','in-progress','blocked','done','cancelled'];
+  const ALL_PRIORITIES = ['p0','p1','p2','p3'];
+  const ALL_EFFORTS    = ['hours','days','weeks','months','many-months','year-plus'];
+  const ALL_CATEGORIES = ['discovery','design','compliance','sourcing','governance','build','migrate','validate','operate','decommission'];
+  const ALL_ROLES = [
+    { key:'cio', label:'CIO' }, { key:'cto', label:'CTO' }, { key:'ciso', label:'CISO' },
+    { key:'head-of-engineering', label:'Head of Engineering' },
+    { key:'head-of-cloud', label:'Head of Cloud' },
+    { key:'head-of-compliance', label:'Head of Compliance' },
+    { key:'head-of-data', label:'Head of Data' },
+    { key:'head-of-ops', label:'Head of Ops' },
+    { key:'program-director', label:'Program Director' },
+    { key:'architect', label:'Architect' },
+    { key:'engineer', label:'Engineer' },
+    { key:'sre', label:'SRE' },
+    { key:'devsecops', label:'DevSecOps' },
+    { key:'product-owner', label:'Product Owner' },
+    { key:'finops', label:'FinOps' },
+    { key:'change-mgr', label:'Change Manager' }
+  ];
+
+  const WS_KEY = 'aidp_actions_workspace_v1';
+  const AC = {
+    actions: [], selectedId: null,
+    filters: { role:'', status:'', category:'', priority:'' },
+    tab: 'table',  // 'table' | 'kanban' | 'calendar'
+    summary: null, lastUpdated: null, initialized: false
+  };
+
+  function wsSave() {
+    try { localStorage.setItem(WS_KEY, JSON.stringify({
+      actions: AC.actions, lastUpdated: AC.lastUpdated, summary: AC.summary
+    })); } catch {}
+  }
+  function wsLoad() {
+    try {
+      const raw = localStorage.getItem(WS_KEY);
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (Array.isArray(p.actions)) AC.actions = p.actions;
+        AC.lastUpdated = p.lastUpdated || null;
+        AC.summary = p.summary || null;
+      }
+    } catch {}
+  }
+
+  function S() { return window.AIDPStudio; }
+  function esc(s) { return S() ? S().escapeHtml(s) : String(s == null ? '' : s); }
+  function fmtDate(ts) { return S() ? S().fmtDate(ts) : ''; }
+
+  /* ─── Refresh from agent ─────────────────────────────── */
+  async function refresh() {
+    clearError();
+    if (!window.ActionsAPI) { showError('ActionsAPI not loaded'); return; }
+    try {
+      const res = await window.ActionsAPI.list();
+      if (res && res.error) { showError('Agent error: ' + (res.message || res.error)); return; }
+      AC.actions = Array.isArray(res?.actions) ? res.actions : [];
+      AC.summary = {
+        count:       res?.count || 0,
+        by_role:     res?.by_role || {},
+        by_status:   res?.by_status || {},
+        by_priority: res?.by_priority || {},
+        by_category: res?.by_category || {},
+        updated_at:  res?.updated_at || 0
+      };
+      AC.lastUpdated = res?.updated_at ? new Date(res.updated_at).getTime() : Date.now();
+      wsSave();
+      renderAll();
+    } catch (err) {
+      showError('Refresh failed: ' + (err.message || err));
+    }
+  }
+  window.acRefresh = refresh;
+
+  /* ─── Renders ────────────────────────────────────────── */
+
+  function renderHeader() {
+    if (S()) S().renderTenantBadge(document.getElementById('ac-tenant-name'));
+    const fresh = document.getElementById('ac-freshness');
+    const text  = fresh?.querySelector('[data-aidp-fresh-text]');
+    if (!fresh || !text) return;
+    if (!AC.actions.length && !AC.lastUpdated) {
+      fresh.className = 'aidp-freshness stale'; text.textContent = 'No actions loaded';
+    } else if (AC.lastUpdated && (Date.now() - AC.lastUpdated) > 24*3600*1000) {
+      fresh.className = 'aidp-freshness stale'; text.textContent = 'Stale · ' + (S() ? S().fmtFresh(AC.lastUpdated) : '');
+    } else {
+      fresh.className = 'aidp-freshness'; text.textContent = 'Live · ' + (S() ? S().fmtFresh(AC.lastUpdated) : 'just now');
+    }
+  }
+
+  function isOverdue(a) {
+    return a.due_at && a.due_at < Date.now() && a.status !== 'done' && a.status !== 'cancelled';
+  }
+
+  function renderKpis() {
+    const total = AC.actions.length;
+    const byPri = AC.actions.reduce((m, a) => { const p = a.priority || 'p2'; m[p] = (m[p]||0)+1; return m; }, {});
+    const byStatus = AC.actions.reduce((m, a) => { const s = a.status || 'proposed'; m[s] = (m[s]||0)+1; return m; }, {});
+    const overdue = AC.actions.filter(isOverdue).length;
+    document.getElementById('ac-kpi-total').textContent = total || '0';
+    document.getElementById('ac-kpi-total-sub').textContent = total === 0 ? 'Click Load sample or Generate via AIDP' : 'across ' + Object.keys(byStatus).length + ' statuses';
+    document.getElementById('ac-kpi-p0').textContent = byPri.p0 || 0;
+    document.getElementById('ac-kpi-p0-sub').textContent = total > 0 ? Math.round((byPri.p0||0)/total*100) + '% of fleet' : ' ';
+    document.getElementById('ac-kpi-overdue').textContent = overdue;
+    document.getElementById('ac-kpi-overdue-sub').textContent = total > 0 ? Math.round(overdue/total*100) + '% past due' : ' ';
+    document.getElementById('ac-kpi-done').textContent = byStatus.done || 0;
+    document.getElementById('ac-kpi-done-sub').textContent = total > 0 ? Math.round((byStatus.done||0)/total*100) + '% complete' : ' ';
+  }
+
+  function visible() {
+    return AC.actions.filter(a => {
+      if (AC.filters.role     && !(a.roles||[]).includes(AC.filters.role)) return false;
+      if (AC.filters.status   && a.status   !== AC.filters.status)         return false;
+      if (AC.filters.category && a.category !== AC.filters.category)       return false;
+      if (AC.filters.priority && a.priority !== AC.filters.priority)       return false;
+      return true;
+    });
+  }
+
+  function priorityChipCls(p) {
+    return p === 'p0' ? 'aidp-chip-critical' : p === 'p1' ? 'aidp-chip-high' : p === 'p2' ? 'aidp-chip-medium' : 'aidp-chip-low';
+  }
+  function statusChipCls(s) {
+    if (s === 'done')        return 'aidp-chip-pass';
+    if (s === 'cancelled')   return 'aidp-chip-skip';
+    if (s === 'blocked')     return 'aidp-chip-high';
+    if (s === 'in-progress') return 'aidp-chip-info';
+    if (s === 'accepted')    return 'aidp-chip-medium';
+    return 'aidp-chip-low';   // proposed
+  }
+  function roleLabel(key) { return (ALL_ROLES.find(r => r.key === key)?.label) || key; }
+
+  function renderTable() {
+    const body = document.getElementById('ac-tbl-body');
+    const meta = document.getElementById('ac-tbl-meta');
+    const rows = visible();
+    meta.textContent = rows.length + ' of ' + AC.actions.length + ' shown';
+    if (AC.actions.length === 0) {
+      body.innerHTML =
+        '<div class="aidp-state">' +
+          '<div class="icon">📋</div>' +
+          '<h2>No actions yet</h2>' +
+          '<p>Click <strong>📥 Load sample</strong> for a banking starter pack, or <strong>🌐 Generate via AIDP</strong> to derive role-tagged actions from Discovery + Architecture + Requirements.</p>' +
+        '</div>';
+      return;
+    }
+    let html = '<table class="aidp-table">';
+    html += '<thead><tr><th style="min-width:280px">Title</th><th>Pri</th><th>Status</th><th>Category</th><th>Owners</th><th>Due</th></tr></thead><tbody>';
+    rows.forEach(a => {
+      const sel = (a.id === AC.selectedId) ? 'selected' : '';
+      const overdue = isOverdue(a);
+      const roles = (a.roles || []).slice(0, 2).map(r => '<span class="aidp-chip aidp-chip-info" style="margin-right:3px">'+esc(roleLabel(r))+'</span>').join('') + ((a.roles||[]).length > 2 ? '<span style="font-size:10px;color:var(--aidp-ink-500)">+'+((a.roles||[]).length-2)+'</span>' : '');
+      html += '<tr class="' + sel + '" onclick="acSelect(\''+esc(a.id)+'\')">';
+      html +=   '<td><div style="font-weight:600;color:var(--aidp-ink-900)">'+esc(a.title || '(no title)')+'</div>' +
+                  (a.description ? '<div style="font-size:10.5px;color:var(--aidp-ink-500);margin-top:2px;max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(a.description)+'</div>' : '') + '</td>';
+      html +=   '<td><span class="aidp-chip '+priorityChipCls(a.priority)+'">'+esc((a.priority||'').toUpperCase())+'</span></td>';
+      html +=   '<td><span class="aidp-chip '+statusChipCls(a.status)+'">'+esc(a.status||'')+'</span></td>';
+      html +=   '<td style="font-size:11px;color:var(--aidp-ink-600)">'+esc(a.category || '—')+'</td>';
+      html +=   '<td>'+ (roles || '<span style="color:var(--aidp-ink-400);font-size:11px">—</span>') +'</td>';
+      html +=   '<td style="font-family:var(--aidp-f-mono);font-size:11px;color:'+(overdue?'var(--aidp-red)':'var(--aidp-ink-600)')+'">'+ (a.due_at ? fmtDate(a.due_at) + (overdue?' ⚠':'') : '—') +'</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    body.innerHTML = html;
+  }
+
+  function renderDetail() {
+    const wrap = document.getElementById('ac-detail');
+    if (!AC.selectedId) { wrap.innerHTML = '<h3>Select an action</h3><div class="sub">Click a row to inspect + edit. Changes auto-save after 0.8s.</div>'; return; }
+    const a = AC.actions.find(x => x.id === AC.selectedId);
+    if (!a) return;
+    function selRow(label, field, allowed) {
+      const v = a[field] || '';
+      return '<div class="row"><label>' + label + '</label><select data-field="' + field + '" onchange="acFieldChange(this)">' +
+        '<option value=""></option>' + allowed.map(x => '<option value="'+x+'"'+(x===v?' selected':'')+'>'+x+'</option>').join('') +
+        '</select></div>';
+    }
+    /* roles multi-select: render checkboxes for compactness */
+    const currentRoles = new Set(a.roles || []);
+    const rolesGrid = '<div class="row"><label>Owner roles</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;font-size:11px">' +
+      ALL_ROLES.map(r =>
+        '<label style="display:flex;align-items:center;gap:4px;font-weight:normal;text-transform:none;letter-spacing:0;color:var(--aidp-ink-700)">' +
+        '<input type="checkbox" data-role="'+r.key+'" '+(currentRoles.has(r.key)?'checked':'')+' onchange="acToggleRole(this)">' + esc(r.label) + '</label>'
+      ).join('') + '</div></div>';
+    const dueIso = a.due_at ? new Date(a.due_at).toISOString().slice(0,10) : '';
+    let html = '';
+    html += '<h3>'+esc(a.title || a.id)+'</h3>';
+    html += '<div class="sub">ID: <code style="font-family:var(--aidp-f-mono);font-size:11px">'+esc(a.id)+'</code></div>';
+    html += '<div class="row"><label>Title</label><input data-field="title" value="'+esc(a.title||'')+'" oninput="acFieldChange(this)"></div>';
+    html += '<div class="row"><label>Description</label><input data-field="description" value="'+esc(a.description||'')+'" oninput="acFieldChange(this)"></div>';
+    html += selRow('Category', 'category', ALL_CATEGORIES);
+    html += selRow('Status',   'status',   ALL_STATUSES);
+    html += selRow('Priority', 'priority', ALL_PRIORITIES);
+    html += selRow('Effort',   'effort',   ALL_EFFORTS);
+    html += '<div class="row"><label>Capability ID</label><input data-field="capability_id" value="'+esc(a.capability_id||'')+'" oninput="acFieldChange(this)"></div>';
+    html += '<div class="row"><label>Requirement ID</label><input data-field="requirement_id" value="'+esc(a.requirement_id||'')+'" oninput="acFieldChange(this)"></div>';
+    html += '<div class="row"><label>Due date</label><input type="date" data-field="due_date" value="'+esc(dueIso)+'" oninput="acDueChange(this)"></div>';
+    html += rolesGrid;
+    if (a.blocked_by && a.blocked_by.length) {
+      html += '<div class="row" style="margin-top:8px"><label>Blocked by</label><div style="font-family:var(--aidp-f-mono);font-size:11px;color:var(--aidp-ink-600)">' + (a.blocked_by||[]).map(esc).join(', ') + '</div></div>';
+    }
+    if (a.source_signal) {
+      html += '<div style="margin-top:12px;font-size:10.5px;color:var(--aidp-ink-500);font-style:italic">Source: ' + esc(a.source_signal) + '</div>';
+    }
+    wrap.innerHTML = html;
+  }
+
+  function renderKanban() {
+    const body = document.getElementById('ac-kanban-body');
+    const meta = document.getElementById('ac-kanban-meta');
+    const rows = visible();
+    meta.textContent = rows.length + ' of ' + AC.actions.length + ' shown';
+    let html = '';
+    ALL_STATUSES.forEach(status => {
+      const cards = rows.filter(a => (a.status || 'proposed') === status);
+      html += '<div style="display:flex;flex-direction:column;gap:8px">';
+      html +=   '<div style="display:flex;justify-content:space-between;align-items:center;padding:0 4px 6px;border-bottom:2px solid var(--aidp-ink-200)">';
+      html +=     '<span class="aidp-chip '+statusChipCls(status)+'">'+esc(status)+'</span>';
+      html +=     '<span style="font-family:var(--aidp-f-mono);font-size:11px;color:var(--aidp-ink-500)">'+cards.length+'</span>';
+      html +=   '</div>';
+      cards.forEach(a => {
+        const overdue = isOverdue(a);
+        html += '<div onclick="acSelect(\''+esc(a.id)+'\');acSetTab(\'table\')" style="background:#fff;border:1px solid var(--aidp-ink-200);border-radius:6px;padding:8px 10px;cursor:pointer;transition:.1s" onmouseover="this.style.borderColor=\'var(--aidp-navy)\'" onmouseout="this.style.borderColor=\'var(--aidp-ink-200)\'">';
+        html +=   '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="aidp-chip '+priorityChipCls(a.priority)+'">'+esc((a.priority||'').toUpperCase())+'</span>' + (overdue ? '<span style="font-size:10px;color:var(--aidp-red)">⚠ past due</span>' : '') + '</div>';
+        html +=   '<div style="font-size:12px;font-weight:600;color:var(--aidp-ink-900);line-height:1.3;margin-bottom:4px">'+esc(a.title || '(no title)')+'</div>';
+        if (a.due_at) html += '<div style="font-family:var(--aidp-f-mono);font-size:10.5px;color:'+(overdue?'var(--aidp-red)':'var(--aidp-ink-500)')+'">📅 '+esc(fmtDate(a.due_at))+'</div>';
+        if (a.roles && a.roles.length) html += '<div style="margin-top:5px;font-size:10px;color:var(--aidp-ink-500)">'+esc((a.roles||[]).slice(0,2).map(roleLabel).join(', '))+ ((a.roles||[]).length>2 ? ' +'+((a.roles||[]).length-2) : '') +'</div>';
+        html += '</div>';
+      });
+      if (cards.length === 0) html += '<div style="padding:14px 8px;text-align:center;font-size:11px;color:var(--aidp-ink-400)">No actions</div>';
+      html += '</div>';
+    });
+    body.innerHTML = html;
+  }
+
+  function renderCalendar() {
+    const body = document.getElementById('ac-calendar-body');
+    const meta = document.getElementById('ac-calendar-meta');
+    const rows = visible().filter(a => a.due_at);
+    meta.textContent = rows.length + ' actions with due dates · ' + AC.actions.length + ' total';
+    if (rows.length === 0) {
+      body.innerHTML = '<div class="aidp-state"><div class="icon">📅</div><h2>No due dates set</h2><p>Add due dates in the detail panel · they show here grouped by month + overdue.</p></div>';
+      return;
+    }
+    /* Group by month YYYY-MM */
+    const byMonth = {};
+    rows.forEach(a => {
+      const d = new Date(a.due_at);
+      const key = d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0');
+      (byMonth[key] = byMonth[key] || []).push(a);
+    });
+    const monthsSorted = Object.keys(byMonth).sort();
+    let html = '';
+    const overdueList = rows.filter(isOverdue);
+    if (overdueList.length) {
+      html += '<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:600;color:var(--aidp-red);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">⚠ Past due · '+overdueList.length+'</div>';
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px">';
+      overdueList.forEach(a => {
+        const daysLate = Math.floor((Date.now()-a.due_at)/(86400*1000));
+        html += '<div onclick="acSelect(\''+esc(a.id)+'\');acSetTab(\'table\')" style="background:var(--aidp-red-lt);border:1px solid var(--aidp-red);border-radius:6px;padding:8px 10px;cursor:pointer"><div style="display:flex;justify-content:space-between;font-family:var(--aidp-f-mono);font-size:11px;color:var(--aidp-red);font-weight:600"><span>'+fmtDate(a.due_at)+'</span><span>'+daysLate+'d late</span></div><div style="font-size:12px;font-weight:600;color:var(--aidp-ink-900);margin-top:3px">'+esc(a.title)+'</div></div>';
+      });
+      html += '</div></div>';
+    }
+    monthsSorted.forEach(key => {
+      const [y, m] = key.split('-');
+      const monthName = new Date(+y, +m-1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+      const items = byMonth[key].sort((a,b) => a.due_at - b.due_at).filter(a => !isOverdue(a));
+      if (items.length === 0) return;
+      html += '<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:600;color:var(--aidp-ink-700);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">'+esc(monthName)+' · '+items.length+'</div>';
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px">';
+      items.forEach(a => {
+        html += '<div onclick="acSelect(\''+esc(a.id)+'\');acSetTab(\'table\')" style="background:#fff;border:1px solid var(--aidp-ink-200);border-radius:6px;padding:8px 10px;cursor:pointer">';
+        html +=   '<div style="display:flex;justify-content:space-between;align-items:center"><span class="aidp-chip '+priorityChipCls(a.priority)+'">'+esc((a.priority||'').toUpperCase())+'</span><span style="font-family:var(--aidp-f-mono);font-size:11px;color:var(--aidp-ink-500)">'+esc(fmtDate(a.due_at))+'</span></div>';
+        html +=   '<div style="font-size:12px;font-weight:600;color:var(--aidp-ink-900);margin-top:4px">'+esc(a.title)+'</div>';
+        html += '</div>';
+      });
+      html += '</div></div>';
+    });
+    body.innerHTML = html;
+  }
+
+  function renderStatusBar() {
+    const t = document.getElementById('ac-status-text');
+    if (!t) return;
+    if (AC.actions.length === 0) { t.textContent = 'No actions loaded'; return; }
+    const overdue = AC.actions.filter(isOverdue).length;
+    const p0 = AC.actions.filter(a => a.priority === 'p0').length;
+    t.innerHTML = AC.actions.length + ' actions · ' + p0 + ' P0 · ' + overdue + ' past due';
+  }
+
+  function renderAll() {
+    renderHeader(); renderKpis();
+    if (AC.tab === 'table')         { renderTable(); renderDetail(); }
+    else if (AC.tab === 'kanban')   { renderKanban(); }
+    else if (AC.tab === 'calendar') { renderCalendar(); }
+    renderStatusBar();
+  }
+
+  /* ─── Tab switching ──────────────────────────────────── */
+  window.acSetTab = function (tab) {
+    AC.tab = tab;
+    ['table','kanban','calendar'].forEach(t => {
+      const btn = document.getElementById('ac-tab-' + t);
+      const pane = document.getElementById('ac-' + t + '-pane');
+      if (btn)  btn.classList.toggle('active', t === tab);
+      if (pane) pane.style.display = (t === tab) ? '' : 'none';
+    });
+    renderAll();
+  };
+
+  /* ─── Row selection + editing ────────────────────────── */
+  window.acSelect = function (id) {
+    AC.selectedId = id;
+    if (AC.tab !== 'table') acSetTab('table');
+    else { renderTable(); renderDetail(); }
+  };
+
+  window.acFieldChange = function (el) {
+    if (!AC.selectedId) return;
+    const a = AC.actions.find(x => x.id === AC.selectedId);
+    if (!a) return;
+    const field = el.getAttribute('data-field');
+    a[field] = el.value;
+    persistEdit(a);
+  };
+
+  window.acDueChange = function (el) {
+    if (!AC.selectedId) return;
+    const a = AC.actions.find(x => x.id === AC.selectedId);
+    if (!a) return;
+    a.due_at = el.value ? new Date(el.value + 'T00:00:00Z').getTime() : undefined;
+    persistEdit(a);
+  };
+
+  window.acToggleRole = function (el) {
+    if (!AC.selectedId) return;
+    const a = AC.actions.find(x => x.id === AC.selectedId);
+    if (!a) return;
+    const key = el.getAttribute('data-role');
+    const set = new Set(a.roles || []);
+    if (el.checked) set.add(key); else set.delete(key);
+    a.roles = [...set];
+    persistEdit(a);
+  };
+
+  function persistEdit(a) {
+    AC.lastUpdated = Date.now();
+    wsSave();
+    if (window.ActionsAPI) window.ActionsAPI.addDebounced(a);
+    renderTable(); renderKpis(); renderStatusBar(); renderHeader();
+    if (AC.tab === 'kanban')   renderKanban();
+    if (AC.tab === 'calendar') renderCalendar();
+  }
+
+  /* ─── Action bar handlers ────────────────────────────── */
+
+  window.acLoadSample = function () {
+    const now = Date.now();
+    const day = 86400 * 1000;
+    AC.actions = [
+      { id:'ac-discover-1',   title:'Inventory legacy payment platforms', description:'Map current state of COBOL + AS/400 estate, identify hot paths.', category:'discovery',    priority:'p0', status:'in-progress', effort:'weeks',  roles:['architect','engineer'], capability_id:'core-payments', source_signal:'Discovery:initial-scan', due_at: now + 14*day },
+      { id:'ac-design-1',     title:'Decide target cloud for core payments', description:'Run AIDP cross-check; recommend cloud based on cost + latency.', category:'design',       priority:'p0', status:'proposed',    effort:'weeks',  roles:['cto','architect','head-of-cloud'], capability_id:'core-payments', source_signal:'Architecture:compare-clouds', due_at: now + 21*day },
+      { id:'ac-design-2',     title:'Event-driven settlement architecture',  description:'Move to event-driven model · drop COBOL batch nightly.',         category:'design',       priority:'p1', status:'proposed',    effort:'months', roles:['architect','engineer'], capability_id:'settlement', source_signal:'Discovery:7R-rearch', due_at: now + 45*day },
+      { id:'ac-compl-1',      title:'PCI-DSS gap assessment',                description:'External assessor against PCI-DSS v4.0 controls for card workloads.', category:'compliance', priority:'p0', status:'accepted',    effort:'weeks',  roles:['ciso','head-of-compliance'], capability_id:'card-mgmt', source_signal:'Requirements:PCI-DSS', due_at: now + 30*day },
+      { id:'ac-compl-2',      title:'SOX audit trail design',                description:'Immutable log of every financial transaction · tamper-evident hash chain.', category:'compliance', priority:'p1', status:'in-progress', effort:'weeks', roles:['ciso','architect'], source_signal:'Requirements:SOX', due_at: now + 21*day },
+      { id:'ac-sourcing-1',   title:'Negotiate Snowflake enterprise contract', description:'3-year commit · usage-based · price lock.',                    category:'sourcing',    priority:'p1', status:'proposed',    effort:'weeks',  roles:['cio','finops','head-of-data'], due_at: now + 60*day },
+      { id:'ac-govern-1',     title:'Establish AIDP steering committee',     description:'Monthly cadence · CIO chair · CTO + CISO + Program Director.',  category:'governance',   priority:'p1', status:'accepted',    effort:'days',   roles:['cio','program-director'], due_at: now + 7*day },
+      { id:'ac-build-1',      title:'Bootstrap EKS landing zone',            description:'Production-grade EKS cluster per AWS Well-Architected.',         category:'build',        priority:'p1', status:'proposed',    effort:'weeks',  roles:['head-of-cloud','sre','devsecops'], due_at: now + 35*day },
+      { id:'ac-build-2',      title:'CI/CD pipeline for refactored core',    description:'GitHub Actions · Terraform · auto-rollback.',                  category:'build',        priority:'p2', status:'proposed',    effort:'weeks',  roles:['engineer','devsecops'], due_at: now + 49*day },
+      { id:'ac-migrate-1',    title:'First wave migration · Card management', description:'Lift-and-shift card management to AWS · validate latency.',     category:'migrate',     priority:'p2', status:'proposed',    effort:'months', roles:['architect','engineer','sre'], capability_id:'card-mgmt', source_signal:'Architecture:7R-refactor', due_at: now + 90*day, blocked_by:['ac-build-1'] },
+      { id:'ac-validate-1',   title:'Load test core payments at 5k TPS',     description:'Sustained 30-min load · validate p99 < 200ms NFR.',             category:'validate',     priority:'p1', status:'proposed',    effort:'weeks',  roles:['sre','engineer'], requirement_id:'rq-core-tps', due_at: now + 75*day, blocked_by:['ac-migrate-1'] },
+      { id:'ac-operate-1',    title:'Establish 24/7 NOC',                    description:'Staff NOC with 3-shift rotation · runbook discipline.',         category:'operate',     priority:'p2', status:'proposed',    effort:'months', roles:['head-of-ops','sre'], due_at: now + 120*day },
+      { id:'ac-decom-1',      title:'Decommission AS/400 deposits server',   description:'After deposits cutover · archive then power-off.',              category:'decommission', priority:'p3', status:'proposed',    effort:'days',   roles:['engineer','change-mgr'], capability_id:'core-deposits', due_at: now + 180*day },
+      { id:'ac-overdue-1',    title:'Update DR runbook (was due last week)',  description:'Annual DR exercise documentation refresh.',                     category:'operate',      priority:'p1', status:'blocked',     effort:'days',   roles:['sre','head-of-ops'], due_at: now - 7*day }
+    ];
+    AC.summary = null;
+    AC.lastUpdated = now;
+    wsSave();
+    if (window.ActionsAPI) AC.actions.forEach(a => window.ActionsAPI.addDebounced(a));
+    if (S()) S().toast('ok', 'Sample loaded', '14 banking actions across all 10 categories');
+    renderAll();
+  };
+
+  window.acAddAction = function () {
+    const id = 'ac-' + Math.random().toString(36).slice(2, 8);
+    const a = { id, title:'New action', description:'', category:'design', status:'proposed', priority:'p2', roles:['architect'] };
+    AC.actions.push(a);
+    AC.selectedId = id;
+    AC.lastUpdated = Date.now();
+    wsSave();
+    if (window.ActionsAPI) window.ActionsAPI.addDebounced(a);
+    renderAll();
+    setTimeout(() => {
+      const t = document.querySelector('#ac-detail input[data-field="title"]');
+      if (t) { t.focus(); t.select(); }
+    }, 50);
+  };
+
+  window.acGenerateAidp = async function () {
+    if (!window.ActionsAPI) { if (S()) S().toast('err','ActionsAPI not loaded'); return; }
+    if (S()) S().toast('info', 'Generating actions via AIDP', 'cross-binds to Discovery + Architecture + Requirements…');
+    try {
+      const res = await window.ActionsAPI.generate({ persist: true });
+      const gen = res?.generated_count || (res?.actions || []).length || 0;
+      const xerr = (res?.cross_binding_errors || []).length;
+      if (S()) S().toast(xerr ? 'warn' : 'ok', 'AIDP generated ' + gen + ' actions', xerr ? (xerr + ' cross-binding errors · check logs') : 'persisted to D1');
+      await refresh();
+    } catch (err) {
+      if (S()) S().toast('err', 'Generate failed', err.message || String(err));
+    }
+  };
+
+  /* ─── Excel ──────────────────────────────────────────── */
+  window.acExportXlsx = function () {
+    if (!(window.DI && window.DI.export && window.DI.export.workbook)) { if (S()) S().toast('err','Excel exporter not loaded'); return; }
+    if (AC.actions.length === 0) { if (S()) S().toast('warn','Nothing to export'); return; }
+    const headers = ['ID','Title','Description','Category','Status','Priority','Effort','Owners','Capability','Requirement','Due','Past Due','Blocked By','Source'];
+    const rows = AC.actions.map(a => ({
+      'ID': a.id, 'Title': a.title || '', 'Description': a.description || '',
+      'Category': a.category || '', 'Status': a.status || '', 'Priority': (a.priority||'').toUpperCase(),
+      'Effort': a.effort || '', 'Owners': (a.roles||[]).map(roleLabel).join(', '),
+      'Capability': a.capability_id || '', 'Requirement': a.requirement_id || '',
+      'Due': a.due_at ? new Date(a.due_at).toISOString().slice(0,10) : '',
+      'Past Due': isOverdue(a) ? 'YES' : '',
+      'Blocked By': (a.blocked_by || []).join(', '),
+      'Source': a.source_signal || ''
+    }));
+    const params = [
+      { Setting:'Tenant',  Value: (S() ? S().getUserEmail() : '') },
+      { Setting:'Total',   Value: AC.actions.length },
+      { Setting:'P0',      Value: AC.actions.filter(a => a.priority === 'p0').length },
+      { Setting:'Past due',Value: AC.actions.filter(isOverdue).length },
+      { Setting:'Generated', Value: new Date().toISOString() }
+    ];
+    try {
+      window.DI.export.workbook('aidp-actions.xlsx', [
+        { name: 'Actions',        headers, rows },
+        { name: 'Run parameters', headers: ['Setting','Value'], rows: params }
+      ]);
+      if (S()) S().toast('ok', 'Excel ready');
+    } catch (err) {
+      if (S()) S().toast('err', 'Excel export failed', err.message || err);
+    }
+  };
+
+  window.acSendToGovernance = function () {
+    if (AC.actions.length === 0) { if (S()) S().toast('warn', 'Load actions first'); return; }
+    if (S()) S().sendToStudio('governance', { actions: AC.actions, summary: AC.summary }, { path: 'program-governance', query: 'from=actions' });
+    else {
+      try { localStorage.setItem('di_handoff_governance', JSON.stringify({ from:'actions', ts: Date.now(), actions: AC.actions, summary: AC.summary })); } catch {}
+      location.href = 'program-governance?from=actions';
+    }
+  };
+
+  /* ─── Error ───────────────────────────────────────────── */
+  function showError(msg) { if (S()) S().showError(document.getElementById('ac-error'), msg); }
+  function clearError()   { if (S()) S().clearError(document.getElementById('ac-error')); }
+
+  /* ─── Filter wiring ──────────────────────────────────── */
+  function wireFilters() {
+    ['role','status','category','priority'].forEach(name => {
+      const el = document.getElementById('ac-f-' + name);
+      if (!el) return;
+      el.addEventListener('change', e => {
+        AC.filters[name] = e.target.value;
+        renderAll();
+      });
+    });
+  }
+
+  /* ─── Keyboard shortcuts ─────────────────────────────── */
+  function wireShortcuts() {
+    if (!S()) return;
+    S().wireKeyboardShortcuts([
+      { key:'s', fn: () => acLoadSample() },
+      { key:'a', fn: () => acAddAction() },
+      { key:'g', fn: () => acGenerateAidp() },
+      { key:'x', fn: () => acExportXlsx() },
+      { key:'f', fn: () => acRefresh() },
+      { key:'1', fn: () => acSetTab('table') },
+      { key:'2', fn: () => acSetTab('kanban') },
+      { key:'3', fn: () => acSetTab('calendar') }
+    ], { isVisible: () => document.getElementById('ac-workspace').style.display !== 'none' });
+  }
+
+  /* ─── View toggle ────────────────────────────────────── */
+  window.setAcView = function (view) {
+    const legacy = document.getElementById('ac-legacy-view');
+    const ws     = document.getElementById('ac-workspace');
+    const btnL   = document.getElementById('ac-view-legacy');
+    const btnW   = document.getElementById('ac-view-workspace');
+    if (view === 'workspace') {
+      legacy.style.display = 'none'; ws.style.display = '';
+      btnL.style.background='transparent'; btnL.style.color='#64748B'; btnL.style.boxShadow='none';
+      btnW.style.background='#FFFFFF';     btnW.style.color='#0F172A'; btnW.style.boxShadow='0 1px 2px rgba(15,23,42,.08)';
+      try { localStorage.setItem('aidp_ac_view', 'workspace'); } catch {}
+      if (!AC.initialized) {
+        AC.initialized = true;
+        wsLoad();
+        wireFilters();
+        wireShortcuts();
+        refresh();
+      } else renderAll();
+      if (!window._acTick) {
+        window._acTick = setInterval(() => {
+          if (ws.style.display !== 'none') { renderHeader(); renderStatusBar(); }
+        }, 15000);
+      }
+    } else {
+      legacy.style.display = ''; ws.style.display = 'none';
+      btnL.style.background='#FFFFFF';     btnL.style.color='#0F172A'; btnL.style.boxShadow='0 1px 2px rgba(15,23,42,.08)';
+      btnW.style.background='transparent'; btnW.style.color='#64748B'; btnW.style.boxShadow='none';
+      try { localStorage.setItem('aidp_ac_view', 'legacy'); } catch {}
+    }
+  };
+
+  function boot() {
+    let pref = 'legacy';
+    try { pref = localStorage.getItem('aidp_ac_view') || 'legacy'; } catch {}
+    setTimeout(() => { if (pref === 'workspace') setAcView('workspace'); }, 100);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
 </script>
 
 </body>
