@@ -6,6 +6,7 @@
 <title>IaC Bundle Generator · DI Platform</title>
 <meta name="description" content="Generate Terraform · Helm · GitHub Actions scaffolds tailored to your picked cloud and capabilities."/>
 <link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/audit.js" defer></script>
 <script src="assets/cmdk.js" defer></script>
@@ -13,6 +14,11 @@
 <script src="assets/top-bar.js" defer></script>
 <script src="assets/export.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
+<!-- Phase 3B · IaC Workspace -->
+<script src="assets/aidp-api.js"></script>
+<script src="assets/studio-shell.js" defer></script>
+<script src="assets/studio-test.js" defer></script>
+<script src="assets/iac-api.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -71,6 +77,19 @@ a{color:var(--gold);text-decoration:none}
 </style>
 </head>
 <body>
+
+<!-- View toggle · Legacy ↔ Workspace · live IAC agent -->
+<div style="background:#fff;border-bottom:1px solid var(--border);padding:10px 24px">
+  <div style="max-width:1500px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div style="display:inline-flex;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:99px;padding:2px">
+      <button id="iac-view-legacy"    class="active" onclick="setIacView('legacy')"    style="background:#FFFFFF;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#0F172A;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.08)">Bundle picker</button>
+      <button id="iac-view-workspace"               onclick="setIacView('workspace')" style="background:transparent;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#64748B;cursor:pointer">Workspace</button>
+    </div>
+    <div style="font-size:11px;color:#64748B">Workspace · live IAC agent · Terraform / Helm / GH Actions · validate · cost estimate · download bundle</div>
+  </div>
+</div>
+
+<div id="iac-legacy-view">
 
 <section class="iac-hero">
   <div class="iac-hero-wrap">
@@ -580,6 +599,281 @@ document.getElementById('i-proj').addEventListener('input',    e => setField('pr
 renderModules();
 renderPreview();
 if (window.DI && window.DI.audit) window.DI.audit.log('iac', 'open', {});
+</script>
+
+</div><!-- /#iac-legacy-view -->
+
+<!-- Workspace view · enterprise pattern · live IAC agent -->
+<div id="iac-workspace" style="display:none">
+  <style>
+    #iac-workspace .iacw-section { background:#fff; border:1px solid var(--aidp-ink-200); border-radius:6px; padding:14px 18px; margin-bottom:12px; }
+    #iac-workspace .iacw-section h4 { font-size:11px; font-weight:600; color:var(--aidp-ink-500); text-transform:uppercase; letter-spacing:.06em; margin:0 0 10px; }
+    #iac-workspace .iacw-tree { font-family:var(--aidp-f-mono); font-size:12px; line-height:1.7; color:var(--aidp-ink-800); white-space:pre; }
+    #iac-workspace .iacw-tree .file { color:var(--aidp-navy); cursor:pointer; }
+    #iac-workspace .iacw-tree .dir  { color:var(--aidp-ink-700); font-weight:600; }
+    #iac-workspace .iacw-tree .bytes { color:var(--aidp-ink-500); font-size:11px; }
+    #iac-workspace .iacw-code { background:#0F172A; color:#E2E8F0; font-family:var(--aidp-f-mono); font-size:12px; padding:14px 16px; border-radius:4px; overflow:auto; max-height:480px; white-space:pre; }
+    #iac-workspace .iacw-issue { padding:8px 12px; border-left:3px solid var(--aidp-ink-300); margin-bottom:6px; font-size:12px; }
+    #iac-workspace .iacw-issue.error { border-color:var(--aidp-red); background:var(--aidp-red-lt); }
+    #iac-workspace .iacw-issue.warn  { border-color:var(--aidp-amber); background:var(--aidp-amber-lt); }
+    #iac-workspace .iacw-issue.info  { border-color:var(--aidp-navy); background:var(--aidp-navy-lt); }
+  </style>
+
+  <div class="aidp-shell">
+    <header class="aidp-header">
+      <div>
+        <div class="aidp-bread"><a href="home">Home</a> &nbsp;/&nbsp; IaC · Workspace</div>
+        <h1 class="aidp-title">IaC · Workspace</h1>
+        <p class="aidp-subtitle">Live IAC agent · generate Terraform / Helm / GitHub Actions bundles from your stored platform inventory · preview file tree · syntactic validation · Cloudflare cost estimate.</p>
+      </div>
+      <div class="aidp-context">
+        <span class="aidp-tenant">Tenant: <strong id="iac-tenant-name">…</strong></span>
+        <span class="aidp-freshness" id="iac-freshness"><span class="dot"></span> <span data-aidp-fresh-text>Idle</span></span>
+      </div>
+    </header>
+
+    <div class="aidp-kpis">
+      <div class="aidp-kpi"><div class="lbl">Target</div><div class="val" id="iac-kpi-target" style="font-family:var(--aidp-f-ui);font-size:16px">—</div><div class="sub" id="iac-kpi-target-sub">&nbsp;</div></div>
+      <div class="aidp-kpi"><div class="lbl">Files in bundle</div><div class="val" id="iac-kpi-files">—</div><div class="sub" id="iac-kpi-files-sub">&nbsp;</div></div>
+      <div class="aidp-kpi danger"><div class="lbl">Validation errors</div><div class="val" id="iac-kpi-errors">—</div><div class="sub" id="iac-kpi-errors-sub">&nbsp;</div></div>
+      <div class="aidp-kpi positive"><div class="lbl">Estimated monthly</div><div class="val" id="iac-kpi-cost" style="font-family:var(--aidp-f-ui);font-size:16px">—</div><div class="sub" id="iac-kpi-cost-sub">&nbsp;</div></div>
+    </div>
+
+    <div class="aidp-filters">
+      <div class="aidp-filter">
+        <label for="iac-f-target">Target</label>
+        <select id="iac-f-target"><option value="terraform-cloudflare">terraform-cloudflare</option><option value="github-actions">github-actions</option><option value="helm">helm</option></select>
+      </div>
+      <div class="aidp-filter">
+        <label for="iac-f-variant">Variant</label>
+        <select id="iac-f-variant"><option value="">— (default) —</option><option value="single-job">single-job</option><option value="fan-out">fan-out</option><option value="matrix">matrix</option></select>
+      </div>
+      <div class="aidp-filter-divider"></div>
+      <div class="aidp-source-toggle" role="tablist">
+        <button id="iac-tab-preview"  class="active" onclick="iacSetTab('preview')">📁 Preview</button>
+        <button id="iac-tab-validate"               onclick="iacSetTab('validate')">✅ Validate</button>
+        <button id="iac-tab-cost"                   onclick="iacSetTab('cost')">💰 Cost</button>
+        <button id="iac-tab-file"                   onclick="iacSetTab('file')">📄 File</button>
+      </div>
+      <div class="aidp-grow"></div>
+      <button class="aidp-btn aidp-btn-sm" onclick="iacRunPreview()" title="Re-preview (P)">↻ Preview</button>
+    </div>
+
+    <div id="iac-preview-pane">
+      <section class="iacw-section"><h4>Bundle file tree</h4>
+        <div id="iac-tree" class="iacw-tree"><div class="aidp-state"><div class="icon">📁</div><h2>No preview yet</h2><p>Click <strong>📁 Preview</strong> in the action bar below to fetch the file tree.</p></div></div>
+      </section>
+    </div>
+    <div id="iac-validate-pane" style="display:none">
+      <section class="iacw-section"><h4>Validation</h4>
+        <div id="iac-validate-body"><div class="aidp-state"><div class="icon">✅</div><h2>Not validated yet</h2><p>Click <strong>✅ Validate</strong> below.</p></div></div>
+      </section>
+    </div>
+    <div id="iac-cost-pane" style="display:none">
+      <section class="iacw-section"><h4>Cost estimate</h4>
+        <div id="iac-cost-body"><div class="aidp-state"><div class="icon">💰</div><h2>No estimate yet</h2><p>Click <strong>💰 Estimate</strong> below.</p></div></div>
+      </section>
+    </div>
+    <div id="iac-file-pane" style="display:none">
+      <section class="iacw-section"><h4 id="iac-file-title">Selected file</h4>
+        <pre id="iac-file-body" class="iacw-code">No file selected · run Export to load full file content, then click a file in the Preview tree.</pre>
+      </section>
+    </div>
+  </div>
+
+  <div class="aidp-actions">
+    <div class="aidp-actions-inner">
+      <div class="aidp-actions-status" id="iac-status"><strong id="iac-status-text">No bundle generated</strong></div>
+      <div class="aidp-actions-buttons">
+        <button class="aidp-btn aidp-btn-sm" onclick="iacRunPreview()"  title="Preview file tree (P)">📁 Preview</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="iacRunValidate()" title="Validate (V)">✅ Validate</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="iacRunEstimate()" title="Estimate cost (C)">💰 Estimate</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="iacRunExport()"   title="Export full bundle (E)">⬇ Export</button>
+        <button class="aidp-btn aidp-btn-primary aidp-btn-sm" onclick="iacDownloadBundle()" title="Download as tar.gz">📦 Download</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  function hasApi() { if (window.IacAPI) return true; console.warn('[IAC-WS] IacAPI not loaded yet'); return false; }
+
+  var IAC = { preview: null, files: null, validation: null, cost: null, selectedFile: null, target: 'terraform-cloudflare', variant: '', tab: 'preview', fetchedAt: 0 };
+  var WS_KEY = 'aidp_iac_ws_cache_v1';
+
+  function wsSave() { try { localStorage.setItem(WS_KEY, JSON.stringify({ preview:IAC.preview, files:IAC.files, validation:IAC.validation, cost:IAC.cost, target:IAC.target, variant:IAC.variant, tab:IAC.tab, fetchedAt:IAC.fetchedAt })); } catch (e) {} }
+  function wsLoad() {
+    try { var raw = localStorage.getItem(WS_KEY); if (!raw) return;
+      var d = JSON.parse(raw);
+      ['preview','files','validation','cost','target','variant','tab','fetchedAt'].forEach(k => { if (d[k] != null) IAC[k] = d[k]; });
+    } catch (e) {}
+  }
+  function $(id) { return document.getElementById(id); }
+  function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+  function fmtBytes(b) { if (b == null) return '—'; if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(2) + ' MB'; }
+  function fmtRel(ms) { if (!ms) return 'Idle'; var s = Math.floor((Date.now() - ms) / 1000); return s < 5 ? 'just now' : s < 60 ? s + 's ago' : s < 3600 ? Math.floor(s/60) + 'm ago' : Math.floor(s/3600) + 'h ago'; }
+
+  function renderHeader() {
+    var who = (window.AIDPStudio && AIDPStudio.getTenantShort && AIDPStudio.getTenantShort()) || 'guest';
+    var nm = $('iac-tenant-name'); if (nm) nm.textContent = who;
+    var f = $('iac-freshness'); if (f) { var p = f.querySelector('[data-aidp-fresh-text]'), d = f.querySelector('.dot'); if (p) p.textContent = fmtRel(IAC.fetchedAt); if (d) d.style.background = IAC.fetchedAt ? 'var(--aidp-green)' : 'var(--aidp-ink-300)'; }
+  }
+  function renderKpis() {
+    $('iac-kpi-target').textContent = IAC.target + (IAC.variant ? ' · ' + IAC.variant : '');
+    $('iac-kpi-target-sub').textContent = IAC.fetchedAt ? ('previewed ' + fmtRel(IAC.fetchedAt)) : '—';
+    var files = (IAC.preview && IAC.preview.files) || [];
+    $('iac-kpi-files').textContent = files.length || (IAC.files ? Object.keys(IAC.files).length : '—');
+    $('iac-kpi-files-sub').textContent = files.length ? fmtBytes(files.reduce((s,f) => s + (f.bytes || f.size || 0), 0)) + ' total' : '—';
+    var errs = (IAC.validation && IAC.validation.issues) ? IAC.validation.issues.filter(i => i.severity === 'error').length : null;
+    $('iac-kpi-errors').textContent = errs == null ? '—' : errs;
+    var warns = (IAC.validation && IAC.validation.issues) ? IAC.validation.issues.filter(i => i.severity === 'warn').length : 0;
+    $('iac-kpi-errors-sub').textContent = errs == null ? '—' : (warns + ' warnings');
+    $('iac-kpi-cost').textContent = (IAC.cost && IAC.cost.monthly_usd != null) ? ('$' + IAC.cost.monthly_usd.toFixed(2)) : '—';
+    $('iac-kpi-cost-sub').textContent = IAC.cost ? 'estimated' : '—';
+  }
+  function renderPreview() {
+    var el = $('iac-tree');
+    var files = (IAC.preview && IAC.preview.files) || [];
+    if (!files.length) { el.innerHTML = '<div class="aidp-state"><div class="icon">📁</div><h2>No preview yet</h2><p>Click <strong>📁 Preview</strong> in the action bar below to fetch the file tree.</p></div>'; return; }
+    files.sort((a, b) => (a.path || '').localeCompare(b.path || ''));
+    el.innerHTML = files.map(f => '<div><span class="file" onclick="iacSelectFile(\'' + escapeHtml(f.path) + '\')">' + escapeHtml(f.path) + '</span>  <span class="bytes">' + fmtBytes(f.bytes || f.size || 0) + '</span></div>').join('');
+  }
+  function renderValidate() {
+    var el = $('iac-validate-body');
+    if (!IAC.validation) { el.innerHTML = '<div class="aidp-state"><div class="icon">✅</div><h2>Not validated yet</h2><p>Click <strong>✅ Validate</strong> below.</p></div>'; return; }
+    var issues = IAC.validation.issues || [];
+    if (!issues.length) { el.innerHTML = '<div style="font-size:13px;color:var(--aidp-green)"><strong>✓ No issues found.</strong> Bundle is syntactically valid.</div>'; return; }
+    el.innerHTML = issues.map(i => '<div class="iacw-issue ' + (i.severity || 'info') + '">' +
+      '<strong>' + escapeHtml((i.severity || 'info').toUpperCase()) + '</strong> · ' + escapeHtml(i.file || '?') + (i.line ? ':' + i.line : '') + '<br>' +
+      escapeHtml(i.message || '') + (i.remediation ? '<br><em>fix: ' + escapeHtml(i.remediation) + '</em>' : '') +
+    '</div>').join('');
+  }
+  function renderCost() {
+    var el = $('iac-cost-body');
+    if (!IAC.cost) { el.innerHTML = '<div class="aidp-state"><div class="icon">💰</div><h2>No estimate yet</h2><p>Click <strong>💰 Estimate</strong> below.</p></div>'; return; }
+    var bd = IAC.cost.breakdown || {};
+    var monthly = IAC.cost.monthly_usd != null ? '$' + IAC.cost.monthly_usd.toFixed(2) : '—';
+    el.innerHTML = '<div style="display:flex;align-items:baseline;gap:14px;margin-bottom:14px">' +
+      '<span style="font-family:var(--aidp-f-head);font-size:28px;font-weight:600">' + monthly + '</span>' +
+      '<span style="font-size:12px;color:var(--aidp-ink-500)">/ month (estimated)</span></div>' +
+      '<table class="aidp-table"><thead><tr><th>Category</th><th style="text-align:right">USD / month</th></tr></thead><tbody>' +
+      Object.keys(bd).map(k => '<tr><td>' + escapeHtml(k) + '</td><td style="text-align:right;font-family:var(--aidp-f-mono)">$' + (typeof bd[k] === 'number' ? bd[k].toFixed(2) : bd[k]) + '</td></tr>').join('') +
+      '</tbody></table>';
+  }
+  function renderFile() {
+    var el = $('iac-file-body'), titleEl = $('iac-file-title');
+    if (!IAC.selectedFile) { el.textContent = 'No file selected · run Export to load full content, then click a file in the Preview tree.'; titleEl.textContent = 'Selected file'; return; }
+    if (!IAC.files || !IAC.files[IAC.selectedFile]) { el.textContent = 'File content not loaded · run Export first.'; titleEl.textContent = IAC.selectedFile; return; }
+    titleEl.textContent = IAC.selectedFile;
+    el.textContent = IAC.files[IAC.selectedFile];
+  }
+  function renderAll() {
+    renderHeader(); renderKpis();
+    ['preview','validate','cost','file'].forEach(t => { var pane = $('iac-' + t + '-pane'); if (pane) pane.style.display = (IAC.tab === t) ? '' : 'none'; });
+    if (IAC.tab === 'preview')  renderPreview();
+    if (IAC.tab === 'validate') renderValidate();
+    if (IAC.tab === 'cost')     renderCost();
+    if (IAC.tab === 'file')     renderFile();
+    var st = $('iac-status-text');
+    if (st) {
+      var fc = (IAC.preview && IAC.preview.files && IAC.preview.files.length) || 0;
+      st.textContent = IAC.target + (IAC.variant ? '/' + IAC.variant : '') + ' · ' + fc + ' files' + (IAC.validation ? ' · ' + (IAC.validation.issues || []).length + ' issues' : '') + (IAC.cost ? ' · $' + (IAC.cost.monthly_usd || 0).toFixed(0) + '/mo' : '');
+    }
+  }
+
+  function iacRunPreview() {
+    if (!hasApi()) return Promise.resolve();
+    return IacAPI.preview({ target: IAC.target, variant: IAC.variant || undefined }).then(resp => {
+      IAC.preview = resp; IAC.fetchedAt = Date.now(); wsSave(); renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'📁', title:'Preview ready', message: ((resp && resp.files && resp.files.length) || 0) + ' files.' });
+    }).catch(err => { if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'err', icon:'⚠', title:'Preview failed', message: err.message || String(err) }); });
+  }
+  window.iacRunPreview = iacRunPreview;
+
+  window.iacRunValidate = function () {
+    if (!hasApi()) return;
+    IacAPI.validate({ target: IAC.target, variant: IAC.variant || undefined }).then(resp => {
+      IAC.validation = resp; wsSave(); IAC.tab = 'validate'; renderAll();
+      var errs = (resp.issues || []).filter(i => i.severity === 'error').length;
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind: errs ? 'warn' : 'ok', icon: errs ? '⚠' : '✓', title:'Validation done', message: errs + ' errors · ' + ((resp.issues || []).length - errs) + ' warnings.' });
+    }).catch(err => { if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'err', icon:'⚠', title:'Validate failed', message: err.message || String(err) }); });
+  };
+
+  window.iacRunEstimate = function () {
+    if (!hasApi()) return;
+    IacAPI.estimateCost({}).then(resp => {
+      IAC.cost = resp; wsSave(); IAC.tab = 'cost'; renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'💰', title:'Cost estimated', message: '$' + ((resp.monthly_usd || 0).toFixed(2)) + '/mo' });
+    }).catch(err => { if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'err', icon:'⚠', title:'Estimate failed', message: err.message || String(err) }); });
+  };
+
+  window.iacRunExport = function () {
+    if (!hasApi()) return;
+    IacAPI.exportBundle({ target: IAC.target, variant: IAC.variant || undefined, persist: true }).then(resp => {
+      var filesArray = resp.files || [];
+      IAC.files = {};
+      filesArray.forEach(f => { IAC.files[f.path] = f.content || ''; });
+      IAC.preview = { files: filesArray.map(f => ({ path: f.path, bytes: (f.content || '').length })) };
+      IAC.fetchedAt = Date.now(); wsSave(); renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'⬇', title:'Bundle exported', message: filesArray.length + ' files loaded · click any in the Preview tree to view.' });
+    }).catch(err => { if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'err', icon:'⚠', title:'Export failed', message: err.message || String(err) }); });
+  };
+
+  window.iacDownloadBundle = function () {
+    if (!IAC.files || !Object.keys(IAC.files).length) { alert('Run Export first to load file content.'); return; }
+    /* Bundle as a single .zip-ish text dump · proper tar.gz would need a zip lib. Simplest: download as JSON. */
+    var blob = new Blob([JSON.stringify(IAC.files, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'aidp-iac-' + IAC.target + (IAC.variant ? '-' + IAC.variant : '') + '-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click(); URL.revokeObjectURL(a.href);
+    if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'📦', title:'Downloaded', message: a.download });
+  };
+
+  window.iacSetTab = function (tab) { IAC.tab = tab; ['preview','validate','cost','file'].forEach(t => { var b = $('iac-tab-' + t); if (b) b.classList.toggle('active', t === tab); }); wsSave(); renderAll(); };
+  window.iacSelectFile = function (path) { IAC.selectedFile = path; IAC.tab = 'file'; renderAll(); ['preview','validate','cost','file'].forEach(t => { var b = $('iac-tab-' + t); if (b) b.classList.toggle('active', t === 'file'); }); };
+
+  window.setIacView = function (view) {
+    var legacy = document.getElementById('iac-legacy-view'), ws = document.getElementById('iac-workspace'),
+        bL = document.getElementById('iac-view-legacy'), bW = document.getElementById('iac-view-workspace');
+    var toLegacy = (view === 'legacy');
+    if (legacy) legacy.style.display = toLegacy ? '' : 'none';
+    if (ws)     ws.style.display     = toLegacy ? 'none' : '';
+    if (bL) { bL.classList.toggle('active', toLegacy); bL.style.background = toLegacy ? '#FFFFFF' : 'transparent'; bL.style.color = toLegacy ? '#0F172A' : '#64748B'; bL.style.boxShadow = toLegacy ? '0 1px 2px rgba(15,23,42,.08)' : 'none'; }
+    if (bW) { bW.classList.toggle('active', !toLegacy); bW.style.background = !toLegacy ? '#FFFFFF' : 'transparent'; bW.style.color = !toLegacy ? '#0F172A' : '#64748B'; bW.style.boxShadow = !toLegacy ? '0 1px 2px rgba(15,23,42,.08)' : 'none'; }
+    try { localStorage.setItem('aidp_iac_view', view); } catch (e) {}
+    if (!toLegacy && window.IacAPI && !IAC.preview) iacRunPreview().catch(() => {});
+  };
+
+  function wireFilters() {
+    var t = $('iac-f-target');  if (t) t.addEventListener('change', () => { IAC.target = t.value; });
+    var v = $('iac-f-variant'); if (v) v.addEventListener('change', () => { IAC.variant = v.value; });
+  }
+  document.addEventListener('keydown', e => {
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/i.test(e.target.tagName)) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var ws = document.getElementById('iac-workspace');
+    if (!ws || ws.style.display === 'none') return;
+    switch (e.key.toLowerCase()) {
+      case 'p': iacRunPreview(); break;
+      case 'v': window.iacRunValidate(); break;
+      case 'c': window.iacRunEstimate(); break;
+      case 'e': window.iacRunExport(); break;
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    wsLoad(); wireFilters();
+    var tEl = $('iac-f-target'); if (tEl) tEl.value = IAC.target;
+    var vEl = $('iac-f-variant'); if (vEl) vEl.value = IAC.variant || '';
+    var pref = null; try { pref = localStorage.getItem('aidp_iac_view'); } catch (e) {}
+    if (pref === 'workspace') window.setIacView('workspace');
+    renderAll();
+    try { console.log('[AIDP] IaC Workspace v1 ready · api=' + (!!window.IacAPI)); } catch (e) {}
+  });
+})();
 </script>
 
 </body>

@@ -6,6 +6,7 @@
 <title>Knowledge Artifacts · DI Platform</title>
 <meta name="description" content="Searchable repository of past artifacts, reference templates, and banking modernization playbooks."/>
 <link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/audit.js" defer></script>
 <script src="assets/cmdk.js" defer></script>
@@ -13,6 +14,11 @@
 <script src="assets/top-bar.js" defer></script>
 <script src="assets/export.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
+<!-- Phase 3A · Knowledge Workspace -->
+<script src="assets/aidp-api.js"></script>
+<script src="assets/studio-shell.js" defer></script>
+<script src="assets/studio-test.js" defer></script>
+<script src="assets/knowledge-api.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -91,6 +97,19 @@ a{color:var(--gold);text-decoration:none}
 </style>
 </head>
 <body>
+
+<!-- View toggle · Legacy local-only ↔ Workspace · live KNOWLEDGE agent -->
+<div style="background:#fff;border-bottom:1px solid var(--border);padding:10px 24px">
+  <div style="max-width:1500px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div style="display:inline-flex;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:99px;padding:2px">
+      <button id="kn-view-legacy"    class="active" onclick="setKnView('legacy')"    style="background:#FFFFFF;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#0F172A;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.08)">Local artifacts</button>
+      <button id="kn-view-workspace"               onclick="setKnView('workspace')" style="background:transparent;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#64748B;cursor:pointer">Workspace</button>
+    </div>
+    <div style="font-size:11px;color:#64748B">Workspace · live KNOWLEDGE agent · vector search · ingest · per-tenant corpus · citations</div>
+  </div>
+</div>
+
+<div id="kn-legacy-view">
 
 <section class="kn-hero">
   <div class="kn-hero-wrap">
@@ -535,6 +554,319 @@ document.getElementById('kn-search').addEventListener('input', e => { STATE.sear
 loadState();
 render();
 if (window.DI && window.DI.audit) window.DI.audit.log('knowledge', 'open', { items: STATE.items.length });
+</script>
+
+</div><!-- /#kn-legacy-view -->
+
+<!-- Workspace view · enterprise pattern · live KNOWLEDGE agent -->
+<div id="kn-workspace" style="display:none">
+  <style>
+    #kn-workspace .knw-section { background:#fff; border:1px solid var(--aidp-ink-200); border-radius:6px; padding:14px 18px; margin-bottom:12px; }
+    #kn-workspace .knw-section h4 { font-size:11px; font-weight:600; color:var(--aidp-ink-500); text-transform:uppercase; letter-spacing:.06em; margin:0 0 10px; }
+    #kn-workspace .knw-hit { padding:10px 12px; border:1px solid var(--aidp-ink-200); border-radius:5px; margin-bottom:8px; }
+    #kn-workspace .knw-hit:hover { border-color:var(--aidp-navy); }
+    #kn-workspace .knw-hit .score { display:inline-block; background:var(--aidp-canvas); border:1px solid var(--aidp-ink-200); border-radius:3px; padding:1px 6px; font-family:var(--aidp-f-mono); font-size:10px; color:var(--aidp-ink-700); margin-right:8px; }
+    #kn-workspace .knw-hit .title { font-weight:600; font-size:13px; color:var(--aidp-ink-900); }
+    #kn-workspace .knw-hit .meta { font-size:11px; color:var(--aidp-ink-500); margin-top:2px; }
+    #kn-workspace .knw-hit .snippet { font-size:12px; color:var(--aidp-ink-800); margin-top:6px; line-height:1.5; }
+  </style>
+
+  <div class="aidp-shell">
+    <header class="aidp-header">
+      <div>
+        <div class="aidp-bread"><a href="home">Home</a> &nbsp;/&nbsp; Knowledge · Workspace</div>
+        <h1 class="aidp-title">Knowledge · Workspace</h1>
+        <p class="aidp-subtitle">Live KNOWLEDGE agent · hybrid vector + filter search · ingest text → embeddings → Vectorize · per-tenant corpus + system reference library · structured citations.</p>
+      </div>
+      <div class="aidp-context">
+        <span class="aidp-tenant">Tenant: <strong id="kn-tenant-name">…</strong></span>
+        <span class="aidp-freshness" id="kn-freshness"><span class="dot"></span> <span data-aidp-fresh-text>Idle</span></span>
+      </div>
+    </header>
+
+    <div class="aidp-kpis">
+      <div class="aidp-kpi"><div class="lbl">Total sources</div><div class="val" id="kn-kpi-sources">—</div><div class="sub" id="kn-kpi-sources-sub">&nbsp;</div></div>
+      <div class="aidp-kpi"><div class="lbl">Last search hits</div><div class="val" id="kn-kpi-hits">—</div><div class="sub" id="kn-kpi-hits-sub">&nbsp;</div></div>
+      <div class="aidp-kpi"><div class="lbl">By kind</div><div class="val" id="kn-kpi-kinds" style="font-family:var(--aidp-f-ui);font-size:14px">—</div><div class="sub">&nbsp;</div></div>
+      <div class="aidp-kpi"><div class="lbl">By framework</div><div class="val" id="kn-kpi-frameworks" style="font-family:var(--aidp-f-ui);font-size:14px">—</div><div class="sub">&nbsp;</div></div>
+    </div>
+
+    <div class="aidp-filters">
+      <div class="aidp-filter">
+        <label for="kn-f-kind">Kind</label>
+        <select id="kn-f-kind"><option value="">All</option>
+          <option>regulation</option><option>standard</option><option>playbook</option>
+          <option>whitepaper</option><option>rfp</option><option>decision-log</option>
+          <option>policy</option><option>other</option>
+        </select>
+      </div>
+      <div class="aidp-filter">
+        <label for="kn-f-framework">Framework</label>
+        <select id="kn-f-framework"><option value="">All</option>
+          <option>PCI-DSS</option><option>SOX</option><option>GDPR</option><option>FFIEC</option>
+          <option>HIPAA</option><option>GLBA</option><option>BCBS-239</option><option>DORA</option>
+        </select>
+      </div>
+      <div class="aidp-filter-divider"></div>
+      <div class="aidp-source-toggle" role="tablist">
+        <button id="kn-tab-search"  class="active" onclick="knSetTab('search')">🔍 Search</button>
+        <button id="kn-tab-sources"               onclick="knSetTab('sources')">📚 Sources</button>
+        <button id="kn-tab-ingest"                onclick="knSetTab('ingest')">📥 Ingest</button>
+      </div>
+      <div class="aidp-grow"></div>
+      <button class="aidp-btn aidp-btn-sm" onclick="knRefresh()" title="Reload sources (F)">↻ Refresh</button>
+    </div>
+
+    <div id="kn-search-pane">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input type="search" id="kn-q" placeholder="Search the knowledge corpus · e.g. 'PCI-DSS data residency requirements'" style="flex:1;font-family:inherit;font-size:13px;padding:9px 12px;border:1px solid var(--aidp-ink-200);border-radius:5px"/>
+        <button class="aidp-btn aidp-btn-primary" onclick="knRunSearch()">Search</button>
+      </div>
+      <div id="kn-search-body"><div class="aidp-state"><div class="icon">🔍</div><h2>Type a query above</h2><p>Hybrid vector + filter search across the per-tenant corpus and the system reference library.</p></div></div>
+    </div>
+
+    <div id="kn-sources-pane" style="display:none"><div id="kn-sources-body"><div class="aidp-state"><div class="icon">📚</div><h2>No sources loaded</h2><p>Click <strong>↻ Refresh</strong> to fetch sources from the agent.</p></div></div></div>
+
+    <div id="kn-ingest-pane" style="display:none">
+      <section class="knw-section"><h4>Ingest new source</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <input id="kn-i-title" type="text" placeholder="Title" style="font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--aidp-ink-200);border-radius:4px"/>
+          <select id="kn-i-kind" style="font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--aidp-ink-200);border-radius:4px;background:#fff">
+            <option value="">— kind —</option>
+            <option>regulation</option><option>standard</option><option>playbook</option>
+            <option>whitepaper</option><option>rfp</option><option>decision-log</option>
+            <option>policy</option><option>other</option>
+          </select>
+          <input id="kn-i-source-url" type="text" placeholder="Source URL (optional)" style="font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--aidp-ink-200);border-radius:4px"/>
+          <input id="kn-i-frameworks" type="text" placeholder="Frameworks (comma-separated, e.g. PCI-DSS, SOX)" style="font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--aidp-ink-200);border-radius:4px"/>
+        </div>
+        <textarea id="kn-i-text" rows="8" placeholder="Paste raw text · markdown or plain · max ~1MB" style="width:100%;font-family:inherit;font-size:13px;padding:10px;border:1px solid var(--aidp-ink-200);border-radius:4px"></textarea>
+      </section>
+    </div>
+  </div>
+
+  <div class="aidp-actions">
+    <div class="aidp-actions-inner">
+      <div class="aidp-actions-status" id="kn-status"><strong id="kn-status-text">Idle</strong></div>
+      <div class="aidp-actions-buttons">
+        <button class="aidp-btn aidp-btn-sm" onclick="knRunSearch()"   title="Run search (Enter)">🔍 Search</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="knIngest()"      title="Ingest the typed text (I)">📥 Ingest</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="knExportXlsx()"  title="Export sources + last search to Excel (X)">⬇ Excel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  function hasApi() {
+    if (window.KnowledgeAPI) return true;
+    console.warn('[KN-WS] KnowledgeAPI not loaded yet · skipping call.');
+    return false;
+  }
+
+  var KN = { sources: [], lastHits: [], lastQuery: '', tab: 'search', filters: { kind:'', framework:'' }, fetchedAt: 0 };
+  var WS_KEY = 'aidp_kn_ws_cache_v1';
+
+  function wsSave() { try { localStorage.setItem(WS_KEY, JSON.stringify({ sources:KN.sources, lastHits:KN.lastHits, lastQuery:KN.lastQuery, tab:KN.tab, fetchedAt:KN.fetchedAt })); } catch (e) {} }
+  function wsLoad() {
+    try { var raw = localStorage.getItem(WS_KEY); if (!raw) return;
+      var d = JSON.parse(raw);
+      if (Array.isArray(d.sources))  KN.sources  = d.sources;
+      if (Array.isArray(d.lastHits)) KN.lastHits = d.lastHits;
+      if (d.lastQuery) KN.lastQuery = d.lastQuery;
+      if (d.tab) KN.tab = d.tab;
+      if (d.fetchedAt) KN.fetchedAt = d.fetchedAt;
+    } catch (e) {}
+  }
+  function $(id) { return document.getElementById(id); }
+  function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+  function fmtRel(ms) {
+    if (!ms) return 'Idle';
+    var s = Math.floor((Date.now() - ms) / 1000);
+    if (s < 5) return 'just now'; if (s < 60) return s + 's ago';
+    if (s < 3600) return Math.floor(s/60) + 'm ago';
+    return Math.floor(s/3600) + 'h ago';
+  }
+
+  function renderHeader() {
+    var who = (window.AIDPStudio && AIDPStudio.getTenantShort && AIDPStudio.getTenantShort()) || 'guest';
+    var nm = $('kn-tenant-name'); if (nm) nm.textContent = who;
+    var f = $('kn-freshness');
+    if (f) { var p = f.querySelector('[data-aidp-fresh-text]'), d = f.querySelector('.dot');
+      if (p) p.textContent = fmtRel(KN.fetchedAt);
+      if (d) d.style.background = KN.fetchedAt ? 'var(--aidp-green)' : 'var(--aidp-ink-300)'; }
+  }
+
+  function renderKpis() {
+    $('kn-kpi-sources').textContent = KN.sources.length;
+    $('kn-kpi-sources-sub').textContent = KN.sources.length ? 'across kinds + frameworks' : '— click Refresh —';
+    $('kn-kpi-hits').textContent = KN.lastHits.length;
+    $('kn-kpi-hits-sub').textContent = KN.lastQuery ? ('for "' + KN.lastQuery.slice(0,28) + (KN.lastQuery.length > 28 ? '…' : '') + '"') : '— no search yet —';
+    var byKind = {}; KN.sources.forEach(s => { byKind[s.kind || 'other'] = (byKind[s.kind || 'other'] || 0) + 1; });
+    $('kn-kpi-kinds').textContent = Object.keys(byKind).length ? Object.keys(byKind).slice(0,3).map(k => k + ':' + byKind[k]).join(' · ') : '—';
+    var byFw = {}; KN.sources.forEach(s => { (s.frameworks || []).forEach(f => { byFw[f] = (byFw[f] || 0) + 1; }); });
+    $('kn-kpi-frameworks').textContent = Object.keys(byFw).length ? Object.keys(byFw).slice(0,3).map(k => k + ':' + byFw[k]).join(' · ') : '—';
+  }
+
+  function renderSearch() {
+    var el = $('kn-search-body');
+    if (!KN.lastHits.length) {
+      el.innerHTML = KN.lastQuery
+        ? '<div class="aidp-state"><div class="icon">🔍</div><h2>No hits</h2><p>No results for "' + escapeHtml(KN.lastQuery) + '". Try a broader query or change the filters.</p></div>'
+        : '<div class="aidp-state"><div class="icon">🔍</div><h2>Type a query above</h2><p>Hybrid vector + filter search across the per-tenant corpus and the system reference library.</p></div>';
+      return;
+    }
+    el.innerHTML = '<section class="knw-section"><h4>Top hits for "' + escapeHtml(KN.lastQuery) + '" · ' + KN.lastHits.length + ' results</h4>' +
+      KN.lastHits.map(h => {
+        var score = (typeof h.score === 'number') ? h.score.toFixed(3) : '—';
+        return '<div class="knw-hit">' +
+          '<div><span class="score">' + score + '</span><span class="title">' + escapeHtml(h.title || h.source_title || h.chunk_id || '?') + '</span></div>' +
+          '<div class="meta">' + escapeHtml(h.kind || '—') + ' · ' + escapeHtml((h.frameworks || []).join(', ') || 'no framework') + (h.source_url ? ' · <a href="' + escapeHtml(h.source_url) + '" target="_blank">source ↗</a>' : '') + '</div>' +
+          (h.snippet ? '<div class="snippet">' + escapeHtml(h.snippet) + '</div>' : '') +
+        '</div>';
+      }).join('') + '</section>';
+  }
+
+  function renderSources() {
+    var el = $('kn-sources-body');
+    var rows = KN.sources.slice();
+    if (KN.filters.kind)      rows = rows.filter(s => s.kind === KN.filters.kind);
+    if (KN.filters.framework) rows = rows.filter(s => (s.frameworks || []).includes(KN.filters.framework));
+    if (!rows.length) {
+      el.innerHTML = '<div class="aidp-state"><div class="icon">📚</div><h2>No sources</h2><p>Either the corpus is empty or your filters are too narrow. Ingest a new source or relax the filters.</p></div>';
+      return;
+    }
+    el.innerHTML = '<section class="knw-section"><h4>Sources · ' + rows.length + ' shown</h4>' +
+      '<table class="aidp-table"><thead><tr><th>Title</th><th>Kind</th><th>Frameworks</th><th>Chunks</th><th>Version</th><th>Updated</th></tr></thead><tbody>' +
+      rows.map(s => '<tr>' +
+        '<td><strong>' + escapeHtml(s.title || '?') + '</strong>' + (s.source_url ? ' <a href="' + escapeHtml(s.source_url) + '" target="_blank">↗</a>' : '') + '</td>' +
+        '<td>' + escapeHtml(s.kind || '—') + '</td>' +
+        '<td style="font-size:11px">' + escapeHtml((s.frameworks || []).join(', ') || '—') + '</td>' +
+        '<td style="font-family:var(--aidp-f-mono);font-size:11px">' + (s.chunks || s.chunk_count || '—') + '</td>' +
+        '<td>' + escapeHtml(s.version || '—') + '</td>' +
+        '<td style="font-size:11px;color:var(--aidp-ink-500)">' + escapeHtml(s.updated_at || s.ingested_at || '—') + '</td></tr>').join('') +
+      '</tbody></table></section>';
+  }
+
+  function renderAll() {
+    renderHeader(); renderKpis();
+    ['search','sources','ingest'].forEach(t => { var pane = $('kn-' + t + '-pane'); if (pane) pane.style.display = (KN.tab === t) ? '' : 'none'; });
+    if (KN.tab === 'search')  renderSearch();
+    if (KN.tab === 'sources') renderSources();
+    var st = $('kn-status-text');
+    if (st) st.textContent = KN.sources.length + ' sources · ' + KN.lastHits.length + ' hits' + (KN.lastQuery ? ' for "' + KN.lastQuery.slice(0,20) + '"' : '');
+  }
+
+  function knRefresh() {
+    if (!hasApi()) return Promise.resolve();
+    return KnowledgeAPI.listSources({ kind: KN.filters.kind || undefined, framework: KN.filters.framework || undefined }).then(resp => {
+      KN.sources = (resp && resp.sources) || [];
+      KN.fetchedAt = Date.now(); wsSave(); renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'↻', title:'Refreshed', message: KN.sources.length + ' sources loaded.' });
+    }).catch(err => { console.warn('[KN-WS] refresh failed', err); renderAll(); });
+  }
+  window.knRefresh = knRefresh;
+
+  window.knSetTab = function (tab) {
+    KN.tab = tab;
+    ['search','sources','ingest'].forEach(t => { var b = $('kn-tab-' + t); if (b) b.classList.toggle('active', t === tab); });
+    wsSave(); renderAll();
+  };
+
+  window.knRunSearch = function () {
+    if (!hasApi()) return;
+    var q = ($('kn-q') && $('kn-q').value || '').trim();
+    if (!q) { if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'warn', icon:'⚠', title:'Empty query', message:'Type something to search.' }); return; }
+    KN.lastQuery = q;
+    KnowledgeAPI.search({ query: q, kind: KN.filters.kind || undefined, framework: KN.filters.framework || undefined }).then(resp => {
+      KN.lastHits = (resp && (resp.hits || resp.results)) || [];
+      wsSave(); KN.tab = 'search'; renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'🔍', title:'Search done', message: KN.lastHits.length + ' hits.' });
+    }).catch(err => {
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'err', icon:'⚠', title:'Search failed', message: err.message || String(err) });
+    });
+  };
+
+  window.knIngest = function () {
+    if (!hasApi()) return;
+    var title = ($('kn-i-title') && $('kn-i-title').value || '').trim();
+    var text  = ($('kn-i-text')  && $('kn-i-text').value  || '').trim();
+    if (!title || !text) { if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'warn', icon:'⚠', title:'Missing fields', message:'Title and text are both required.' }); return; }
+    var kind = ($('kn-i-kind') && $('kn-i-kind').value) || undefined;
+    var srcUrl = ($('kn-i-source-url') && $('kn-i-source-url').value) || undefined;
+    var fwRaw = ($('kn-i-frameworks') && $('kn-i-frameworks').value) || '';
+    var frameworks = fwRaw.split(',').map(s => s.trim()).filter(Boolean);
+    KnowledgeAPI.ingest({ title, text, kind, source_url: srcUrl, frameworks }).then(resp => {
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'📥', title:'Ingested', message: (resp && (resp.chunks || resp.chunk_count || '?')) + ' chunks · source_id=' + (resp && (resp.source_id || resp.id || '?')) });
+      $('kn-i-title').value = ''; $('kn-i-text').value = ''; $('kn-i-source-url').value = ''; $('kn-i-frameworks').value = '';
+      return knRefresh();
+    }).catch(err => {
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'err', icon:'⚠', title:'Ingest failed', message: err.message || String(err) });
+    });
+  };
+
+  window.knExportXlsx = function () {
+    if (!window.DI || !window.DI.export || !window.DI.export.workbook) { alert('Excel export library not available.'); return; }
+    var ts = new Date().toISOString().slice(0,10);
+    var sheets = [];
+    if (KN.sources.length) {
+      sheets.push({ name:'Sources', rows: KN.sources.map(s => ({
+        Title:s.title || '', Kind:s.kind || '', Frameworks:(s.frameworks || []).join('|'),
+        SourceURL:s.source_url || '', Version:s.version || '', Chunks:s.chunks || s.chunk_count || '', Updated:s.updated_at || s.ingested_at || ''
+      })), headers:['Title','Kind','Frameworks','SourceURL','Version','Chunks','Updated'] });
+    }
+    if (KN.lastHits.length) {
+      sheets.push({ name:'LastSearch', rows: KN.lastHits.map(h => ({
+        Query: KN.lastQuery, Title:h.title || h.source_title || '', Score:h.score || '',
+        Kind:h.kind || '', Frameworks:(h.frameworks || []).join('|'), Snippet:(h.snippet || '').slice(0,500)
+      })), headers:['Query','Title','Score','Kind','Frameworks','Snippet'] });
+    }
+    if (!sheets.length) { alert('Nothing to export · run a search or refresh sources first.'); return; }
+    window.DI.export.workbook('aidp-knowledge-' + ts + '.xlsx', sheets);
+  };
+
+  window.setKnView = function (view) {
+    var legacy = document.getElementById('kn-legacy-view'), ws = document.getElementById('kn-workspace'),
+        bL = document.getElementById('kn-view-legacy'), bW = document.getElementById('kn-view-workspace');
+    var toLegacy = (view === 'legacy');
+    if (legacy) legacy.style.display = toLegacy ? '' : 'none';
+    if (ws)     ws.style.display     = toLegacy ? 'none' : '';
+    if (bL) { bL.classList.toggle('active', toLegacy); bL.style.background = toLegacy ? '#FFFFFF' : 'transparent'; bL.style.color = toLegacy ? '#0F172A' : '#64748B'; bL.style.boxShadow = toLegacy ? '0 1px 2px rgba(15,23,42,.08)' : 'none'; }
+    if (bW) { bW.classList.toggle('active', !toLegacy); bW.style.background = !toLegacy ? '#FFFFFF' : 'transparent'; bW.style.color = !toLegacy ? '#0F172A' : '#64748B'; bW.style.boxShadow = !toLegacy ? '0 1px 2px rgba(15,23,42,.08)' : 'none'; }
+    try { localStorage.setItem('aidp_kn_view', view); } catch (e) {}
+    if (!toLegacy && KN.fetchedAt === 0 && window.KnowledgeAPI) knRefresh().catch(() => {});
+  };
+
+  function wireFilters() {
+    var k = $('kn-f-kind');      if (k) k.addEventListener('change', () => { KN.filters.kind = k.value; renderAll(); });
+    var f = $('kn-f-framework'); if (f) f.addEventListener('change', () => { KN.filters.framework = f.value; renderAll(); });
+    var q = $('kn-q'); if (q) q.addEventListener('keydown', e => { if (e.key === 'Enter') window.knRunSearch(); });
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/i.test(e.target.tagName)) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var ws = document.getElementById('kn-workspace');
+    if (!ws || ws.style.display === 'none') return;
+    switch (e.key.toLowerCase()) {
+      case 'f': knRefresh(); break;
+      case 'i': window.knIngest(); break;
+      case 'x': window.knExportXlsx(); break;
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    wsLoad(); wireFilters();
+    var pref = null; try { pref = localStorage.getItem('aidp_kn_view'); } catch (e) {}
+    if (pref === 'workspace') window.setKnView('workspace');
+    renderAll();
+    if (window.KnowledgeAPI && KN.fetchedAt === 0) knRefresh().catch(() => {});
+    try { console.log('[AIDP] Knowledge Workspace v1 ready · api=' + (!!window.KnowledgeAPI)); } catch (e) {}
+  });
+})();
 </script>
 
 </body>

@@ -6,6 +6,7 @@
 <title>EVP Summary · DI Platform</title>
 <meta name="description" content="Board-ready executive summary of your banking modernization program — duration, savings, KPIs, and the case for the program."/>
 <link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/audit.js" defer></script>
 <script src="assets/cmdk.js" defer></script>
@@ -14,6 +15,12 @@
 <script src="assets/export.js" defer></script>
 <script src="assets/pricing.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
+<!-- Phase 3C · EVP Live cross-binds (uses existing APIs from sibling pages) -->
+<script src="assets/aidp-api.js"></script>
+<script src="assets/studio-shell.js" defer></script>
+<script src="assets/sow-api.js" defer></script>
+<script src="assets/governance-api.js" defer></script>
+<script src="assets/operations-api.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -119,6 +126,18 @@ body.aud .evp-bus{display:none}
 <body>
 
 <div data-di-topbar></div>
+
+<!-- Live cross-bind strip · pulls fresh SOW/Governance/Operations data when present -->
+<div id="evp-live-strip" style="background:#FFFCF4;border-bottom:1px solid var(--gold-2);padding:8px 24px;font-size:12px;color:#7A5F10;display:none">
+  <div style="max-width:1500px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <strong>Live cross-bind:</strong>
+    <span id="evp-live-sow">SOW —</span>
+    <span id="evp-live-rag">Programme RAG —</span>
+    <span id="evp-live-ops">Ops RAG —</span>
+    <span style="margin-left:auto;font-size:11px;color:#9B7F2A">refreshed <span id="evp-live-time">never</span></span>
+    <button onclick="evpRefreshLive()" style="background:transparent;border:1px solid var(--gold);color:var(--gold);border-radius:5px;font-size:11px;padding:3px 9px;cursor:pointer">↻ Refresh</button>
+  </div>
+</div>
 
 <!-- Toolbar -->
 <div class="evp-tools">
@@ -455,6 +474,50 @@ function exportEVPXlsx() {
 /* ── Bootstrap ──────────────────────────────────────── */
 loadInput();
 render();
+</script>
+
+<!-- Phase 3C · Live cross-bind from agents (additive, doesn't replace the local view) -->
+<script>
+(function () {
+  'use strict';
+  var EVP = { sow: null, govPack: null, opsDash: null, fetchedAt: 0 };
+
+  function fmtRel(ms) { if (!ms) return 'never'; var s = Math.floor((Date.now() - ms) / 1000); return s < 60 ? s + 's ago' : s < 3600 ? Math.floor(s/60) + 'm ago' : Math.floor(s/3600) + 'h ago'; }
+  function fmtUsd(n) { if (n == null || !isFinite(n)) return '—'; if (Math.abs(n) >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M'; if (Math.abs(n) >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K'; return '$' + Math.round(n); }
+  function $(id) { return document.getElementById(id); }
+
+  function render() {
+    var strip = $('evp-live-strip'); if (!strip) return;
+    /* Only show the strip if we have at least one live datapoint */
+    var anyLive = EVP.sow || EVP.govPack || EVP.opsDash;
+    strip.style.display = anyLive ? '' : 'none';
+    var sowEl = $('evp-live-sow'); if (sowEl) sowEl.textContent = EVP.sow ? ('SOW: ' + (EVP.sow.title || EVP.sow.id || 'present') + ' · ' + (EVP.sow.pricing && fmtUsd(EVP.sow.pricing.total_year1 || EVP.sow.pricing.year1 || 0))) : 'SOW —';
+    var ragEl = $('evp-live-rag'); if (ragEl) ragEl.textContent = (EVP.govPack && EVP.govPack.rag_status) ? ('Programme RAG: ' + EVP.govPack.rag_status.toUpperCase()) : 'Programme RAG —';
+    var opsEl = $('evp-live-ops'); if (opsEl) opsEl.textContent = (EVP.opsDash && EVP.opsDash.rag_status) ? ('Ops RAG: ' + EVP.opsDash.rag_status.toUpperCase()) : 'Ops RAG —';
+    var tEl = $('evp-live-time'); if (tEl) tEl.textContent = fmtRel(EVP.fetchedAt);
+  }
+
+  function evpRefreshLive() {
+    var promises = [];
+    if (window.SowAPI && SowAPI.fetchSaved) {
+      promises.push(SowAPI.fetchSaved().then(s => { EVP.sow = s; }).catch(() => {}));
+    }
+    if (window.GovernanceAPI && GovernanceAPI.steeringPack) {
+      promises.push(GovernanceAPI.steeringPack({ cadence:'biweekly', format:'json', persist:false }).then(r => { EVP.govPack = (r && r.pack) || null; }).catch(() => {}));
+    }
+    if (window.OperationsAPI && OperationsAPI.dashboard) {
+      promises.push(OperationsAPI.dashboard({ window_days: 28, persist: false }).then(r => { EVP.opsDash = (r && r.dashboard) || null; }).catch(() => {}));
+    }
+    if (!promises.length) { render(); return; }
+    Promise.all(promises).finally(() => { EVP.fetchedAt = Date.now(); render(); });
+  }
+  window.evpRefreshLive = evpRefreshLive;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    /* Wait one tick for defer scripts to load before first refresh. */
+    setTimeout(() => { evpRefreshLive(); }, 100);
+  });
+})();
 </script>
 
 </body>
