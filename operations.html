@@ -6,6 +6,7 @@
 <title>Operations · DI Platform</title>
 <meta name="description" content="Live run-the-bank operations — KPIs, MTTR, SLO burn, batch SLAs, FinOps signals."/>
 <link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/audit.js" defer></script>
 <script src="assets/cmdk.js" defer></script>
@@ -14,6 +15,11 @@
 <script src="assets/export.js" defer></script>
 <script src="assets/pricing.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
+<!-- Phase 2B · Operations Workspace -->
+<script src="assets/aidp-api.js"></script>
+<script src="assets/studio-shell.js" defer></script>
+<script src="assets/studio-test.js" defer></script>
+<script src="assets/operations-api.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -105,7 +111,7 @@ a{color:var(--gold);text-decoration:none}
 .op-finops .alert .desc{font-size:11px;color:var(--ink-2);line-height:1.45}
 .op-finops .alert .act{margin-top:6px;font-size:11px;color:var(--gold);font-weight:700;cursor:pointer}
 
-/* Nishi intents */
+/* Niche-I intents */
 .op-nishi{background:linear-gradient(135deg,#1A2238,#243655);color:#fff;border-radius:14px;padding:18px 22px;margin-top:18px}
 .op-nishi .head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .op-nishi .head .ic{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold-3));color:var(--ink);font-weight:900;display:flex;align-items:center;justify-content:center;font-size:16px}
@@ -133,6 +139,20 @@ a{color:var(--gold);text-decoration:none}
 <body>
 
 <div data-di-topbar></div>
+
+<!-- View toggle · Legacy KPI tiles ↔ Workspace · enterprise -->
+<div style="background:#fff;border-bottom:1px solid var(--border);padding:10px 24px">
+  <div style="max-width:1500px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div style="display:inline-flex;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:99px;padding:2px">
+      <button id="op-view-legacy"    class="active" onclick="setOpView('legacy')"    style="background:#FFFFFF;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#0F172A;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.08)">KPI tiles</button>
+      <button id="op-view-workspace"               onclick="setOpView('workspace')" style="background:transparent;border:none;font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:99px;color:#64748B;cursor:pointer">Workspace</button>
+    </div>
+    <div style="font-size:11px;color:#64748B">Workspace · live OPERATIONS agent · DORA · SLOs · incidents · dashboard · governance handoff inbox</div>
+  </div>
+</div>
+
+<!-- Legacy KPI tiles view -->
+<div id="op-legacy-view">
 
 <!-- Hero -->
 <section class="op-hero">
@@ -162,6 +182,112 @@ a{color:var(--gold);text-decoration:none}
 </div>
 
 <main class="op-main" id="op-main"></main>
+
+</div><!-- /#op-legacy-view -->
+
+<!-- Workspace view · enterprise pattern · live OPERATIONS agent -->
+<div id="op-workspace" style="display:none">
+  <style>
+    #op-workspace .opw-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:14px; }
+    @media (max-width:1100px) { #op-workspace .opw-grid { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:600px)  { #op-workspace .opw-grid { grid-template-columns:1fr; } }
+    #op-workspace .opw-card { background:#fff; border:1px solid var(--aidp-ink-200); border-radius:6px; padding:14px 16px; }
+    #op-workspace .opw-card .lbl { font-size:10px; font-weight:700; color:var(--aidp-ink-500); text-transform:uppercase; letter-spacing:.06em; }
+    #op-workspace .opw-card .val { font-family:var(--aidp-f-head); font-size:24px; font-weight:600; color:var(--aidp-ink-900); margin-top:3px; }
+    #op-workspace .opw-card .sub { font-size:11px; color:var(--aidp-ink-500); margin-top:4px; }
+    #op-workspace .opw-tier { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:3px; text-transform:uppercase; letter-spacing:.04em; }
+    #op-workspace .opw-tier.elite  { background:#0F766E; color:#fff; }
+    #op-workspace .opw-tier.high   { background:var(--aidp-green); color:#fff; }
+    #op-workspace .opw-tier.medium { background:var(--aidp-amber); color:#fff; }
+    #op-workspace .opw-tier.low    { background:var(--aidp-red); color:#fff; }
+    #op-workspace .opw-rag { display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:99px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+    #op-workspace .opw-rag.green  { background:var(--aidp-green-lt); color:var(--aidp-green); }
+    #op-workspace .opw-rag.amber  { background:var(--aidp-amber-lt); color:var(--aidp-amber); }
+    #op-workspace .opw-rag.red    { background:var(--aidp-red-lt);   color:var(--aidp-red); }
+    #op-workspace .opw-section { background:#fff; border:1px solid var(--aidp-ink-200); border-radius:6px; padding:14px 18px; margin-bottom:12px; }
+    #op-workspace .opw-section h4 { font-size:11px; font-weight:600; color:var(--aidp-ink-500); text-transform:uppercase; letter-spacing:.06em; margin:0 0 10px; }
+    #op-workspace .opw-narrative { font-size:13px; line-height:1.55; color:var(--aidp-ink-800); white-space:pre-wrap; }
+    #op-workspace .opw-bar { height:6px; background:var(--aidp-ink-100); border-radius:3px; overflow:hidden; margin-top:6px; }
+    #op-workspace .opw-bar .seg { height:100%; background:var(--aidp-green); }
+    #op-workspace .opw-bar .seg.amber { background:var(--aidp-amber); }
+    #op-workspace .opw-bar .seg.red   { background:var(--aidp-red); }
+  </style>
+
+  <div class="aidp-shell">
+
+    <header class="aidp-header">
+      <div>
+        <div class="aidp-bread"><a href="home">Home</a> &nbsp;/&nbsp; <a href="program-governance">Governance</a> &nbsp;/&nbsp; Operations · Workspace</div>
+        <h1 class="aidp-title">Operations · Workspace</h1>
+        <p class="aidp-subtitle">Live OPERATIONS agent · DORA metrics with tier classification · SLO catalogue across all agents · normalised incident ledger from Exception · composite dashboard with RAG status.</p>
+      </div>
+      <div class="aidp-context">
+        <span class="aidp-tenant">Tenant: <strong id="op-tenant-name">…</strong></span>
+        <span class="aidp-freshness" id="op-freshness"><span class="dot"></span> <span data-aidp-fresh-text>Loading…</span></span>
+      </div>
+    </header>
+
+    <div class="aidp-kpis">
+      <div class="aidp-kpi"><div class="lbl">Programme RAG</div><div class="val" id="op-kpi-rag" style="font-family:var(--aidp-f-ui);font-size:18px">—</div><div class="sub" id="op-kpi-rag-sub">&nbsp;</div></div>
+      <div class="aidp-kpi"><div class="lbl">DORA tier (overall)</div><div class="val" id="op-kpi-tier" style="font-family:var(--aidp-f-ui);font-size:18px">—</div><div class="sub" id="op-kpi-tier-sub">&nbsp;</div></div>
+      <div class="aidp-kpi danger"><div class="lbl">SLOs breached</div><div class="val" id="op-kpi-breached">—</div><div class="sub" id="op-kpi-breached-sub">&nbsp;</div></div>
+      <div class="aidp-kpi"><div class="lbl">Open incidents</div><div class="val" id="op-kpi-open">—</div><div class="sub" id="op-kpi-open-sub">&nbsp;</div></div>
+    </div>
+
+    <div class="aidp-filters">
+      <div class="aidp-filter">
+        <label for="op-f-window">Window</label>
+        <select id="op-f-window"><option value="7">7d</option><option value="14">14d</option><option value="28" selected>28d</option><option value="90">90d</option></select>
+      </div>
+      <div class="aidp-filter">
+        <label for="op-f-agent">Agent</label>
+        <select id="op-f-agent"><option value="">All</option>
+          <option>DISCOVERY</option><option>ARCHITECTURE</option><option>REQUIREMENTS</option><option>ACTIONS</option>
+          <option>SOW</option><option>GOVERNANCE</option><option>OPERATIONS</option><option>EXCEPTION</option>
+          <option>KNOWLEDGE</option><option>IAC</option><option>PATCH</option><option>VALIDATOR</option><option>MASTER</option>
+        </select>
+      </div>
+      <div class="aidp-filter">
+        <label for="op-f-severity">Incident severity ≥</label>
+        <select id="op-f-severity"><option value="">All</option><option value="fatal">fatal</option><option value="critical">critical</option><option value="error">error</option><option value="warn">warn</option><option value="info">info</option></select>
+      </div>
+      <div class="aidp-filter-divider"></div>
+      <div class="aidp-source-toggle" role="tablist" aria-label="View mode">
+        <button id="op-tab-dashboard" class="active" onclick="opSetTab('dashboard')">📊 Dashboard</button>
+        <button id="op-tab-dora"                    onclick="opSetTab('dora')">🚀 DORA</button>
+        <button id="op-tab-slos"                    onclick="opSetTab('slos')">🎯 SLOs</button>
+        <button id="op-tab-incidents"               onclick="opSetTab('incidents')">🔥 Incidents</button>
+        <button id="op-tab-handoff"                 onclick="opSetTab('handoff')">📥 Governance handoff</button>
+      </div>
+      <div class="aidp-grow"></div>
+      <button class="aidp-btn aidp-btn-sm" onclick="opRefresh()" title="Reload from agent (F)">↻ Refresh</button>
+    </div>
+
+    <div id="op-error" style="display:none"></div>
+
+    <div id="op-dashboard-pane"><div class="aidp-state"><div class="icon">📊</div><h2>No dashboard yet</h2><p>Click <strong>🌐 Generate dashboard</strong> in the action bar below to assemble the composite view (DORA + SLOs + incidents + RAG narrative).</p></div></div>
+    <div id="op-dora-pane"      style="display:none"></div>
+    <div id="op-slos-pane"      style="display:none"></div>
+    <div id="op-incidents-pane" style="display:none"></div>
+    <div id="op-handoff-pane"   style="display:none"></div>
+
+  </div>
+
+  <div class="aidp-actions">
+    <div class="aidp-actions-inner">
+      <div class="aidp-actions-status" id="op-status">
+        <strong id="op-status-text">No data loaded</strong>
+      </div>
+      <div class="aidp-actions-buttons">
+        <button class="aidp-btn aidp-btn-sm" onclick="opLoadSampleDeploys()" title="Load sample deploy events (S)">📥 Sample deploys</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="opSeedSlos()"          title="Seed default SLO catalogue (E)">🎯 Seed SLOs</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="opGenerateDashboard()" title="Generate dashboard (G)">🌐 Generate dashboard</button>
+        <button class="aidp-btn aidp-btn-sm" onclick="opExportXlsx()"        title="Excel export (X)">⬇ Excel</button>
+        <button class="aidp-btn aidp-btn-primary aidp-btn-sm" onclick="opSendToGovernance()" title="Send incidents back to Governance">→ Send to Governance</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════════
@@ -300,7 +426,7 @@ function renderFinOps() {
     { kind:'err',  amt:'+$8,400/mo',  title:'Core Payments · cross-region egress spiked', desc:'us-east-1 → eu-west-1 egress climbed from 0.8 TB to 4.2 TB in 7 days. Likely a misconfigured replica.', cta:'Investigate →' },
     { kind:'ok',   amt:'-$22,800/mo', title:'3-year Savings Plan saved $22.8K this month', desc:'Architecture finalized 3-yr Savings Plan on May 15. Realised savings now flowing into AWS bill.', cta:'View plan →' }
   ];
-  let html = '<div class="op-section-h">FINOPS SIGNALS · COST ANOMALIES<div class="div"></div><span class="right" onclick="askNishi(\'finops\')">Ask Nishi for full breakdown →</span></div>';
+  let html = '<div class="op-section-h">FINOPS SIGNALS · COST ANOMALIES<div class="div"></div><span class="right" onclick="askNicheI(\'finops\')">Ask Niche-I for full breakdown →</span></div>';
   html += '<div class="op-finops">';
   alerts.forEach(a => {
     html += '<div class="alert ' + a.kind + '"><div class="head"><span>' + a.title + '</span><span class="amt">' + a.amt + '</span></div><div class="desc">' + a.desc + '</div><div class="act" onclick="window.DI&&window.DI.toast({kind:\'info\',title:\'Coming\',message:\'Detail view ships in Phase 17.3.\'})">' + a.cta + '</div></div>';
@@ -311,7 +437,7 @@ function renderFinOps() {
 
 /* ── Recent incidents ───────────────────────────────── */
 function renderIncidents() {
-  let html = '<div class="op-section-h">RECENT INCIDENTS · LAST 48 HOURS<div class="div"></div><span class="right" onclick="askNishi(\'incidents\')">Ask Nishi for trends →</span></div>';
+  let html = '<div class="op-section-h">RECENT INCIDENTS · LAST 48 HOURS<div class="div"></div><span class="right" onclick="askNicheI(\'incidents\')">Ask Niche-I for trends →</span></div>';
   html += '<div class="op-incidents">';
   INCIDENTS.forEach(i => {
     html += '<div class="op-incident">' +
@@ -326,7 +452,7 @@ function renderIncidents() {
 
 /* ── Batches ────────────────────────────────────────── */
 function renderBatches() {
-  let html = '<div class="op-section-h">OVERNIGHT BATCHES · LAST RUN<div class="div"></div><span class="right" onclick="askNishi(\'batches\')">Ask Nishi to forecast tonight\'s runs →</span></div>';
+  let html = '<div class="op-section-h">OVERNIGHT BATCHES · LAST RUN<div class="div"></div><span class="right" onclick="askNicheI(\'batches\')">Ask Niche-I to forecast tonight\'s runs →</span></div>';
   html += '<div class="op-batches"><table><thead><tr><th>Batch</th><th>Module</th><th>Start</th><th>Duration</th><th>SLA</th><th>Status</th></tr></thead><tbody>';
   BATCHES.forEach(b => {
     html += '<tr><td><strong>' + b.name + '</strong></td><td>' + b.module + '</td><td>' + b.start + '</td><td class="num">' + b.dur + '</td><td class="num">' + b.sla + '</td><td><span class="status ' + b.status + '">' + b.status + '</span></td></tr>';
@@ -335,18 +461,18 @@ function renderBatches() {
   return html;
 }
 
-/* ── Nishi intent panel ─────────────────────────────── */
-function renderNishi() {
+/* ── Niche-I intent panel ─────────────────────────────── */
+function renderNicheI() {
   return '<div class="op-nishi">' +
-    '<div class="head"><div class="ic">🤖</div><div><h3>Ask Nishi about Operations</h3></div></div>' +
-    '<p>Run-the-bank queries you can ask in natural language. Nishi can pull from the metrics on this page, the FinOps signals, and the incident log.</p>' +
+    '<div class="head"><div class="ic">🤖</div><div><h3>Ask Niche-I about Operations</h3></div></div>' +
+    '<p>Run-the-bank queries you can ask in natural language. Niche-I can pull from the metrics on this page, the FinOps signals, and the incident log.</p>' +
     '<div class="chips">' +
-      '<button class="chip" onclick="askNishi(\'last week batch failures\')">Show last week\'s batch failures</button>' +
-      '<button class="chip" onclick="askNishi(\'cost anomaly\')">Why did AWS RDS spike 14%?</button>' +
-      '<button class="chip" onclick="askNishi(\'forecast EOD\')">Forecast tonight\'s EOD batches</button>' +
-      '<button class="chip" onclick="askNishi(\'SLO trends\')">Are SLOs trending in or out?</button>' +
-      '<button class="chip" onclick="askNishi(\'incident trends\')">Top 3 modules by incident count this month</button>' +
-      '<button class="chip" onclick="askNishi(\'forecast budget\')">Forecast Q3 cloud bill</button>' +
+      '<button class="chip" onclick="askNicheI(\'last week batch failures\')">Show last week\'s batch failures</button>' +
+      '<button class="chip" onclick="askNicheI(\'cost anomaly\')">Why did AWS RDS spike 14%?</button>' +
+      '<button class="chip" onclick="askNicheI(\'forecast EOD\')">Forecast tonight\'s EOD batches</button>' +
+      '<button class="chip" onclick="askNicheI(\'SLO trends\')">Are SLOs trending in or out?</button>' +
+      '<button class="chip" onclick="askNicheI(\'incident trends\')">Top 3 modules by incident count this month</button>' +
+      '<button class="chip" onclick="askNicheI(\'forecast budget\')">Forecast Q3 cloud bill</button>' +
     '</div>' +
   '</div>';
 }
@@ -417,7 +543,7 @@ const TICKETS = [
 ];
 
 function renderDoraStrip() {
-  let html = '<div class="op-section-h">DORA · 4 KEY METRICS<div class="div"></div><span class="right" onclick="askNishi(\'DORA trends\')">Ask Nishi about DORA →</span></div>';
+  let html = '<div class="op-section-h">DORA · 4 KEY METRICS<div class="div"></div><span class="right" onclick="askNicheI(\'DORA trends\')">Ask Niche-I about DORA →</span></div>';
   html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px">';
   DORA.forEach(d => {
     const colour = d.good ? '#0A8462' : '#C8921A';
@@ -456,7 +582,7 @@ function renderSloGauges() {
 function renderCostPerTx() {
   const c = COST_PER_TX;
   const delta = ((c.current - c.target) / c.target * 100).toFixed(1);
-  return '<div class="op-section-h">COST PER TRANSACTION<div class="div"></div><span class="right" onclick="askNishi(\'cost per transaction\')">Drill into FinOps →</span></div>' +
+  return '<div class="op-section-h">COST PER TRANSACTION<div class="div"></div><span class="right" onclick="askNicheI(\'cost per transaction\')">Drill into FinOps →</span></div>' +
     '<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;gap:18px;align-items:center;flex-wrap:wrap">' +
       '<div><div style="font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase">CURRENT</div>' +
         '<div style="font-family:var(--f-head);font-size:24px;font-weight:600;color:var(--ink)">$' + c.current.toFixed(4) + '</div>' +
@@ -472,7 +598,7 @@ function renderCostPerTx() {
 }
 
 function renderTickets() {
-  let html = '<div class="op-section-h">L1 → L4 TICKET WORKFLOW · LIVE<div class="div"></div><span class="right" onclick="askNishi(\'L3 escalations\')">Why are L3 tickets aging? →</span></div>';
+  let html = '<div class="op-section-h">L1 → L4 TICKET WORKFLOW · LIVE<div class="div"></div><span class="right" onclick="askNicheI(\'L3 escalations\')">Why are L3 tickets aging? →</span></div>';
   html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px">';
   TICKETS.forEach((t, i) => {
     const tone = t.tier === 'L1' ? '#3D8EFF' : t.tier === 'L2' ? '#0A8462' : t.tier === 'L3' ? '#C8921A' : '#D93B36';
@@ -496,11 +622,11 @@ function renderTickets() {
   return html;
 }
 
-/* ── Dispatcher → opens Nishi with pre-filled prompt ─ */
-function askNishi(prompt) {
-  /* Phase 19 will parse this in Nishi. For now, set a flag so Nishi can pick it up. */
+/* ── Dispatcher → opens Niche-I with pre-filled prompt ─ */
+function askNicheI(prompt) {
+  /* Phase 19 will parse this in Niche-I. For now, set a flag so Niche-I can pick it up. */
   try { sessionStorage.setItem('di_nishi_prompt', prompt); } catch (e) {}
-  window.DI && window.DI.toast && window.DI.toast({ kind:'info', icon:'🤖', title:'Opening Nishi…', message:'"' + prompt + '"', duration:2500 });
+  window.DI && window.DI.toast && window.DI.toast({ kind:'info', icon:'🤖', title:'Opening Niche-I…', message:'"' + prompt + '"', duration:2500 });
   setTimeout(() => { location.href = 'nishi-chatbot.html?from=operations&q=' + encodeURIComponent(prompt); }, 600);
 }
 
@@ -515,10 +641,549 @@ function render() {
     '<div class="op-grid-2"><div>' + renderIncidents() + '</div><div>' + renderFinOps() + '</div></div>' +
     renderTickets() +
     renderBatches() +
-    renderNishi();
+    renderNicheI();
 }
 
 /* ── Period picker wiring (regenerate data) ─────────── */
 document.querySelectorAll('.op-period .picker button').forEach(b => {
   b.addEventListener('click', () => {
-   
+    document.querySelectorAll('.op-period .picker button').forEach(x => x.classList.remove('act'));
+    b.classList.add('act');
+    render();
+  });
+});
+
+render();
+</script>
+
+<!-- ═════════════════════════════════════════════════════════
+     Phase 2B · Operations Workspace
+     Live OPERATIONS agent · DORA · SLOs · incidents · dashboard
+═════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  'use strict';
+
+  function hasApi() {
+    if (window.OperationsAPI) return true;
+    console.warn('[OP-WS] OperationsAPI not loaded yet · skipping call.');
+    return false;
+  }
+
+  /* Canonical enums (match @aidp/operations-engine) */
+  var SLO_KINDS = ['availability','latency-p50','latency-p95','latency-p99','error-rate','throughput','freshness','cost-per-1k-req'];
+  var SLO_STATUSES = ['meeting','at-risk','breached','unknown'];
+  var WS_KEY = 'aidp_op_ws_cache_v1';
+
+  var OP = {
+    dashboard: null,
+    slos: [],
+    incidents: [],
+    dora: null,
+    sampleDeploys: [],
+    handoff: null,
+    tab: 'dashboard',
+    filters: { window_days: 28, agent: '', severity: '' },
+    fetchedAt: 0
+  };
+
+  function wsSave() {
+    try { localStorage.setItem(WS_KEY, JSON.stringify({
+      dashboard: OP.dashboard, slos: OP.slos, incidents: OP.incidents, dora: OP.dora,
+      tab: OP.tab, fetchedAt: OP.fetchedAt
+    })); } catch (e) {}
+  }
+  function wsLoad() {
+    try {
+      var raw = localStorage.getItem(WS_KEY); if (!raw) return;
+      var d = JSON.parse(raw);
+      if (d.dashboard) OP.dashboard = d.dashboard;
+      if (Array.isArray(d.slos)) OP.slos = d.slos;
+      if (Array.isArray(d.incidents)) OP.incidents = d.incidents;
+      if (d.dora) OP.dora = d.dora;
+      if (d.tab) OP.tab = d.tab;
+      if (d.fetchedAt) OP.fetchedAt = d.fetchedAt;
+    } catch (e) {}
+  }
+
+  /* Consume governance handoff (Phase 2A writes aidp_handoff_operations_v1). */
+  function loadHandoff() {
+    try {
+      var raw = localStorage.getItem('aidp_handoff_operations_v1');
+      if (raw) OP.handoff = JSON.parse(raw);
+    } catch (e) {}
+  }
+
+  function $(id) { return document.getElementById(id); }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
+    });
+  }
+  function fmtRel(ms) {
+    if (!ms) return 'Never';
+    var sec = Math.floor((Date.now() - ms) / 1000);
+    if (sec < 5)   return 'just now';
+    if (sec < 60)  return sec + 's ago';
+    if (sec < 3600) return Math.floor(sec/60) + 'm ago';
+    if (sec < 86400) return Math.floor(sec/3600) + 'h ago';
+    return Math.floor(sec/86400) + 'd ago';
+  }
+  function fmtPct(n) { return (n == null) ? '—' : (Math.round(n * 1000) / 10) + '%'; }
+  function fmtSec(n) {
+    if (n == null || !isFinite(n)) return '—';
+    if (n < 60)    return Math.round(n) + 's';
+    if (n < 3600)  return (n/60).toFixed(1) + 'm';
+    if (n < 86400) return (n/3600).toFixed(1) + 'h';
+    return (n/86400).toFixed(1) + 'd';
+  }
+
+  /* ─── Sample deploys (12 events across 6 agents, last 28d) ─── */
+  function buildSampleDeploys() {
+    var now = Date.now();
+    var day = 24 * 3600 * 1000;
+    var agents = ['DISCOVERY','ARCHITECTURE','REQUIREMENTS','ACTIONS','SOW','GOVERNANCE'];
+    var out = [];
+    for (var i = 0; i < 24; i++) {
+      var agent = agents[i % agents.length];
+      var daysAgo = (i * 1.1) + Math.random() * 0.5;
+      var completed = now - daysAgo * day;
+      var leadHours = 2 + Math.random() * 22;
+      out.push({
+        agent: agent,
+        completed_at: completed,
+        committed_at: completed - leadHours * 3600 * 1000,
+        commit_sha: ('sample' + i).slice(0,12),
+        ok: Math.random() > 0.08   // ~92% success rate
+      });
+    }
+    return out;
+  }
+
+  /* ─── Renderers ─────────────────────────────────────── */
+  function renderHeader() {
+    var who = (window.AIDPStudio && AIDPStudio.getTenantShort && AIDPStudio.getTenantShort()) || 'guest';
+    var name = $('op-tenant-name'); if (name) name.textContent = who;
+    var fresh = $('op-freshness');
+    if (fresh) {
+      var pill = fresh.querySelector('[data-aidp-fresh-text]');
+      var dot  = fresh.querySelector('.dot');
+      var stale = OP.fetchedAt && (Date.now() - OP.fetchedAt) > 5 * 60 * 1000;
+      if (pill) pill.textContent = 'Refreshed ' + fmtRel(OP.fetchedAt);
+      if (dot)  dot.style.background = stale ? 'var(--aidp-amber)' : 'var(--aidp-green)';
+    }
+  }
+
+  function renderKpis() {
+    var d = OP.dashboard;
+    var rag = d ? d.rag_status : null;
+    var tier = (d && d.dora && d.dora.overall) ? d.dora.overall.tier : null;
+    var slos = d ? d.slos : { breached:0, at_risk:0, total:0, meeting:0 };
+    var inc  = d ? d.incidents : { open:0, total_in_window:0, by_severity:{} };
+
+    $('op-kpi-rag').innerHTML = rag ? '<span class="opw-rag ' + rag + '">● ' + rag.toUpperCase() + '</span>' : '—';
+    $('op-kpi-rag-sub').textContent = d ? ('Generated ' + fmtRel(d.generated_at)) : '—';
+
+    $('op-kpi-tier').innerHTML = tier ? '<span class="opw-tier ' + tier + '">' + tier + '</span>' : '—';
+    $('op-kpi-tier-sub').textContent = tier ? 'across ' + Object.keys((d.dora && d.dora.per_agent) || {}).length + ' agents' : '—';
+
+    $('op-kpi-breached').textContent = slos.breached || 0;
+    $('op-kpi-breached-sub').textContent = (slos.at_risk || 0) + ' at-risk · ' + (slos.total || 0) + ' total';
+
+    $('op-kpi-open').textContent = inc.open || 0;
+    var crit = (inc.by_severity && (inc.by_severity.critical || 0)) || 0;
+    var fatal = (inc.by_severity && (inc.by_severity.fatal || 0)) || 0;
+    $('op-kpi-open-sub').textContent = (crit + fatal) + ' critical+fatal · ' + (inc.total_in_window || 0) + ' in window';
+  }
+
+  function renderDashboard() {
+    var el = $('op-dashboard-pane');
+    if (!OP.dashboard) {
+      el.innerHTML = '<div class="aidp-state"><div class="icon">📊</div><h2>No dashboard yet</h2><p>Click <strong>🌐 Generate dashboard</strong> in the action bar below to assemble the composite view (DORA + SLOs + incidents + RAG narrative).</p></div>';
+      return;
+    }
+    var d = OP.dashboard;
+    var html = '';
+    /* Narrative */
+    html += '<section class="opw-section"><h4>Health narrative</h4>' +
+      '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:8px">' +
+        '<span class="opw-rag ' + d.rag_status + '" style="font-size:13px;padding:5px 14px">● ' + d.rag_status.toUpperCase() + '</span>' +
+        '<span style="font-size:12px;color:var(--aidp-ink-500)">Window: ' + new Date(d.window_start).toLocaleDateString() + ' → ' + new Date(d.window_end).toLocaleDateString() + '</span>' +
+      '</div>' +
+      '<div class="opw-narrative">' + escapeHtml(d.health_narrative || '(no narrative)') + '</div></section>';
+    /* DORA at-a-glance */
+    var doraO = (d.dora && d.dora.overall) || {};
+    html += '<section class="opw-section"><h4>DORA · overall</h4>' +
+      '<div class="opw-grid">' +
+        kpiCell('Tier',     '<span class="opw-tier ' + (doraO.tier || 'low') + '">' + (doraO.tier || '—') + '</span>') +
+        kpiCell('Deploy freq', (doraO.deployment_frequency_per_week != null ? doraO.deployment_frequency_per_week.toFixed(1) + ' /wk' : '—')) +
+        kpiCell('Lead time',   fmtSec(doraO.lead_time_seconds)) +
+        kpiCell('Change-failure rate', fmtPct(doraO.change_failure_rate)) +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--aidp-ink-500);margin-top:6px">' +
+        'MTTR: ' + fmtSec(doraO.mttr_seconds) +
+        ' · deploys in window: ' + ((doraO.raw && doraO.raw.deploys_in_window) || 0) +
+        ' · failures attributed: ' + ((doraO.raw && doraO.raw.failures_attributed) || 0) +
+      '</div></section>';
+    /* SLO rollup */
+    html += '<section class="opw-section"><h4>SLO summary · ' + d.slos.total + ' tracked</h4>' +
+      '<div class="opw-grid">' +
+        kpiCell('Meeting',  '<span style="color:var(--aidp-green)">' + d.slos.meeting + '</span>') +
+        kpiCell('At-risk',  '<span style="color:var(--aidp-amber)">' + d.slos.at_risk + '</span>') +
+        kpiCell('Breached', '<span style="color:var(--aidp-red)">' + d.slos.breached + '</span>') +
+        kpiCell('Unknown',  d.slos.unknown) +
+      '</div>';
+    if (Array.isArray(d.slos.top_breached) && d.slos.top_breached.length) {
+      html += '<div style="margin-top:10px"><strong style="font-size:11px;color:var(--aidp-ink-700)">Top breached:</strong><ul style="margin:5px 0 0 18px;font-size:12px;line-height:1.6">' +
+        d.slos.top_breached.map(function (s) {
+          return '<li><code>' + escapeHtml(s.id) + '</code> · ' + escapeHtml(s.agent) + ' · ' + escapeHtml(s.kind) +
+            ' · target ' + escapeHtml(s.comparator) + ' ' + s.target_value + escapeHtml(s.unit) +
+            ' · current ' + (s.current_value == null ? '—' : s.current_value + escapeHtml(s.unit)) + '</li>';
+        }).join('') + '</ul></div>';
+    }
+    html += '</section>';
+    /* Incidents */
+    html += '<section class="opw-section"><h4>Incidents · ' + d.incidents.total_in_window + ' in window</h4>' +
+      '<div class="opw-grid">' +
+        kpiCell('Open',      d.incidents.open) +
+        kpiCell('Critical',  (d.incidents.by_severity && d.incidents.by_severity.critical) || 0) +
+        kpiCell('Fatal',     (d.incidents.by_severity && d.incidents.by_severity.fatal) || 0) +
+        kpiCell('Total',     d.incidents.total_in_window) +
+      '</div></section>';
+    /* Source caveats */
+    if (d.source_summary) {
+      var ss = d.source_summary;
+      html += '<section class="opw-section"><h4>Source caveats</h4>' +
+        '<div style="font-size:12px;line-height:1.55;color:var(--aidp-ink-700)">' +
+          '<div>Exception agent bound: <code>' + ss.exception_agent_bound + '</code></div>' +
+          '<div>Incidents consumed: ' + ss.incidents_consumed + ' · SLOs evaluated: ' + ss.slos_evaluated + '</div>' +
+          (ss.missing && ss.missing.length ? '<div style="margin-top:4px">Missing: <code>' + escapeHtml(ss.missing.join(', ')) + '</code></div>' : '') +
+        '</div></section>';
+    }
+    el.innerHTML = html;
+  }
+  function kpiCell(label, val) {
+    return '<div class="opw-card"><div class="lbl">' + escapeHtml(label) + '</div><div class="val">' + val + '</div></div>';
+  }
+
+  function renderDora() {
+    var el = $('op-dora-pane');
+    var dora = (OP.dashboard && OP.dashboard.dora) || OP.dora;
+    if (!dora) {
+      el.innerHTML = '<div class="aidp-state"><div class="icon">🚀</div><h2>No DORA metrics yet</h2><p>Click <strong>🌐 Generate dashboard</strong> below to compute DORA from sample deploys.</p></div>';
+      return;
+    }
+    var agents = Object.keys(dora.per_agent || {}).sort();
+    if (OP.filters.agent) agents = agents.filter(function (a) { return a === OP.filters.agent; });
+    var rows = agents.map(function (a) {
+      var m = dora.per_agent[a];
+      return '<tr><td><strong>' + escapeHtml(a) + '</strong></td>' +
+        '<td><span class="opw-tier ' + m.tier + '">' + m.tier + '</span></td>' +
+        '<td style="text-align:right;font-family:var(--aidp-f-mono)">' + m.deployment_frequency_per_week.toFixed(1) + '</td>' +
+        '<td style="text-align:right;font-family:var(--aidp-f-mono)">' + fmtSec(m.lead_time_seconds) + '</td>' +
+        '<td style="text-align:right;font-family:var(--aidp-f-mono)">' + fmtPct(m.change_failure_rate) + '</td>' +
+        '<td style="text-align:right;font-family:var(--aidp-f-mono)">' + fmtSec(m.mttr_seconds) + '</td>' +
+        '<td style="text-align:right;font-family:var(--aidp-f-mono);color:var(--aidp-ink-500)">' + (m.raw.deploys_in_window || 0) + '</td></tr>';
+    }).join('');
+    el.innerHTML = '<section class="opw-section"><h4>DORA · per-agent breakdown</h4>' +
+      '<table class="aidp-table"><thead><tr>' +
+        '<th>Agent</th><th>Tier</th><th>Freq /wk</th><th>Lead time</th><th>CFR</th><th>MTTR</th><th>Deploys</th>' +
+      '</tr></thead><tbody>' + (rows || '<tr><td colspan="7" style="text-align:center;color:var(--aidp-ink-500);padding:20px">— no agents in window —</td></tr>') + '</tbody></table></section>';
+  }
+
+  function renderSlos() {
+    var el = $('op-slos-pane');
+    var slos = OP.slos.slice();
+    if (OP.filters.agent) slos = slos.filter(function (s) { return s.agent === OP.filters.agent; });
+    if (!slos.length) {
+      el.innerHTML = '<div class="aidp-state"><div class="icon">🎯</div><h2>No SLOs yet</h2><p>Click <strong>🎯 Seed SLOs</strong> below to populate the default catalogue (availability + latency + error-rate per agent).</p></div>';
+      return;
+    }
+    var rows = slos.map(function (s) {
+      var cls = s.status || 'unknown';
+      var cur = s.current_value == null ? '—' : (s.current_value + escapeHtml(s.unit || ''));
+      return '<tr><td><code style="font-size:11px">' + escapeHtml(s.id) + '</code></td>' +
+        '<td>' + escapeHtml(s.agent) + '</td>' +
+        '<td>' + escapeHtml(s.kind) + '</td>' +
+        '<td style="font-family:var(--aidp-f-mono)">' + escapeHtml(s.comparator) + ' ' + s.target_value + escapeHtml(s.unit || '') + '</td>' +
+        '<td style="font-family:var(--aidp-f-mono)">' + cur + '</td>' +
+        '<td><span class="opw-rag ' + (cls === 'meeting' ? 'green' : cls === 'at-risk' ? 'amber' : cls === 'breached' ? 'red' : 'amber') + '">' + escapeHtml(cls) + '</span></td>' +
+        '<td style="font-size:11px;color:var(--aidp-ink-500)">' + escapeHtml(s.owner_role || '—') + '</td></tr>';
+    }).join('');
+    el.innerHTML = '<section class="opw-section"><h4>SLO catalogue · ' + slos.length + ' shown</h4>' +
+      '<table class="aidp-table"><thead><tr>' +
+        '<th>ID</th><th>Agent</th><th>Kind</th><th>Target</th><th>Current</th><th>Status</th><th>Owner</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></section>';
+  }
+
+  function renderIncidents() {
+    var el = $('op-incidents-pane');
+    var inc = OP.incidents.slice();
+    if (OP.filters.agent)    inc = inc.filter(function (i) { return i.source_agent === OP.filters.agent; });
+    if (OP.filters.severity) {
+      var SEV_ORDER = ['info','warn','error','critical','fatal'];
+      var minIdx = SEV_ORDER.indexOf(OP.filters.severity);
+      if (minIdx >= 0) inc = inc.filter(function (i) { return SEV_ORDER.indexOf(i.severity) >= minIdx; });
+    }
+    if (!inc.length) {
+      el.innerHTML = '<div class="aidp-state"><div class="icon">🔥</div><h2>No incidents</h2><p>Either no exceptions have been reported, or your filter is too narrow. Try generating the dashboard, which cross-binds to the Exception agent.</p></div>';
+      return;
+    }
+    var rows = inc.map(function (i) {
+      var sev = i.severity;
+      var sevCls = (sev === 'fatal' || sev === 'critical') ? 'red' : (sev === 'error' ? 'amber' : 'green');
+      return '<tr><td style="font-family:var(--aidp-f-mono);font-size:11px">' + escapeHtml(i.exception_id || '—') + '</td>' +
+        '<td>' + new Date(i.ts || 0).toLocaleString() + '</td>' +
+        '<td>' + escapeHtml(i.source_agent || '—') + '</td>' +
+        '<td><span class="opw-rag ' + sevCls + '">' + escapeHtml(sev) + '</span></td>' +
+        '<td>' + escapeHtml(i.customer_impact || '—') + '</td>' +
+        '<td>' + escapeHtml(i.status || '—') + '</td>' +
+        '<td style="font-size:11px;color:var(--aidp-ink-500)">' + escapeHtml((i.slos_breached || []).join(', ') || '—') + '</td></tr>';
+    }).join('');
+    el.innerHTML = '<section class="opw-section"><h4>Incident ledger · ' + inc.length + ' shown</h4>' +
+      '<table class="aidp-table"><thead><tr>' +
+        '<th>Exception</th><th>Time</th><th>Agent</th><th>Severity</th><th>Customer impact</th><th>Status</th><th>SLOs breached</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></section>';
+  }
+
+  function renderHandoff() {
+    var el = $('op-handoff-pane');
+    if (!OP.handoff) {
+      el.innerHTML = '<div class="aidp-state"><div class="icon">📥</div><h2>No governance handoff</h2><p>When Program Governance clicks <strong>Send to Operations →</strong>, the open issues and programme RAG arrive here. Try it from the <a href="program-governance">Governance Workspace</a>.</p></div>';
+      return;
+    }
+    var h = OP.handoff;
+    var issuesRows = (h.open_issues || []).map(function (i) {
+      return '<tr><td><code>' + escapeHtml(i.id) + '</code></td>' +
+        '<td>' + escapeHtml(i.summary || '') + '</td>' +
+        '<td><span class="opw-rag ' + (i.severity >= 4 ? 'red' : i.severity === 3 ? 'amber' : 'green') + '">S' + i.severity + '</span></td>' +
+        '<td>' + escapeHtml(i.owner_role || '—') + '</td>' +
+        '<td>' + escapeHtml(i.status || '—') + '</td></tr>';
+    }).join('');
+    el.innerHTML = '<section class="opw-section"><h4>Governance handoff · arrived ' + escapeHtml(h.sent_at || '?') + '</h4>' +
+      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap">' +
+        '<span class="opw-rag ' + (h.rag || 'green') + '">Programme RAG: ' + (h.rag || 'unknown').toUpperCase() + '</span>' +
+        '<span style="font-size:12px;color:var(--aidp-ink-500)">' + (h.open_issues || []).length + ' open issues handed off</span>' +
+      '</div>' +
+      (issuesRows
+        ? '<table class="aidp-table"><thead><tr><th>ID</th><th>Summary</th><th>Severity</th><th>Owner</th><th>Status</th></tr></thead><tbody>' + issuesRows + '</tbody></table>'
+        : '<div style="font-size:12px;color:var(--aidp-ink-500)">No open issues handed off.</div>') +
+      '</section>';
+  }
+
+  function updateStatus() {
+    var el = $('op-status-text');
+    if (!el) return;
+    var d = OP.dashboard;
+    el.innerHTML = (OP.slos.length + ' SLOs · ' + OP.incidents.length + ' incidents · ' +
+      (d ? ('dashboard generated ' + fmtRel(d.generated_at)) : 'no dashboard'));
+  }
+
+  function renderAll() {
+    renderHeader();
+    renderKpis();
+    ['dashboard','dora','slos','incidents','handoff'].forEach(function (t) {
+      var pane = $('op-' + t + '-pane');
+      if (pane) pane.style.display = (OP.tab === t) ? '' : 'none';
+    });
+    if (OP.tab === 'dashboard')  renderDashboard();
+    if (OP.tab === 'dora')       renderDora();
+    if (OP.tab === 'slos')       renderSlos();
+    if (OP.tab === 'incidents')  renderIncidents();
+    if (OP.tab === 'handoff')    renderHandoff();
+    updateStatus();
+  }
+
+  /* ─── Actions ───────────────────────────────────────── */
+  function opRefresh() {
+    if (!hasApi()) return Promise.resolve();
+    return Promise.all([
+      OperationsAPI.sloList({}).catch(function () { return null; }),
+      OperationsAPI.incidents({}).catch(function () { return null; })
+    ]).then(function (results) {
+      var sloR = results[0] || {};
+      var incR = results[1] || {};
+      OP.slos = sloR.slos || [];
+      OP.incidents = incR.incidents || [];
+      OP.fetchedAt = Date.now();
+      wsSave();
+      renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'↻', title:'Refreshed', message: OP.slos.length + ' SLOs · ' + OP.incidents.length + ' incidents.' });
+    }).catch(function (err) {
+      console.warn('[OP-WS] refresh failed', err);
+    });
+  }
+  window.opRefresh = opRefresh;
+
+  window.opSetTab = function (tab) {
+    OP.tab = tab;
+    ['dashboard','dora','slos','incidents','handoff'].forEach(function (t) {
+      var btn = $('op-tab-' + t);
+      if (btn) btn.classList.toggle('active', t === tab);
+    });
+    wsSave();
+    renderAll();
+  };
+
+  window.opLoadSampleDeploys = function () {
+    OP.sampleDeploys = buildSampleDeploys();
+    if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'📥', title:'Sample deploys loaded', message: OP.sampleDeploys.length + ' events queued · click Generate dashboard.' });
+  };
+
+  window.opSeedSlos = function () {
+    if (!hasApi()) return;
+    if (!confirm('Seed default SLO catalogue across all agents (availability + latency + error-rate)?')) return;
+    OperationsAPI.sloSeedDefaults({}).then(function (resp) {
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'🎯', title:'SLOs seeded', message: (resp && (resp.seeded_count || (resp.slos && resp.slos.length))) ? 'OK' : 'Done' });
+      return opRefresh();
+    }).catch(function (err) {
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'err', icon:'⚠', title:'Seed failed', message: err.message || String(err) });
+    });
+  };
+
+  window.opGenerateDashboard = function () {
+    if (!hasApi()) return;
+    if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'info', icon:'🌐', title:'Generating dashboard…', message: 'Cross-binding Exception · computing DORA · evaluating SLOs.' });
+    OperationsAPI.dashboard({
+      window_days: OP.filters.window_days,
+      deploys: OP.sampleDeploys.length ? OP.sampleDeploys : undefined,
+      persist: true
+    }).then(function (resp) {
+      OP.dashboard = (resp && resp.dashboard) || resp;
+      OP.fetchedAt = Date.now();
+      wsSave();
+      OP.tab = 'dashboard';
+      renderAll();
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'✓', title:'Dashboard ready', message: 'RAG: ' + ((OP.dashboard && OP.dashboard.rag_status) || 'unknown').toUpperCase() });
+    }).catch(function (err) {
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'err', icon:'⚠', title:'Dashboard failed', message: err.message || String(err) });
+    });
+  };
+
+  window.opExportXlsx = function () {
+    if (!window.DI || !window.DI.export || !window.DI.export.workbook) {
+      alert('Excel export library not available.');
+      return;
+    }
+    var ts = new Date().toISOString().slice(0,10);
+    var sheets = [];
+    if (OP.slos.length) {
+      sheets.push({
+        name: 'SLOs',
+        rows: OP.slos.map(function (s) { return {
+          ID:s.id, Agent:s.agent, Kind:s.kind, Target:s.target_value, Unit:s.unit,
+          Comparator:s.comparator, Current:s.current_value, Status:s.status, Owner:s.owner_role || ''
+        }; }),
+        headers:['ID','Agent','Kind','Target','Unit','Comparator','Current','Status','Owner']
+      });
+    }
+    if (OP.incidents.length) {
+      sheets.push({
+        name: 'Incidents',
+        rows: OP.incidents.map(function (i) { return {
+          ExceptionID:i.exception_id, Time: new Date(i.ts || 0).toISOString(),
+          Agent:i.source_agent, Tool:i.source_tool || '', Severity:i.severity,
+          CustomerImpact:i.customer_impact, Status:i.status, SLOsBreached:(i.slos_breached || []).join('|')
+        }; }),
+        headers:['ExceptionID','Time','Agent','Tool','Severity','CustomerImpact','Status','SLOsBreached']
+      });
+    }
+    if (OP.dashboard && OP.dashboard.dora) {
+      var dora = OP.dashboard.dora;
+      var rows = Object.keys(dora.per_agent || {}).map(function (a) {
+        var m = dora.per_agent[a];
+        return { Agent:a, Tier:m.tier, DeployFreqPerWk: m.deployment_frequency_per_week,
+          LeadTimeSec: m.lead_time_seconds, CFR: m.change_failure_rate, MttrSec: m.mttr_seconds,
+          Deploys: m.raw.deploys_in_window, FailuresAttributed: m.raw.failures_attributed };
+      });
+      sheets.push({ name:'DORA', rows: rows, headers:['Agent','Tier','DeployFreqPerWk','LeadTimeSec','CFR','MttrSec','Deploys','FailuresAttributed'] });
+    }
+    if (!sheets.length) { alert('Nothing to export yet · refresh or generate the dashboard first.'); return; }
+    window.DI.export.workbook('aidp-operations-' + ts + '.xlsx', sheets);
+  };
+
+  window.opSendToGovernance = function () {
+    var open = OP.incidents.filter(function (i) { return i.status !== 'resolved'; });
+    try {
+      localStorage.setItem('aidp_handoff_governance_v1', JSON.stringify({
+        source:'operations',
+        sent_at: new Date().toISOString(),
+        open_incidents: open,
+        rag: (OP.dashboard && OP.dashboard.rag_status) || 'unknown',
+        slo_breached: (OP.dashboard && OP.dashboard.slos && OP.dashboard.slos.breached) || 0
+      }));
+    } catch (e) {}
+    if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'→', title:'Sent to Governance', message: open.length + ' open incidents + RAG handed back.' });
+    setTimeout(function () { window.location.href = 'program-governance'; }, 600);
+  };
+
+  /* ─── View toggle ───────────────────────────────────── */
+  window.setOpView = function (view) {
+    var legacy = document.getElementById('op-legacy-view');
+    var ws     = document.getElementById('op-workspace');
+    var btnL   = document.getElementById('op-view-legacy');
+    var btnW   = document.getElementById('op-view-workspace');
+    var toLegacy = (view === 'legacy');
+    if (legacy) legacy.style.display = toLegacy ? '' : 'none';
+    if (ws)     ws.style.display     = toLegacy ? 'none' : '';
+    if (btnL) {
+      btnL.classList.toggle('active', toLegacy);
+      btnL.style.background = toLegacy ? '#FFFFFF' : 'transparent';
+      btnL.style.color      = toLegacy ? '#0F172A' : '#64748B';
+      btnL.style.boxShadow  = toLegacy ? '0 1px 2px rgba(15,23,42,.08)' : 'none';
+    }
+    if (btnW) {
+      btnW.classList.toggle('active', !toLegacy);
+      btnW.style.background = !toLegacy ? '#FFFFFF' : 'transparent';
+      btnW.style.color      = !toLegacy ? '#0F172A' : '#64748B';
+      btnW.style.boxShadow  = !toLegacy ? '0 1px 2px rgba(15,23,42,.08)' : 'none';
+    }
+    try { localStorage.setItem('aidp_op_view', view); } catch (e) {}
+    if (!toLegacy && OP.fetchedAt === 0 && window.OperationsAPI) opRefresh().catch(function () {});
+  };
+
+  /* ─── Filter wiring ─────────────────────────────────── */
+  function wireFilters() {
+    var w = $('op-f-window');   if (w) w.addEventListener('change', function () { OP.filters.window_days = Number(w.value) || 28; });
+    var a = $('op-f-agent');    if (a) a.addEventListener('change', function () { OP.filters.agent = a.value; renderAll(); });
+    var s = $('op-f-severity'); if (s) s.addEventListener('change', function () { OP.filters.severity = s.value; renderAll(); });
+  }
+
+  /* ─── Keyboard shortcuts ────────────────────────────── */
+  document.addEventListener('keydown', function (e) {
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/i.test(e.target.tagName)) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var ws = document.getElementById('op-workspace');
+    if (!ws || ws.style.display === 'none') return;
+    switch (e.key.toLowerCase()) {
+      case 'f': opRefresh(); break;
+      case 's': window.opLoadSampleDeploys(); break;
+      case 'e': window.opSeedSlos(); break;
+      case 'g': window.opGenerateDashboard(); break;
+      case 'x': window.opExportXlsx(); break;
+    }
+  });
+
+  /* ─── Boot ──────────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', function () {
+    wsLoad();
+    loadHandoff();
+    wireFilters();
+    var pref = null;
+    try { pref = localStorage.getItem('aidp_op_view'); } catch (e) {}
+    /* Auto-flip to workspace if a Governance handoff just arrived OR user preference. */
+    if (pref === 'workspace' || OP.handoff) {
+      window.setOpView('workspace');
+      if (OP.handoff) OP.tab = 'handoff';
+    }
+    renderAll();
+    var ws = document.getElementById('op-workspace');
+    var wsVisible = ws && ws.style.display !== 'none';
+    if (wsVisible && window.OperationsAPI) opRefresh().catch(function () {});
+    try { console.log('[AIDP] Operations Workspace v1 ready · api=' + (!!window.OperationsAPI)); } catch (e) {}
+  });
+})();
+</script>
+
+</body>
+</html>
