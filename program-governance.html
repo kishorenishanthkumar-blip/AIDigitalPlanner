@@ -1143,47 +1143,102 @@ if (seeded) {
       body.innerHTML = '<div class="aidp-state"><div class="icon">📊</div><h2>No steering pack yet</h2><p>Click <strong>🌐 Generate steering pack</strong> in the action bar below to cross-bind SOW + Actions + RAID and render a programme-level steering pack with RAG status.</p></div>';
       return;
     }
+    /* Canonical SteeringPack contract (governance-engine):
+     *   rag_status · raid_summary · changes_summary · milestone_snapshot
+     *   spotlight  · source_summary · cadence · narrative · generated_at (ms) */
     var p = PG.pack;
-    var ragLabel = (p.rag || 'green').toUpperCase();
-    var ragCls = (p.rag || 'green').toLowerCase();
+    var ragLabel = (p.rag_status || 'green').toUpperCase();
+    var ragCls = (p.rag_status || 'green').toLowerCase();
+    var genLbl = (typeof p.generated_at === 'number') ? new Date(p.generated_at).toLocaleString() : escapeHtml(String(p.generated_at || ''));
+
     var html = '';
     html += '<div class="pgw-pack-section"><h4>Programme RAG · ' + escapeHtml(p.cadence || 'biweekly') + '</h4>' +
       '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">' +
         '<span class="pgw-rag ' + ragCls + '" style="font-size:13px;padding:5px 14px">● ' + ragLabel + '</span>' +
-        '<span style="font-size:12px;color:var(--aidp-ink-500)">Generated ' + escapeHtml(p.generated_at || '') + '</span>' +
+        '<span style="font-size:12px;color:var(--aidp-ink-500)">Generated ' + escapeHtml(genLbl) + '</span>' +
       '</div></div>';
+
     if (p.narrative) {
       html += '<div class="pgw-pack-section"><h4>Executive narrative</h4><div class="narrative">' + escapeHtml(p.narrative) + '</div></div>';
     }
-    if (p.milestones && p.milestones.length) {
-      html += '<div class="pgw-pack-section"><h4>Milestones</h4>' +
-        '<table class="aidp-table"><thead><tr><th>Milestone</th><th>Owner</th><th>Due</th><th>Status</th></tr></thead><tbody>' +
-        p.milestones.map(function (m) {
-          return '<tr><td>' + escapeHtml(m.name || m.title || '?') + '</td>' +
-            '<td>' + escapeHtml(m.owner || '—') + '</td>' +
-            '<td>' + escapeHtml(m.due_date || '—') + '</td>' +
-            '<td>' + escapeHtml(m.status || '—') + '</td></tr>';
+
+    /* Spotlight · highest-priority items demanding attention this cycle. */
+    if (Array.isArray(p.spotlight) && p.spotlight.length) {
+      html += '<div class="pgw-pack-section"><h4>Spotlight · ' + p.spotlight.length + '</h4>' +
+        '<table class="aidp-table"><thead><tr><th>Kind</th><th>Summary</th><th>Severity</th><th>Ref</th></tr></thead><tbody>' +
+        p.spotlight.map(function (s) {
+          return '<tr><td>' + escapeHtml(s.kind || '?') + '</td>' +
+            '<td>' + escapeHtml(s.summary || '') + '</td>' +
+            '<td><span class="pgw-rag ' + (s.severity >= 4 ? 'red' : s.severity === 3 ? 'amber' : 'green') + '">S' + (s.severity || '?') + '</span></td>' +
+            '<td style="font-family:var(--aidp-f-mono);font-size:11px">' + escapeHtml(s.reference_id || '—') + '</td></tr>';
         }).join('') + '</tbody></table></div>';
     }
-    if (p.raid_rollup) {
-      var rr = p.raid_rollup;
-      html += '<div class="pgw-pack-section"><h4>RAID roll-up</h4>' +
-        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">' +
-          rollupCell('Risks',        rr.risks       || rr.risk        || 0) +
-          rollupCell('Assumptions',  rr.assumptions || rr.assumption  || 0) +
-          rollupCell('Issues',       rr.issues      || rr.issue       || 0) +
-          rollupCell('Dependencies', rr.dependencies|| rr.dependency  || 0) +
+
+    /* Milestone snapshot · pulled from SOW timeline. */
+    if (Array.isArray(p.milestone_snapshot) && p.milestone_snapshot.length) {
+      html += '<div class="pgw-pack-section"><h4>Milestone snapshot</h4>' +
+        '<table class="aidp-table"><thead><tr><th>Milestone</th><th>Owner</th><th>Wk start</th><th>Wk end</th><th>Health</th></tr></thead><tbody>' +
+        p.milestone_snapshot.map(function (m) {
+          var healthCls = m.health === 'slipped' ? 'red' : (m.health === 'at-risk' ? 'amber' : (m.health === 'complete' ? 'green' : 'green'));
+          return '<tr><td>' + escapeHtml(m.name || '?') + '</td>' +
+            '<td>' + escapeHtml(m.owner_role || '—') + '</td>' +
+            '<td>' + escapeHtml(String(m.start_week || '—')) + '</td>' +
+            '<td>' + escapeHtml(String(m.end_week || '—')) + '</td>' +
+            '<td><span class="pgw-rag ' + healthCls + '">' + escapeHtml(m.health || '—') + '</span></td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+
+    /* RAID summary · `raid_summary` (was incorrectly `raid_rollup`). */
+    if (p.raid_summary) {
+      var rs = p.raid_summary;
+      var byKind = rs.by_kind || {};
+      html += '<div class="pgw-pack-section"><h4>RAID summary · ' + (rs.total || 0) + ' total</h4>' +
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px">' +
+          rollupCell('Risks',        byKind.risk       || 0) +
+          rollupCell('Assumptions',  byKind.assumption || 0) +
+          rollupCell('Issues',       byKind.issue      || 0) +
+          rollupCell('Dependencies', byKind.dependency || 0) +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">' +
+          rollupCell('Added this period',  rs.added_this_period  || 0) +
+          rollupCell('Closed this period', rs.closed_this_period || 0) +
         '</div></div>';
     }
-    if (p.change_rollup) {
-      var cr = p.change_rollup;
-      html += '<div class="pgw-pack-section"><h4>Change-request roll-up</h4>' +
-        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">' +
-          rollupCell('Total',     cr.total    || PG.changes.length) +
-          rollupCell('Open',      cr.open     || 0) +
-          rollupCell('Approved',  cr.approved || 0) +
+
+    /* Changes summary · `changes_summary` (was incorrectly `change_rollup`). */
+    if (p.changes_summary) {
+      var cs = p.changes_summary;
+      var byStatus = cs.by_status || {};
+      var openCount = (byStatus.raised || 0) + (byStatus.triaging || 0);
+      html += '<div class="pgw-pack-section"><h4>Change requests · ' + (cs.total || 0) + ' total</h4>' +
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px">' +
+          rollupCell('Open',     openCount) +
+          rollupCell('Approved', byStatus.approved || 0) +
+          rollupCell('Rejected', byStatus.rejected || 0) +
+          rollupCell('Applied',  byStatus.applied  || 0) +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">' +
+          rollupCell('Cumulative cost Δ',     '$' + (cs.cumulative_cost_delta || 0)) +
+          rollupCell('Schedule Δ (weeks)',    cs.cumulative_schedule_delta_wks || 0) +
         '</div></div>';
     }
+
+    /* Source caveats · which agents were consumed and what's missing. */
+    if (p.source_summary) {
+      var ss = p.source_summary;
+      var missing = (ss.missing || []).map(escapeHtml).join(', ');
+      var consumed = (ss.agents_consumed || []).map(escapeHtml).join(', ');
+      html += '<div class="pgw-pack-section"><h4>Source caveats</h4>' +
+        '<div style="font-size:12px;line-height:1.55;color:var(--aidp-ink-700)">' +
+          '<div>Consumed: <code>' + (consumed || 'none') + '</code></div>' +
+          (missing ? '<div style="margin-top:4px">Missing inputs: <code>' + missing + '</code></div>' : '') +
+          '<div style="margin-top:4px;color:var(--aidp-ink-500)">RAID ' + (ss.raid_count || 0) +
+            ' · changes ' + (ss.changes_count || 0) +
+            ' · SOW milestones ' + (ss.sow_milestones_count || 0) +
+            ' · actions ' + (ss.actions_count || 0) + '</div>' +
+        '</div></div>';
+    }
+
     body.innerHTML = html;
   }
   function rollupCell(label, val) {
@@ -1387,11 +1442,11 @@ if (seeded) {
     if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'info', icon:'🌐', title:'Generating steering pack…', message:'Cross-binding SOW + Actions + RAID.' });
     GovernanceAPI.steeringPack({ cadence:'biweekly', format:'json', persist:true }).then(function (resp) {
       PG.pack = (resp && resp.pack) || resp;
-      if (PG.pack && !PG.pack.generated_at) PG.pack.generated_at = new Date().toISOString().slice(0,19) + 'Z';
+      if (PG.pack && !PG.pack.generated_at) PG.pack.generated_at = Date.now();
       wsSave();
       PG.tab = 'steering';
       renderAll();
-      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'✓', title:'Steering pack ready', message:'RAG: ' + ((PG.pack && PG.pack.rag) || 'unknown').toUpperCase() });
+      if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'ok', icon:'✓', title:'Steering pack ready', message:'RAG: ' + ((PG.pack && PG.pack.rag_status) || 'unknown').toUpperCase() });
     }).catch(function (err) {
       if (window.AIDPStudio && AIDPStudio.toast) AIDPStudio.toast({ kind:'err', icon:'⚠', title:'Pack failed', message:err.message || String(err) });
     });
@@ -1422,9 +1477,10 @@ if (seeded) {
       { name:'ChangeRequests',  rows: crRows,   headers:['ID','Title','RequestedBy','Impact','Status','Created'] }
     ];
     if (PG.pack) {
+      var genAt = (typeof PG.pack.generated_at === 'number') ? new Date(PG.pack.generated_at).toISOString() : (PG.pack.generated_at || '');
       sheets.push({
         name:'SteeringPack',
-        rows: [{ RAG: PG.pack.rag || '', Cadence: PG.pack.cadence || '', GeneratedAt: PG.pack.generated_at || '', Narrative: PG.pack.narrative || '' }],
+        rows: [{ RAG: PG.pack.rag_status || '', Cadence: PG.pack.cadence || '', GeneratedAt: genAt, Narrative: PG.pack.narrative || '' }],
         headers:['RAG','Cadence','GeneratedAt','Narrative']
       });
     }
