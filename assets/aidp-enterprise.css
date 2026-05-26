@@ -1,0 +1,507 @@
+/* ─────────────────────────────────────────────────────────────────
+   AIDP Enterprise · shared design tokens + studio shell utilities
+   v1 · Phase 0 of the 8-studio enterprise rewrite
+   ──────────────────────────────────────────────────────────────────
+
+   Consumed by:
+     - architecture-studio.html (refactored to use --aidp-* tokens)
+     - discovery-studio.html    (Workspace view, was --ws-*)
+     - testing-dashboard.html   (next: --td-* → --aidp-*)
+     - requirements-studio.html (Phase 1A)
+     - actions-studio.html      (Phase 1B)
+     - draft-sow.html           (Phase 1C)
+     - … all Phase 2 + 3 studios
+
+   Design principle: every token here is prefixed --aidp-* so this file
+   composes safely with the older assets/theme.css (which owns --ink-,
+   --gold-, --canvas- in a different palette). Legacy aliases at the
+   bottom keep already-shipped studios working without per-file rename.
+═════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Neutral palette (slate · Tailwind ink scale) ─── */
+  --aidp-ink-900: #0F172A;
+  --aidp-ink-800: #1E293B;
+  --aidp-ink-700: #334155;
+  --aidp-ink-600: #475569;
+  --aidp-ink-500: #64748B;
+  --aidp-ink-400: #94A3B8;
+  --aidp-ink-300: #CBD5E1;
+  --aidp-ink-200: #E2E8F0;
+  --aidp-ink-100: #F1F5F9;
+  --aidp-ink-50:  #F8FAFC;
+  --aidp-white:   #FFFFFF;
+
+  /* ─── Brand · primary action ─────────────────────── */
+  --aidp-navy:    #1E40AF;
+  --aidp-navy-dk: #1E3A8A;
+  --aidp-navy-lt: #DBEAFE;
+
+  /* ─── Semantic accents (subdued banking palette) ─── */
+  --aidp-teal:      #0E7490;
+  --aidp-teal-lt:   #CFFAFE;
+  --aidp-green:     #15803D;
+  --aidp-green-lt:  #DCFCE7;
+  --aidp-amber:     #B45309;
+  --aidp-amber-lt:  #FEF3C7;
+  --aidp-red:       #B91C1C;
+  --aidp-red-lt:    #FEE2E2;
+  --aidp-purple:    #6D28D9;
+  --aidp-purple-lt: #EDE9FE;
+
+  /* ─── Effects ────────────────────────────────────── */
+  --aidp-shadow-sm: 0 1px 2px rgba(15, 23, 42, .04);
+  --aidp-shadow:    0 1px 3px rgba(15, 23, 42, .08), 0 4px 12px rgba(15, 23, 42, .04);
+  --aidp-shadow-lg: 0 4px 20px rgba(15, 23, 42, .10);
+  --aidp-radius:    6px;
+  --aidp-radius-lg: 10px;
+
+  /* ─── Typography ─────────────────────────────────── */
+  --aidp-f-ui:    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --aidp-f-mono:  'IBM Plex Mono', 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Legacy aliases · keep already-shipped studios non-breaking.
+   When Phase 1+ studios stop using these, they can be removed.
+═══════════════════════════════════════════════════════════════════ */
+
+/* Architecture Studio originally declared unprefixed tokens in its own :root.
+   We re-publish them here so the page works with or without its inline block. */
+:root {
+  /* If the page already declares these locally, its own :root wins (CSS cascade) ·
+     these are just safe defaults for anything that drops the inline block. */
+}
+
+/* Discovery Workspace originally used --ws-* prefix to coexist with the wizard.
+   Map the prefix onto the canonical tokens so Workspace selectors keep working
+   even after the per-page :root --ws-* block is removed. */
+:root {
+  --ws-ink-900: var(--aidp-ink-900);
+  --ws-ink-800: var(--aidp-ink-800);
+  --ws-ink-700: var(--aidp-ink-700);
+  --ws-ink-600: var(--aidp-ink-600);
+  --ws-ink-500: var(--aidp-ink-500);
+  --ws-ink-400: var(--aidp-ink-400);
+  --ws-ink-300: var(--aidp-ink-300);
+  --ws-ink-200: var(--aidp-ink-200);
+  --ws-ink-100: var(--aidp-ink-100);
+  --ws-ink-50:  var(--aidp-ink-50);
+  --ws-white:   var(--aidp-white);
+  --ws-navy:    var(--aidp-navy);
+  --ws-navy-dk: var(--aidp-navy-dk);
+  --ws-navy-lt: var(--aidp-navy-lt);
+  --ws-teal:    var(--aidp-teal);
+  --ws-teal-lt: var(--aidp-teal-lt);
+  --ws-green:    var(--aidp-green);
+  --ws-green-lt: var(--aidp-green-lt);
+  --ws-amber:    var(--aidp-amber);
+  --ws-amber-lt: var(--aidp-amber-lt);
+  --ws-red:      var(--aidp-red);
+  --ws-red-lt:   var(--aidp-red-lt);
+  --ws-purple:   var(--aidp-purple);
+  --ws-purple-lt:var(--aidp-purple-lt);
+  --ws-f-ui:   var(--aidp-f-ui);
+  --ws-f-mono: var(--aidp-f-mono);
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Reusable shell utility classes (`.aidp-*` namespace).
+   Phase 1+ studios compose these instead of redeclaring 400 lines of
+   header/KPI/filter rail/action bar CSS per file.
+═══════════════════════════════════════════════════════════════════ */
+
+/* Layout shell */
+.aidp-shell {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 24px 96px;     /* room for the sticky action bar */
+  font-family: var(--aidp-f-ui);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--aidp-ink-800);
+  background: var(--aidp-ink-50);
+  min-height: 100vh;
+}
+
+/* Header */
+.aidp-header {
+  padding: 20px 0 16px;
+  border-bottom: 1px solid var(--aidp-ink-200);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: end;
+}
+.aidp-bread {
+  font-size: 11px;
+  color: var(--aidp-ink-500);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.aidp-bread a { color: var(--aidp-ink-500); text-decoration: none; }
+.aidp-bread a:hover { color: var(--aidp-navy); text-decoration: underline; }
+.aidp-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--aidp-ink-900);
+  margin: 0 0 4px;
+}
+.aidp-subtitle {
+  font-size: 12px;
+  color: var(--aidp-ink-600);
+  margin: 0;
+  max-width: 640px;
+}
+.aidp-context {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--aidp-ink-500);
+}
+.aidp-tenant strong { color: var(--aidp-ink-800); font-weight: 600; }
+
+/* Freshness pill */
+.aidp-freshness {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: var(--aidp-green-lt);
+  color: var(--aidp-green);
+  font-weight: 500;
+}
+.aidp-freshness .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--aidp-green); }
+.aidp-freshness.stale  { background: var(--aidp-amber-lt); color: var(--aidp-amber); }
+.aidp-freshness.stale  .dot { background: var(--aidp-amber); }
+.aidp-freshness.fail   { background: var(--aidp-red-lt); color: var(--aidp-red); }
+.aidp-freshness.fail   .dot { background: var(--aidp-red); }
+.aidp-freshness.queued { background: var(--aidp-amber-lt); color: var(--aidp-amber); }
+.aidp-freshness.queued .dot { background: var(--aidp-amber); }
+
+/* KPI strip */
+.aidp-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 18px 0 0;
+}
+.aidp-kpi {
+  background: var(--aidp-white);
+  border: 1px solid var(--aidp-ink-200);
+  border-radius: var(--aidp-radius);
+  padding: 14px 16px;
+  box-shadow: var(--aidp-shadow-sm);
+}
+.aidp-kpi .lbl {
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--aidp-ink-500);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.aidp-kpi .val {
+  font-family: var(--aidp-f-mono);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--aidp-ink-900);
+  line-height: 1.1;
+}
+.aidp-kpi .sub { font-size: 11px; color: var(--aidp-ink-600); margin-top: 3px; }
+.aidp-kpi.positive .val { color: var(--aidp-green); }
+.aidp-kpi.warning  .val { color: var(--aidp-amber); }
+.aidp-kpi.danger   .val { color: var(--aidp-red); }
+@media (max-width: 960px) { .aidp-kpis { grid-template-columns: repeat(2, 1fr); } }
+
+/* Filter rail */
+.aidp-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 12px;
+  padding: 12px 14px;
+  background: var(--aidp-white);
+  border: 1px solid var(--aidp-ink-200);
+  border-radius: var(--aidp-radius);
+  flex-wrap: wrap;
+}
+.aidp-filter { display: flex; flex-direction: column; gap: 2px; }
+.aidp-filter label {
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--aidp-ink-500);
+  font-weight: 600;
+}
+.aidp-filter select,
+.aidp-filter input {
+  font-family: var(--aidp-f-ui);
+  font-size: 13px;
+  padding: 5px 8px;
+  border: 1px solid var(--aidp-ink-300);
+  border-radius: 4px;
+  background: var(--aidp-white);
+  color: var(--aidp-ink-900);
+  min-width: 140px;
+}
+.aidp-filter select:focus,
+.aidp-filter input:focus {
+  outline: none;
+  border-color: var(--aidp-navy);
+  box-shadow: 0 0 0 3px var(--aidp-navy-lt);
+}
+.aidp-filter-divider { width: 1px; height: 28px; background: var(--aidp-ink-200); }
+.aidp-grow { flex: 1; }
+
+/* Source toggle (Local | Live) */
+.aidp-source-toggle {
+  display: inline-flex;
+  background: var(--aidp-ink-100);
+  border: 1px solid var(--aidp-ink-200);
+  border-radius: 99px;
+  padding: 2px;
+}
+.aidp-source-toggle button {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 99px;
+  color: var(--aidp-ink-500);
+  cursor: pointer;
+  transition: .15s;
+}
+.aidp-source-toggle button.active {
+  background: var(--aidp-white);
+  color: var(--aidp-ink-900);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .08);
+}
+
+/* Buttons */
+.aidp-btn {
+  font-family: var(--aidp-f-ui);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--aidp-ink-300);
+  background: var(--aidp-white);
+  color: var(--aidp-ink-800);
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.aidp-btn:hover { background: var(--aidp-ink-100); border-color: var(--aidp-ink-400); }
+.aidp-btn-primary { background: var(--aidp-navy); color: var(--aidp-white); border-color: var(--aidp-navy); }
+.aidp-btn-primary:hover { background: var(--aidp-navy-dk); border-color: var(--aidp-navy-dk); }
+.aidp-btn-ghost { background: transparent; border-color: transparent; color: var(--aidp-ink-600); }
+.aidp-btn-ghost:hover { background: var(--aidp-ink-100); color: var(--aidp-ink-800); }
+.aidp-btn-sm { font-size: 12px; padding: 4px 10px; }
+.aidp-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+/* Tables */
+.aidp-table-wrap {
+  background: var(--aidp-white);
+  border: 1px solid var(--aidp-ink-200);
+  border-radius: var(--aidp-radius);
+  overflow: hidden;
+  margin: 0 0 18px;
+}
+.aidp-table-header {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--aidp-ink-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.aidp-table-header h3 { font-size: 13px; font-weight: 600; margin: 0; color: var(--aidp-ink-900); }
+.aidp-table-meta { font-size: 11px; color: var(--aidp-ink-500); }
+.aidp-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.aidp-table thead { background: var(--aidp-ink-50); position: sticky; top: 0; z-index: 1; }
+.aidp-table th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--aidp-ink-500);
+  font-weight: 600;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--aidp-ink-200);
+}
+.aidp-table th.num { text-align: right; }
+.aidp-table td {
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--aidp-ink-100);
+  color: var(--aidp-ink-800);
+  vertical-align: top;
+}
+.aidp-table td.num { font-family: var(--aidp-f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.aidp-table tbody tr { cursor: pointer; transition: .1s; }
+.aidp-table tbody tr:hover    { background: var(--aidp-ink-50); }
+.aidp-table tbody tr.selected { background: var(--aidp-navy-lt); }
+.aidp-table tbody tr.selected:hover { background: var(--aidp-navy-lt); }
+.aidp-table .mono { font-family: var(--aidp-f-mono); font-size: 11px; color: var(--aidp-ink-600); }
+.aidp-table .cheapest { background: var(--aidp-green-lt); position: relative; }
+.aidp-table .cheapest::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--aidp-green);
+}
+
+/* Severity / status chips */
+.aidp-chip {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 99px;
+  line-height: 1.4;
+}
+.aidp-chip-pass     { background: var(--aidp-green-lt);  color: var(--aidp-green); }
+.aidp-chip-fail     { background: var(--aidp-red-lt);    color: var(--aidp-red); }
+.aidp-chip-skip     { background: var(--aidp-ink-200);   color: var(--aidp-ink-600); }
+.aidp-chip-critical { background: var(--aidp-red);       color: #fff; }
+.aidp-chip-high     { background: var(--aidp-red-lt);    color: var(--aidp-red); }
+.aidp-chip-medium   { background: var(--aidp-amber-lt);  color: var(--aidp-amber); }
+.aidp-chip-low      { background: var(--aidp-ink-200);   color: var(--aidp-ink-700); }
+.aidp-chip-info     { background: var(--aidp-teal-lt);   color: var(--aidp-teal); font-weight: 500; }
+/* 7R verdict chips · used by Discovery + Architecture + EVP */
+.aidp-chip-REHOST   { background: #DBEAFE;               color: #1E40AF; }
+.aidp-chip-REPLAT   { background: var(--aidp-green-lt);  color: var(--aidp-green); }
+.aidp-chip-REFACT   { background: #FED7AA;               color: #9A3412; }
+.aidp-chip-REARCH   { background: var(--aidp-red-lt);    color: var(--aidp-red); }
+.aidp-chip-REBUILD  { background: var(--aidp-purple-lt); color: var(--aidp-purple); }
+.aidp-chip-REPLACE  { background: #FCE7F3;               color: #9D174D; }
+.aidp-chip-RETAIN   { background: var(--aidp-ink-200);   color: var(--aidp-ink-700); }
+
+/* Skeleton loader */
+.aidp-skel {
+  background: linear-gradient(90deg, var(--aidp-ink-100) 0%, var(--aidp-ink-200) 50%, var(--aidp-ink-100) 100%);
+  background-size: 200% 100%;
+  animation: aidpskel 1.4s ease-in-out infinite;
+  height: 14px;
+  border-radius: 3px;
+}
+@keyframes aidpskel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Empty + error states */
+.aidp-state {
+  background: var(--aidp-white);
+  border: 1px dashed var(--aidp-ink-300);
+  border-radius: var(--aidp-radius-lg);
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--aidp-ink-600);
+}
+.aidp-state .icon { font-size: 36px; margin-bottom: 10px; opacity: .55; }
+.aidp-state h2 { font-size: 16px; font-weight: 600; color: var(--aidp-ink-800); margin: 0 0 6px; }
+.aidp-state p  { margin: 0 0 16px; font-size: 13px; }
+.aidp-state .actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+
+.aidp-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--aidp-red-lt);
+  border: 1px solid var(--aidp-red);
+  border-radius: var(--aidp-radius);
+  color: var(--aidp-red);
+  font-size: 12.5px;
+  margin: 10px 0;
+}
+.aidp-error .ic { font-size: 16px; line-height: 1; margin-top: 1px; }
+
+/* Sticky action bar */
+.aidp-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--aidp-white);
+  border-top: 1px solid var(--aidp-ink-200);
+  box-shadow: 0 -2px 10px rgba(15, 23, 42, .06);
+  padding: 10px 24px;
+  z-index: 10;
+}
+.aidp-actions-inner {
+  max-width: 1500px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.aidp-actions-status { font-size: 12px; color: var(--aidp-ink-600); }
+.aidp-actions-status strong { color: var(--aidp-ink-900); }
+.aidp-actions-buttons { display: flex; gap: 8px; }
+
+/* Detail panel (for 2-col workspaces) */
+.aidp-detail {
+  background: var(--aidp-white);
+  border: 1px solid var(--aidp-ink-200);
+  border-radius: var(--aidp-radius);
+  padding: 16px 18px;
+  height: fit-content;
+  position: sticky;
+  top: 14px;
+}
+.aidp-detail h3 { font-size: 14px; font-weight: 600; color: var(--aidp-ink-900); margin: 0 0 4px; }
+.aidp-detail .sub { font-size: 11px; color: var(--aidp-ink-500); margin-bottom: 14px; }
+.aidp-detail .row { display: grid; grid-template-columns: 110px 1fr; gap: 8px 12px; align-items: center; margin-bottom: 8px; }
+.aidp-detail .row label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--aidp-ink-700);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.aidp-detail .row select,
+.aidp-detail .row input {
+  font-family: var(--aidp-f-ui);
+  font-size: 12.5px;
+  padding: 5px 8px;
+  border: 1px solid var(--aidp-ink-300);
+  border-radius: 4px;
+  background: var(--aidp-white);
+  color: var(--aidp-ink-900);
+  width: 100%;
+}
+.aidp-detail .row select:focus,
+.aidp-detail .row input:focus {
+  outline: none;
+  border-color: var(--aidp-navy);
+  box-shadow: 0 0 0 3px var(--aidp-navy-lt);
+}
+
+/* 2-column workspace grid */
+.aidp-workspace {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  margin-top: 0;
+}
+@media (max-width: 1024px) { .aidp-workspace { grid-template-columns: 1fr; } }
+
+/* Animation primitives */
+@keyframes aidpFadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.aidp-fade-up { animation: aidpFadeUp .35s ease both; }

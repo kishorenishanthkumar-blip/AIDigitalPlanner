@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Testing Dashboard · AIDP</title>
+<meta name="description" content="testing-master · normalized defect manifest, run history, gate verdicts." />
+
+<!-- Shared platform assets -->
+<script src="assets/toasts.js" defer></script>
+<script src="assets/audit.js" defer></script>
+<script src="assets/cmdk.js" defer></script>
+<script src="assets/shortcuts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+<script src="assets/testing-api.js"></script>
+
+<!-- Enterprise typography -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Shared enterprise tokens · Phase 0 -->
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<script src="assets/studio-shell.js" defer></script>
+
+<style>
+:root {
+  --ink-900:#0F172A; --ink-800:#1E293B; --ink-700:#334155; --ink-600:#475569;
+  --ink-500:#64748B; --ink-400:#94A3B8; --ink-300:#CBD5E1; --ink-200:#E2E8F0;
+  --ink-100:#F1F5F9; --ink-50:#F8FAFC; --white:#FFFFFF;
+  --navy:#1E40AF; --navy-dk:#1E3A8A; --navy-lt:#DBEAFE;
+  --teal:#0E7490; --teal-lt:#CFFAFE;
+  --green:#15803D; --green-lt:#DCFCE7;
+  --amber:#B45309; --amber-lt:#FEF3C7;
+  --red:#B91C1C;   --red-lt:#FEE2E2;
+  --purple:#6D28D9;--purple-lt:#EDE9FE;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.04);
+  --shadow:0 1px 3px rgba(15,23,42,.08),0 4px 12px rgba(15,23,42,.04);
+  --radius:6px; --radius-lg:10px;
+  --f-ui:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'IBM Plex Mono','JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800);background:var(--ink-50);-webkit-font-smoothing:antialiased}
+
+/* Layout */
+.td-shell{max-width:1500px;margin:0 auto;padding:0 24px 96px}
+
+/* Header */
+.td-header{padding:20px 0 16px;border-bottom:1px solid var(--ink-200);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end}
+.td-bread{font-size:11px;color:var(--ink-500);letter-spacing:.04em;text-transform:uppercase;font-weight:500;margin-bottom:6px}
+.td-bread a{color:var(--ink-500);text-decoration:none}
+.td-bread a:hover{color:var(--navy);text-decoration:underline}
+.td-title{font-size:22px;font-weight:600;margin:0 0 4px;color:var(--ink-900)}
+.td-subtitle{font-size:12px;color:var(--ink-600);margin:0;max-width:640px}
+.td-context{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:11px;color:var(--ink-500)}
+.td-tenant strong{color:var(--ink-800);font-weight:600}
+.td-freshness{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:99px;background:var(--green-lt);color:var(--green);font-weight:500}
+.td-freshness .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.td-freshness.stale{background:var(--amber-lt);color:var(--amber)} .td-freshness.stale .dot{background:var(--amber)}
+.td-freshness.fail{background:var(--red-lt);color:var(--red)} .td-freshness.fail .dot{background:var(--red)}
+
+/* KPI strip */
+.td-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0 0}
+.td-kpi{background:var(--white);border:1px solid var(--ink-200);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow-sm)}
+.td-kpi .lbl{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-500);font-weight:600;margin-bottom:6px}
+.td-kpi .val{font-family:var(--f-mono);font-size:22px;font-weight:600;color:var(--ink-900);line-height:1.1}
+.td-kpi .sub{font-size:11px;color:var(--ink-600);margin-top:3px}
+.td-kpi.positive .val{color:var(--green)}
+.td-kpi.warning .val{color:var(--amber)}
+.td-kpi.danger .val{color:var(--red)}
+@media (max-width:960px){.td-kpis{grid-template-columns:repeat(2,1fr)}}
+
+/* Filter rail */
+.td-filters{display:flex;align-items:center;gap:12px;margin:20px 0 12px;padding:12px 14px;background:var(--white);border:1px solid var(--ink-200);border-radius:var(--radius);flex-wrap:wrap}
+.td-filter{display:flex;flex-direction:column;gap:2px}
+.td-filter label{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-500);font-weight:600}
+.td-filter select,.td-filter input{font-family:var(--f-ui);font-size:13px;padding:5px 8px;border:1px solid var(--ink-300);border-radius:4px;background:var(--white);color:var(--ink-900);min-width:160px}
+.td-filter select:focus,.td-filter input:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px var(--navy-lt)}
+.td-filter-divider{width:1px;height:28px;background:var(--ink-200)}
+.td-grow{flex:1}
+
+/* Buttons */
+.btn{font-family:var(--f-ui);font-size:13px;font-weight:500;border:1px solid var(--ink-300);background:var(--white);color:var(--ink-800);padding:6px 12px;border-radius:5px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--ink-100);border-color:var(--ink-400)}
+.btn-primary{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.btn-primary:hover{background:var(--navy-dk);border-color:var(--navy-dk)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-600)}
+.btn-ghost:hover{background:var(--ink-100);color:var(--ink-800)}
+.btn-sm{font-size:12px;padding:4px 10px}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+
+/* Tables */
+.td-table-wrap{background:var(--white);border:1px solid var(--ink-200);border-radius:var(--radius);overflow:hidden;margin:0 0 18px}
+.td-table-header{padding:11px 14px;border-bottom:1px solid var(--ink-200);display:flex;justify-content:space-between;align-items:center}
+.td-table-header h3{font-size:13px;font-weight:600;margin:0;color:var(--ink-900)}
+.td-table-meta{font-size:11px;color:var(--ink-500)}
+.td-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.td-table thead{background:var(--ink-50);position:sticky;top:0;z-index:1}
+.td-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-500);font-weight:600;padding:9px 12px;border-bottom:1px solid var(--ink-200)}
+.td-table th.num{text-align:right}
+.td-table td{padding:10px 12px;border-bottom:1px solid var(--ink-100);color:var(--ink-800);vertical-align:top}
+.td-table td.num{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.td-table tbody tr{cursor:pointer;transition:.1s}
+.td-table tbody tr:hover{background:var(--ink-50)}
+.td-table tbody tr.expanded{background:var(--navy-lt)}
+.td-table tbody tr.expanded:hover{background:var(--navy-lt)}
+.td-table .mono{font-family:var(--f-mono);font-size:11px;color:var(--ink-600)}
+
+/* Severity & status chips */
+.chip{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:99px;line-height:1.4}
+.chip-critical{background:var(--red);color:#fff}
+.chip-high{background:var(--red-lt);color:var(--red)}
+.chip-medium{background:var(--amber-lt);color:var(--amber)}
+.chip-low{background:var(--ink-200);color:var(--ink-700)}
+.chip-pass{background:var(--green-lt);color:var(--green)}
+.chip-fail{background:var(--red-lt);color:var(--red)}
+.chip-skip{background:var(--ink-200);color:var(--ink-600)}
+.chip-layer{background:var(--ink-100);color:var(--ink-700)}
+
+/* Expandable defect row */
+.td-defect-detail{background:var(--ink-50);border-top:1px solid var(--ink-200);padding:14px 16px;font-size:12px}
+.td-defect-detail h4{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500);margin:0 0 6px}
+.td-defect-detail .row{margin-bottom:12px}
+.td-defect-detail .row:last-child{margin-bottom:0}
+.td-defect-detail code{font-family:var(--f-mono);font-size:11px;background:var(--white);border:1px solid var(--ink-200);padding:8px 10px;border-radius:4px;display:block;white-space:pre-wrap;word-break:break-word;color:var(--ink-700);max-height:280px;overflow:auto}
+
+/* States */
+.td-state{background:var(--white);border:1px dashed var(--ink-300);border-radius:var(--radius-lg);padding:48px 24px;text-align:center;color:var(--ink-600)}
+.td-state .icon{font-size:36px;margin-bottom:10px;opacity:.55}
+.td-state h2{font-size:16px;font-weight:600;color:var(--ink-800);margin:0 0 6px}
+.td-state p{margin:0 0 16px;font-size:13px}
+.td-state .actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.td-skel{background:linear-gradient(90deg,var(--ink-100) 0%,var(--ink-200) 50%,var(--ink-100) 100%);background-size:200% 100%;animation:tdsk 1.4s ease-in-out infinite;height:14px;border-radius:3px}
+@keyframes tdsk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Error banner */
+.td-error{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--red-lt);border:1px solid var(--red);border-radius:var(--radius);color:var(--red);font-size:12.5px;margin:10px 0}
+.td-error .ic{font-size:16px;line-height:1;margin-top:1px}
+
+/* Action bar (sticky) */
+.td-actions{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--ink-200);box-shadow:0 -2px 10px rgba(15,23,42,.06);padding:10px 24px;z-index:10}
+.td-actions-inner{max-width:1500px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.td-actions-status{font-size:12px;color:var(--ink-600)}
+.td-actions-status strong{color:var(--ink-900)}
+.td-actions-buttons{display:flex;gap:8px}
+
+/* Run-modal */
+.td-modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.td-modal{background:var(--white);border-radius:var(--radius-lg);max-width:520px;width:100%;padding:24px;box-shadow:0 24px 60px rgba(15,23,42,.25)}
+.td-modal h3{margin:0 0 6px;font-size:16px;font-weight:600;color:var(--ink-900)}
+.td-modal p{margin:0 0 18px;font-size:13px;color:var(--ink-600)}
+.td-modal .row{margin-bottom:14px}
+.td-modal label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500);margin-bottom:5px}
+.td-modal select,.td-modal input{width:100%;padding:8px 10px;border:1px solid var(--ink-300);border-radius:5px;font-size:13px;font-family:var(--f-ui);color:var(--ink-900)}
+.td-modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
+@media (max-width:720px){
+  .td-shell{padding:0 14px 96px}
+  .td-header{grid-template-columns:1fr}
+  .td-context{align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<main class="td-shell">
+
+  <!-- HEADER -->
+  <header class="td-header">
+    <div>
+      <div class="td-bread">
+        <a href="home">Home</a> &nbsp;/&nbsp; Testing Dashboard
+      </div>
+      <h1 class="td-title">Testing Dashboard</h1>
+      <p class="td-subtitle">testing-master · normalized defect manifest across smoke / unit / integration / functional / business / database / perf / jobs layers · stored in D1.</p>
+    </div>
+    <div class="td-context">
+      <span class="td-tenant" id="td-tenant">
+        Tenant: <strong id="td-tenant-name">…</strong>
+      </span>
+      <span class="td-freshness" id="td-freshness">
+        <span class="dot"></span> <span id="td-fresh-text">Loading…</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- KPI STRIP -->
+  <div class="td-kpis" id="td-kpis">
+    <div class="td-kpi" id="kpi-last-status"><div class="lbl">Last run</div><div class="val"><div class="td-skel" style="width:65%"></div></div><div class="sub" id="kpi-last-sub">&nbsp;</div></div>
+    <div class="td-kpi" id="kpi-defects-open"><div class="lbl">Open defects</div><div class="val"><div class="td-skel" style="width:30%"></div></div><div class="sub" id="kpi-defects-sub">&nbsp;</div></div>
+    <div class="td-kpi" id="kpi-blocking"><div class="lbl">Blocking (crit+high)</div><div class="val"><div class="td-skel" style="width:30%"></div></div><div class="sub" id="kpi-blocking-sub">&nbsp;</div></div>
+    <div class="td-kpi" id="kpi-runs"><div class="lbl">Runs (recent)</div><div class="val"><div class="td-skel" style="width:30%"></div></div><div class="sub" id="kpi-runs-sub">&nbsp;</div></div>
+  </div>
+
+  <!-- FILTER RAIL -->
+  <div class="td-filters">
+    <div class="td-filter">
+      <label for="f-scope">Scope</label>
+      <select id="f-scope">
+        <option value="">All scopes</option>
+        <option value="fleet">fleet</option>
+        <option value="discovery-studio">discovery-studio</option>
+        <option value="architecture-studio">architecture-studio</option>
+      </select>
+    </div>
+    <div class="td-filter">
+      <label for="f-severity">Severity (defects)</label>
+      <select id="f-severity">
+        <option value="">All</option>
+        <option value="critical">critical</option>
+        <option value="high">high</option>
+        <option value="medium">medium</option>
+        <option value="low">low</option>
+      </select>
+    </div>
+    <div class="td-filter">
+      <label for="f-layer">Layer (defects)</label>
+      <select id="f-layer">
+        <option value="">All</option>
+        <option value="smoke">smoke</option>
+        <option value="unit">unit</option>
+        <option value="integration">integration</option>
+        <option value="functional">functional</option>
+        <option value="business">business</option>
+        <option value="database">database</option>
+        <option value="perf">perf</option>
+        <option value="jobs">jobs</option>
+      </select>
+    </div>
+    <div class="td-grow"></div>
+    <button class="btn btn-ghost btn-sm" onclick="refreshAll()" title="Reload runs + defects (R)">↻ Refresh</button>
+  </div>
+
+  <!-- ERROR BANNER -->
+  <div id="td-error" style="display:none"></div>
+
+  <!-- RECENT RUNS TABLE -->
+  <div class="td-table-wrap" id="td-runs-wrap">
+    <div class="td-table-header">
+      <h3>Recent runs</h3>
+      <div class="td-table-meta" id="td-runs-meta">Loading…</div>
+    </div>
+    <div id="td-runs-body">
+      <div style="padding:24px"><div class="td-skel" style="width:90%;margin-bottom:10px"></div><div class="td-skel" style="width:80%;margin-bottom:10px"></div><div class="td-skel" style="width:85%"></div></div>
+    </div>
+  </div>
+
+  <!-- DEFECTS TABLE -->
+  <div class="td-table-wrap" id="td-defects-wrap" style="display:none">
+    <div class="td-table-header">
+      <h3 id="td-defects-title">Defects · select a run above</h3>
+      <div class="td-table-meta" id="td-defects-meta">&nbsp;</div>
+    </div>
+    <div id="td-defects-body"></div>
+  </div>
+
+</main>
+
+<!-- STICKY ACTION BAR -->
+<div class="td-actions">
+  <div class="td-actions-inner">
+    <div class="td-actions-status" id="td-status">
+      <strong id="td-status-text">No runs loaded</strong>
+    </div>
+    <div class="td-actions-buttons">
+      <button class="btn btn-sm" onclick="openRunModal()" title="Trigger a new test run (R)">▶ Run suite…</button>
+      <button class="btn btn-sm" onclick="exportLatest()" title="Download latest run as JSON">⬇ Export JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- RUN MODAL -->
+<div class="td-modal-bg" id="td-modal" style="display:none" onclick="if(event.target.id==='td-modal')closeRunModal()">
+  <div class="td-modal">
+    <h3>Run test suite</h3>
+    <p>testing-master will execute all 8 internal layers (smoke, unit, integration, functional, business, database, perf, jobs) against the chosen scope. Typical runtime is 3-5 seconds.</p>
+    <div class="row">
+      <label for="m-scope">Scope</label>
+      <select id="m-scope">
+        <option value="fleet">fleet · whole AIDP backend</option>
+        <option value="discovery-studio">discovery-studio</option>
+        <option value="architecture-studio">architecture-studio</option>
+        <option value="requirements-studio">requirements-studio</option>
+        <option value="operations-studio">operations-studio</option>
+        <option value="other">other (type below)</option>
+      </select>
+    </div>
+    <div class="row" id="m-scope-other-row" style="display:none">
+      <label for="m-scope-other">Custom scope name</label>
+      <input type="text" id="m-scope-other" placeholder="e.g. preview-pr-42" />
+    </div>
+    <div class="row">
+      <label for="m-ref">Reference (optional)</label>
+      <input type="text" id="m-ref" placeholder="e.g. deploy URL or git SHA" />
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="closeRunModal()">Cancel</button>
+      <button class="btn btn-primary" id="m-run-btn" onclick="triggerRun()">▶ Run now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   Testing Dashboard · v1
+═════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  const STATE = {
+    runs:           [],
+    selectedRunId:  null,
+    selectedReport: null,
+    loading:        false,
+    severityFilter: '',
+    layerFilter:    '',
+    scopeFilter:    ''
+  };
+
+  /* ─── Helpers ─────────────────────────────────────── */
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function fmtAge(iso) {
+    if (!iso) return 'unknown';
+    const sec = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (sec < 60)    return sec + 's ago';
+    if (sec < 3600)  return Math.floor(sec/60) + 'm ago';
+    if (sec < 86400) return Math.floor(sec/3600) + 'h ago';
+    return Math.floor(sec/86400) + 'd ago';
+  }
+  function fmtDuration(ms) {
+    if (typeof ms !== 'number') return '—';
+    if (ms < 1000) return ms + 'ms';
+    return (ms/1000).toFixed(2) + 's';
+  }
+
+  function showError(msg) {
+    const e = document.getElementById('td-error');
+    e.className = 'td-error';
+    e.innerHTML = '<span class="ic">⚠</span><div>' + escapeHtml(msg) + '</div>';
+    e.style.display = 'flex';
+  }
+  function clearError() {
+    const e = document.getElementById('td-error');
+    if (e) { e.style.display = 'none'; e.innerHTML = ''; }
+  }
+
+  /* ─── Header context ──────────────────────────────── */
+  function renderHeader(latest) {
+    const ls = window.localStorage;
+    const email = (ls && (ls.getItem('aidp_user_email') || ls.getItem('user_email'))) || 'guest@aidp.demo';
+    document.getElementById('td-tenant-name').textContent = email.split('@')[0];
+    const fresh = document.getElementById('td-freshness');
+    const ftext = document.getElementById('td-fresh-text');
+    if (!latest) {
+      fresh.className = 'td-freshness stale';
+      ftext.textContent = 'No runs yet';
+      return;
+    }
+    if (!latest.passed) {
+      fresh.className = 'td-freshness fail';
+      ftext.textContent = 'Last run failed · ' + fmtAge(latest.started_at);
+    } else {
+      fresh.className = 'td-freshness';
+      ftext.textContent = 'Last run green · ' + fmtAge(latest.started_at);
+    }
+  }
+
+  /* ─── KPI strip ───────────────────────────────────── */
+  function renderKpis(runs) {
+    const latest = runs[0];
+    const lastEl   = document.getElementById('kpi-last-status');
+    const openEl   = document.getElementById('kpi-defects-open');
+    const blockEl  = document.getElementById('kpi-blocking');
+    const runsEl   = document.getElementById('kpi-runs');
+
+    if (!latest) {
+      lastEl.querySelector('.val').textContent  = '—';
+      openEl.querySelector('.val').textContent  = '0';
+      blockEl.querySelector('.val').textContent = '0';
+      runsEl.querySelector('.val').textContent  = '0';
+      document.getElementById('kpi-last-sub').textContent     = 'Trigger a run to populate';
+      document.getElementById('kpi-defects-sub').textContent  = ' ';
+      document.getElementById('kpi-blocking-sub').textContent = ' ';
+      document.getElementById('kpi-runs-sub').textContent     = ' ';
+      return;
+    }
+    // Last run
+    if (latest.passed) {
+      lastEl.className = 'td-kpi positive';
+      lastEl.querySelector('.val').innerHTML = '✓ Green';
+    } else {
+      lastEl.className = 'td-kpi danger';
+      lastEl.querySelector('.val').innerHTML = '✗ ' + (latest.summary.fail || '?') + ' fail';
+    }
+    document.getElementById('kpi-last-sub').textContent = latest.scope + ' · ' + fmtAge(latest.started_at);
+
+    // Open defects (latest run)
+    const open = latest.summary.fail || 0;
+    openEl.className = open > 0 ? 'td-kpi warning' : 'td-kpi';
+    openEl.querySelector('.val').textContent = String(open);
+    document.getElementById('kpi-defects-sub').textContent = 'in latest run';
+
+    // Blocking
+    const block = latest.blocking_count || 0;
+    blockEl.className = block > 0 ? 'td-kpi danger' : 'td-kpi positive';
+    blockEl.querySelector('.val').textContent = String(block);
+    document.getElementById('kpi-blocking-sub').textContent = block > 0 ? 'gate blocked' : 'gate clear';
+
+    // Run count
+    runsEl.querySelector('.val').textContent = String(runs.length);
+    document.getElementById('kpi-runs-sub').textContent = 'last ' + runs.length + ' runs';
+  }
+
+  /* ─── Runs table ──────────────────────────────────── */
+  function renderRunsTable(runs) {
+    const body = document.getElementById('td-runs-body');
+    const meta = document.getElementById('td-runs-meta');
+    if (!runs.length) {
+      body.innerHTML =
+        '<div class="td-state">' +
+          '<div class="icon">🧪</div>' +
+          '<h2>No test runs recorded yet</h2>' +
+          '<p>Trigger your first run via the action bar (or press <code>R</code>) to populate the dashboard.</p>' +
+          '<div class="actions"><button class="btn btn-primary" onclick="openRunModal()">▶ Run suite…</button></div>' +
+        '</div>';
+      meta.textContent = '0 runs';
+      return;
+    }
+    meta.textContent = runs.length + ' runs · most recent first';
+    let html = '<table class="td-table">';
+    html += '<thead><tr>';
+    html +=   '<th>Status</th><th>Scope</th><th>Run ID</th><th>Started</th>';
+    html +=   '<th class="num">Duration</th><th class="num">Pass</th><th class="num">Fail</th><th class="num">Skip</th><th class="num">Blocking</th>';
+    html += '</tr></thead><tbody>';
+    runs.forEach(r => {
+      const isSel = r.run_id === STATE.selectedRunId;
+      const passChip = r.passed
+        ? '<span class="chip chip-pass">✓ pass</span>'
+        : '<span class="chip chip-fail">✗ fail</span>';
+      html += '<tr class="' + (isSel ? 'expanded' : '') + '" onclick="selectRun(\'' + escapeHtml(r.run_id) + '\')">';
+      html += '<td>' + passChip + '</td>';
+      html += '<td><strong>' + escapeHtml(r.scope) + '</strong>' + (r.trigger_source && r.trigger_source !== 'manual' ? ' <span class="mono">· ' + escapeHtml(r.trigger_source) + '</span>' : '') + '</td>';
+      html += '<td class="mono">' + escapeHtml((r.run_id || '').slice(-24)) + '</td>';
+      html += '<td>' + fmtAge(r.started_at) + '</td>';
+      html += '<td class="num">' + fmtDuration(r.duration_ms) + '</td>';
+      html += '<td class="num" style="color:var(--green)">' + (r.summary?.pass || 0) + '</td>';
+      html += '<td class="num" style="color:var(--red)">' + (r.summary?.fail || 0) + '</td>';
+      html += '<td class="num" style="color:var(--ink-500)">' + (r.summary?.skip || 0) + '</td>';
+      html += '<td class="num">' + (r.blocking_count || 0) + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    body.innerHTML = html;
+  }
+
+  /* ─── Defects table ──────────────────────────────── */
+  function renderDefects(report) {
+    const wrap   = document.getElementById('td-defects-wrap');
+    const title  = document.getElementById('td-defects-title');
+    const meta   = document.getElementById('td-defects-meta');
+    const body   = document.getElementById('td-defects-body');
+
+    if (!report) { wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
+
+    let defs = report.defects || [];
+    // Apply filters
+    if (STATE.severityFilter) defs = defs.filter(d => d.severity === STATE.severityFilter);
+    if (STATE.layerFilter)    defs = defs.filter(d => d.layer === STATE.layerFilter);
+
+    title.textContent = 'Defects · ' + report.scope + ' · ' + (report.run_id || '').slice(-12);
+    meta.textContent = defs.length + ' shown · ' + (report.defects?.length || 0) + ' total in run';
+
+    if (defs.length === 0) {
+      body.innerHTML =
+        '<div class="td-state" style="padding:32px 24px">' +
+          '<div class="icon">✓</div>' +
+          '<h2>Zero matching defects</h2>' +
+          '<p>' + (report.defects?.length ? 'Try clearing the severity / layer filter above.' : 'Run came back clean. Gate is ' + (report.passed ? 'green' : 'red (but no defects? check the orchestrator)') + '.') + '</p>' +
+        '</div>';
+      return;
+    }
+
+    let html = '<table class="td-table">';
+    html += '<thead><tr>';
+    html +=   '<th>Severity</th><th>Layer</th><th>Agent</th><th>Tool</th><th>Title</th><th>Defect ID</th>';
+    html += '</tr></thead><tbody>';
+    defs.forEach((d, i) => {
+      html += '<tr data-idx="' + i + '" onclick="toggleDefect(' + i + ')">';
+      html += '<td><span class="chip chip-' + d.severity + '">' + d.severity + '</span></td>';
+      html += '<td><span class="chip chip-layer">' + escapeHtml(d.layer || '') + '</span></td>';
+      html += '<td>' + escapeHtml(d.agent || '—') + '</td>';
+      html += '<td class="mono">' + escapeHtml(d.tool || '—') + '</td>';
+      html += '<td>' + escapeHtml(d.title || '') + '</td>';
+      html += '<td class="mono">' + escapeHtml((d.id || '').slice(-12)) + '</td>';
+      html += '</tr>';
+      html += '<tr class="defect-detail-row" data-idx="' + i + '" style="display:none"><td colspan="6" style="padding:0">';
+      html += renderDefectDetail(d);
+      html += '</td></tr>';
+    });
+    html += '</tbody></table>';
+    body.innerHTML = html;
+  }
+
+  function renderDefectDetail(d) {
+    let html = '<div class="td-defect-detail">';
+    if (d.description) {
+      html += '<div class="row"><h4>Description</h4><div>' + escapeHtml(d.description) + '</div></div>';
+    }
+    if (d.reproduction) {
+      html += '<div class="row"><h4>Reproduction</h4><div>' + escapeHtml(d.reproduction) + '</div></div>';
+    }
+    if (d.suggested_fix) {
+      html += '<div class="row"><h4>Suggested fix</h4><div>' + escapeHtml(d.suggested_fix) + '</div></div>';
+    }
+    if (d.evidence) {
+      let ev = d.evidence;
+      try { ev = JSON.stringify(d.evidence, null, 2); } catch { ev = String(d.evidence); }
+      html += '<div class="row"><h4>Evidence</h4><code>' + escapeHtml(ev) + '</code></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  window.toggleDefect = function (i) {
+    const detail = document.querySelector('tr.defect-detail-row[data-idx="' + i + '"]');
+    if (!detail) return;
+    detail.style.display = (detail.style.display === 'none') ? '' : 'none';
+  };
+
+  /* ─── Status bar ──────────────────────────────────── */
+  function renderStatusBar(runs) {
+    const t = document.getElementById('td-status-text');
+    if (!runs.length) { t.textContent = 'No runs loaded'; return; }
+    const latest = runs[0];
+    t.innerHTML = latest.scope + ' · last run <strong>' + (latest.passed ? '✓ green' : '✗ ' + (latest.summary.fail||0) + ' fail') + '</strong> · ' + (latest.blocking_count||0) + ' blocking · ' + runs.length + ' runs cached';
+  }
+
+  /* ─── Loaders ─────────────────────────────────────── */
+  async function loadRuns() {
+    clearError();
+    try {
+      const result = await window.TM.listRuns({ scope: STATE.scopeFilter || undefined, limit: 25 });
+      STATE.runs = result.runs || [];
+      renderHeader(STATE.runs[0]);
+      renderKpis(STATE.runs);
+      renderRunsTable(STATE.runs);
+      renderStatusBar(STATE.runs);
+
+      // Auto-select latest run if none selected
+      if (!STATE.selectedRunId && STATE.runs.length) {
+        await selectRunInternal(STATE.runs[0].run_id);
+      } else if (STATE.selectedRunId) {
+        renderDefects(STATE.selectedReport);
+      }
+    } catch (err) {
+      showError('Could not load runs: ' + (err.message || String(err)));
+      STATE.runs = [];
+      renderHeader(null);
+      renderKpis([]);
+      renderRunsTable([]);
+    }
+  }
+
+  async function selectRunInternal(runId) {
+    STATE.selectedRunId = runId;
+    renderRunsTable(STATE.runs);  // re-render to update .expanded class
+    try {
+      const report = await window.TM.getReport(runId);
+      if (report.error) {
+        showError('Could not load report: ' + report.error);
+        STATE.selectedReport = null;
+      } else {
+        STATE.selectedReport = report;
+      }
+    } catch (err) {
+      showError('Could not load report: ' + (err.message || String(err)));
+      STATE.selectedReport = null;
+    }
+    renderDefects(STATE.selectedReport);
+  }
+  window.selectRun = function (runId) { selectRunInternal(runId); };
+
+  /* ─── Refresh ─────────────────────────────────────── */
+  window.refreshAll = function () {
+    loadRuns();
+    if (window.DI && window.DI.toast) window.DI.toast({ kind:'info', title:'Refreshed' });
+  };
+
+  /* ─── Filter wiring ──────────────────────────────── */
+  function wireFilters() {
+    const f = document.getElementById('f-scope');
+    const s = document.getElementById('f-severity');
+    const l = document.getElementById('f-layer');
+    f.addEventListener('change', e => { STATE.scopeFilter = e.target.value; loadRuns(); });
+    s.addEventListener('change', e => { STATE.severityFilter = e.target.value; renderDefects(STATE.selectedReport); });
+    l.addEventListener('change', e => { STATE.layerFilter    = e.target.value; renderDefects(STATE.selectedReport); });
+  }
+
+  /* ─── Run modal ──────────────────────────────────── */
+  window.openRunModal = function () {
+    document.getElementById('td-modal').style.display = 'flex';
+    document.getElementById('m-scope').value = 'fleet';
+    document.getElementById('m-scope-other-row').style.display = 'none';
+    document.getElementById('m-scope').addEventListener('change', function (e) {
+      document.getElementById('m-scope-other-row').style.display = (e.target.value === 'other') ? '' : 'none';
+    }, { once: true });
+  };
+  window.closeRunModal = function () { document.getElementById('td-modal').style.display = 'none'; };
+
+  window.triggerRun = async function () {
+    const btn = document.getElementById('m-run-btn');
+    let scope = document.getElementById('m-scope').value;
+    if (scope === 'other') {
+      scope = (document.getElementById('m-scope-other').value || '').trim();
+      if (!scope) { alert('Enter a scope name'); return; }
+    }
+    const ref = (document.getElementById('m-ref').value || '').trim() || undefined;
+    btn.disabled = true;
+    btn.textContent = '⏳ Running…';
+    try {
+      const report = await window.TM.runSuite(scope, { ref });
+      if (window.DI && window.DI.toast) {
+        window.DI.toast({
+          kind: report.passed ? 'ok' : 'warn',
+          title: report.passed ? 'Run passed' : 'Run failed gate',
+          message: report.summary.pass + ' pass · ' + report.summary.fail + ' fail · ' + report.blocking_count + ' blocking'
+        });
+      }
+      closeRunModal();
+      STATE.selectedRunId = report.run_id;
+      STATE.selectedReport = report;
+      await loadRuns();
+    } catch (err) {
+      alert('Run failed: ' + (err.message || String(err)));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '▶ Run now';
+    }
+  };
+
+  /* ─── Export ──────────────────────────────────────── */
+  window.exportLatest = function () {
+    if (!STATE.selectedReport) {
+      if (window.DI && window.DI.toast) window.DI.toast({ kind:'warn', title:'No report selected' });
+      else alert('No report selected to export.');
+      return;
+    }
+    const blob = new Blob([JSON.stringify(STATE.selectedReport, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = STATE.selectedReport.run_id + '.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+  };
+
+  /* ─── Keyboard shortcuts ──────────────────────────── */
+  function wireShortcuts() {
+    document.addEventListener('keydown', function (e) {
+      const t = e.target;
+      const tag = t && t.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = (e.key || '').toLowerCase();
+      if (k === 'r') { e.preventDefault(); openRunModal(); }
+      else if (k === 'f') { e.preventDefault(); refreshAll(); }
+      else if (k === 'escape') { closeRunModal(); }
+    });
+  }
+
+  /* ─── Init ────────────────────────────────────────── */
+  function init() {
+    wireFilters();
+    wireShortcuts();
+    loadRuns();
+    setInterval(() => renderHeader(STATE.runs[0]), 30000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+</body>
+</html>
