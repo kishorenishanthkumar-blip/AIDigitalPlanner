@@ -14,6 +14,13 @@
 <script src="assets/export.js" defer></script>
 <script src="assets/pricing.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
+<!-- Workspace view · enterprise pattern · loads after AIDP API client -->
+<script src="assets/aidp-api.js"></script>
+<script src="assets/discovery-api.js" defer></script>
+<!-- Enterprise typography for Workspace view -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -202,6 +209,139 @@ button{font-family:var(--f-ui);cursor:pointer;border:none}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fadeUp{animation:fadeUp .35s ease both}
+
+/* ─── View toggle in stepper (Wizard | Workspace) ─────────────────── */
+.ds-view-toggle{display:inline-flex;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:99px;padding:2px;margin-right:10px}
+.ds-view-toggle button{background:transparent;border:none;font-family:inherit;font-size:11px;font-weight:600;padding:5px 12px;border-radius:99px;color:#64748B;cursor:pointer;transition:.15s}
+.ds-view-toggle button.active{background:#FFFFFF;color:#0F172A;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.ds-view-toggle button:hover:not(.active){color:#1E293B}
+
+/* ─── Workspace · enterprise pattern (same tokens as Architecture) ── */
+:root{
+  --ws-ink-900:#0F172A; --ws-ink-800:#1E293B; --ws-ink-700:#334155;
+  --ws-ink-600:#475569; --ws-ink-500:#64748B; --ws-ink-400:#94A3B8;
+  --ws-ink-300:#CBD5E1; --ws-ink-200:#E2E8F0; --ws-ink-100:#F1F5F9;
+  --ws-ink-50:#F8FAFC; --ws-white:#FFFFFF;
+  --ws-navy:#1E40AF; --ws-navy-dk:#1E3A8A; --ws-navy-lt:#DBEAFE;
+  --ws-green:#15803D; --ws-green-lt:#DCFCE7;
+  --ws-amber:#B45309; --ws-amber-lt:#FEF3C7;
+  --ws-red:#B91C1C; --ws-red-lt:#FEE2E2;
+  --ws-purple:#6D28D9; --ws-purple-lt:#EDE9FE;
+  --ws-teal:#0E7490; --ws-teal-lt:#CFFAFE;
+  --ws-f-ui:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --ws-f-mono:'IBM Plex Mono','JetBrains Mono','SF Mono',Consolas,monospace;
+}
+#ds-workspace{display:none;font-family:var(--ws-f-ui);color:var(--ws-ink-800);background:var(--ws-ink-50);min-height:100vh}
+#ds-workspace.active{display:block}
+.ws-shell{max-width:1500px;margin:0 auto;padding:0 24px 96px}
+
+/* Header */
+.ws-header{padding:20px 0 16px;border-bottom:1px solid var(--ws-ink-200);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end}
+.ws-bread{font-size:11px;color:var(--ws-ink-500);letter-spacing:.04em;text-transform:uppercase;font-weight:500;margin-bottom:6px}
+.ws-bread a{color:var(--ws-ink-500);text-decoration:none}
+.ws-bread a:hover{color:var(--ws-navy);text-decoration:underline}
+.ws-title{font-size:22px;font-weight:600;color:var(--ws-ink-900);margin:0 0 4px;font-family:var(--ws-f-ui)}
+.ws-subtitle{font-size:12px;color:var(--ws-ink-600);margin:0;max-width:640px}
+.ws-context{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:11px;color:var(--ws-ink-500)}
+.ws-tenant strong{color:var(--ws-ink-800);font-weight:600}
+.ws-freshness{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:99px;background:var(--ws-green-lt);color:var(--ws-green);font-weight:500}
+.ws-freshness .dot{width:6px;height:6px;border-radius:50%;background:var(--ws-green)}
+.ws-freshness.stale{background:var(--ws-amber-lt);color:var(--ws-amber)} .ws-freshness.stale .dot{background:var(--ws-amber)}
+.ws-freshness.queued{background:var(--ws-amber-lt);color:var(--ws-amber)} .ws-freshness.queued .dot{background:var(--ws-amber)}
+
+/* KPI strip */
+.ws-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0 0}
+.ws-kpi{background:var(--ws-white);border:1px solid var(--ws-ink-200);border-radius:6px;padding:14px 16px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.ws-kpi .lbl{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ws-ink-500);font-weight:600;margin-bottom:6px}
+.ws-kpi .val{font-family:var(--ws-f-mono);font-size:22px;font-weight:600;color:var(--ws-ink-900);line-height:1.1}
+.ws-kpi .sub{font-size:11px;color:var(--ws-ink-600);margin-top:3px}
+.ws-kpi.positive .val{color:var(--ws-green)}
+.ws-kpi.warning .val{color:var(--ws-amber)}
+@media (max-width:960px){.ws-kpis{grid-template-columns:repeat(2,1fr)}}
+
+/* Filter rail */
+.ws-filters{display:flex;align-items:center;gap:12px;margin:20px 0 12px;padding:12px 14px;background:var(--ws-white);border:1px solid var(--ws-ink-200);border-radius:6px;flex-wrap:wrap}
+.ws-filter{display:flex;flex-direction:column;gap:2px}
+.ws-filter label{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ws-ink-500);font-weight:600}
+.ws-filter select,.ws-filter input{font-family:var(--ws-f-ui);font-size:13px;padding:5px 8px;border:1px solid var(--ws-ink-300);border-radius:4px;background:var(--ws-white);color:var(--ws-ink-900);min-width:140px}
+.ws-filter select:focus,.ws-filter input:focus{outline:none;border-color:var(--ws-navy);box-shadow:0 0 0 3px var(--ws-navy-lt)}
+.ws-grow{flex:1}
+.ws-source-toggle{display:inline-flex;background:var(--ws-ink-100);border:1px solid var(--ws-ink-200);border-radius:99px;padding:2px}
+.ws-source-toggle button{background:transparent;border:none;font-family:inherit;font-size:11px;font-weight:600;padding:5px 12px;border-radius:99px;color:var(--ws-ink-500);cursor:pointer}
+.ws-source-toggle button.active{background:var(--ws-white);color:var(--ws-ink-900);box-shadow:0 1px 2px rgba(15,23,42,.08)}
+
+/* Buttons */
+.ws-btn{font-family:var(--ws-f-ui);font-size:13px;font-weight:500;border:1px solid var(--ws-ink-300);background:var(--ws-white);color:var(--ws-ink-800);padding:6px 12px;border-radius:5px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.ws-btn:hover{background:var(--ws-ink-100);border-color:var(--ws-ink-400)}
+.ws-btn-primary{background:var(--ws-navy);color:var(--ws-white);border-color:var(--ws-navy)}
+.ws-btn-primary:hover{background:var(--ws-navy-dk);border-color:var(--ws-navy-dk)}
+.ws-btn-ghost{background:transparent;border-color:transparent;color:var(--ws-ink-600)}
+.ws-btn-ghost:hover{background:var(--ws-ink-100);color:var(--ws-ink-800)}
+.ws-btn-sm{font-size:12px;padding:4px 10px}
+.ws-btn:disabled{opacity:.55;cursor:not-allowed}
+
+/* Main 2-col workspace */
+.ws-main{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:0}
+@media (max-width:1024px){.ws-main{grid-template-columns:1fr}}
+
+/* Capability table */
+.ws-tbl-wrap{background:var(--ws-white);border:1px solid var(--ws-ink-200);border-radius:6px;overflow:hidden}
+.ws-tbl-h{padding:11px 14px;border-bottom:1px solid var(--ws-ink-200);display:flex;justify-content:space-between;align-items:center}
+.ws-tbl-h h3{font-size:13px;font-weight:600;margin:0;color:var(--ws-ink-900);font-family:var(--ws-f-ui)}
+.ws-tbl-meta{font-size:11px;color:var(--ws-ink-500)}
+.ws-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.ws-tbl thead{background:var(--ws-ink-50)}
+.ws-tbl th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ws-ink-500);font-weight:600;padding:9px 10px;border-bottom:1px solid var(--ws-ink-200)}
+.ws-tbl td{padding:9px 10px;border-bottom:1px solid var(--ws-ink-100);color:var(--ws-ink-800);vertical-align:top;cursor:pointer}
+.ws-tbl tbody tr{transition:.1s}
+.ws-tbl tbody tr:hover{background:var(--ws-ink-50)}
+.ws-tbl tbody tr.selected{background:var(--ws-navy-lt)}
+.ws-tbl tbody tr.selected:hover{background:var(--ws-navy-lt)}
+.ws-cap-name{font-weight:600;color:var(--ws-ink-900)}
+.ws-cap-meta{font-size:10.5px;color:var(--ws-ink-500);margin-top:1px}
+
+/* 7R verdict chips */
+.ws-chip{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:99px;line-height:1.4}
+.ws-chip-REHOST{background:#DBEAFE;color:#1E40AF}
+.ws-chip-REPLAT{background:var(--ws-green-lt);color:var(--ws-green)}
+.ws-chip-REFACT{background:#FED7AA;color:#9A3412}
+.ws-chip-REARCH{background:var(--ws-red-lt);color:var(--ws-red)}
+.ws-chip-REBUILD{background:var(--ws-purple-lt);color:var(--ws-purple)}
+.ws-chip-REPLACE{background:#FCE7F3;color:#9D174D}
+.ws-chip-RETAIN{background:var(--ws-ink-200);color:var(--ws-ink-700)}
+.ws-chip-dom{background:var(--ws-teal-lt);color:var(--ws-teal);font-weight:500}
+.ws-chip-sens-regulated{background:var(--ws-red-lt);color:var(--ws-red)}
+.ws-chip-sens-confidential{background:var(--ws-amber-lt);color:var(--ws-amber)}
+
+/* Detail panel */
+.ws-detail{background:var(--ws-white);border:1px solid var(--ws-ink-200);border-radius:6px;padding:16px 18px;height:fit-content;position:sticky;top:14px}
+.ws-detail h3{font-size:14px;font-weight:600;color:var(--ws-ink-900);margin:0 0 4px;font-family:var(--ws-f-ui)}
+.ws-detail .sub{font-size:11px;color:var(--ws-ink-500);margin-bottom:14px}
+.ws-detail .row{display:grid;grid-template-columns:110px 1fr;gap:8px 12px;align-items:center;margin-bottom:8px}
+.ws-detail .row label{font-size:11px;font-weight:600;color:var(--ws-ink-700);text-transform:uppercase;letter-spacing:.04em}
+.ws-detail .row select,.ws-detail .row input{font-family:var(--ws-f-ui);font-size:12.5px;padding:5px 8px;border:1px solid var(--ws-ink-300);border-radius:4px;background:var(--ws-white);color:var(--ws-ink-900);width:100%}
+.ws-detail .row select:focus,.ws-detail .row input:focus{outline:none;border-color:var(--ws-navy);box-shadow:0 0 0 3px var(--ws-navy-lt)}
+.ws-detail .verdict-card{background:var(--ws-ink-50);border:1px solid var(--ws-ink-200);border-radius:6px;padding:12px 14px;margin-top:14px}
+.ws-detail .verdict-card .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ws-detail .verdict-card .rationale{font-size:11.5px;color:var(--ws-ink-600);line-height:1.45}
+.ws-detail .verdict-card .meta{font-family:var(--ws-f-mono);font-size:10.5px;color:var(--ws-ink-500);margin-top:6px}
+
+/* Empty state */
+.ws-empty{background:var(--ws-white);border:1px dashed var(--ws-ink-300);border-radius:10px;padding:48px 24px;text-align:center;color:var(--ws-ink-600)}
+.ws-empty .icon{font-size:36px;margin-bottom:10px;opacity:.55}
+.ws-empty h2{font-size:16px;font-weight:600;color:var(--ws-ink-800);margin:0 0 6px;font-family:var(--ws-f-ui)}
+.ws-empty p{margin:0 0 16px;font-size:13px}
+
+/* Sticky action bar */
+.ws-actions{position:fixed;bottom:0;left:0;right:0;background:var(--ws-white);border-top:1px solid var(--ws-ink-200);box-shadow:0 -2px 10px rgba(15,23,42,.06);padding:10px 24px;z-index:10}
+.ws-actions-inner{max-width:1500px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.ws-actions-status{font-size:12px;color:var(--ws-ink-600)}
+.ws-actions-status strong{color:var(--ws-ink-900)}
+.ws-actions-buttons{display:flex;gap:8px}
+
+/* Error banner */
+.ws-error{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--ws-red-lt);border:1px solid var(--ws-red);border-radius:6px;color:var(--ws-red);font-size:12.5px;margin:10px 0}
+.ws-error .ic{font-size:16px;line-height:1;margin-top:1px}
 </style>
 </head>
 <body>
@@ -209,18 +349,103 @@ button{font-family:var(--f-ui);cursor:pointer;border:none}
 <div data-di-topbar></div>
 
 <!-- Stepper -->
-<div class="ds-stepper">
+<div class="ds-stepper" id="ds-stepper-container">
   <div class="ds-stepper-wrap">
     <div class="ds-steps" id="ds-steps"></div>
-    <div class="ds-save-state" id="ds-save"><span class="dot">●</span> Auto-saved</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="ds-view-toggle" role="tablist" aria-label="Discovery view">
+        <button id="ds-view-wizard"    class="active" onclick="setDiscoveryView('wizard')">Wizard</button>
+        <button id="ds-view-workspace"               onclick="setDiscoveryView('workspace')">Workspace</button>
+      </div>
+      <div class="ds-save-state" id="ds-save"><span class="dot">●</span> Auto-saved</div>
+    </div>
   </div>
 </div>
 
-<!-- Hero (rendered per step) -->
-<section class="ds-hero" id="ds-hero"></section>
+<!-- Wizard view (legacy 4-step UI) -->
+<div id="ds-wizard-view">
+  <!-- Hero (rendered per step) -->
+  <section class="ds-hero" id="ds-hero"></section>
+  <!-- Main content (rendered per step) -->
+  <main class="ds-main" id="ds-app"></main>
+</div>
 
-<!-- Main content (rendered per step) -->
-<main class="ds-main" id="ds-app"></main>
+<!-- Workspace view (enterprise pattern · same canonical state, denser UI) -->
+<div id="ds-workspace">
+  <div class="ws-shell">
+
+    <!-- HEADER -->
+    <header class="ws-header">
+      <div>
+        <div class="ws-bread"><a href="home">Home</a> &nbsp;/&nbsp; Discovery Studio &nbsp;/&nbsp; Workspace</div>
+        <h1 class="ws-title">Capability Inventory · Workspace</h1>
+        <p class="ws-subtitle">Dense view for analysts · canonical Capability shape · auto-saved to D1 via the DISCOVERY agent. Switch back to Wizard above for guided first-time entry.</p>
+      </div>
+      <div class="ws-context">
+        <span class="ws-tenant">Tenant: <strong id="ws-tenant-name">…</strong></span>
+        <span class="ws-freshness" id="ws-freshness"><span class="dot"></span> <span id="ws-fresh-text">Loading…</span></span>
+      </div>
+    </header>
+
+    <!-- KPI STRIP -->
+    <div class="ws-kpis">
+      <div class="ws-kpi"><div class="lbl">Total capabilities</div><div class="val" id="ws-kpi-total">—</div><div class="sub" id="ws-kpi-total-sub">&nbsp;</div></div>
+      <div class="ws-kpi warning"><div class="lbl">Regulated</div><div class="val" id="ws-kpi-reg">—</div><div class="sub" id="ws-kpi-reg-sub">&nbsp;</div></div>
+      <div class="ws-kpi"><div class="lbl">Dominant 7R verdict</div><div class="val" id="ws-kpi-verd" style="font-family:var(--ws-f-ui);font-size:18px">—</div><div class="sub" id="ws-kpi-verd-sub">&nbsp;</div></div>
+      <div class="ws-kpi positive"><div class="lbl">Ready for Architecture</div><div class="val" id="ws-kpi-ready">—</div><div class="sub" id="ws-kpi-ready-sub">&nbsp;</div></div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="ws-filters">
+      <div class="ws-filter"><label for="ws-f-domain">Domain</label><select id="ws-f-domain"><option value="">All</option></select></div>
+      <div class="ws-filter"><label for="ws-f-complex">Complexity</label><select id="ws-f-complex"><option value="">All</option><option>low</option><option>medium</option><option>high</option><option>very-high</option></select></div>
+      <div class="ws-filter"><label for="ws-f-sens">Sensitivity</label><select id="ws-f-sens"><option value="">All</option><option>public</option><option>internal</option><option>confidential</option><option>regulated</option></select></div>
+      <div class="ws-grow"></div>
+      <div class="ws-source-toggle" role="tablist" aria-label="7R source">
+        <button id="ws-src-local" class="active" onclick="setSevenRSource('local')">📊 Local engine</button>
+        <button id="ws-src-live"                onclick="setSevenRSource('live')">🌐 Live AIDP agent</button>
+      </div>
+      <button class="ws-btn ws-btn-sm" onclick="wsRefresh()" title="Reload from D1 (R)">↻ Refresh</button>
+    </div>
+
+    <!-- ERROR BANNER -->
+    <div id="ws-error" style="display:none"></div>
+
+    <!-- MAIN 2-COL -->
+    <div class="ws-main">
+      <div class="ws-tbl-wrap">
+        <div class="ws-tbl-h">
+          <h3>Capabilities</h3>
+          <div class="ws-tbl-meta" id="ws-tbl-meta">&nbsp;</div>
+        </div>
+        <div id="ws-tbl-body"></div>
+      </div>
+
+      <div id="ws-detail-wrap">
+        <div class="ws-detail" id="ws-detail">
+          <h3 id="ws-detail-name">Select a capability</h3>
+          <div class="sub" id="ws-detail-sub">Click a row on the left to inspect + edit. Changes auto-save after 0.8s.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- STICKY ACTION BAR -->
+  <div class="ws-actions">
+    <div class="ws-actions-inner">
+      <div class="ws-actions-status" id="ws-status">
+        <strong id="ws-status-text">No capabilities loaded</strong>
+      </div>
+      <div class="ws-actions-buttons">
+        <button class="ws-btn ws-btn-sm" onclick="wsLoadSample()"   title="Load 13-capability banking sample (S)">📥 Load sample</button>
+        <button class="ws-btn ws-btn-sm" onclick="wsExportXlsx()"   title="Download Excel workbook (X)">⬇ Excel</button>
+        <button class="ws-btn ws-btn-sm" onclick="wsRunAllAidp()"   title="Run 7R via AIDP agent on every capability (R)">🌐 Run 7R via AIDP</button>
+        <button class="ws-btn ws-btn-primary ws-btn-sm" onclick="wsSendToArchitecture()" title="Send capabilities to Architecture Studio (→)">Send to Architecture →</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════════
@@ -429,13 +654,13 @@ function renderHero() {
     html = '<div class="ds-hero-wrap">' +
       '<div class="ds-eyebrow">START YOUR DISCOVERY</div>' +
       '<h1 class="ds-h1">Pick a way to begin. <em>All paths lead to the same 7R map.</em></h1>' +
-      '<p class="ds-sub">Choose the lane that matches the time you have and the data you can share. Nishi will guide each path and pre-fill defaults from peer banks.</p>' +
+      '<p class="ds-sub">Choose the lane that matches the time you have and the data you can share. Niche-I will guide each path and pre-fill defaults from peer banks.</p>' +
     '</div>';
   } else if (STATE.step === 'scope') {
     html = '<div class="ds-hero-wrap">' +
       '<div class="ds-eyebrow">STEP 2 · CAPABILITIES IN SCOPE</div>' +
       '<h1 class="ds-h1">Pick the capabilities you want modernized.</h1>' +
-      '<p class="ds-sub">Tick the ones in scope. We will only ask detailed questions about the capabilities you tick. <strong>Nishi pre-checks the typical Tier-1 retail bank set</strong> for you.</p>' +
+      '<p class="ds-sub">Tick the ones in scope. We will only ask detailed questions about the capabilities you tick. <strong>Niche-I pre-checks the typical Tier-1 retail bank set</strong> for you.</p>' +
     '</div>';
   } else if (STATE.step === 'detail') {
     html = '<div class="ds-hero-wrap">' +
@@ -481,7 +706,7 @@ function renderMode() {
     '</a>' +
     '<a class="ds-mode" onclick="pickMode(\'import\')">' +
       '<div class="ds-mode-head"><div class="ds-mode-icon" style="background:linear-gradient(135deg,#F4F0FF,#E2D5FF);color:#5C3DB8">📤</div><div><div class="ds-mode-name">Import from spreadsheet <span class="ds-mode-coming">COMING SOON</span></div><div class="ds-mode-meta">~5 min · for data-rich teams</div></div></div>' +
-      '<div class="ds-mode-desc">Drop a CSV / XLSX with your CMDB extract. Nishi maps columns, fills gaps with defaults, surfaces inconsistencies. Coming in Phase 14b.5.</div>' +
+      '<div class="ds-mode-desc">Drop a CSV / XLSX with your CMDB extract. Niche-I maps columns, fills gaps with defaults, surfaces inconsistencies. Coming in Phase 14b.5.</div>' +
       '<div class="ds-mode-out">→ Outputs both summaries above</div>' +
     '</a>' +
     '<a class="ds-mode dim"><div class="ds-mode-head"><div class="ds-mode-icon">🔌</div><div><div class="ds-mode-name">Connect to CMDB <span class="ds-mode-coming">PHASE 14</span></div><div class="ds-mode-meta">~1 min · live data</div></div></div>' +
@@ -489,7 +714,7 @@ function renderMode() {
       '<div class="ds-mode-out">→ Live refresh on every visit</div>' +
     '</a>' +
   '</div>' + resumeCard +
-  '<div class="ds-tip"><strong>💡 Nishi suggests:</strong> Start with <strong>Quick assessment</strong>. You will have a board-ready slide in 3 minutes. If your CIO asks "where is the detail?", run the Detailed wizard on the 2-3 capabilities they care about most.</div>';
+  '<div class="ds-tip"><strong>💡 Niche-I suggests:</strong> Start with <strong>Quick assessment</strong>. You will have a board-ready slide in 3 minutes. If your CIO asks "where is the detail?", run the Detailed wizard on the 2-3 capabilities they care about most.</div>';
 }
 
 function pickMode(m) {
@@ -615,8 +840,8 @@ function renderDetail() {
   // Tab content
   mainHtml += '<div class="ds-tab-panel">' + renderTabPanel(cap, STATE.activeTab) + '</div>';
 
-  // Nishi nudge
-  mainHtml += '<div class="ds-nishi-tip">💡 <div><strong>Nishi:</strong> Based on these inputs, I recommend <strong>' + (VERDICT_META[cap.verdict] && VERDICT_META[cap.verdict].name) + '</strong> for this capability. Confirm in Step 4 or override there.</div></div>';
+  // Niche-I nudge
+  mainHtml += '<div class="ds-nishi-tip">💡 <div><strong>Niche-I:</strong> Based on these inputs, I recommend <strong>' + (VERDICT_META[cap.verdict] && VERDICT_META[cap.verdict].name) + '</strong> for this capability. Confirm in Step 4 or override there.</div></div>';
 
   // Footer
   const curIdx = STATE.selected.indexOf(STATE.activeCap);
@@ -1091,6 +1316,578 @@ function timeAgo(iso) {
   if (s < 3600) return Math.floor(s/60) + ' min ago';
   return Math.floor(s/3600) + ' hr ago';
 }
+
+/* ════════════════════════════════════════════════════════════════
+   Discovery Studio · Workspace view (task #183)
+   Sits alongside the wizard above. Backed by a canonical Capability
+   shape that mirrors what every AIDP sub-agent consumes.
+═════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  /* ─── Canonical shape ───────────────────────────────────────── */
+  const ALL_DOMAINS      = ['cards','payments','deposits','lending','trade','treasury','compliance','wealth','core-banking','channels','ops','other'];
+  const ALL_TECH_STACKS  = ['cobol-mainframe','java-monolith','dotnet-monolith','java-microservice','node-microservice','python-microservice','saas-pkg','low-code','other'];
+  const ALL_COMPLEXITY   = ['low','medium','high','very-high'];
+  const ALL_SENSITIVITY  = ['public','internal','confidential','regulated'];
+  const ALL_VOLUME       = ['low','medium','high','very-high'];
+  const ALL_STRATEGIES   = ['REHOST','REPLAT','REFACT','REARCH','REBUILD','REPLACE','RETAIN'];
+
+  /* ─── Wizard → canonical migration ─────────────────────────── */
+  /* Translates the wizard's older shape {g, current, future, critical, regulated, verdict}
+     into the canonical agent shape. Best-effort heuristic mapping. */
+  function guessDomain(wizardCap) {
+    const g = String(wizardCap.g || '').toLowerCase();
+    if (g === 'cards')   return 'cards';
+    if (g === 'core')    return wizardCap.id?.includes('deposits') ? 'deposits'
+                              : wizardCap.id?.includes('loans')   ? 'lending'
+                              : wizardCap.id?.includes('trade')   ? 'trade'
+                              : wizardCap.id?.includes('treasury')? 'treasury'
+                              : wizardCap.id?.includes('wealth')  ? 'wealth'
+                              : 'payments';
+    if (g === 'cust')    return 'channels';
+    if (g === 'risk')    return wizardCap.id?.includes('audit') ? 'compliance' : 'compliance';
+    if (g === 'markets') return 'trade';
+    return 'other';
+  }
+  function mapTech(current) {
+    const s = String(current || '').toLowerCase();
+    if (s.includes('cobol') || s.includes('z/os') || s.includes('mainframe') || s.includes('as/400') || s.includes('rpg')) return 'cobol-mainframe';
+    if (s.includes('java')   && s.includes('ee'))      return 'java-monolith';
+    if (s.includes('.net')   || s.includes('dotnet'))  return 'dotnet-monolith';
+    if (s.includes('saas')   || s.includes('vendor'))  return 'saas-pkg';
+    if (s.includes('aix')    || s.includes('solaris')) return 'java-monolith';
+    if (s.includes('node'))                            return 'node-microservice';
+    if (s.includes('python'))                          return 'python-microservice';
+    if (s.includes('java'))                            return 'java-microservice';
+    return 'other';
+  }
+  function toCanonical(c) {
+    /* If already canonical (has domain field), return a shallow clone with
+       defaults filled in. Otherwise migrate from wizard shape. */
+    if (c.domain && c.current_tech) {
+      return Object.assign({
+        complexity: 'medium', sensitivity: 'internal', volume: 'high'
+      }, c);
+    }
+    return {
+      id:           c.id,
+      name:         c.name,
+      domain:       guessDomain(c),
+      current_tech: mapTech(c.current),
+      complexity:   c.critical  ? 'very-high'  : 'medium',
+      sensitivity:  c.regulated ? 'regulated'  : 'confidential',
+      volume:       'high',
+      /* Preserve legacy fields for back-compat / wizard interop */
+      _legacy: { g: c.g, current: c.current, future: c.future, critical: !!c.critical, regulated: !!c.regulated, verdict: c.verdict }
+    };
+  }
+
+  /* ─── Workspace state (separate from wizard STATE) ─────────── */
+  const WS_KEY = 'aidp_discovery_workspace_v1';
+  const WS = {
+    capabilities:  [],         // canonical Capability[]
+    selectedId:    null,
+    sevenRSource:  'local',    // 'local' | 'live'
+    aidpVerdicts:  {},         // { capId: { strategy, rationale, confidence, ... } }
+    filters:       { domain: '', complexity: '', sensitivity: '' },
+    lastUpdated:   null,
+    pending:       0,
+    initialized:   false
+  };
+
+  function wsSave() {
+    try { localStorage.setItem(WS_KEY, JSON.stringify({
+      capabilities: WS.capabilities, sevenRSource: WS.sevenRSource,
+      aidpVerdicts: WS.aidpVerdicts, lastUpdated: WS.lastUpdated
+    })); } catch {}
+  }
+  function wsLoad() {
+    try {
+      const raw = localStorage.getItem(WS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.capabilities)) WS.capabilities = parsed.capabilities;
+        WS.sevenRSource = parsed.sevenRSource || 'local';
+        WS.aidpVerdicts = parsed.aidpVerdicts || {};
+        WS.lastUpdated  = parsed.lastUpdated || null;
+      }
+    } catch {}
+    /* Migrate from wizard's STATE.selected if Workspace is empty */
+    if (WS.capabilities.length === 0 && Array.isArray(STATE?.selected) && STATE.selected.length > 0) {
+      WS.capabilities = STATE.selected
+        .map(id => CAPS.find(c => c.id === id))
+        .filter(Boolean)
+        .map(toCanonical);
+      WS.lastUpdated = Date.now();
+      wsSave();
+    }
+  }
+
+  /* ─── Helpers ──────────────────────────────────────────────── */
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function fmtFresh(ts) {
+    if (!ts) return 'Never';
+    const sec = Math.floor((Date.now() - ts) / 1000);
+    if (sec < 60)    return sec + 's ago';
+    if (sec < 3600)  return Math.floor(sec/60) + 'm ago';
+    if (sec < 86400) return Math.floor(sec/3600) + 'h ago';
+    return Math.floor(sec/86400) + 'd ago';
+  }
+  function getEmail() {
+    try {
+      const ls = window.localStorage;
+      return (ls && (ls.getItem('aidp_user_email') || ls.getItem('user_email'))) || 'guest@aidp.demo';
+    } catch { return 'guest@aidp.demo'; }
+  }
+  function localCompute7R(cap) {
+    /* Tiny heuristic engine for Local mode · matches discovery-engine intent. */
+    const t = cap.current_tech;
+    const cx = cap.complexity;
+    if (t === 'cobol-mainframe' && (cx === 'very-high' || cx === 'high')) return { strategy: 'REARCH',  rationale: 'Legacy mainframe + high complexity warrants a rearchitect to event-driven services.', confidence: 0.82 };
+    if (t === 'cobol-mainframe')                                          return { strategy: 'REFACT',  rationale: 'Mainframe core with manageable complexity · refactor to modular services.', confidence: 0.7 };
+    if (t === 'saas-pkg')                                                 return { strategy: 'REPLACE', rationale: 'Existing SaaS · replace with modern equivalent or stay put with vendor upgrades.', confidence: 0.65 };
+    if (t === 'low-code')                                                 return { strategy: 'REPLAT',  rationale: 'Low-code platform · replatform onto a managed runtime.', confidence: 0.6 };
+    if (t === 'java-monolith' || t === 'dotnet-monolith')                 return { strategy: 'REFACT',  rationale: 'Monolith · refactor to microservices incrementally.', confidence: 0.72 };
+    if (cx === 'low')                                                     return { strategy: 'REHOST',  rationale: 'Low complexity · lift-and-shift is the cheapest path to cloud.', confidence: 0.6 };
+    return { strategy: 'REPLAT', rationale: 'Default replatform · move to managed equivalents.', confidence: 0.55 };
+  }
+  function verdictFor(cap) {
+    if (WS.sevenRSource === 'live') {
+      const live = WS.aidpVerdicts[cap.id];
+      if (live) return { strategy: String(live.strategy || '').toUpperCase().slice(0,7), rationale: live.rationale || '', confidence: live.confidence ?? 0 };
+    }
+    return localCompute7R(cap);
+  }
+
+  /* ─── Renders ──────────────────────────────────────────────── */
+  function renderHeader() {
+    const email = getEmail();
+    const tn = document.getElementById('ws-tenant-name');
+    if (tn) tn.textContent = email.split('@')[0];
+    const fresh = document.getElementById('ws-freshness');
+    const ft = document.getElementById('ws-fresh-text');
+    if (!fresh || !ft) return;
+    if (WS.pending > 0) {
+      fresh.className = 'ws-freshness queued';
+      ft.textContent = WS.pending + ' pending sync';
+    } else if (!WS.lastUpdated) {
+      fresh.className = 'ws-freshness stale';
+      ft.textContent = 'No data loaded';
+    } else if (Date.now() - WS.lastUpdated > 24 * 3600 * 1000) {
+      fresh.className = 'ws-freshness stale';
+      ft.textContent = 'Stale · ' + fmtFresh(WS.lastUpdated);
+    } else {
+      fresh.className = 'ws-freshness';
+      ft.textContent = 'Live · ' + fmtFresh(WS.lastUpdated);
+    }
+  }
+
+  function renderKpis() {
+    const total = WS.capabilities.length;
+    const reg = WS.capabilities.filter(c => c.sensitivity === 'regulated').length;
+    const verdicts = {};
+    WS.capabilities.forEach(c => {
+      const v = verdictFor(c).strategy;
+      verdicts[v] = (verdicts[v] || 0) + 1;
+    });
+    const dominant = Object.entries(verdicts).sort((a,b) => b[1]-a[1])[0];
+    const ready = total > 0 && WS.capabilities.every(c => c.domain && c.current_tech);
+
+    document.getElementById('ws-kpi-total').textContent = total || '0';
+    document.getElementById('ws-kpi-total-sub').textContent = total === 0 ? 'Load sample to begin' : (Object.keys(verdicts).length + ' verdict types');
+    document.getElementById('ws-kpi-reg').textContent = reg;
+    document.getElementById('ws-kpi-reg-sub').textContent = total > 0 ? (Math.round(reg/total*100) + '% of fleet') : ' ';
+    document.getElementById('ws-kpi-verd').textContent = dominant ? dominant[0] : '—';
+    document.getElementById('ws-kpi-verd-sub').textContent = dominant ? (dominant[1] + ' capabilities') : ' ';
+    document.getElementById('ws-kpi-ready').textContent = ready ? '✓ Yes' : (total > 0 ? '⚠ Gaps' : '—');
+    document.getElementById('ws-kpi-ready-sub').textContent = total === 0 ? ' ' : (ready ? 'all fields filled' : 'fix missing fields');
+  }
+
+  function renderDomainFilter() {
+    const sel = document.getElementById('ws-f-domain');
+    if (!sel) return;
+    const present = [...new Set(WS.capabilities.map(c => c.domain))].sort();
+    const current = WS.filters.domain;
+    sel.innerHTML = '<option value="">All</option>' + present.map(d => '<option value="'+escapeHtml(d)+'"'+(d===current?' selected':'')+'>'+escapeHtml(d)+'</option>').join('');
+  }
+
+  function visibleCaps() {
+    return WS.capabilities.filter(c => {
+      if (WS.filters.domain      && c.domain      !== WS.filters.domain)     return false;
+      if (WS.filters.complexity  && c.complexity  !== WS.filters.complexity) return false;
+      if (WS.filters.sensitivity && c.sensitivity !== WS.filters.sensitivity)return false;
+      return true;
+    });
+  }
+
+  function renderTable() {
+    const body = document.getElementById('ws-tbl-body');
+    const meta = document.getElementById('ws-tbl-meta');
+    const rows = visibleCaps();
+    meta.textContent = rows.length + ' of ' + WS.capabilities.length + ' shown';
+
+    if (WS.capabilities.length === 0) {
+      body.innerHTML =
+        '<div class="ws-empty">' +
+          '<div class="icon">🏛</div>' +
+          '<h2>No capabilities yet</h2>' +
+          '<p>Load the canonical banking sample below, or switch to Wizard to enter capabilities one at a time.</p>' +
+        '</div>';
+      return;
+    }
+
+    let html = '<table class="ws-tbl">';
+    html += '<thead><tr><th>Capability</th><th>Domain</th><th>Tech</th><th>Sens</th><th>7R</th></tr></thead><tbody>';
+    rows.forEach(c => {
+      const v = verdictFor(c).strategy || 'REPLAT';
+      const sensCls = c.sensitivity === 'regulated' ? 'ws-chip-sens-regulated' : c.sensitivity === 'confidential' ? 'ws-chip-sens-confidential' : '';
+      html += '<tr class="' + (c.id === WS.selectedId ? 'selected' : '') + '" onclick="wsSelect(\'' + escapeHtml(c.id) + '\')">';
+      html +=   '<td><div class="ws-cap-name">' + escapeHtml(c.name || c.id) + '</div><div class="ws-cap-meta">' + escapeHtml(c.complexity) + ' · ' + escapeHtml(c.volume) + ' vol</div></td>';
+      html +=   '<td><span class="ws-chip ws-chip-dom">' + escapeHtml(c.domain) + '</span></td>';
+      html +=   '<td style="font-family:var(--ws-f-mono);font-size:11px;color:var(--ws-ink-600)">' + escapeHtml(c.current_tech) + '</td>';
+      html +=   '<td>' + (sensCls ? '<span class="ws-chip ' + sensCls + '">' + escapeHtml(c.sensitivity) + '</span>' : '<span style="color:var(--ws-ink-500);font-size:11px">' + escapeHtml(c.sensitivity) + '</span>') + '</td>';
+      html +=   '<td><span class="ws-chip ws-chip-' + v + '">' + v + '</span></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    body.innerHTML = html;
+  }
+
+  function renderDetail() {
+    const wrap = document.getElementById('ws-detail');
+    if (!WS.selectedId) {
+      wrap.innerHTML = '<h3>Select a capability</h3><div class="sub">Click a row on the left to inspect + edit. Changes auto-save after 0.8s.</div>';
+      return;
+    }
+    const cap = WS.capabilities.find(c => c.id === WS.selectedId);
+    if (!cap) return;
+    const verd = verdictFor(cap);
+    let html = '';
+    html += '<h3>' + escapeHtml(cap.name || cap.id) + '</h3>';
+    html += '<div class="sub">ID: <code style="font-family:var(--ws-f-mono);font-size:11px">' + escapeHtml(cap.id) + '</code> · edits auto-save to D1</div>';
+
+    function selRow(label, field, allowed) {
+      const v = cap[field] || '';
+      return '<div class="row"><label>' + label + '</label><select data-field="' + field + '" onchange="wsFieldChange(this)">' +
+        allowed.map(a => '<option value="' + a + '"' + (a === v ? ' selected' : '') + '>' + a + '</option>').join('') +
+        '</select></div>';
+    }
+    html += '<div class="row"><label>Name</label><input data-field="name" value="' + escapeHtml(cap.name || '') + '" oninput="wsFieldChange(this)"></div>';
+    html += selRow('Domain',      'domain',       ALL_DOMAINS);
+    html += selRow('Current tech','current_tech', ALL_TECH_STACKS);
+    html += selRow('Complexity',  'complexity',   ALL_COMPLEXITY);
+    html += selRow('Sensitivity', 'sensitivity',  ALL_SENSITIVITY);
+    html += selRow('Volume',      'volume',       ALL_VOLUME);
+
+    /* 7R verdict card */
+    html += '<div class="verdict-card">';
+    html +=   '<div class="head">';
+    html +=     '<div><span class="ws-chip ws-chip-' + (verd.strategy || 'REPLAT') + '">' + escapeHtml(verd.strategy || '—') + '</span></div>';
+    html +=     '<div style="font-size:11px;color:var(--ws-ink-500)">Source: <strong>' + (WS.sevenRSource === 'live' ? 'AIDP agent' : 'Local engine') + '</strong></div>';
+    html +=   '</div>';
+    html +=   '<div class="rationale">' + escapeHtml(verd.rationale || '') + '</div>';
+    html +=   '<div class="meta">confidence ' + Math.round((verd.confidence || 0) * 100) + '%</div>';
+    html +=   '<div style="margin-top:10px;display:flex;gap:6px">';
+    html +=     '<button class="ws-btn ws-btn-sm" onclick="wsRunOneAidp(\'' + escapeHtml(cap.id) + '\')">🌐 Refresh from AIDP</button>';
+    html +=     '<button class="ws-btn ws-btn-sm" onclick="wsDeleteCap(\'' + escapeHtml(cap.id) + '\')" style="color:var(--ws-red);border-color:var(--ws-red-lt)">Delete</button>';
+    html +=   '</div>';
+    html += '</div>';
+
+    wrap.innerHTML = html;
+  }
+
+  function renderStatusBar() {
+    const t = document.getElementById('ws-status-text');
+    if (!t) return;
+    if (WS.capabilities.length === 0) { t.textContent = 'No capabilities loaded'; return; }
+    const reg = WS.capabilities.filter(c => c.sensitivity === 'regulated').length;
+    t.innerHTML = WS.capabilities.length + ' capabilities · ' + reg + ' regulated · Source: <strong>' + (WS.sevenRSource === 'live' ? 'Live AIDP agent' : 'Local engine') + '</strong>' + (WS.pending > 0 ? ' · ⚠ ' + WS.pending + ' pending sync' : '');
+  }
+
+  function renderAll() {
+    if (WS.pending !== undefined && window.DiscoveryAPI) WS.pending = window.DiscoveryAPI.pendingCount();
+    renderHeader();
+    renderKpis();
+    renderDomainFilter();
+    renderTable();
+    renderDetail();
+    renderStatusBar();
+  }
+
+  /* ─── Events ───────────────────────────────────────────────── */
+  window.wsSelect = function (id) {
+    WS.selectedId = id;
+    renderTable();
+    renderDetail();
+  };
+  window.wsFieldChange = function (el) {
+    if (!WS.selectedId) return;
+    const cap = WS.capabilities.find(c => c.id === WS.selectedId);
+    if (!cap) return;
+    const field = el.getAttribute('data-field');
+    cap[field] = el.value;
+    WS.lastUpdated = Date.now();
+    wsSave();
+    /* Debounced D1 sync via the DISCOVERY agent */
+    if (window.DiscoveryAPI) window.DiscoveryAPI.saveDebounced(stripLegacy(cap));
+    /* Cheap re-renders */
+    renderKpis();
+    renderTable();   // verdict could change
+    renderHeader();
+    renderStatusBar();
+  };
+  function stripLegacy(cap) {
+    /* Send canonical fields only to the agent (the legacy object isn't part of the contract). */
+    const { _legacy, ...clean } = cap;
+    return clean;
+  }
+  window.wsDeleteCap = function (id) {
+    const cap = WS.capabilities.find(c => c.id === id);
+    if (!cap || !confirm('Delete "' + (cap.name || id) + '" from your workspace? D1 row stays · this is local-only.')) return;
+    WS.capabilities = WS.capabilities.filter(c => c.id !== id);
+    if (WS.selectedId === id) WS.selectedId = null;
+    delete WS.aidpVerdicts[id];
+    WS.lastUpdated = Date.now();
+    wsSave();
+    renderAll();
+  };
+
+  window.setSevenRSource = function (src) {
+    WS.sevenRSource = src;
+    document.getElementById('ws-src-local').classList.toggle('active', src === 'local');
+    document.getElementById('ws-src-live').classList.toggle('active', src === 'live');
+    wsSave();
+    if (src === 'live' && WS.capabilities.length > 0 && Object.keys(WS.aidpVerdicts).length < WS.capabilities.length) {
+      wsRunAllAidp();
+    } else {
+      renderAll();
+    }
+  };
+
+  window.wsRefresh = async function () {
+    if (!window.DiscoveryAPI) { wsShowError('DiscoveryAPI client not loaded.'); return; }
+    try {
+      const res = await window.DiscoveryAPI.list();
+      if (res && Array.isArray(res.capabilities) && res.capabilities.length > 0) {
+        WS.capabilities = res.capabilities.map(toCanonical);
+        WS.lastUpdated = Date.now();
+        wsSave();
+        wsShowToast('ok', 'Loaded ' + WS.capabilities.length + ' capabilities from D1');
+      } else {
+        wsShowToast('info', 'D1 has no capabilities for this tenant yet · workspace shows local state');
+      }
+    } catch (err) {
+      wsShowError('Refresh failed: ' + (err.message || err));
+    }
+    renderAll();
+  };
+
+  window.wsLoadSample = function () {
+    /* Use the wizard's CAPS catalogue · take a 13-capability spread across groups. */
+    const ids = ['core-payments','core-deposits','core-loans','trade-finance','treasury',
+                 'card-fulfill','card-mgmt','card-tx','aml','audit',
+                 'equities','custody','settlement'];
+    WS.capabilities = ids
+      .map(id => CAPS.find(c => c.id === id))
+      .filter(Boolean)
+      .map(toCanonical);
+    WS.lastUpdated = Date.now();
+    wsSave();
+    /* Sync to D1 (best-effort, debounced per-cap) */
+    if (window.DiscoveryAPI) {
+      WS.capabilities.forEach(c => window.DiscoveryAPI.saveDebounced(stripLegacy(c)));
+    }
+    wsShowToast('ok', 'Sample loaded · 13 banking capabilities');
+    renderAll();
+  };
+
+  window.wsExportXlsx = function () {
+    if (!(window.DI && window.DI.export && window.DI.export.workbook)) {
+      wsShowToast('err', 'Excel exporter not loaded'); return;
+    }
+    if (WS.capabilities.length === 0) {
+      wsShowToast('warn', 'Nothing to export'); return;
+    }
+    const header = ['ID','Name','Domain','Current tech','Complexity','Sensitivity','Volume','7R','Confidence','Rationale','Source'];
+    const rows = WS.capabilities.map(c => {
+      const v = verdictFor(c);
+      return [c.id, c.name, c.domain, c.current_tech, c.complexity, c.sensitivity, c.volume,
+              v.strategy || '', (v.confidence || 0).toFixed(2), v.rationale || '',
+              (WS.sevenRSource === 'live' ? 'AIDP agent' : 'Local engine')];
+    });
+    const params = [
+      ['Setting','Value'],
+      ['Tenant', getEmail()],
+      ['7R source', WS.sevenRSource],
+      ['Capabilities', WS.capabilities.length],
+      ['Regulated', WS.capabilities.filter(c => c.sensitivity === 'regulated').length],
+      ['Generated', new Date().toISOString()]
+    ];
+    try {
+      window.DI.export.workbook('aidp-discovery-workspace', [
+        { name: 'Capabilities',   rows: [header].concat(rows) },
+        { name: 'Run parameters', rows: params }
+      ]);
+      wsShowToast('ok', 'Excel ready');
+    } catch (err) {
+      wsShowToast('err', 'Excel export failed: ' + (err.message || err));
+    }
+  };
+
+  window.wsRunOneAidp = async function (id) {
+    const cap = WS.capabilities.find(c => c.id === id);
+    if (!cap || !window.DiscoveryAPI) return;
+    try {
+      const res = await window.DiscoveryAPI.recommend7r(stripLegacy(cap));
+      const rec = res?.recommendation;
+      if (rec) {
+        WS.aidpVerdicts[id] = rec;
+        WS.lastUpdated = Date.now();
+        wsSave();
+        wsShowToast('ok', 'AIDP verdict: ' + rec.strategy);
+        renderAll();
+      } else {
+        wsShowToast('warn', 'AIDP returned no recommendation');
+      }
+    } catch (err) {
+      wsShowToast('err', '7R call failed: ' + (err.message || err));
+    }
+  };
+
+  window.wsRunAllAidp = async function () {
+    if (!window.DiscoveryAPI || WS.capabilities.length === 0) {
+      wsShowToast('warn', 'Load capabilities first'); return;
+    }
+    wsShowToast('info', 'Running 7R via AIDP on ' + WS.capabilities.length + ' capabilities…');
+    let ok = 0, fail = 0;
+    for (const cap of WS.capabilities) {
+      try {
+        const res = await window.DiscoveryAPI.recommend7r(stripLegacy(cap));
+        if (res?.recommendation) { WS.aidpVerdicts[cap.id] = res.recommendation; ok++; }
+        else fail++;
+      } catch { fail++; }
+    }
+    WS.lastUpdated = Date.now();
+    WS.sevenRSource = 'live';
+    document.getElementById('ws-src-local').classList.remove('active');
+    document.getElementById('ws-src-live').classList.add('active');
+    wsSave();
+    wsShowToast(fail === 0 ? 'ok' : 'warn', 'AIDP 7R done · ' + ok + ' ok, ' + fail + ' failed');
+    renderAll();
+  };
+
+  window.wsSendToArchitecture = function () {
+    if (WS.capabilities.length === 0) { wsShowToast('warn', 'Load capabilities first'); return; }
+    const payload = {
+      from: 'discovery-workspace',
+      ts: Date.now(),
+      capabilities: WS.capabilities.map(stripLegacy),
+      sevenR_source: WS.sevenRSource,
+      verdicts: WS.aidpVerdicts
+    };
+    try { localStorage.setItem('di_handoff_architecture', JSON.stringify(payload)); } catch {}
+    location.href = 'architecture-studio?from=discovery';
+  };
+
+  /* ─── Toasts + error banner ────────────────────────────────── */
+  function wsShowError(msg) {
+    const e = document.getElementById('ws-error');
+    e.className = 'ws-error';
+    e.innerHTML = '<span class="ic">⚠</span><div>' + escapeHtml(msg) + '</div>';
+    e.style.display = 'flex';
+  }
+  function wsShowToast(kind, msg) {
+    if (window.DI && window.DI.toast) window.DI.toast({ kind, title: msg });
+    else console.log('[Workspace ' + kind + ']', msg);
+  }
+
+  /* ─── Filter wiring ────────────────────────────────────────── */
+  function wireFilters() {
+    ['domain','complex','sens'].forEach((k, i) => {
+      const el = document.getElementById('ws-f-' + k);
+      if (!el) return;
+      el.addEventListener('change', e => {
+        const target = ['domain','complexity','sensitivity'][i];
+        WS.filters[target] = e.target.value;
+        renderTable();
+      });
+    });
+  }
+
+  /* ─── Keyboard shortcuts ──────────────────────────────────── */
+  function wireShortcuts() {
+    document.addEventListener('keydown', e => {
+      const t = e.target;
+      const tag = t && t.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.getElementById('ds-workspace').classList.contains('active')) {
+        const k = (e.key || '').toLowerCase();
+        if (k === 's') { e.preventDefault(); wsLoadSample(); }
+        else if (k === 'x') { e.preventDefault(); wsExportXlsx(); }
+        else if (k === 'r') { e.preventDefault(); wsRunAllAidp(); }
+      }
+    });
+  }
+
+  /* ─── View toggle ──────────────────────────────────────────── */
+  window.setDiscoveryView = function (view) {
+    const wizard = document.getElementById('ds-wizard-view');
+    const workspace = document.getElementById('ds-workspace');
+    const btnW = document.getElementById('ds-view-wizard');
+    const btnX = document.getElementById('ds-view-workspace');
+    if (view === 'workspace') {
+      wizard.style.display = 'none';
+      workspace.classList.add('active');
+      btnW.classList.remove('active');
+      btnX.classList.add('active');
+      try { localStorage.setItem('aidp_discovery_view', 'workspace'); } catch {}
+      if (!WS.initialized) {
+        WS.initialized = true;
+        wsLoad();
+        wireFilters();
+        wsRefresh();   // hydrate from D1 on first open
+      } else {
+        renderAll();
+      }
+      /* Refresh freshness pill periodically while visible */
+      if (!window._wsTick) {
+        window._wsTick = setInterval(() => {
+          if (document.getElementById('ds-workspace').classList.contains('active')) {
+            renderHeader();
+            renderStatusBar();
+          }
+        }, 15000);
+      }
+    } else {
+      wizard.style.display = '';
+      workspace.classList.remove('active');
+      btnW.classList.add('active');
+      btnX.classList.remove('active');
+      try { localStorage.setItem('aidp_discovery_view', 'wizard'); } catch {}
+    }
+  };
+
+  /* ─── Auto-pick last-used view on load ────────────────────── */
+  function bootView() {
+    let pref = 'wizard';
+    try { pref = localStorage.getItem('aidp_discovery_view') || 'wizard'; } catch {}
+    /* Wait for the wizard's own DOMContentLoaded init to finish before toggling. */
+    setTimeout(() => {
+      if (pref === 'workspace' && document.getElementById('ds-workspace')) {
+        setDiscoveryView('workspace');
+      }
+      wireShortcuts();
+    }, 100);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootView);
+  else bootView();
+})();
 </script>
 
 </body>
