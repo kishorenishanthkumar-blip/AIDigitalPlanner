@@ -635,22 +635,22 @@ render();
     clearError();
     if (!window.SowAPI) { showError('SowAPI not loaded'); return; }
     try {
-      /* Try list first · cheap. If no SOW exists yet, prompt the user to assemble. */
-      const lst = await window.SowAPI.list();
-      if (lst && lst.has_sow === false) {
+      /* Non-destructive read · sow_export(json) returns the persisted SOW as-is.
+       * IMPORTANT · assemble() re-derives sections from upstream context every
+       * call, which would wipe any in-progress edits. fetchSaved() preserves
+       * user edits made via update_section. Only assembleAidp() (the explicit
+       * "Assemble via AIDP" button) intentionally re-derives. */
+      const saved = await window.SowAPI.fetchSaved();
+      if (!saved) {
         SW.sow = null;
         renderAll();
         if (S()) S().toast('info', 'No SOW yet', 'Click 🌐 Assemble via AIDP to draft one from upstream context');
         return;
       }
-      /* Fetch the full SOW via assemble with persist:false (the agent returns the saved one if it exists) */
-      const r = await window.SowAPI.assemble({ persist: false });
-      if (r && r.sow) {
-        SW.sow = r.sow;
-        SW.cross_binding_errors = r.cross_binding_errors || [];
-        SW.lastUpdated = Date.now();
-        wsSave();
-      }
+      SW.sow = saved;
+      /* fetchSaved doesn't carry cross_binding_errors · only assemble does. Preserve what we had. */
+      SW.lastUpdated = Date.now();
+      wsSave();
       renderAll();
     } catch (err) {
       showError('Refresh failed: ' + (err.message || err));

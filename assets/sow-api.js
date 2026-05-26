@@ -105,6 +105,23 @@
     return window.AIDP.callAgent('SOW', 'sow_export', { user_email: getUserEmail(), format: f });
   }
 
+  /**
+   * Non-destructive read of the saved SOW. Use this instead of assemble()
+   * for refresh paths · assemble() re-derives sections from upstream context
+   * and clobbers any user edits made since the last assemble. fetchSaved()
+   * goes through sow_export(json) which returns the persisted state as-is.
+   *
+   * Returns the unwrapped sow object, or null if the user has no saved SOW.
+   */
+  async function fetchSaved() {
+    const r = await window.AIDP.callAgent('SOW', 'sow_export', {
+      user_email: getUserEmail(), format: 'json'
+    });
+    if (r && r.error === 'no_sow') return null;
+    if (r && r.sow) return r.sow;
+    return null;
+  }
+
   async function flushPending() {
     const q = loadQueue();
     if (!q.length) return { ok: true, flushed: 0 };
@@ -125,7 +142,7 @@
   });
 
   window.SowAPI = {
-    list, assemble, updateSection, updateSectionDebounced, export: exportSow,
+    list, assemble, updateSection, updateSectionDebounced, export: exportSow, fetchSaved,
     flushPending, pendingCount
   };
 
