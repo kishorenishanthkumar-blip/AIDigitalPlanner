@@ -119,6 +119,15 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
 .chip-fail{background:var(--red-lt);color:var(--red)}
 .chip-skip{background:var(--ink-200);color:var(--ink-600)}
 .chip-layer{background:var(--ink-100);color:var(--ink-700)}
+/* Patch-status dropdown · chip-styled select, one color per state. */
+.td-status-select{font:inherit;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px 2px 8px;border-radius:99px;border:1px solid transparent;cursor:pointer;outline:none}
+.td-status-select:hover{filter:brightness(0.95)}
+.td-status-select:disabled{opacity:.5;cursor:wait}
+.chip-status-open{background:var(--red-lt);color:var(--red);border-color:var(--red-lt)}
+.chip-status-in_progress{background:var(--amber-lt);color:var(--amber);border-color:var(--amber-lt)}
+.chip-status-fixed{background:var(--green-lt);color:var(--green);border-color:var(--green-lt)}
+.chip-status-wont_fix{background:var(--ink-100);color:var(--ink-700);border-color:var(--ink-200)}
+.chip-status-duplicate{background:var(--ink-100);color:var(--ink-500);border-color:var(--ink-200);text-decoration:line-through}
 
 /* Expandable defect row */
 .td-defect-detail{background:var(--ink-50);border-top:1px solid var(--ink-200);padding:14px 16px;font-size:12px}
@@ -410,11 +419,22 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
     }
     document.getElementById('kpi-last-sub').textContent = latest.scope + ' · ' + fmtAge(latest.started_at);
 
-    // Open defects (latest run)
-    const open = latest.summary.fail || 0;
+    // Open defects (latest run) · excludes fixed/wont_fix/duplicate via patch_status.
+    // Fall back to summary.fail when defects[] hasn't been fetched yet (list view).
+    let open;
+    if (Array.isArray(latest.defects) && latest.defects.length) {
+      open = latest.defects.filter(d => {
+        const s = (d.patch_status || 'open').toLowerCase();
+        return s === 'open' || s === 'in_progress';
+      }).length;
+    } else {
+      open = latest.summary.fail || 0;
+    }
     openEl.className = open > 0 ? 'td-kpi warning' : 'td-kpi';
     openEl.querySelector('.val').textContent = String(open);
-    document.getElementById('kpi-defects-sub').textContent = 'in latest run';
+    document.getElementById('kpi-defects-sub').textContent = (Array.isArray(latest.defects) && latest.defects.length)
+      ? 'unresolved (excludes fixed/wont_fix/duplicate)'
+      : 'in latest run';
 
     // Blocking
     const block = latest.blocking_count || 0;
@@ -499,9 +519,11 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
 
     let html = '<table class="td-table">';
     html += '<thead><tr>';
-    html +=   '<th>Severity</th><th>Layer</th><th>Agent</th><th>Tool</th><th>Title</th><th>Defect ID</th>';
+    html +=   '<th>Severity</th><th>Layer</th><th>Agent</th><th>Tool</th><th>Title</th><th>Defect ID</th><th>Status</th>';
     html += '</tr></thead><tbody>';
+    const STATUSES = ['open', 'in_progress', 'fixed', 'wont_fix', 'duplicate'];
     defs.forEach((d, i) => {
+      const curStatus = (d.patch_status || 'open').toLowerCase();
       html += '<tr data-idx="' + i + '" onclick="toggleDefect(' + i + ')">';
       html += '<td><span class="chip chip-' + d.severity + '">' + d.severity + '</span></td>';
       html += '<td><span class="chip chip-layer">' + escapeHtml(d.layer || '') + '</span></td>';
@@ -509,13 +531,85 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
       html += '<td class="mono">' + escapeHtml(d.tool || '—') + '</td>';
       html += '<td>' + escapeHtml(d.title || '') + '</td>';
       html += '<td class="mono">' + escapeHtml((d.id || '').slice(-12)) + '</td>';
+      /* Status dropdown · stopPropagation so clicking the select doesn't toggle the row.
+       * data-prev tracks the value to revert on API failure. */
+      html += '<td onclick="event.stopPropagation()">';
+      html +=   '<select class="td-status-select chip-status-' + curStatus + '" data-def-id="' + escapeHtml(d.id || '') + '" data-prev="' + curStatus + '" data-idx="' + i + '" onchange="onDefectStatusChange(this)">';
+      STATUSES.forEach(s => {
+        html += '<option value="' + s + '"' + (s === curStatus ? ' selected' : '') + '>' + s + '</option>';
+      });
+      html +=   '</select>';
+      html += '</td>';
       html += '</tr>';
-      html += '<tr class="defect-detail-row" data-idx="' + i + '" style="display:none"><td colspan="6" style="padding:0">';
+      html += '<tr class="defect-detail-row" data-idx="' + i + '" style="display:none"><td colspan="7" style="padding:0">';
       html += renderDefectDetail(d);
       html += '</td></tr>';
     });
     html += '</tbody></table>';
     body.innerHTML = html;
+  }
+
+  /* Patch-status change handler · called from the inline select onchange.
+   * Calls window.TM.patchStatus, updates STATE in-place, refreshes the
+   * OPEN DEFECTS KPI count, and reverts on failure. */
+  window.onDefectStatusChange = async function (sel) {
+    const defId   = sel.getAttribute('data-def-id');
+    const prev    = sel.getAttribute('data-prev');
+    const next    = sel.value;
+    const idx     = parseInt(sel.getAttribute('data-idx'), 10);
+    if (!defId || prev === next) return;
+    /* Optimistic UI · update chip color now, revert on error. */
+    sel.classList.remove('chip-status-' + prev);
+    sel.classList.add('chip-status-' + next);
+    sel.disabled = true;
+    try {
+      const result = await window.TM.patchStatus(defId, next);
+      if (!result || result.ok === false || result.error) {
+        throw new Error(result?.error || 'patch_status returned not-ok');
+      }
+      /* Update STATE in-place so re-renders preserve the change. */
+      const rpt = STATE.selectedReport;
+      if (rpt && Array.isArray(rpt.defects) && rpt.defects[idx]) {
+        rpt.defects[idx].patch_status = next;
+      }
+      sel.setAttribute('data-prev', next);
+      /* Refresh the OPEN DEFECTS KPI count without re-fetching. */
+      refreshOpenDefectsKpi();
+      if (window.DI && window.DI.toast) {
+        window.DI.toast({ kind: 'ok', title: 'Status updated', message: defId.slice(-12) + ' → ' + next });
+      }
+    } catch (err) {
+      /* Revert on failure. */
+      sel.value = prev;
+      sel.classList.remove('chip-status-' + next);
+      sel.classList.add('chip-status-' + prev);
+      if (window.DI && window.DI.toast) {
+        window.DI.toast({ kind: 'err', title: 'Update failed', message: (err.message || String(err)).slice(0, 120) });
+      } else {
+        alert('Could not update status: ' + (err.message || err));
+      }
+    } finally {
+      sel.disabled = false;
+    }
+  };
+
+  /* Recount open defects = those with patch_status in {open, in_progress}.
+   * Called after a successful status change. */
+  function refreshOpenDefectsKpi() {
+    const rpt = STATE.selectedReport;
+    if (!rpt) return;
+    const openLike = (rpt.defects || []).filter(d => {
+      const s = (d.patch_status || 'open').toLowerCase();
+      return s === 'open' || s === 'in_progress';
+    }).length;
+    const openEl = document.getElementById('kpi-defects-open');
+    if (openEl) {
+      openEl.className = openLike > 0 ? 'td-kpi warning' : 'td-kpi';
+      const valEl = openEl.querySelector('.val');
+      if (valEl) valEl.textContent = String(openLike);
+      const subEl = document.getElementById('kpi-defects-sub');
+      if (subEl) subEl.textContent = 'unresolved (excludes fixed/wont_fix/duplicate)';
+    }
   }
 
   function renderDefectDetail(d) {
