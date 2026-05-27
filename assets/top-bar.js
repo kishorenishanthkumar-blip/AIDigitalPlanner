@@ -14,6 +14,7 @@
   }
 
   // Features catalog — single source of truth (kept in sync with feature-explainer.html)
+  // To mark something as work-in-progress, set badge: 'WIP' instead of 'LIVE'.
   const FEATURES = [
     { id: 'rfp',          icon: '📝', name: 'RFP-style Q&A',        desc: 'Role + region aware questionnaires.',                 badge: 'LIVE' },
     { id: 'requirements', icon: '📋', name: 'AI Requirements',      desc: 'Drafts Technical · Business · Product · Regulatory.', badge: 'LIVE', href: 'requirements.html' },
@@ -21,10 +22,15 @@
     { id: 'architecture', icon: '🏗', name: 'Architecture design',  desc: '7R-aligned architectures across 6 clouds.',           badge: 'LIVE' },
     { id: 'blockchain',   icon: '🪙', name: 'Blockchain & RWA',     desc: 'Tokenization & on-chain settlement patterns.',         badge: 'LIVE', href: 'blockchain-rwa.html' },
     { id: 'actions',      icon: '🎯', name: 'Role-based Actions',   desc: 'Aggregated actions by role · KPIs · drill-down.',      badge: 'LIVE', href: 'actions.html' },
+    { id: 'sow',          icon: '📄', name: 'Draft SOW',            desc: '11-section Statement of Work · pricing · milestones · staffing · RAID.', badge: 'LIVE', href: 'sow.html' },
+    { id: 'governance',   icon: '📋', name: 'Program Governance',   desc: 'RAID register · 7-R timeline · steering pack · runlog.', badge: 'LIVE', href: 'program-governance.html' },
+    { id: 'evp',          icon: '📊', name: 'EVP Summary',          desc: 'Executive value proposition · board-ready one-pager.', badge: 'LIVE', href: 'evp-summary.html' },
     { id: 'knowledge',    icon: '📚', name: 'Knowledge artifacts',  desc: 'Repository of past artifacts, templates, playbooks, regulatory checklists, patterns.', badge: 'LIVE', href: 'knowledge.html' },
     { id: 'export',       icon: '⬇',  name: 'Export reports',       desc: 'Markdown · JSON · MS Project · DR runbook.',          badge: 'LIVE' },
     { id: 'sevenr',       icon: '🔄', name: '7R migration planner', desc: 'Rehost · Replatform · Refactor · …',                  badge: 'LIVE', href: 'discovery-studio.html' },
-    { id: 'iac',          icon: '⚙', name: 'IaC bundle generator', desc: 'Terraform · Helm · GitHub Actions scaffolds.',         badge: 'LIVE', href: 'iac.html' }
+    { id: 'iac',          icon: '⚙', name: 'IaC bundle generator', desc: 'Terraform · Helm · GitHub Actions scaffolds.',         badge: 'LIVE', href: 'iac.html' },
+    { id: 'testing-svc',  icon: '🧪', name: 'Testing Services',     desc: 'Audit-ready continuous testing · TDM · strategy · plans · evidence packs.', badge: 'LIVE', href: 'testing-services.html' },
+    { id: 'testing-dash', icon: '🩺', name: 'Testing Dashboard',    desc: 'testing-master runs · Playwright E2E · defect manifest · re-run with same scope.', badge: 'LIVE', href: 'testing-dashboard.html' }
   ];
 
   // Top-level navigation
@@ -95,6 +101,8 @@
         .di-mega-card .bd .badge{font-size:8.5px;font-weight:700;letter-spacing:.04em;padding:1px 6px;border-radius:99px}
         .di-mega-card .bd .badge.LIVE{background:var(--green-bg,#E8FBF4);color:#0A8462}
         .di-mega-card .bd .badge.BETA{background:var(--aglow,#FFF7E6);color:var(--gold,#C8921A)}
+        .di-mega-card .bd .badge.WIP{background:#FEF3C7;color:#92400E}
+        .di-mega-card .bd .badge.PLANNED{background:#F1F5F9;color:#475569}
         .di-mega-card .bd .desc{font-size:10.5px;color:var(--ink-2,#5B6B8A);margin-top:2px;line-height:1.4}
         .di-mega-spot{padding-left:14px;border-left:1px solid var(--border,#E2E7F1)}
         .di-mega-spot .eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold,#C8921A);text-transform:uppercase;margin-bottom:6px}

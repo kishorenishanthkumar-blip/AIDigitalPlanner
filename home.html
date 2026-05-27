@@ -107,7 +107,10 @@ button{font-family:var(--f-ui);cursor:pointer}
 .tile-status.ok{color:var(--green)}
 .tile-status.warn{color:#FF8030}
 .tile-status.err{color:var(--red)}
+.tile-status.wip{color:#92400E;background:#FEF3C7;padding:2px 7px;border-radius:99px}
+.tile-status.planned{color:#475569;background:#F1F5F9;padding:2px 7px;border-radius:99px}
 .tile-status::before{content:'●';font-size:9px}
+.tile-status.wip::before,.tile-status.planned::before{display:none}
 .tile-cta{color:var(--gold);font-weight:700;font-size:13px}
 .tile.featured{background:linear-gradient(135deg,#1A2238,#243655);color:#fff;border:1px solid var(--gold)}
 .tile.featured .tile-icon{background:linear-gradient(135deg,var(--gold),var(--gold3));color:var(--ink)}
@@ -331,6 +334,13 @@ function exportPlatformSnapshot() {
       <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#FFE7EC,#FFD7DD);color:#FF4D6A">🧪</div><div class="tile-name">Testing Services</div></div>
       <div class="tile-desc" id="testing-tile-desc">Audit-ready continuous testing — TDM · strategy · plans · types · defects · upgrades · evidence packs.</div>
       <div class="tile-foot"><span class="tile-status" id="testing-tile-status">Loading…</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="testing-dashboard" href="testing-dashboard.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Testing Dashboard" onclick="togglePin('testing-dashboard',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#DBEAFE,#BFDBFE);color:#1E40AF">🩺</div><div class="tile-name">Testing Dashboard</div></div>
+      <div class="tile-desc">testing-master runs across 8 internal layers · Playwright browser E2E · normalized defect manifest stored in D1. Includes "Re-run with same scope" + one-click Playwright trigger.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
     </a>
 
     <a class="tile featured" data-tile-id="nishi" href="nishi-chatbot.html">
