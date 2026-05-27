@@ -981,7 +981,7 @@ input,select,textarea{font-family:var(--f-ui)}
       <button class="tb-tab" onclick="window.location.href='architecture-studio.html'">🏗 Architecture</button>
       <button class="tb-tab" onclick="window.location.href='program-governance.html'">📊 Governance</button>
       <button class="tb-tab" onclick="window.location.href='operations.html'">⚙ Operations</button>
-      <button class="tb-tab" onclick="window.location.href='nishi-chatbot.html'">💬 Nishi</button>
+      <button class="tb-tab" onclick="window.location.href='nishi-chatbot.html'">💬 Niche-I</button>
       <button class="tb-tab" onclick="switchMod('idd',this)">📄 IDD</button>
     </div>
     <div class="tb-r">
@@ -1887,7 +1887,7 @@ function doCreateAccount(){
                        : (ccObj.country === 'US' || ccObj.country === 'CA') ? 'North America'
                        : 'North America';
 
-  // Stash for downstream (Nishi etc.)
+  // Stash for downstream (Niche-I etc.)
   // NOTE: password is stored only in sessionStorage for the current tab
   // (cleared on close / logout). In a production deployment this would be
   // hashed server-side; this is a demo flow.
@@ -2071,8 +2071,8 @@ function finalizeLogin(found){
     signedInAt: new Date().toISOString()
   };
   try { sessionStorage.setItem('di_account_profile', JSON.stringify(profile)); } catch (e) {}
-  // ── Phase 13: redirect to Nishi as the first landing ──
-  // Keep a small marker so Nishi knows to show the welcome flow
+  // ── Phase 13: redirect to Niche-I as the first landing ──
+  // Keep a small marker so Niche-I knows to show the welcome flow
   try { sessionStorage.setItem('di_from_login', '1'); } catch (e) {}
   location.href = 'nishi-chatbot.html?from=login';
 }
@@ -2128,7 +2128,7 @@ function doLogout() {
   const ak = document.getElementById('app-apikey'); if (ak) ak.value='';
   document.getElementById('api-status-bar').innerHTML = '';
   gotoStep(1);
-  // ── Nishi cleanup ──
+  // ── Niche-I cleanup ──
   try {
     sessionStorage.removeItem('di_account_profile');
     if (window.Nishi && window.Nishi.context) window.Nishi.context.reset();
@@ -2771,9 +2771,10 @@ document.addEventListener('DOMContentLoaded', () => {
     <button class="secondary" onclick="clearApiKey()">Clear</button>
     <button class="secondary" onclick="toggleApiDrawer()">Close</button>
   </div>
-  <div class="hint">Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> → API Keys → Create Key. The key powers AI features in Discovery, Requirements, and Nishi's RAG mode (Phase 9).</div>
+  <div class="hint">Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> → API Keys → Create Key. The key powers AI features in Discovery, Requirements, and Niche-I's RAG mode (Phase 9).</div>
 </div>
 
-<script src="assets/nishi.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+  <script src="assets/nishi.js" defer></script>
 </body>
 </html>

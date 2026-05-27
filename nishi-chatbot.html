@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Nishi · DI Platform AI Assistant — Digital Infotech</title>
+<title>Niche-I · DI Platform AI Assistant — Digital Infotech</title>
 <link rel="stylesheet" href="assets/theme.css">
 <script src="assets/toasts.js" defer></script>
 <script src="assets/audit.js" defer></script>
@@ -11,6 +11,15 @@
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
 <script src="assets/export.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<!-- Chart.js for inline chart blocks emitted by Niche-I -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- AIDP video player for ```video briefs emitted by Niche-I -->
+<script src="assets/video-player.js"></script>
+<!-- AIDP attachments · paperclip uploads + URL fetch + PDF + DOCX + XLSX + PPTX + EBCDIC -->
+<script src="assets/attachments.js"></script>
+<!-- AIDP exporters · download chat content as MD/TXT/JSON/CSV/DOCX/XLSX/PPTX -->
+<script src="assets/exporters.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 :root{
@@ -172,7 +181,7 @@ body{background:linear-gradient(180deg,#F8FAFD,#EEF2F8);color:var(--t1);font-fam
       <h3>Session</h3>
       <div class="session">
         <div class="row"><span>Mode</span><strong id="mode-label">Chat</strong></div>
-        <div class="row"><span>Model</span><strong>claude-sonnet-4-6</strong></div>
+        <div class="row"><span>Model</span><strong>llama-3.3-70b · master /chat</strong></div>
         <div class="row"><span>Messages</span><strong id="msg-count">0</strong></div>
         <div class="row"><span>Tokens (≈)</span><strong id="tok-count">0</strong></div>
       </div>
@@ -184,12 +193,17 @@ body{background:linear-gradient(180deg,#F8FAFD,#EEF2F8);color:var(--t1);font-fam
     <div class="chat-head">
       <div class="avatar">N</div>
       <div>
-        <h2>Nishi</h2>
-        <div class="sub">Your platform AI assistant · powered by Claude</div>
+        <h2>Niche-I</h2>
+        <div class="sub">Your AI assistant · ask anything · routes through 13 AIDP agents when relevant</div>
       </div>
       <div class="mode-toggle">
         <button class="mt-btn act" id="mt-chat" onclick="setMode('chat')">Chat</button>
         <button class="mt-btn" id="mt-cli" onclick="setMode('cli')">CLI</button>
+        <button class="mt-btn" id="mt-export-md"   title="Download chat as Markdown" onclick="exportChatAsMarkdown()" style="margin-left:8px">📥 .md</button>
+        <button class="mt-btn" id="mt-export-docx" title="Download chat as Word document" onclick="exportChatAsDocx()">📝 .docx</button>
+        <button class="mt-btn" id="mt-export-xlsx" title="Download chat as Excel (one row per message)" onclick="exportChatAsXlsx()">📊 .xlsx</button>
+        <button class="mt-btn" id="mt-export-pptx" title="Download chat as PowerPoint deck" onclick="exportChatAsPptx()">📽 .pptx</button>
+        <button class="mt-btn" id="mt-export-pdf"  title="Print / Save chat as PDF"   onclick="exportChatAsPDF()">🖨 PDF</button>
       </div>
     </div>
 
@@ -219,14 +233,22 @@ body{background:linear-gradient(180deg,#F8FAFD,#EEF2F8);color:var(--t1);font-fam
           <button onclick="pickPrompt('Draft a 7R migration plan for our legacy COBOL Core Banking on z/OS.')"><strong>🛠 Migration</strong> · 7R plan · COBOL on z/OS</button>
           <button onclick="pickPrompt('Outline a blockchain + Real World Asset tokenization roadmap for our cards portfolio.')"><strong>🪙 Blockchain</strong> · RWA tokenization · Cards</button>
           <button onclick="pickPrompt('Show me last week’s outstanding RAID items I should escalate.')"><strong>⚠ RAID</strong> · Escalation digest · last week</button>
+          <button onclick="pickPrompt('Create a 2-minute video about AIDP itself for a banking CIO audience. Cover: the 13-agent backend, the studios (Discovery 7R, Architecture pricing, SOW assembly, Governance RAID, Operations DORA), tamper-evident audit chain, and zero-config IaC export. Make it punchy and pitch-ready.')"><strong>🎬 AIDP video</strong> · 2-min intro for a CIO audience</button>
+          <button onclick="pickPrompt('Generate a bar chart comparing AWS, Azure, GCP, OCI monthly costs for a typical mid-sized bank workload.')"><strong>📊 Chart demo</strong> · Cloud cost comparison</button>
+          <button onclick="pickPrompt('Generate 5 sample banking capabilities as JSON I can paste into Discovery Studio.')"><strong>🧪 Test data</strong> · 5 sample capabilities</button>
         </div>
       </div>
+
+      <!-- Attachment chips appear here when the user has attached files. -->
+      <div id="attach-chips" style="display:none"></div>
 
       <div class="input-row">
         <button class="mic-btn" id="mic-btn" title="Hold to talk · release to send"
                 onmousedown="micDown()" onmouseup="micUp()" onmouseleave="micUp()"
                 ontouchstart="micDown();event.preventDefault();" ontouchend="micUp()">🎤</button>
-        <textarea id="ta" rows="1" placeholder="Ask Nishi anything — or hold the 🎤 mic to speak" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+        <button class="mic-btn" id="attach-btn" title="Attach text · markdown · JSON · CSV · PDF (max 5 files · 5MB each)" onclick="AIDP_ATTACH.openPicker()" style="font-size:18px">📎</button>
+        <button class="mic-btn" id="url-btn" title="Fetch a URL as attachment (CORS-permitting)" onclick="(function(){const u=prompt('Enter URL to attach (must allow CORS):');if(u)AIDP_ATTACH.fromUrl(u);})()" style="font-size:14px">🌐</button>
+        <textarea id="ta" rows="1" placeholder="Ask Niche-I anything · or attach a file via 📎" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
         <button class="send-btn" id="send" onclick="sendMessage()">Send ↵</button>
       </div>
       <div class="hint">
@@ -394,6 +416,10 @@ function appendBot(text){
   div.innerHTML = `<div class="msg-av">N</div><div class="msg-body${sess.mode==='cli'?' cli-body':''}">${renderMd(text)}<div class="time">${nowStr()}</div></div>`;
   document.getElementById('messages').appendChild(div);
   scrollToBot();
+  /* Render any Chart.js placeholders this message produced. */
+  renderChartsIn(div);
+  /* return the .msg-body so streaming callers can update it in place */
+  return div.querySelector('.msg-body');
 }
 
 function appendSystem(text){
@@ -426,8 +452,35 @@ function escapeHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+/* Counter to assign unique IDs to chart canvases. */
+let __chartCounter = 0;
+
 function renderMd(s){
-  // very small markdown renderer: code, bold, italic, headers, lists, prompt
+  // Lightweight markdown renderer with chart + video block support.
+
+  // 0. Extract ```video blocks FIRST · render as interactive cards.
+  const videos = [];
+  if (window.AIDP_VIDEO) {
+    s = s.replace(/```video\s*([\s\S]*?)```/gi, (m, json) => {
+      let brief = null;
+      try { brief = JSON.parse(json.trim()); } catch (_) { /* malformed · keep raw */ }
+      if (brief && brief.scenes) {
+        const id = 'v' + Date.now().toString(36) + (videos.length);
+        videos.push({ id: id, brief: brief });
+        return `\n__VIDEO_PLACEHOLDER_${id}__\n`;
+      }
+      return m;  // leave malformed brief as plain code block
+    });
+  }
+
+  // 1. Extract ```chart blocks (preserve JSON before escape)
+  const charts = [];
+  s = s.replace(/```chart\s*([\s\S]*?)```/gi, (m, json) => {
+    const id = 'aidp-chart-' + (++__chartCounter);
+    charts.push({ id: id, spec: json.trim() });
+    return `\n__CHART_PLACEHOLDER_${id}__\n`;
+  });
+
   let h = escapeHtml(s);
   h = h.replace(/```([\s\S]*?)```/g, (m,c) => `<pre>${c}</pre>`);
   h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
@@ -437,7 +490,129 @@ function renderMd(s){
   h = h.replace(/^\* (.*$)/gim, '• $1');
   h = h.replace(/^(\d+)\. (.*$)/gim, '$1. $2');
   h = h.replace(/^\$ (.+)$/gm, '<span class="cli-prompt">$</span> $1');
+
+  // Swap chart placeholders for canvas elements (rendered async by renderChartsIn).
+  for (const c of charts) {
+    h = h.replace(
+      `__CHART_PLACEHOLDER_${c.id}__`,
+      `<div class="aidp-chart-wrap" style="margin:8px 0;padding:8px;background:#fff;border:1px solid var(--b1);border-radius:6px;max-width:520px"><canvas id="${c.id}" data-chart-spec='${escapeAttr(c.spec)}'></canvas></div>`
+    );
+  }
+
+  // Swap video placeholders for video player cards.
+  for (const v of videos) {
+    const cardHtml = window.AIDP_VIDEO.renderBriefCard(v.brief, v.id);
+    h = h.replace(`__VIDEO_PLACEHOLDER_${v.id}__`, cardHtml);
+  }
   return h;
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+}
+
+/* Instantiate Chart.js for any unrendered chart canvases inside `root`.
+   Safe to call multiple times · skips canvases already initialised. */
+function renderChartsIn(root) {
+  if (!root || typeof Chart === 'undefined') return;
+  const canvases = root.querySelectorAll ? root.querySelectorAll('canvas[data-chart-spec]:not([data-chart-rendered])') : [];
+  canvases.forEach((c) => {
+    try {
+      const spec = JSON.parse(c.getAttribute('data-chart-spec'));
+      new Chart(c.getContext('2d'), spec);
+      c.setAttribute('data-chart-rendered', '1');
+    } catch (e) {
+      c.outerHTML = `<pre style="color:var(--red);font-size:11px">chart parse error: ${escapeHtml(e.message)}</pre>`;
+    }
+  });
+}
+
+/* Collect chat into a normalised array · used by all export targets. */
+function _collectChat() {
+  const out = [];
+  document.querySelectorAll('#messages .msg').forEach((m) => {
+    const role = m.classList.contains('user') ? 'User'
+               : m.classList.contains('bot')  ? 'Niche-I'
+               : m.classList.contains('system') ? 'System' : '?';
+    const body = m.querySelector('.msg-body');
+    if (!body) return;
+    const text = body.innerText.replace(/\n{3,}/g, '\n\n').trim();
+    if (text) out.push({ role, text, ts: new Date().toISOString() });
+  });
+  return out;
+}
+
+/* Export the current chat as a Markdown file the user can download. */
+function exportChatAsMarkdown() {
+  const chat = _collectChat();
+  const lines = ['# Niche-I chat export', '', `_Generated ${new Date().toLocaleString()}_`, ''];
+  chat.forEach(m => { lines.push(`## ${m.role}`, '', m.text, ''); });
+  if (window.AIDP_EXPORT) AIDP_EXPORT.asMarkdown(lines.join('\n'), `niche-i-chat-${Date.now()}.md`);
+}
+
+/* Export chat as Word document via docx.js · simple markdown-ish conversion. */
+async function exportChatAsDocx() {
+  if (!window.AIDP_EXPORT) { alert('Exporters not loaded'); return; }
+  const chat = _collectChat();
+  const md = chat.map(m => `## ${m.role}\n\n${m.text}\n`).join('\n');
+  try {
+    await AIDP_EXPORT.asDocx('# Niche-I chat export\n\n' + md, `niche-i-chat-${Date.now()}.docx`);
+  } catch (e) {
+    alert('Word export failed: ' + e.message);
+  }
+}
+
+/* Export chat as Excel · one row per message with role, text, timestamp. */
+async function exportChatAsXlsx() {
+  if (!window.AIDP_EXPORT) { alert('Exporters not loaded'); return; }
+  const chat = _collectChat();
+  const rows = [['Role', 'Message', 'Captured At']];
+  chat.forEach(m => rows.push([m.role, m.text, m.ts]));
+  try {
+    await AIDP_EXPORT.asXlsx({ 'Niche-I chat': rows }, `niche-i-chat-${Date.now()}.xlsx`);
+  } catch (e) {
+    alert('Excel export failed: ' + e.message);
+  }
+}
+
+/* Export chat as PowerPoint · one slide per Niche-I response (user prompts as titles). */
+async function exportChatAsPptx() {
+  if (!window.AIDP_EXPORT) { alert('Exporters not loaded'); return; }
+  const chat = _collectChat();
+  const slides = [{ title: 'Niche-I conversation', bullets: [`Captured ${new Date().toLocaleString()}`, `${chat.length} messages`], notes: '' }];
+  /* Pair user → bot · one slide per pair. */
+  for (let i = 0; i < chat.length; i++) {
+    const m = chat[i];
+    if (m.role === 'Niche-I') {
+      const prev = chat[i - 1];
+      const title = prev && prev.role === 'User' ? prev.text.slice(0, 80) : 'Niche-I response';
+      /* Break the response into bullet-friendly chunks. */
+      const bullets = m.text.split(/\n+/).filter(Boolean).slice(0, 8);
+      slides.push({ title, bullets, notes: m.text });
+    }
+  }
+  if (slides.length === 1) {
+    slides.push({ title: 'No assistant replies in this session yet', bullets: ['Try asking Niche-I a question first, then export.'] });
+  }
+  try {
+    await AIDP_EXPORT.asPptx(slides, `niche-i-chat-${Date.now()}.pptx`);
+  } catch (e) {
+    alert('PowerPoint export failed: ' + e.message);
+  }
+}
+
+/* Trigger the browser's Print-to-PDF dialog for the chat area. */
+function exportChatAsPDF() {
+  /* Hide everything except the messages area, print, then restore. */
+  const original = document.body.innerHTML;
+  const messages = document.getElementById('messages');
+  if (!messages) { window.print(); return; }
+  const printable = `<div style="font-family:Outfit,system-ui;padding:24px;max-width:900px;margin:auto"><h1 style="font-family:Fraunces,serif">Niche-I chat · ${new Date().toLocaleString()}</h1>${messages.innerHTML}</div>`;
+  document.body.innerHTML = printable;
+  window.print();
+  document.body.innerHTML = original;
+  /* Re-bind events lost during innerHTML swap · simplest is reload */
+  setTimeout(() => location.reload(), 500);
 }
 
 function nowStr(){
@@ -456,7 +631,26 @@ async function sendMessage(){
   const ta = document.getElementById('ta');
   const text = ta.value.trim();
   if (!text) return;
-  appendUser(text);
+
+  /* Prepend any attached files/URLs as <attachment> blocks for the LLM.
+     User sees only their typed text in the bubble; the master /chat
+     receives the full prefixed prompt. Pending list cleared after send. */
+  let outboundText = text;
+  if (window.AIDP_ATTACH && window.AIDP_ATTACH.pending.length > 0) {
+    const ctx = window.AIDP_ATTACH.buildContextString();
+    if (ctx) {
+      outboundText = ctx + 'User question: ' + text;
+      /* Show user-facing bubble that lists the attachments by name */
+      const attNames = window.AIDP_ATTACH.pending.map(a => a.name).join(', ');
+      appendUser(`${text}\n\n_📎 attached: ${attNames}_`);
+    } else {
+      appendUser(text);
+    }
+    window.AIDP_ATTACH.clearPending();
+    window.AIDP_ATTACH.renderChips(document.getElementById('attach-chips'));
+  } else {
+    appendUser(text);
+  }
   bumpCount(text);
   ta.value = '';
 
@@ -466,8 +660,48 @@ async function sendMessage(){
     return;
   }
 
+  // Live path · stream from master agent via AIDP API client
+  if (window.AIDP && typeof window.AIDP.streamChat === 'function') {
+    appendTyping();
+    document.getElementById('status-text').textContent = 'Streaming from master agent…';
+    const botEl = appendBot('_…thinking…_');   // empty bubble to fill
+    removeTyping();
+    let textBuf = '';
+    let toolNote = '';
+
+    function rerender() {
+      const content = toolNote + textBuf;
+      const safe = content || '_…thinking…_';
+      botEl.innerHTML = (typeof renderMd === 'function' ? renderMd(safe) : safe)
+                       + `<div class="time">${typeof nowStr === 'function' ? nowStr() : ''}</div>`;
+      /* If LLM emitted a chart codeblock, render it · only the LAST onDone fully completes a code block */
+      if (typeof renderChartsIn === 'function') renderChartsIn(botEl);
+    }
+
+    window.AIDP.streamChat(outboundText, {
+      onToolCall:   (e) => { toolNote = `_calling \`${e.toolName || e.tool || e.name || 'tool'}\`…_\n\n`; rerender(); },
+      onToolResult: ()  => { toolNote = ''; rerender(); },
+      onChunk:      (e) => { textBuf += (e.content || e.text || e.delta || ''); rerender(); },
+      onToolError:  (e) => { toolNote = `_tool error: ${e.message || 'unknown'}_\n\n`; rerender(); },
+      onError:      (e) => {
+        textBuf += `\n\n_⚠ ${e.message || 'stream error'}_`;
+        rerender();
+        document.getElementById('status-text').textContent = 'Error · ' + (e.message || 'stream');
+      },
+      onDone: () => {
+        if (!textBuf.trim()) {
+          textBuf = '_(no response · master agent returned empty stream)_';
+          rerender();
+        }
+        bumpCount(textBuf);
+        document.getElementById('status-text').textContent = 'Ready';
+      }
+    });
+    return;
+  }
+
+  // Fallback path · use legacy Anthropic-key flow if AIDP not loaded
   if (!apiKey) {
-    // Local fallback responses if no API key
     appendTyping();
     setTimeout(() => {
       removeTyping();
@@ -478,7 +712,6 @@ async function sendMessage(){
     return;
   }
 
-  // Live Claude call
   appendTyping();
   document.getElementById('status-text').textContent = 'Calling Claude...';
   try {
@@ -501,7 +734,7 @@ function sendSuggested(prompt){
 }
 
 async function callClaude(userText){
-  const systemPrompt = `You are Nishi, the AI assistant inside the DI-Platform (Digital Infotech) by Nishanth Kumar Kishore.
+  const systemPrompt = `You are Niche-I, the AI assistant inside the DI-Platform (Digital Infotech) by Nishanth Kumar Kishore.
 You help banking IT leaders with: discovery, AI requirements, architecture design (AWS/Azure/GCP/OCI/IBM/Private DC),
 program governance, RFP-style questionnaires, 7R migration strategies, blockchain & RWA tokenization, and operations support.
 You speak concisely and use markdown (headers, bullets, code blocks).
@@ -517,7 +750,7 @@ Today is ${new Date().toLocaleDateString()}.`;
       'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
+      model: 'llama-3.3-70b-versatile',
       max_tokens: 1024,
       system: systemPrompt,
       messages
@@ -832,7 +1065,7 @@ Here are some things I can help with:
 * Blockchain & RWA tokenization roadmaps
 * Operations / SRE topics
 
-Provide your **Anthropic API key** above for live answers, or pick a suggested prompt on the left.`;
+Pick a suggested prompt on the left, or just ask in natural language — I\'ll route to the right agent.`;
 }
 
 // ─── CLI commands ──────────────────────────────────────────
@@ -900,6 +1133,12 @@ function handleCliCommand(cmd){
 
 // Boot — greeting + Phase 19 intent handoff
 window.addEventListener('DOMContentLoaded', () => {
+  /* Wire attachment chips · render on any change to the pending list. */
+  if (window.AIDP_ATTACH && typeof window.AIDP_ATTACH.onChange === 'function') {
+    const chipsContainer = document.getElementById('attach-chips');
+    window.AIDP_ATTACH.onChange(() => window.AIDP_ATTACH.renderChips(chipsContainer));
+  }
+
   // Phase 19 · Read ?q= URL param and/or sessionStorage prompt set by other pages
   // (e.g. Operations dashboard chips, Discovery deep-links).
   function getQuery() {
@@ -919,12 +1158,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
   setTimeout(() => {
     // Tailor the greeting based on where the user came from
-    let greeting = 'Hi Nishanth — I\'m **Nishi**, your AI assistant inside the DI-Platform.';
+    let greeting = 'Hi Nishanth — I\'m **Niche-I**, your AI assistant inside the DI-Platform.';
     if (fromParam === 'operations') greeting += '\n\nYou arrived from the **Operations dashboard**. I\'ve picked up your question and will answer it in a moment.';
     else if (fromParam === 'discovery') greeting += '\n\nYou arrived from **Discovery Studio**. Let me know what you\'d like to drill into.';
     else if (fromParam === 'architecture') greeting += '\n\nYou arrived from **Architecture Studio**. I can explain any verdict, cloud choice, or cost number on that page.';
     else if (fromParam === 'governance') greeting += '\n\nYou arrived from **Program Governance**. Want a RAID summary or a wave-by-wave timeline view?';
-    else greeting += '\n\nBased on your sign-in profile (**Solution Architect · NA-East**), here are a few starting points:\n\n* Want me to *generate an RFP-style questionnaire* for your next discovery session?\n* Or *summarize the current state* of one of your banking modules?\n* Or *compare cloud targets* for a workload you have in mind?\n\nPick one from the **Suggested prompts** dropdown above the composer, or just type your question. Add your **Anthropic API key** below to get live answers; otherwise I\'ll respond from the built-in playbook.';
+    else greeting += '\n\nBased on your sign-in profile (**Solution Architect · NA-East**), here are a few starting points:\n\n* Want me to *generate an RFP-style questionnaire* for your next discovery session?\n* Or *summarize the current state* of one of your banking modules?\n* Or *compare cloud targets* for a workload you have in mind?\n\nPick one from the **Suggested prompts** dropdown above the composer, or just type your question — I\'m wired to the live AIDP agentic backend (13 agents).';
 
     appendBot(greeting);
 

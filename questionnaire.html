@@ -141,7 +141,7 @@ footer{text-align:center;padding:28px;font-size:11px;color:var(--t3);border-top:
 
 <section class="hero">
   <span class="hero-badge">Phase 2 · Adaptive RFP Questionnaire</span>
-  <h1>Tell us where you are — and where you're going. <em>Nishi will adapt.</em></h1>
+  <h1>Tell us where you are — and where you're going. <em>Niche-I will adapt.</em></h1>
   <p>This questionnaire feels like a consolidated brainstorm with your CIO, CTO, CRO, CFO, CISO, architects and compliance leads. It branches by your role, your region's regulators, and your banking sub-domain — so you only answer what matters to your stake in the program.</p>
 </section>
 
@@ -205,7 +205,7 @@ function populateSelectors() {
   PACKS.roles.forEach(r => role.add(new Option(r, r)));
   PACKS.regions.forEach(r => region.add(new Option(r, r)));
   PACKS.domains.forEach(d => dom.add(new Option(d, d)));
-  // Try to pre-fill from Nishi context / account profile
+  // Try to pre-fill from Niche-I context / account profile
   try {
     const ctx = JSON.parse(sessionStorage.getItem('di_nishi_context') || '{}');
     const acct = JSON.parse(sessionStorage.getItem('di_account_profile') || '{}');
@@ -296,7 +296,8 @@ function goToDiscovery() {
 })();
 </script>
 
-<script src="assets/nishi.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+  <script src="assets/nishi.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
 </body>
 </html>
