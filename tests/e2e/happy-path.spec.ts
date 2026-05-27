@@ -9,7 +9,21 @@
  * live agent is wired, and the headline data points render. We're not
  * testing every kanban card · we're testing the integration contract.
  */
-import { test, expect, Page } from "@playwright/test";
+import { test as base, expect, Page, BrowserContext } from "@playwright/test";
+
+/* ─── Shared-context fixture ────────────────────────────
+ * Playwright creates a fresh context per test by default, which would
+ * wipe the localStorage demo seed between Step 1 and Step 2. Override
+ * with a single context shared across the whole describe block so
+ * tenant state persists end-to-end (same as a real user session). */
+const test = base.extend<{ sharedPage: Page }>({
+  sharedPage: [async ({ browser }, use) => {
+    const ctx: BrowserContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await ctx.newPage();
+    await use(page);
+    await ctx.close();
+  }, { scope: "worker" }]
+});
 
 /* ─── Helpers ────────────────────────────────────────── */
 
@@ -47,7 +61,7 @@ async function switchToWorkspace(page: Page, idPrefix: string) {
 
 test.describe.serial("AIDP happy path", () => {
 
-  test("Step 1 · Demo tenant seeds in <15s", async ({ page }) => {
+  test("Step 1 · Demo tenant seeds in <15s", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/home");
     /* Auto-accept the confirm() dialog the seeder fires. */
     page.on("dialog", d => d.accept());
@@ -65,7 +79,7 @@ test.describe.serial("AIDP happy path", () => {
 
   /* ─── Step 2 · Discovery ─────────────────────────────── */
 
-  test("Step 2 · Discovery shows capabilities + 7R verdicts", async ({ page }) => {
+  test("Step 2 · Discovery shows capabilities + 7R verdicts", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/discovery-studio");
     /* Wait for any "REARCH|REPLAT|REFACT|REHOST|RETAIN|REBUILD|REPLACE" verdict
      * chip to appear · proves 7R engine ran. */
@@ -78,7 +92,7 @@ test.describe.serial("AIDP happy path", () => {
 
   /* ─── Step 3 · Architecture ──────────────────────────── */
 
-  test("Step 3 · Architecture compares 7 clouds with cost ranking", async ({ page }) => {
+  test("Step 3 · Architecture compares 7 clouds with cost ranking", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/architecture-studio");
     /* Look for the 7 cloud names in the comparison table. */
     const clouds = ["PRIVATE-DC", "ALIBABA", "OCI", "GCP", "AWS", "AZURE", "IBM"];
@@ -91,7 +105,7 @@ test.describe.serial("AIDP happy path", () => {
 
   /* ─── Step 4 · Requirements ──────────────────────────── */
 
-  test("Step 4 · Requirements Workspace renders MoSCoW + INVEST", async ({ page }) => {
+  test("Step 4 · Requirements Workspace renders MoSCoW + INVEST", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/requirements");
     await switchToWorkspace(page, "req");
     /* RequirementsAPI loaded · console will have logged it. */
@@ -101,7 +115,7 @@ test.describe.serial("AIDP happy path", () => {
 
   /* ─── Step 5 · Actions ───────────────────────────────── */
 
-  test("Step 5 · Actions Workspace renders role-based table", async ({ page }) => {
+  test("Step 5 · Actions Workspace renders role-based table", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/actions");
     await switchToWorkspace(page, "act");
     /* Headline KPI · "Total actions" should resolve to a number ≥ 1. */
@@ -110,7 +124,7 @@ test.describe.serial("AIDP happy path", () => {
 
   /* ─── Step 6 · SOW ───────────────────────────────────── */
 
-  test("Step 6 · SOW Workspace assembles with 0 cross-binding errors", async ({ page }) => {
+  test("Step 6 · SOW Workspace assembles with 0 cross-binding errors", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/sow");
     await switchToWorkspace(page, "sow");
     /* The "Cross-binding errors" KPI should show 0 (or "all upstream agents responded"). */
@@ -120,7 +134,7 @@ test.describe.serial("AIDP happy path", () => {
 
   /* ─── Step 7 · Governance ────────────────────────────── */
 
-  test("Step 7 · Governance Workspace shows RAID kanban + Steering pack", async ({ page }) => {
+  test("Step 7 · Governance Workspace shows RAID kanban + Steering pack", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/program-governance");
     await switchToWorkspace(page, "pg");
     /* Kanban columns · Risks/Assumptions/Issues/Dependencies headers. */
@@ -132,7 +146,7 @@ test.describe.serial("AIDP happy path", () => {
 
   /* ─── Step 8 · Operations ────────────────────────────── */
 
-  test("Step 8 · Operations Workspace shows DORA + SLOs", async ({ page }) => {
+  test("Step 8 · Operations Workspace shows DORA + SLOs", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/operations");
     await switchToWorkspace(page, "op");
     /* DORA tier label visible (elite/high/medium/low). */
@@ -143,7 +157,7 @@ test.describe.serial("AIDP happy path", () => {
 
   /* ─── Step 9 · Cross-studio handoff ──────────────────── */
 
-  test("Step 9 · Governance → Operations handoff persists open issues", async ({ page }) => {
+  test("Step 9 · Governance → Operations handoff persists open issues", async ({ sharedPage: page }) => {
     /* Write the handoff directly via localStorage (same shape as the
      * "Send to Operations" button writes) so this test is hermetic. */
     await page.goto("/home");
@@ -165,7 +179,7 @@ test.describe.serial("AIDP happy path", () => {
 
   /* ─── Step 10 · Knowledge ────────────────────────────── */
 
-  test("Step 10 · Knowledge Workspace search returns hits", async ({ page }) => {
+  test("Step 10 · Knowledge Workspace search returns hits", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/knowledge");
     await switchToWorkspace(page, "kn");
     /* Type into the search box + press Enter · expect at least 1 hit
@@ -182,7 +196,7 @@ test.describe.serial("AIDP happy path", () => {
 
   /* ─── Step 11 · IaC ──────────────────────────────────── */
 
-  test("Step 11 · IaC Workspace · Preview returns file tree", async ({ page }) => {
+  test("Step 11 · IaC Workspace · Preview returns file tree", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/iac");
     await switchToWorkspace(page, "iac");
     /* Click the Preview button in the sticky action bar. */
@@ -197,7 +211,7 @@ test.describe.serial("AIDP happy path", () => {
 
   /* ─── Step 12 · EVP Summary ──────────────────────────── */
 
-  test("Step 12 · EVP Summary shows live cross-bind strip", async ({ page }) => {
+  test("Step 12 · EVP Summary shows live cross-bind strip", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/evp-summary");
     /* The headline "Modernize N banking capabilities" should always render. */
     await expect(page.getByText(/Modernize \d+ banking capabilities/i).first())
