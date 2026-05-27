@@ -321,6 +321,7 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
     <div class="row">
       <label for="m-scope">Scope</label>
       <select id="m-scope">
+        <option value="__all__">All scopes · sequential sweep (~25 sec)</option>
         <option value="fleet">fleet · whole AIDP backend</option>
         <option value="discovery-studio">discovery-studio</option>
         <option value="architecture-studio">architecture-studio</option>
@@ -847,15 +848,40 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
     document.getElementById('m-also-e2e').checked = !!wasE2e;
   };
 
-  window.triggerRun = async function () {
-    const btn = document.getElementById('m-run-btn');
-    let scope = document.getElementById('m-scope').value;
-    if (scope === 'other') {
-      scope = (document.getElementById('m-scope-other').value || '').trim();
-      if (!scope) { alert('Enter a scope name'); return; }
+  /* Fire-and-forget E2E workflow_dispatch · shared by single-run and sweep paths.
+   * Returns nothing; surfaces all results via toasts. */
+  async function fireE2eIfChecked(ref) {
+    try {
+      const e2eResult = await window.TM.triggerE2e({ ref });
+      if (!window.DI || !window.DI.toast) return;
+      if (e2eResult.ok) {
+        window.DI.toast({
+          kind: 'ok',
+          title: 'E2E triggered',
+          message: 'Playwright workflow dispatched · results will land in the dashboard when CI completes.'
+        });
+      } else if (!e2eResult.configured) {
+        window.DI.toast({
+          kind: 'warn',
+          title: 'E2E not configured',
+          message: 'Set GITHUB_TOKEN + GITHUB_REPO secrets on testing-master to enable.'
+        });
+      } else {
+        window.DI.toast({
+          kind: 'warn',
+          title: 'E2E trigger failed',
+          message: (e2eResult.error || 'unknown error').slice(0, 120)
+        });
+      }
+    } catch (e2eErr) {
+      if (window.DI && window.DI.toast) {
+        window.DI.toast({ kind:'warn', title:'E2E trigger error', message: e2eErr.message || String(e2eErr) });
+      }
     }
-    const ref = (document.getElementById('m-ref').value || '').trim() || undefined;
-    const alsoE2e = document.getElementById('m-also-e2e').checked;
+  }
+
+  /* Single-scope path · unchanged behavior from W1-B/C. */
+  async function doSingleRun(btn, scope, ref, alsoE2e) {
     btn.disabled = true;
     btn.textContent = '⏳ Running…';
     try {
@@ -867,39 +893,7 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
           message: report.summary.pass + ' pass · ' + report.summary.fail + ' fail · ' + report.blocking_count + ' blocking'
         });
       }
-      /* If "Also run browser E2E" was checked, fire the workflow_dispatch.
-       * This is fire-and-forget · the run lands in the dashboard later
-       * when Playwright completes and the bridge POSTs results. */
-      if (alsoE2e) {
-        try {
-          const e2eResult = await window.TM.triggerE2e({ ref });
-          if (window.DI && window.DI.toast) {
-            if (e2eResult.ok) {
-              window.DI.toast({
-                kind: 'ok',
-                title: 'E2E triggered',
-                message: 'Playwright workflow dispatched · results will land in the dashboard when CI completes.'
-              });
-            } else if (!e2eResult.configured) {
-              window.DI.toast({
-                kind: 'warn',
-                title: 'E2E not configured',
-                message: 'Set GITHUB_TOKEN + GITHUB_REPO secrets on testing-master to enable.'
-              });
-            } else {
-              window.DI.toast({
-                kind: 'warn',
-                title: 'E2E trigger failed',
-                message: (e2eResult.error || 'unknown error').slice(0, 120)
-              });
-            }
-          }
-        } catch (e2eErr) {
-          if (window.DI && window.DI.toast) {
-            window.DI.toast({ kind:'warn', title:'E2E trigger error', message: e2eErr.message || String(e2eErr) });
-          }
-        }
-      }
+      if (alsoE2e) await fireE2eIfChecked(ref);
       closeRunModal();
       STATE.selectedRunId = report.run_id;
       STATE.selectedReport = report;
@@ -910,6 +904,76 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
       btn.disabled = false;
       btn.textContent = '▶ Run now';
     }
+  }
+
+  /* Sweep path · sequentially runs the 5 studios + fleet.
+   * Sequential (not parallel) keeps the worker quota predictable and
+   * gives the user visible progress one scope at a time.
+   * E2E fires ONCE at the end (not per-scope). */
+  async function doSweep(btn, ref, alsoE2e) {
+    const SWEEP = ['discovery-studio', 'architecture-studio', 'requirements-studio', 'operations-studio', 'fleet'];
+    btn.disabled = true;
+    const reports = [];
+    let totalPass = 0, totalFail = 0, totalBlocking = 0;
+    let lastReport = null;
+    let failedAt = null;
+    try {
+      for (let i = 0; i < SWEEP.length; i++) {
+        const s = SWEEP[i];
+        btn.textContent = '⏳ (' + (i + 1) + '/' + SWEEP.length + ') ' + s + '…';
+        const report = await window.TM.runSuite(s, { ref });
+        reports.push(report);
+        totalPass     += (report.summary?.pass || 0);
+        totalFail     += (report.summary?.fail || 0);
+        totalBlocking += (report.blocking_count || 0);
+        lastReport = report;
+      }
+      if (window.DI && window.DI.toast) {
+        window.DI.toast({
+          kind: (totalFail === 0 && totalBlocking === 0) ? 'ok' : 'warn',
+          title: 'Sweep complete · ' + reports.length + ' runs',
+          message: totalPass + ' pass · ' + totalFail + ' fail · ' + totalBlocking + ' blocking'
+        });
+      }
+      if (alsoE2e) await fireE2eIfChecked(ref);
+      closeRunModal();
+      if (lastReport) {
+        STATE.selectedRunId  = lastReport.run_id;
+        STATE.selectedReport = lastReport;
+      }
+      await loadRuns();
+    } catch (err) {
+      failedAt = SWEEP[reports.length] || '?';
+      alert('Sweep aborted at scope "' + failedAt + '" · ' + (err.message || String(err)) +
+            '\nCompleted ' + reports.length + ' of ' + SWEEP.length + ' before failure.');
+      /* Still refresh so the partial results show up. */
+      if (lastReport) {
+        STATE.selectedRunId  = lastReport.run_id;
+        STATE.selectedReport = lastReport;
+      }
+      try { await loadRuns(); } catch (_) { /* ignored */ }
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '▶ Run now';
+    }
+  }
+
+  window.triggerRun = async function () {
+    const btn      = document.getElementById('m-run-btn');
+    const scopeVal = document.getElementById('m-scope').value;
+    const ref      = (document.getElementById('m-ref').value || '').trim() || undefined;
+    const alsoE2e  = document.getElementById('m-also-e2e').checked;
+
+    if (scopeVal === '__all__') {
+      return doSweep(btn, ref, alsoE2e);
+    }
+
+    let scope = scopeVal;
+    if (scope === 'other') {
+      scope = (document.getElementById('m-scope-other').value || '').trim();
+      if (!scope) { alert('Enter a scope name'); return; }
+    }
+    return doSingleRun(btn, scope, ref, alsoE2e);
   };
 
   /* ─── Export ──────────────────────────────────────── */
