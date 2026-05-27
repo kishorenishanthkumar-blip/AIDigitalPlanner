@@ -201,4 +201,69 @@ test.describe.serial("AIDP happy path", () => {
     await expectNoFatalConsoleErrors(page);
   });
 
+  /* ─── Data-content tests · click Workspace toggle, verify the
+   * workspace container actually renders its structural content.
+   * These exercise the JS glue between the toggle button, the demo
+   * seed in localStorage, and the workspace-specific render code.
+   * They go beyond the page-load smoke tests above. ─── */
+
+  test("Step 13 · Requirements Workspace renders KPIs", async ({ sharedPage: page }) => {
+    await gotoStudio(page, "/requirements");
+    await page.locator("#rq-view-workspace").click();
+    /* Workspace container should become visible after the toggle. */
+    const ws = page.locator("#rq-workspace");
+    await expect(ws).toBeVisible({ timeout: 5000 });
+    /* KPI cells should exist (their values may still be "—" if the
+     * agent hasn't populated yet — that's fine for a structural check). */
+    await expect(page.locator("#rq-kpi-must")).toBeVisible();
+    await expect(page.locator("#rq-kpi-invest")).toBeVisible();
+    await expectNoFatalConsoleErrors(page);
+  });
+
+  test("Step 14 · Actions Workspace container renders", async ({ sharedPage: page }) => {
+    await gotoStudio(page, "/actions");
+    await page.locator("#ac-view-workspace").click();
+    const ws = page.locator("#ac-workspace");
+    await expect(ws).toBeVisible({ timeout: 5000 });
+    /* Workspace body should have substantive content (kanban columns,
+     * filter chips, or a loading state — anything non-empty). */
+    const text = await ws.innerText();
+    expect(text.length, "actions workspace should render content").toBeGreaterThan(20);
+    await expectNoFatalConsoleErrors(page);
+  });
+
+  test("Step 15 · SOW Workspace renders section navigator", async ({ sharedPage: page }) => {
+    await gotoStudio(page, "/sow");
+    await page.locator("#sw-view-workspace").click();
+    const ws = page.locator("#sow-workspace");
+    await expect(ws).toBeVisible({ timeout: 5000 });
+    /* Section navigator should exist · it's the 220px left rail listing
+     * the 11 SOW sections. Without this, the workspace is broken. */
+    const navCount = await page.locator("#sow-workspace .sw-nav").count();
+    expect(navCount, "SOW workspace should have a section navigator").toBeGreaterThan(0);
+    await expectNoFatalConsoleErrors(page);
+  });
+
+  test("Step 16 · Governance Workspace renders RAID columns", async ({ sharedPage: page }) => {
+    await gotoStudio(page, "/program-governance");
+    await page.locator("#pg-view-workspace").click();
+    const ws = page.locator("#pg-workspace");
+    await expect(ws).toBeVisible({ timeout: 5000 });
+    /* 4-column RAID kanban should render · one column for each of
+     * Risks, Assumptions, Issues, Dependencies. */
+    const cols = page.locator("#pg-workspace .pgw-col");
+    await expect(cols).toHaveCount(4, { timeout: 5000 });
+    await expectNoFatalConsoleErrors(page);
+  });
+
+  test("Step 17 · Operations Workspace container renders", async ({ sharedPage: page }) => {
+    await gotoStudio(page, "/operations");
+    await page.locator("#op-view-workspace").click();
+    const ws = page.locator("#op-workspace");
+    await expect(ws).toBeVisible({ timeout: 5000 });
+    const text = await ws.innerText();
+    expect(text.length, "operations workspace should render content").toBeGreaterThan(20);
+    await expectNoFatalConsoleErrors(page);
+  });
+
 });

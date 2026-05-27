@@ -101,11 +101,16 @@
     return resp.json();
   }
 
+  async function triggerE2e(opts) {
+    opts = opts || {};
+    return callTool('tm_trigger_e2e', { ref: opts.ref, inputs: opts.inputs });
+  }
+
   /* ─── Expose ────────────────────────────────────── */
 
   window.TM = {
     runSuite, runLayer, getReport, listRuns,
-    knownLayers, patchStatus, postExternal, health,
+    knownLayers, patchStatus, postExternal, health, triggerE2e,
     BASE_URL
   };
 

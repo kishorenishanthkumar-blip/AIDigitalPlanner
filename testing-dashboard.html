@@ -254,7 +254,10 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
   <div class="td-table-wrap" id="td-defects-wrap" style="display:none">
     <div class="td-table-header">
       <h3 id="td-defects-title">Defects · select a run above</h3>
-      <div class="td-table-meta" id="td-defects-meta">&nbsp;</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn btn-sm" id="td-rerun-btn" onclick="rerunSelected()" title="Re-run testing-master with the same scope (R again)">↻ Re-run with same scope</button>
+        <div class="td-table-meta" id="td-defects-meta">&nbsp;</div>
+      </div>
     </div>
     <div id="td-defects-body"></div>
   </div>
@@ -297,6 +300,10 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
     <div class="row">
       <label for="m-ref">Reference (optional)</label>
       <input type="text" id="m-ref" placeholder="e.g. deploy URL or git SHA" />
+    </div>
+    <div class="row" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border:1px solid var(--ink-200);border-radius:5px">
+      <input type="checkbox" id="m-also-e2e" style="width:auto;margin:0" />
+      <label for="m-also-e2e" style="margin:0;text-transform:none;letter-spacing:0;font-size:12px;font-weight:500;color:var(--ink-700);cursor:pointer">Also run browser E2E (Playwright)</label>
     </div>
     <div class="actions">
       <button class="btn" onclick="closeRunModal()">Cancel</button>
@@ -607,15 +614,52 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
   }
 
   /* ─── Run modal ──────────────────────────────────── */
-  window.openRunModal = function () {
+  /**
+   * Open the Run Suite modal. Optionally pre-fill with a specific scope
+   * (e.g. when re-running from the defect panel). If the scope isn't one
+   * of the known dropdown options, it falls back to "other" + custom field.
+   */
+  window.openRunModal = function (prefillScope) {
     document.getElementById('td-modal').style.display = 'flex';
-    document.getElementById('m-scope').value = 'fleet';
-    document.getElementById('m-scope-other-row').style.display = 'none';
-    document.getElementById('m-scope').addEventListener('change', function (e) {
-      document.getElementById('m-scope-other-row').style.display = (e.target.value === 'other') ? '' : 'none';
+    const scopeSel = document.getElementById('m-scope');
+    const otherRow = document.getElementById('m-scope-other-row');
+    const otherInp = document.getElementById('m-scope-other');
+    if (prefillScope) {
+      const knownOpts = Array.from(scopeSel.options).map(o => o.value);
+      if (knownOpts.includes(prefillScope)) {
+        scopeSel.value = prefillScope;
+        otherRow.style.display = 'none';
+      } else {
+        scopeSel.value = 'other';
+        otherRow.style.display = '';
+        otherInp.value = prefillScope;
+      }
+    } else {
+      scopeSel.value = 'fleet';
+      otherRow.style.display = 'none';
+    }
+    scopeSel.addEventListener('change', function (e) {
+      otherRow.style.display = (e.target.value === 'other') ? '' : 'none';
     }, { once: true });
   };
   window.closeRunModal = function () { document.getElementById('td-modal').style.display = 'none'; };
+
+  /* Re-run the currently-selected run's scope · pre-fills the modal
+   * and copies the "Also run browser E2E" preference if it was external. */
+  window.rerunSelected = function () {
+    const r = STATE.selectedReport;
+    if (!r) {
+      if (window.DI && window.DI.toast) window.DI.toast({ kind:'warn', title:'No run selected' });
+      else alert('No run selected.');
+      return;
+    }
+    openRunModal(r.scope);
+    /* If the previous run was an e2e-browser ingestion, pre-check the
+     * "Also run browser E2E" box · re-runs of an e2e issue typically want
+     * the browser side fired too. */
+    const wasE2e = Array.isArray(r.layers_run) && r.layers_run.indexOf('e2e-browser') >= 0;
+    document.getElementById('m-also-e2e').checked = !!wasE2e;
+  };
 
   window.triggerRun = async function () {
     const btn = document.getElementById('m-run-btn');
@@ -625,6 +669,7 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
       if (!scope) { alert('Enter a scope name'); return; }
     }
     const ref = (document.getElementById('m-ref').value || '').trim() || undefined;
+    const alsoE2e = document.getElementById('m-also-e2e').checked;
     btn.disabled = true;
     btn.textContent = '⏳ Running…';
     try {
@@ -635,6 +680,39 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
           title: report.passed ? 'Run passed' : 'Run failed gate',
           message: report.summary.pass + ' pass · ' + report.summary.fail + ' fail · ' + report.blocking_count + ' blocking'
         });
+      }
+      /* If "Also run browser E2E" was checked, fire the workflow_dispatch.
+       * This is fire-and-forget · the run lands in the dashboard later
+       * when Playwright completes and the bridge POSTs results. */
+      if (alsoE2e) {
+        try {
+          const e2eResult = await window.TM.triggerE2e({ ref });
+          if (window.DI && window.DI.toast) {
+            if (e2eResult.ok) {
+              window.DI.toast({
+                kind: 'ok',
+                title: 'E2E triggered',
+                message: 'Playwright workflow dispatched · results will land in the dashboard when CI completes.'
+              });
+            } else if (!e2eResult.configured) {
+              window.DI.toast({
+                kind: 'warn',
+                title: 'E2E not configured',
+                message: 'Set GITHUB_TOKEN + GITHUB_REPO secrets on testing-master to enable.'
+              });
+            } else {
+              window.DI.toast({
+                kind: 'warn',
+                title: 'E2E trigger failed',
+                message: (e2eResult.error || 'unknown error').slice(0, 120)
+              });
+            }
+          }
+        } catch (e2eErr) {
+          if (window.DI && window.DI.toast) {
+            window.DI.toast({ kind:'warn', title:'E2E trigger error', message: e2eErr.message || String(e2eErr) });
+          }
+        }
       }
       closeRunModal();
       STATE.selectedRunId = report.run_id;
