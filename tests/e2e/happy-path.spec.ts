@@ -23,11 +23,14 @@ async function dismissNishiTip(page: Page) {
 }
 
 async function gotoStudio(page: Page, path: string) {
-  await page.goto(path);
+  /* DOM-ready is enough · defer scripts execute right after. We don't wait
+   * on [data-di-topbar] because top-bar.js may strip that attribute after
+   * injecting the nav HTML, leaving the selector unmatchable. */
+  await page.goto(path, { waitUntil: "domcontentloaded" });
+  /* Give defer scripts a beat to register window.* helpers. Per-test
+   * waits cover the actual content readiness. */
+  await page.waitForTimeout(1500);
   await dismissNishiTip(page);
-  /* Wait for the top-bar placeholder to attach · everything else
-   * renders after this. */
-  await page.locator("[data-di-topbar]").waitFor({ state: "attached", timeout: 15_000 });
 }
 
 async function switchToWorkspace(page: Page, idPrefix: string) {
