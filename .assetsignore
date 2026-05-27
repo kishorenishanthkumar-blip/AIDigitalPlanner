@@ -1,0 +1,26 @@
+# Cloudflare Pages asset upload exclusions · keeps large dev artifacts out of the deploy
+backend/
+node_modules/
+.git/
+.github/
+.venv/
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+*.log
+*.exe
+*.dmg
+*.iso
+*.zip
+*.tar
+*.tar.gz
+*.gz
+wrangler.jsonc
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.env
+.env.*
+.DS_Store
+Thumbs.db

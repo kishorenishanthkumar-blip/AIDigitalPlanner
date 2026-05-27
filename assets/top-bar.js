@@ -3,7 +3,7 @@
    Mount: any page just adds  <div data-di-topbar></div>
    then includes this script. The script replaces that node
    with the full top bar — logo, nav, Features ▾ mega-menu,
-   ⌘K search, 🔔 bell, 🤖 Nishi button, user pill.
+   ⌘K search, 🔔 bell, 🤖 Niche-I button, user pill.
 
    Active-page highlight is derived from location.pathname.
 ═══════════════════════════════════════════════════════ */
@@ -68,7 +68,7 @@
         .di-tb-search kbd{background:#fff;border:1px solid var(--border,#E2E7F1);border-radius:4px;padding:1px 5px;font-size:9.5px;font-family:var(--f-mono,monospace);color:var(--ink-2,#5B6B8A)}
         .di-tb-bell{position:relative;background:#fff;border:1px solid var(--border,#E2E7F1);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer}
         .di-tb-bell .dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--red,#FF4D6A);border:1.5px solid #fff}
-        .di-tb-nishi{background:var(--aglow,#FFF7E6);border:1px solid var(--gold-2,#E8AC38);color:var(--ink,#1A2238);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none}
+        .di-tb-nishi{background:var(--aglow,#FFF7E6);border:1px solid var(--gold-2,#E8AC38);color:var(--ink,#1A2238);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap}
         .di-tb-nishi:hover{background:var(--gold-3,#FFD070)}
         .di-tb-user{display:flex;align-items:center;gap:8px;padding:3px 6px 3px 11px;background:var(--canvas,#F8FAFD);border:1px solid var(--border,#E2E7F1);border-radius:999px;cursor:pointer;text-decoration:none;color:inherit}
         .di-tb-user:hover{border-color:var(--gold,#C8921A);background:#FFFCF4}
@@ -144,13 +144,13 @@
         '<div class="di-mega-wrap">' +
           '<div class="di-mega-intro">' +
             '<div class="eyebrow">FEATURES</div>' +
-            '<h2>Everything Nishi can do, in one place.</h2>' +
+            '<h2>Everything Niche-I can do, in one place.</h2>' +
             '<p>Each card opens an animated walkthrough so you can see the feature in action before opening the workspace.</p>' +
           '</div>' +
           '<div class="di-mega-grid">' + cards + '</div>' +
           '<div class="di-mega-spot">' +
             '<div class="eyebrow">SPOTLIGHT</div>' +
-            '<a class="item" href="nishi-chatbot.html"><div class="lbl">NEW IN PHASE 13</div><div class="h">Nishi can now talk — hold-to-talk mic in chat.</div><div class="sub">Try it →</div></a>' +
+            '<a class="item" href="nishi-chatbot.html"><div class="lbl">NEW IN PHASE 13</div><div class="h">Niche-I can now talk — hold-to-talk mic in chat.</div><div class="sub">Try it →</div></a>' +
             '<a class="alt" href="#"><div class="lbl">CASE STUDY</div><div class="h">Tier-1 bank: 38% mainframe footprint cut</div><div class="sub">Open the read-out →</div></a>' +
           '</div>' +
         '</div>' +
@@ -218,7 +218,7 @@
         '<div class="di-tb-right">' +
           '<button type="button" class="di-tb-search" title="Global search (Phase 18.2)">🔍 Search anything <kbd>⌘K</kbd></button>' +
           '<button type="button" class="di-tb-bell" title="Notifications">🔔<span class="dot"></span></button>' +
-          '<a class="di-tb-nishi" href="nishi-chatbot.html">🤖 Nishi</a>' +
+          '<a class="di-tb-nishi" href="nishi-chatbot.html">🤖 Niche-I</a>' +
           '<button type="button" class="di-tb-user" id="di-tb-user-btn" title="Session info">' +
             '<div class="di-tb-user-meta"><div class="di-tb-user-name">' + escapeHTML(name) + '</div><div class="di-tb-user-sub">' + escapeHTML(sessionSub) + '</div></div>' +
             '<div class="di-tb-avatar">' + escapeHTML(initials) + '</div>' +

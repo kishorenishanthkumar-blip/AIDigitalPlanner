@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────────────────────
-   Nishi · DI-Platform personal AI assistant
+   Niche-I · DI-Platform personal AI assistant
    Phase 1 — Chatbot widget + CLI + Context store
    Auto-injects on any page that includes this script.
    © 2026 Nishanth Kumar Kishore / Digital Infotech
@@ -93,7 +93,7 @@
 
     // Greetings
     if (/^(hi|hello|hey|hola|namaste|good\s+(morning|afternoon|evening))\b/.test(q)) {
-      return `Hi ${name}! I'm Nishi — your DI-Platform assistant. Try \`help\` to see what I can do, or ask me about any studio.`;
+      return `Hi ${name}! I'm Niche-I — your DI-Platform assistant. Try \`help\` to see what I can do, or ask me about any studio.`;
     }
     // Help
     if (/^(help|\?|what can you do)/.test(q)) {
@@ -277,7 +277,7 @@
     // FAB
     fab = document.createElement('button');
     fab.id = 'nishi-fab';
-    fab.title = 'Open Nishi (Alt+N)';
+    fab.title = 'Open Niche-I (Alt+N)';
     fab.innerHTML = 'Ni<span class="ni-dot"></span>';
     fab.onclick = toggleWidget;
     document.body.appendChild(fab);
@@ -289,7 +289,7 @@
       <div class="ni-head">
         <div class="ni-avatar">Ni</div>
         <div class="ni-title">
-          <div class="n">Nishi</div>
+          <div class="n">Niche-I</div>
           <div class="s">Personal AI assistant · v${VERSION}</div>
         </div>
         <div class="ni-status" title="Online"></div>
@@ -299,7 +299,7 @@
       </div>
       <div class="ni-body" id="ni-body"></div>
       <div class="ni-input-row">
-        <input class="ni-input" id="ni-input" type="text" placeholder="Ask Nishi…" autocomplete="off">
+        <input class="ni-input" id="ni-input" type="text" placeholder="Ask Niche-I…" autocomplete="off">
         <button class="ni-mic" id="ni-mic" title="Speak">🎤</button>
         <button class="ni-send" id="ni-send" title="Send (Enter)">Send</button>
       </div>
@@ -381,7 +381,7 @@
     const name = ctx.name ? ', ' + ctx.name : '';
     const role = ctx.role ? ` (${ctx.role})` : '';
     const region = ctx.region ? ` working from ${ctx.region}` : '';
-    bot(`Good ${tod}${name}${role}${region}. I'm Nishi — your DI-Platform assistant. ${reset ? 'History cleared. ' : ''}How can I help today? Type \`help\` for what I can do.`);
+    bot(`Good ${tod}${name}${role}${region}. I'm Niche-I — your DI-Platform assistant. ${reset ? 'History cleared. ' : ''}How can I help today? Type \`help\` for what I can do.`);
   }
 
   function bot(text) {
@@ -392,6 +392,7 @@
     body.scrollTop = body.scrollHeight;
     Hist.push('bot', text);
     if (speakToggle && speakToggle.checked) speak(text);
+    return el;          // return for streaming use
   }
   function user(text) {
     const el = document.createElement('div');
@@ -407,6 +408,54 @@
     if (!t) return;
     user(t);
     input.value = '';
+
+    /* Live path · stream from master /chat when AIDP API client is loaded */
+    if (window.AIDP && typeof window.AIDP.streamChat === 'function') {
+      const botEl = bot('_…thinking…_');
+      let textBuf = '';
+      let toolNote = '';
+
+      function rerender() {
+        const content = toolNote + textBuf;
+        botEl.innerHTML = md(content || '_…thinking…_');
+        body.scrollTop = body.scrollHeight;
+      }
+
+      window.AIDP.streamChat(t, {
+        onToolCall: (evt) => {
+          const tname = (evt.toolName || evt.tool || evt.name || 'tool');
+          toolNote = `_calling \`${tname}\`…_\n\n`;
+          rerender();
+        },
+        onToolResult: () => {
+          toolNote = '';
+          rerender();
+        },
+        onChunk: (evt) => {
+          textBuf += (evt.content || evt.text || evt.delta || '');
+          rerender();
+        },
+        onToolError: (evt) => {
+          toolNote = `_tool error: ${evt.message || 'unknown'}_\n\n`;
+          rerender();
+        },
+        onError: (evt) => {
+          textBuf += `\n\n_⚠ ${evt.message || 'stream error'}_`;
+          rerender();
+        },
+        onDone: () => {
+          if (!textBuf.trim()) {
+            textBuf = '_(no response · master agent returned empty stream · check connection)_';
+            rerender();
+          }
+          Hist.push('bot', textBuf);
+          if (speakToggle && speakToggle.checked) speak(textBuf);
+        }
+      });
+      return;
+    }
+
+    /* Fallback · demo response when AIDP client not present */
     setTimeout(() => bot(reply(t, Ctx.load())), 220);
   }
 
@@ -461,13 +510,13 @@
       switch (cmd.toLowerCase()) {
         case 'help':
           cliPrint('bot', `Commands:
-  ask "<question>"            Ask Nishi (use quotes for multi-word)
+  ask "<question>"            Ask Niche-I (use quotes for multi-word)
   history                     Show last 20 messages
   context show                Show your full context
   context set <key>=<value>   Update a context key (name, role, region, persona, email)
   reset                       Clear context + history
   clear                       Clear CLI screen
-  version                     Print Nishi version
+  version                     Print Niche-I version
   exit                        Close the CLI`);
           break;
         case 'ask': {

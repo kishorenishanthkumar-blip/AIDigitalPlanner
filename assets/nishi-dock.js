@@ -1,13 +1,13 @@
 /* ───────────────────────────────────────────────────────
-   Persistent Nishi dock — Phase 13
-   Drops a floating "🤖 Nishi" button at bottom-right of any
-   page that includes this script. Clicking opens Nishi.
-   Auto-hides on the Nishi chat page itself.
+   Persistent Niche-I dock — Phase 13
+   Drops a floating "🤖 Niche-I" button at bottom-right of any
+   page that includes this script. Clicking opens Niche-I.
+   Auto-hides on the Niche-I chat page itself.
 ═══════════════════════════════════════════════════════ */
 (function() {
-  // Don't render the dock on the Nishi chat page itself
-  const onNishiPage = /nishi-chatbot\.html/i.test(location.pathname);
-  if (onNishiPage) return;
+  // Don't render the dock on the Niche-I chat page itself
+  const onNicheIPage = /nishi-chatbot\.html/i.test(location.pathname);
+  if (onNicheIPage) return;
 
   // Wait for DOM ready
   function ready(fn) {
@@ -54,10 +54,10 @@
       (tipDismissed ? '' :
         '<div class="nd-tip" id="nd-tip">' +
           '<button class="nd-x" id="nd-x" title="Dismiss">×</button>' +
-          '💡 <strong>Nishi:</strong> ' + tipText +
+          '💡 <strong>Niche-I:</strong> ' + tipText +
         '</div>'
       ) +
-      '<button class="nd-fab" id="nd-fab" title="Open Nishi">' +
+      '<button class="nd-fab" id="nd-fab" title="Open Niche-I">' +
         '<span class="nd-pop">AI</span>' +
         '🤖' +
         '<span class="nd-online"></span>' +
