@@ -1,0 +1,81 @@
+name: E2E Playwright
+
+# Runs the 12-step happy-path E2E suite against the deployed Pages site
+# after every successful Deploy Pages workflow. Also runnable on demand.
+#
+# Results are POSTed to testing-master so they show up in the testing
+# dashboard alongside the agent fleet probes (scope=fleet, layer=e2e-browser).
+#
+# Optional repo secret (set if you want failures to also block):
+#   - none required · the suite reports to testing-master on completion
+
+on:
+  workflow_run:
+    workflows: ["Deploy Pages"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Override base URL (default https://aidp-platform.pages.dev)"
+        required: false
+        default: "https://aidp-platform.pages.dev"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: false   # don't cancel in-flight E2E runs · they're cheap
+
+jobs:
+  e2e:
+    name: Playwright happy-path · Chromium
+    # Only run if the deploy succeeded · skip on failed deploys
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run E2E suite
+        id: pw
+        env:
+          AIDP_BASE_URL: ${{ github.event.inputs.base_url || 'https://aidp-platform.pages.dev' }}
+          CI: "true"
+        run: npx playwright test
+        continue-on-error: true
+
+      - name: Post results to testing-master
+        if: always()
+        env:
+          TM_URL: https://aiagenticplanner-testing-master.kishorenishanthkumar.workers.dev/mcp
+          GITHUB_SHA: ${{ github.sha }}
+        run: node tests/e2e/post-to-testing-master.mjs
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Fail workflow on test failures
+        if: steps.pw.outcome == 'failure'
+        run: |
+          echo "::error::Playwright E2E suite failed · see uploaded report artifact"
+          exit 1
