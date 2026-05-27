@@ -106,7 +106,7 @@ test.describe.serial("AIDP happy path", () => {
     await gotoStudio(page, "/requirements");
     await expectPageLoaded(page, /Requirements|AI Requirements/i);
     /* The Workspace toggle button should exist (proves Phase 1A workspace block shipped). */
-    const wsBtn = page.locator("#req-view-workspace");
+    const wsBtn = page.locator("#rq-view-workspace");
     expect(await wsBtn.count(), "Workspace toggle should exist on Requirements").toBeGreaterThan(0);
     await expectNoFatalConsoleErrors(page);
   });
@@ -114,7 +114,7 @@ test.describe.serial("AIDP happy path", () => {
   test("Step 5 · Actions page loads + Workspace toggle present", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/actions");
     await expectPageLoaded(page, /Actions|Role-Based/i);
-    const wsBtn = page.locator("#act-view-workspace");
+    const wsBtn = page.locator("#ac-view-workspace");
     expect(await wsBtn.count(), "Workspace toggle should exist on Actions").toBeGreaterThan(0);
     await expectNoFatalConsoleErrors(page);
   });
@@ -122,7 +122,7 @@ test.describe.serial("AIDP happy path", () => {
   test("Step 6 · SOW page loads + Workspace toggle present", async ({ sharedPage: page }) => {
     await gotoStudio(page, "/sow");
     await expectPageLoaded(page, /SOW|Statement of Work|Draft SOW/i);
-    const wsBtn = page.locator("#sow-view-workspace");
+    const wsBtn = page.locator("#sw-view-workspace");
     expect(await wsBtn.count(), "Workspace toggle should exist on SOW").toBeGreaterThan(0);
     /* SowAPI should be loaded (Workspace tab needs it). */
     const apiLoaded = await page.evaluate(() => !!(window as any).SowAPI);
