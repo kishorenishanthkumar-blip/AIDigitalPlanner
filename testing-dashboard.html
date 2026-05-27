@@ -72,6 +72,19 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
 .td-kpi.warning .val{color:var(--amber)}
 .td-kpi.danger .val{color:var(--red)}
 @media (max-width:960px){.td-kpis{grid-template-columns:repeat(2,1fr)}}
+/* Trend sparkline · pure SVG, no third-party charting library. */
+.td-spark-card{background:var(--white);border:1px solid var(--ink-200);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow-sm);margin-top:14px}
+.td-spark-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+.td-spark-title{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-500);margin:0}
+.td-spark-legend{display:flex;align-items:center;gap:14px;font-size:11px;color:var(--ink-600);flex-wrap:wrap}
+.td-spark-leg{display:inline-flex;align-items:center;gap:5px}
+.td-spark-leg i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.td-spark-hint{color:var(--ink-500);font-style:italic}
+.td-spark-body{height:64px;display:flex;align-items:flex-end;justify-content:flex-start}
+.td-spark-empty{color:var(--ink-500);font-size:12px;padding:18px 0;width:100%;text-align:center}
+.td-spark-bar{transition:opacity .12s,transform .12s;cursor:pointer}
+.td-spark-bar:hover{opacity:.75;transform:translateY(-1px)}
+.td-spark-bar.selected{stroke:var(--ink-900);stroke-width:1.5}
 
 /* Filter rail */
 .td-filters{display:flex;align-items:center;gap:12px;margin:20px 0 12px;padding:12px 14px;background:var(--white);border:1px solid var(--ink-200);border-radius:var(--radius);flex-wrap:wrap}
@@ -204,6 +217,20 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
     <div class="td-kpi" id="kpi-defects-open"><div class="lbl">Open defects</div><div class="val"><div class="td-skel" style="width:30%"></div></div><div class="sub" id="kpi-defects-sub">&nbsp;</div></div>
     <div class="td-kpi" id="kpi-blocking"><div class="lbl">Blocking (crit+high)</div><div class="val"><div class="td-skel" style="width:30%"></div></div><div class="sub" id="kpi-blocking-sub">&nbsp;</div></div>
     <div class="td-kpi" id="kpi-runs"><div class="lbl">Runs (recent)</div><div class="val"><div class="td-skel" style="width:30%"></div></div><div class="sub" id="kpi-runs-sub">&nbsp;</div></div>
+  </div>
+
+  <!-- TREND SPARKLINE · last 25 runs at a glance -->
+  <div class="td-spark-card" id="td-spark-card">
+    <div class="td-spark-head">
+      <h3 class="td-spark-title">Trend · last 25 runs</h3>
+      <div class="td-spark-legend">
+        <span class="td-spark-leg"><i style="background:#0A8462"></i>green</span>
+        <span class="td-spark-leg"><i style="background:#C8921A"></i>non-blocking fail</span>
+        <span class="td-spark-leg"><i style="background:#DC2626"></i>blocking</span>
+        <span class="td-spark-hint">click a bar to select that run · oldest left, newest right</span>
+      </div>
+    </div>
+    <div id="td-spark-body" class="td-spark-body"></div>
   </div>
 
   <!-- FILTER RAIL -->
@@ -447,6 +474,68 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
     document.getElementById('kpi-runs-sub').textContent = 'last ' + runs.length + ' runs';
   }
 
+  /* ─── Trend sparkline ────────────────────────────────
+   * One vertical bar per run. Width is responsive (uses viewBox).
+   * Color: green = passed AND not blocking · amber = !passed but
+   * not blocking · red = blocking_count > 0.
+   * Bar height = log10(pass + fail + 1) × 8 px (capped at 50px) so
+   * small + large runs are both visible at a glance.
+   * Order: API returns newest-first; we reverse so oldest is left.
+   * Click a bar → selectRun. Hover → SVG <title> tooltip.
+   * Pure additive · no third-party charting library. */
+  function renderSparkline(runsNewestFirst) {
+    const body = document.getElementById('td-spark-body');
+    if (!body) return;
+    const runs = (runsNewestFirst || []).slice(0, 25).reverse(); // oldest left
+    if (!runs.length) {
+      body.innerHTML = '<div class="td-spark-empty">No runs yet · trigger one to see the trend.</div>';
+      return;
+    }
+    const VB_W = 480, VB_H = 60;
+    const BAR_W = Math.max(8, Math.floor((VB_W - (runs.length - 1) * 2) / runs.length));
+    const GAP   = 2;
+    const MAX_H = 50;
+    function colorOf(r) {
+      if ((r.blocking_count || 0) > 0) return '#DC2626';
+      if (!r.passed)                   return '#C8921A';
+      return '#0A8462';
+    }
+    function heightOf(r) {
+      const total = (r.summary?.pass || 0) + (r.summary?.fail || 0);
+      const h = Math.log10(total + 1) * 8;
+      return Math.max(4, Math.min(MAX_H, h)); // floor at 4px so empty runs are still visible
+    }
+    let bars = '';
+    runs.forEach((r, i) => {
+      const x = i * (BAR_W + GAP);
+      const h = heightOf(r);
+      const y = VB_H - h;
+      const fill = colorOf(r);
+      const isSel = r.run_id === STATE.selectedRunId ? ' selected' : '';
+      const tooltip =
+        (r.scope || 'fleet') + ' · ' +
+        (r.passed ? '✓ pass' : '✗ fail') + ' · ' +
+        (r.summary?.pass || 0) + ' pass / ' +
+        (r.summary?.fail || 0) + ' fail / ' +
+        (r.blocking_count || 0) + ' blocking\n' +
+        (r.started_at || '') + '\n' +
+        (r.run_id || '');
+      bars +=
+        '<rect class="td-spark-bar' + isSel + '"' +
+        ' x="' + x + '" y="' + y + '" width="' + BAR_W + '" height="' + h + '"' +
+        ' rx="2" ry="2" fill="' + fill + '"' +
+        ' onclick="window.selectRun(\'' + escapeHtml(r.run_id || '') + '\')">' +
+        '<title>' + escapeHtml(tooltip) + '</title>' +
+        '</rect>';
+    });
+    body.innerHTML =
+      '<svg viewBox="0 0 ' + VB_W + ' ' + VB_H + '" preserveAspectRatio="none"' +
+      ' style="width:100%;height:' + VB_H + 'px;display:block" role="img"' +
+      ' aria-label="Trend of the last ' + runs.length + ' test runs">' +
+      bars +
+      '</svg>';
+  }
+
   /* ─── Runs table ──────────────────────────────────── */
   function renderRunsTable(runs) {
     const body = document.getElementById('td-runs-body');
@@ -654,6 +743,7 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
       STATE.runs = result.runs || [];
       renderHeader(STATE.runs[0]);
       renderKpis(STATE.runs);
+      renderSparkline(STATE.runs);
       renderRunsTable(STATE.runs);
       renderStatusBar(STATE.runs);
 
@@ -668,6 +758,7 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
       STATE.runs = [];
       renderHeader(null);
       renderKpis([]);
+      renderSparkline([]);
       renderRunsTable([]);
     }
   }
@@ -675,6 +766,7 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
   async function selectRunInternal(runId) {
     STATE.selectedRunId = runId;
     renderRunsTable(STATE.runs);  // re-render to update .expanded class
+    renderSparkline(STATE.runs);  // re-render to update .selected outline on the matching bar
     try {
       const report = await window.TM.getReport(runId);
       if (report.error) {
