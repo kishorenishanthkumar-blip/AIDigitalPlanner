@@ -1,0 +1,76 @@
+name: Deploy Pages
+
+# Auto-deploys aidp-platform.pages.dev on every push to main.
+# Eliminates the manual `wrangler pages deploy` workflow that drifts.
+#
+# Required repo secrets:
+#   - CLOUDFLARE_API_TOKEN  · token with "Cloudflare Pages: Edit" permission
+#   - CLOUDFLARE_ACCOUNT_ID · the account id (32-hex string)
+#
+# How to add them: https://github.com/<owner>/<repo>/settings/secrets/actions
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  # Cancel any in-flight deploy when a new push lands so the latest commit wins.
+  group: deploy-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to aidp-platform.pages.dev
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://aidp-platform.pages.dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Strip dev-only artifacts (venv, caches, etc.)
+        # Cloudflare Pages caps individual files at 25 MiB. The Python venv ships
+        # binaries (ruff.exe, etc.) well over that. Strip everything that isn't
+        # served at runtime. This mirrors the manual `mv backend/.venv ...`
+        # dance from local deploys.
+        run: |
+          rm -rf backend/.venv backend/__pycache__ backend/.pytest_cache backend/.ruff_cache
+          rm -rf node_modules .vscode .idea .pytest_cache .ruff_cache .next .nuxt
+          find . -name "__pycache__" -type d -prune -exec rm -rf {} + 2>/dev/null || true
+          find . -name "*.pyc" -delete 2>/dev/null || true
+          # Sanity check · fail fast if any file is still >25MiB
+          BIG=$(find . -type f -size +25M -not -path "./.git/*" 2>/dev/null || true)
+          if [ -n "$BIG" ]; then
+            echo "::error::Files exceeding Cloudflare Pages 25MiB limit detected:"
+            echo "$BIG"
+            exit 1
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy . --project-name=aidp-platform --branch=main --commit-dirty=true
+
+      - name: Smoke test deployed home page
+        # Quick check that the deploy actually serves content. Fails CI if the
+        # site is 5xx or the top nav placeholder is missing.
+        run: |
+          sleep 8
+          STATUS=$(curl -s -o /tmp/home.html -w "%{http_code}" https://aidp-platform.pages.dev/home)
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::aidp-platform.pages.dev/home returned HTTP $STATUS"
+            exit 1
+          fi
+          if ! grep -q "data-di-topbar" /tmp/home.html; then
+            echo "::error::deployed home.html is missing data-di-topbar placeholder"
+            exit 1
+          fi
+          echo "::notice::Deploy verified · home.html is 200 with topbar"
