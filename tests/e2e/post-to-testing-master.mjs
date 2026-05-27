@@ -40,12 +40,14 @@ function probesFromSpec(file) {
           };
           if (status === "fail") {
             const msg = (first.error && (first.error.message || first.error.value)) || "Playwright test failed";
+            /* Minimal payload · tm_post_external fills in id/layer/scope from
+             * the run context (scope=fleet, layer=e2e-browser). */
             probe.defect = {
               severity: "high",
-              signal: "regression",
               title: `E2E: ${spec.title}`,
               description: String(msg).slice(0, 500),
-              evidence: { stack: String(first.error && first.error.stack || "").slice(0, 1500) }
+              evidence: { stack: String(first.error && first.error.stack || "").slice(0, 1500) },
+              suggested_fix: "Inspect Playwright trace · check selectors, page load timing, and console errors."
             };
           }
           probes.push(probe);
