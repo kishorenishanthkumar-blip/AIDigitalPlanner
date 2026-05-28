@@ -224,9 +224,8 @@ button{font-family:var(--f-ui);cursor:pointer}
       <div class="resume-title" id="resume-title">Discovery Studio · Payments module</div>
       <div class="resume-meta" id="resume-meta">12 of 17 artifacts reviewed · 3 high-risk</div>
       <div class="resume-bar"><div style="width:71%"></div></div>
-      <button class="resume-cta" onclick="location.href='discovery-studio.html'">Resume →</button>
+      <button class="resume-cta" id="resume-cta" onclick="location.href='discovery-studio.html'">Resume →</button>
       <button class="resume-link" onclick="location.href='nishi-chatbot.html'">Start something new</button>
-      <button class="resume-link" onclick="exportPlatformSnapshot()">⬇ Platform snapshot (Excel)</button>
       <button class="resume-link" onclick="exportPlatformSnapshot()">⬇ Platform snapshot (Excel)</button>
     </div>
   </div>
@@ -415,6 +414,132 @@ function exportPlatformSnapshot() {
     if (window.DI && window.DI.toast) window.DI.toast({ kind:'ok', icon:'★', title: arr.includes(id) ? 'Pinned' : 'Unpinned', message: id, duration: 1500 });
     location.reload();
   };
+
+  /* ─── Continue where you left off · card population ─────────
+   * Scans the same localStorage keys the Recent Items strip uses,
+   * picks the most-recently-touched studio, and rewrites the dark
+   * card's title / meta / progress / Resume URL. If nothing is
+   * touched yet (first-time visitor), the whole card is hidden so
+   * a fake "Discovery · Payments module" never greets a buyer.
+   * Pattern mirrors the Recent Items code immediately below. */
+  (function paintResumeCard(){
+    const card    = document.getElementById('resume-card');
+    const titleEl = document.getElementById('resume-title');
+    const metaEl  = document.getElementById('resume-meta');
+    const ctaEl   = document.getElementById('resume-cta');
+    const barEl   = card && card.querySelector('.resume-bar div');
+    if (!card || !titleEl || !metaEl || !ctaEl) return;
+
+    /* Per-studio adapters · each returns { title, meta, href, pct, ts } or null. */
+    const SOURCES = [
+      { key: 'di_discovery_v1', href: 'discovery-studio.html',
+        adapt: d => {
+          const caps = (d.selected && d.selected.length) || 0;
+          if (!caps) return null;
+          const total = (d.candidates && d.candidates.length) || caps;
+          const high = (d.selected || []).filter(c => (c.risk || '').toLowerCase() === 'high').length;
+          return {
+            title: 'Discovery Studio · ' + (d.programName || d.mode || 'Modernization run'),
+            meta:  caps + ' of ' + total + ' caps reviewed' + (high ? ' · ' + high + ' high-risk' : ''),
+            pct:   Math.round((caps / Math.max(total, caps)) * 100),
+            ts:    d.updatedAt
+          };
+        }
+      },
+      { key: 'di_architecture_v1', href: 'architecture-studio.html',
+        adapt: a => {
+          const caps = (a.capabilities && a.capabilities.length) || 0;
+          if (!caps) return null;
+          return {
+            title: 'Architecture Studio · ' + ((a.region || 'na-east').toUpperCase()),
+            meta:  caps + ' capability' + (caps === 1 ? '' : 'ies') + ' designed',
+            pct:   Math.min(100, caps * 14),  // 7 caps ≈ 100%
+            ts:    a.updatedAt
+          };
+        }
+      },
+      { key: 'di_requirements_v1', href: 'requirements.html',
+        adapt: r => {
+          const n = (r.items && r.items.length) || (r.requirements && r.requirements.length) || 0;
+          if (!n) return null;
+          return { title: 'Requirements Studio · ' + n + ' tracked',
+                   meta:  (r.must || 0) + ' must-have · ' + (r.invest_avg ? 'INVEST ' + r.invest_avg : 'scoring pending'),
+                   pct:   Math.min(100, n * 5),
+                   ts:    r.updatedAt };
+        }
+      },
+      { key: 'di_actions_v1', href: 'actions.html',
+        adapt: a => {
+          const n = (a.items && a.items.length) || (a.actions && a.actions.length) || 0;
+          if (!n) return null;
+          return { title: 'Actions Studio · ' + n + ' actions',
+                   meta:  'across ' + ((a.roles && a.roles.length) || 16) + ' roles',
+                   pct:   Math.min(100, n * 8),
+                   ts:    a.updatedAt };
+        }
+      },
+      { key: 'di_sow_v1', href: 'sow.html',
+        adapt: s => {
+          if (!s.version) return null;
+          return { title: 'Draft SOW · v' + s.version,
+                   meta:  (s.status || 'DRAFT') + (s.sections ? ' · ' + s.sections + '/11 sections' : ''),
+                   pct:   s.sections ? Math.round((s.sections / 11) * 100) : 50,
+                   ts:    s.updatedAt };
+        }
+      },
+      { key: 'di_governance_v1', href: 'program-governance.html',
+        adapt: g => {
+          const items = (g.raid && g.raid.length) || 0;
+          if (!items) return null;
+          const open = (g.raid || []).filter(r => r.status === 'Open').length;
+          return { title: 'Program Governance · ' + items + ' RAID items',
+                   meta:  open + ' open · ' + (g.rag_status || g.rag || 'amber').toUpperCase() + ' RAG',
+                   pct:   Math.round(((items - open) / Math.max(items, 1)) * 100),
+                   ts:    g.updatedAt };
+        }
+      },
+      { key: 'di_operations_v1', href: 'operations.html',
+        adapt: o => {
+          const inc = (o.incidents && o.incidents.length) || 0;
+          if (!inc && !o.dora) return null;
+          return { title: 'Operations · post-go-live KPIs',
+                   meta:  inc + ' incident' + (inc === 1 ? '' : 's') + ' tracked' + (o.dora_perf ? ' · DORA ' + o.dora_perf : ''),
+                   pct:   85,
+                   ts:    o.updatedAt };
+        }
+      }
+    ];
+
+    /* Build candidate list. */
+    const candidates = [];
+    SOURCES.forEach(s => {
+      try {
+        const blob = JSON.parse(localStorage.getItem(s.key) || 'null');
+        if (!blob) return;
+        const r = s.adapt(blob);
+        if (r) candidates.push({ ...r, href: s.href, key: s.key });
+      } catch (e) { /* malformed JSON · skip */ }
+    });
+
+    /* No real activity · hide the card so first-time visitors don't see fake data. */
+    if (!candidates.length) {
+      card.style.display = 'none';
+      return;
+    }
+
+    /* Pick the most-recently-touched · fall back to source order if no timestamps. */
+    candidates.sort((a, b) => {
+      const ta = a.ts ? Date.parse(a.ts) : 0;
+      const tb = b.ts ? Date.parse(b.ts) : 0;
+      return tb - ta;
+    });
+    const top = candidates[0];
+
+    titleEl.textContent = top.title;
+    metaEl.textContent  = top.meta;
+    if (barEl) barEl.style.width = Math.max(5, Math.min(100, top.pct || 0)) + '%';
+    ctaEl.setAttribute('onclick', "location.href='" + top.href + "'");
+  })();
 
   /* Recent items strip — pulls from various localStorage artifacts */
   const recent = [];
