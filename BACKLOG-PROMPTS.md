@@ -787,6 +787,359 @@ Risk: HIGH — wallet keys, gas costs, smart-contract bugs.
 
 ---
 
+### W5-G · LAD-1 · Live Architecture Designer · static implementation
+
+**Effort:** ~16 hr · **Risk:** LOW (pure additive frontend)
+
+````prompt
+Goal: build the Live Architecture Designer described in docs/planning/
+LIVE_ARCHITECTURE_DESIGNER.md. Click any 7R verdict pill (REHOST, REPLAT,
+REFACT, REARCH, REBUILD, REPLACE, RETAIN) on Discovery → opens a designer
+with three mode tabs: TradFi (cloud-native), DeFi (blockchain-native),
+Hybrid (the realistic bank-grade pattern).
+
+Architecture:
+- New page: live-architecture-designer.html
+- New asset: assets/lad-engine.js (layer libraries + transaction flow renderer)
+- discovery-studio.html sends ?verdict=X&capability=Y to the designer
+
+Layer libraries (from the design doc § 2):
+- TradFi: ALB → API Gateway → Lambda/ECS → Aurora/RDS → S3 → CloudWatch
+- DeFi: Web3 wallet → smart contract → on-chain settlement → IPFS → indexer
+- Hybrid: trad core + DeFi tokenization wing + bridge contract
+Sample transaction flow per mode rendered as editable SVG.
+
+Top-bar entry: add tile to home.html and a FEATURES catalog entry to
+top-bar.js with badge='LIVE' once shipped.
+
+Acceptance:
+- 3 mode tabs render with their layer libraries.
+- Click a verdict pill on /discovery-studio → designer opens with verdict
+  pre-selected.
+- Layer composition exports as JSON (round-trips to localStorage).
+- 1 new Playwright test (Step 23 · LAD page loads + 3 mode tabs visible).
+
+Static-now implementation. Agentic upgrade is LAD-2 (W5-H).
+Push: frontend only.
+````
+
+---
+
+### W5-H · LAD-2 · Live Architecture Designer · agentic upgrade (Phase E-18)
+
+**Effort:** ~1 week · **Risk:** MED
+
+````prompt
+Plan E-18 (LAD agent) as 3 prompts:
+
+E-18-a · live-architecture-agent sub-agent (~½ day):
+Cross-binds DISCOVERY (read 7R verdict) + ARCHITECTURE (cost model) +
+KNOWLEDGE (similar bank patterns).
+Tools: lad_propose_design, lad_score_design (cost/risk/compliance),
+       lad_export_svg.
+
+E-18-b · Designer ↔ agent wiring (~1 day):
+Replace static layer-library JS with LAD-agent calls. Each mode tab
+fetches an LLM-proposed composition instead of hardcoded layers.
+
+E-18-c · Saved designs persistence (~1 day):
+D1 migration 1200_lad_designs.sql (tenant_id, capability_id, verdict,
+mode, design_json, created_at). Save/load buttons in the UI.
+
+Each sub-prompt follows the standard E-3 pattern: env.ts, handlers.ts,
+manifest.ts, migration file, router prompt template update.
+````
+
+---
+
+### W5-I · FEED-1 · Phase E-9 post-test feedback loop
+
+**Effort:** ~1 week · **Risk:** MED
+
+````prompt
+Plan Phase E-9 (post-test feedback loop) as 4 prompts:
+
+E-9-a · Defect-pattern miner (~½ day):
+Nightly cron in testing-master. Aggregates 30-day defects by
+(agent, tool, severity, layer). Identifies clusters.
+
+E-9-b · Buyer-question log (~½ day):
+D1 table buyer_questions (id, question, source, captured_at, tenant_id).
+Niche-I logs every user message that didn't route to a tool.
+
+E-9-c · Insights LLM (~2 days):
+New insights-agent (or extend FEAT-4). Weekly job: defect clusters +
+question log + roadmap → Groq → 5 feature proposals ranked impact × ease.
+
+E-9-d · Suggestions UI (~1 day):
+New /insights.html. Each suggestion: title, rationale, impact, effort,
+"Add to BACKLOG" button.
+
+Acceptance: at week 2, page shows ≥3 LLM-generated suggestions.
+````
+
+---
+
+## Wave 6 · Enterprise gates · multi-week each · pick 2-3 per quarter
+
+Derived from `docs/planning/ENTERPRISE_GRADE_RECOMMENDATIONS.md`. **These
+are the questions tier-1 banks ask during procurement.** Each is real
+engineering. Sequencing depends on which buyer segment you target first.
+
+Most prompts here are **scoping prompts** that produce sub-plans, because
+each item is 1-4 weeks and can't fit a single session.
+
+---
+
+### W6-A · ENT-1 · Banking trust & safety layer
+
+**Effort:** ~4 weeks · **Risk:** HIGH (touches every LLM call)
+
+````prompt
+Scope a banking trust & safety layer per ENTERPRISE_GRADE_RECOMMENDATIONS.md §2.
+
+Sub-items (each ~1 week):
+
+ENT-1a · Model risk management (SR 11-7 aligned):
+- New @aidp/model-risk package
+- Every LLM call logs: model_id, prompt_hash, input/output classes,
+  confidence, fallback_used, latency, cost
+- New /model-risk dashboard for the model risk committee
+- Inventory tables: models_in_use, model_validation_evidence, model_changes
+- Export pack: SR 11-7-aligned PDF for annual model validation
+
+ENT-1b · Human-in-the-loop gates (beyond patch-agent):
+- HITL on Architecture redesigns (>$500K impact)
+- HITL on SOW pricing changes (>10% delta)
+- HITL on Governance steering-pack publication
+- All HITL events logged with approver email + reason + sla_breached flag
+
+ENT-1c · Explainability + citation enforcement:
+- Every RAG response MUST return source chunk IDs
+- Every numeric output MUST trace to its arithmetic source
+- Frontend renders "show sources" link on every LLM output
+- Citation drift alerts wired to exception agent
+
+ENT-1d · Prompt injection / jailbreak defense:
+- New @aidp/prompt-guard package wrapping every callLlm
+- Input scanning for known injection patterns
+- Output scanning for leaked system prompts
+- Per-tenant block lists + continuous red-team eval
+
+Acceptance per sub-item:
+- Documented in apps/master-agent/docs/trust-safety.md
+- 1 integration test per sub-item in testing-master functional layer
+- Compliance sign-off (mock now, real later)
+
+Risk: HIGH. Stage rollout per agent over 4 weeks.
+````
+
+---
+
+### W6-B · ENT-2 · Identity, access, multi-tenancy (extends FEAT-6)
+
+**Effort:** ~2 weeks · **Risk:** HIGH
+
+````prompt
+Build on FEAT-6 to add RBAC + ABAC + audit-grade access logs + SAML/OIDC SSO.
+
+Sub-items:
+- ENT-2a · Cloudflare Access in front of every Worker (prereq from FEAT-6)
+- ENT-2b · RBAC schema (1d): roles, role_permissions, user_roles, tenant_users.
+  Every MCP handler checks permission before running.
+- ENT-2c · ABAC overlay (1d): attributes tenant_size, region, regulatory_zone, role_level.
+  Policy DSL: deny if user.region != tenant.region.
+- ENT-2d · SAML / OIDC SSO (2d): map SSO claims → AIDP roles via role_claim_map JSON.
+- ENT-2e · Audit-grade access logs (1d): audit_access_log (ts, user, tenant,
+  action, resource, allowed, reason, ip, ua). Auditor query API.
+- ENT-2f · Admin UI (2d): /admin/users CRUD roles + /admin/audit log search.
+
+Acceptance: 3 tenants × 3 roles, each role limited correctly, every decision
+in the audit log.
+````
+
+---
+
+### W6-C · ENT-3 · Data residency / sovereignty / BYOK
+
+**Effort:** ~2 weeks · **Risk:** HIGH
+
+````prompt
+Per-region D1 + R2 placement and BYOK per
+ENTERPRISE_GRADE_RECOMMENDATIONS.md §4.
+
+Sub-items:
+- ENT-3a · Per-region D1 + R2 (4d): location hints 'enam'/'weur'/'apac',
+  tenant_region field, region-aware query middleware.
+- ENT-3b · Customer-managed encryption keys (4d): tenant supplies KMS key,
+  sensitive D1 columns encrypted at rest, background re-encryption on rotation.
+- ENT-3c · Region-locked tenant policy (2d): worker-level enforcement
+  ("refuse to fetch from cross-region binding").
+- ENT-3d · Compliance reporting (2d): per-tenant signed PDF showing D1
+  region, R2 region, model-API region commitments.
+
+Acceptance: 3 tenants in 3 regions; data never crosses; audit pack proves it.
+````
+
+---
+
+### W6-D · ENT-4 · Immutable, regulator-friendly audit (extend chain_hash)
+
+**Effort:** ~1 week · **Risk:** LOW
+
+````prompt
+Extend existing chain_hash (already on exception_index) to full WORM
+audit log + auditor-facing export.
+
+Sub-items:
+- ENT-4a · WORM-style audit_log table (1d): append-only, chain_hash,
+  triggers from every state change.
+- ENT-4b · Retention policies (1d): 7y SOX, 11y MiFID II, 5y GDPR-ops.
+  Nightly archive to R2 cold storage past N years.
+- ENT-4c · Auditor export (2d): /audit/export?since=&until=&tenant= returns
+  Excel + PDF cover letter with chain_hash verification + optional zipped
+  signed bundle.
+- ENT-4d · External anchor (optional, 2d): hourly hash → external immutable
+  store (S3 Object Lock / QLDB / blockchain).
+
+Acceptance: regulator pulls 12-month audit pack in < 30 sec.
+````
+
+---
+
+### W6-E · ENT-5 · Production resilience (chaos + circuit breakers)
+
+**Effort:** ~2 weeks · **Risk:** MED
+
+````prompt
+Add production resilience per ENTERPRISE_GRADE_RECOMMENDATIONS.md §6.
+
+Sub-items:
+- ENT-5a · Circuit breakers per sub-agent (3d): wrap callAgentTool.
+  Open after N failures, half-open after timeout, fallback to cache/error.
+- ENT-5b · Retry budgets (1d): token bucket per (caller, callee).
+  Prevents retry storms during degradation.
+- ENT-5c · Graceful degradation matrix (2d): doc + banner per user flow
+  describing what works in each degraded state.
+- ENT-5d · Chaos testing (3d): new 'chaos' layer in testing-master.
+  Injects latency/errors/timeouts into one sub-agent per run.
+- ENT-5e · SLA dashboard (2d): /sla page · 99.9% uptime track-record per
+  worker over 30/90 days from /health probes.
+
+Acceptance: kill any sub-agent, platform stays usable. Add chaos run to
+nightly schedule.
+````
+
+---
+
+### W6-F · ENT-6 · Core banking + payment-rail integration depth
+
+**Effort:** ~3 weeks PER integration · **Risk:** MED-HIGH
+
+````prompt
+Reference adapters for major banking systems and payment rails.
+
+Pick ONE core banking + ONE rail to start, based on your first-target buyer:
+
+| Buyer profile | Recommended pair |
+|---|---|
+| Tier-1 EU bank | Temenos T24 + SWIFT |
+| Tier-2/3 US bank | FIS Profile + ACH/FedNow |
+| India private bank | Finacle + UPI |
+| Neo-bank | Mambu + RTP/SEPA-INST |
+
+Per integration:
+1. Sandbox account · vendor's free dev tier · auth flow doc.
+2. New @aidp/connector-${vendor} package · 5-10 most-common operations.
+3. End-to-end demo workflow + home-page tile.
+
+Risk: every vendor has its own auth quirks, breaking changes, rate limits.
+Plan 1.5x buffer.
+
+⚠ DON'T START until a buyer has explicitly asked for the integration.
+Speculative integrations are a sink. Wait for procurement signal.
+````
+
+---
+
+### W6-G · ENT-7 · First-class banking workflows
+
+**Effort:** ~3 weeks PER workflow · **Risk:** MED
+
+````prompt
+Pre-baked banking workflows that differentiate AIDP from generic
+modernization tools. Pick ONE; each is multi-week.
+
+Candidates (ranked by buyer-frequency):
+1. KYC/AML pre-built playbook (CDD, sanctions, PEP, adverse-media, SAR)
+2. Customer onboarding orchestration (intake, IDV, KYC handoff, account opening)
+3. Payments orchestration · multi-rail (route by amount/currency/urgency/cost)
+4. Fraud detection plugins (Featurespace, Sift, Feedzai integration)
+5. ECL / IFRS9 model integration (3-stage, scenario-weighted ECL output)
+
+Per workflow:
+- New top-level tile on home.html
+- End-to-end 10-min demo
+- docs/workflows/${workflow}.md
+
+Don't build all 5 — pick 1-2 that match your pipeline. The rest are
+"we have a roadmap for that" answers at procurement.
+````
+
+---
+
+### W6-H · ENT-8 · AgentOps & continuous evaluation
+
+**Effort:** ~2 weeks · **Risk:** MED
+
+````prompt
+Extend testing-master from "did it pass today?" to "is it still as good as
+last week?" per ENTERPRISE_GRADE_RECOMMENDATIONS.md §9.
+
+Sub-items:
+- ENT-8a · Drift detection (3d): nightly compare today's tm_run_suite
+  scores vs 7-day rolling avg. Alert if pass-rate -5% or any tool -10%.
+- ENT-8b · Prompt-version A/B testing (3d): prompt_versions table,
+  router picks A/B per request, auto-promote winner on significance.
+- ENT-8c · Reproducibility ledger (3d): every LLM call logs model_id,
+  prompt_id, input_hash, output_hash, seed. /replay/:call_id endpoint.
+- ENT-8d · Eval harness with golden answers (3d): 20-50 goldens per agent.
+  Nightly run, flags drift. New 'goldens' layer in testing-master.
+- ENT-8e · Auto-rollback on quality regression (2d): if drift triggers AND
+  last deploy < 24h, auto-revert + open CR in governance.
+
+Acceptance: simulate a bad prompt push; auto-rollback fires within 1 hour.
+````
+
+---
+
+### W6-I · ENT-9 · Build once, deploy three ways
+
+**Effort:** ~3 weeks · **Risk:** HIGH (cross-platform compatibility)
+
+````prompt
+Make every Worker portable across Cloudflare (today), Kubernetes (banks'
+own cluster), and AWS Lambda + RDS per ENTERPRISE_GRADE_RECOMMENDATIONS.md §1.
+
+Approach:
+1. Runtime abstraction layer (1w): @aidp/runtime package wraps KV/D1/R2/
+   Vectorize/Queues so handlers don't know the underlying provider.
+2. Adapters (1w): @aidp/runtime-cloudflare (current), @aidp/runtime-kubernetes
+   (Postgres + Redis + MinIO + RabbitMQ + pgvector), @aidp/runtime-aws (RDS +
+   ElastiCache + S3 + SQS + Pinecone).
+3. Deployment matrix (1w): /deploy/cloudflare, /deploy/kubernetes (Helm),
+   /deploy/aws (Terraform). CI builds all three on every push.
+
+Acceptance: same source code → all three targets → smoke tests pass on each.
+
+Risk: HIGH. SQL dialect quirks, S3 vs R2 multi-part semantics. Plan 2x buffer.
+
+⚠ DON'T START until a buyer mandates a non-Cloudflare target. Premature
+multi-target work doubles maintenance for zero revenue.
+````
+
+---
+
 ## Execution discipline · do this every time
 
 Before pushing any item from this file:
@@ -804,15 +1157,28 @@ Before pushing any item from this file:
 
 | Sprint | Wave | Items | Hours | Risk |
 |---|---|---|---|---|
-| **1 (this week)** | Wave 1 | W1-A, B, C, D | ~6 | LOW |
-| **2 (next week)** | Wave 2 | W2-A, W2-B | ~7 | MED |
+| **1 ✅** | Wave 1 | W1-A, B, C, D | ~6 | LOW |
+| **2 (current)** | Wave 2 | W2-A ✅, W2-B | ~7 | MED |
 | **3** | Wave 3 | W3-A + W3-B | ~5 | LOW |
 | **4** | Wave 3 cont. | W3-C, D, E | ~11 | MED |
 | **5** | Wave 4 | W4-A | ~4 | MED-HIGH |
-| **6+** | Wave 5 | pick one FEAT per 1-2 week sprint | varies | varies |
+| **6** | Wave 5 (small) | W5-A + W5-G (LAD-1) | ~20 | LOW-MED |
+| **7-8** | Wave 5 (rest) | W5-B/C/D/E/F/H/I — pick one FEAT or program per 1-2 week sprint | varies | varies |
+| **9+** | Wave 6 | Pick 1-2 enterprise gates (W6-A through W6-I) per quarter based on buyer pipeline | weeks | HIGH |
 
-After Sprint 1 the dashboard becomes a real triage tool. After Sprint 2 Niche-I is multi-modal. By Sprint 5 the platform is on robust auth. Sprints 6+ are growth features.
+After Sprint 1 the dashboard becomes a real triage tool. After Sprint 2 Niche-I is multi-modal. By Sprint 5 the platform is on robust auth. Sprints 6-8 are growth features. Wave 6 enterprise gates start when there's a confirmed bank buyer to pull them — building them speculatively burns engineering with zero revenue.
+
+## Buyer-segment routing for Wave 6
+
+When you DO start Wave 6, sequence by your target buyer:
+
+| First buyer | Suggested Wave 6 sequence |
+|---|---|
+| Tier-1 EU bank | W6-A (trust+safety) → W6-D (audit) → W6-B (IAM) → W6-F (Temenos+SWIFT) |
+| Tier-2 US bank | W6-D (audit) → W6-A (trust+safety) → W6-F (FIS+ACH/FedNow) |
+| India private bank | W6-C (RBI residency) → W6-F (Finacle+UPI) → W6-A (trust+safety) |
+| Neo-bank | W6-H (AgentOps) → W6-G (#1 KYC/AML) → W6-E (resilience) |
 
 ---
 
-Last updated: 2026-05-27. Companion to BACKLOG.md (inventory) and DEPLOY.md (process).
+Last updated: 2026-05-27 (revised after planning-doc audit). Companion to BACKLOG.md (inventory) and DEPLOY.md (process).

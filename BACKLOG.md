@@ -1,9 +1,17 @@
 # AIDP Platform · Consolidated Backlog
 
-**As of:** 2026-05-27
+**As of:** 2026-05-27 (revised after planning-doc audit)
 **Status:** Platform is live in production. Backend = 14 Workers + 1 testing-master. Front-end = 18 HTML pages + 12 studios + testing-dashboard. CI = Deploy Pages + Deploy Workers + E2E Playwright (17 tests).
 
 This file replaces the 2026-05-21 backlog (which has since shipped almost entirely). Use this as the menu for what's next. Each item is sized to ≤4 hours of focused work unless flagged as a multi-week program.
+
+**Reference reading** (committed to `docs/planning/`):
+- `AGENTIC_ROADMAP.md` — original Batch E plan (Phases E-1 through E-10)
+- `EXECUTIVE_OUTPUT_AGENT.md` — output-agent design (fully shipped)
+- `INTEGRATED_UPDATES_V2.md` — output-agent v2 + testing-services (fully shipped)
+- `LIVE_ARCHITECTURE_DESIGNER.md` — LAD-1 + LAD-2 below
+- `CONTAINERIZED_BLOCKCHAIN_ARCHITECTURE.md` — containerization + chain depth (P5 deferred)
+- `ENTERPRISE_GRADE_RECOMMENDATIONS.md` — P3.5 enterprise gates below
 
 ---
 
@@ -44,6 +52,29 @@ These came up during the testing-dashboard / Playwright / E2E-trigger work in th
 | **FEAT-4** | **E-7 · Insights agent** — LLM running over platform data to produce per-tenant program-health reports + cross-tenant trend detection (anonymised). | ~1 week | High-value "AI shows me the insights I didn't know to ask for" pitch. |
 | **FEAT-5** | **Per-defect drill-down enrichments** — reproduction-step playback, links to the failing test source, attach screenshots/HAR captured by Playwright. | 4 hr | Speeds up triage materially. |
 | **FEAT-6** | **Multi-tenant pricing model** — today `tenant: guest` is the only persona. Wire real auth + per-tenant D1 scoping. | ~3 days | Required before any commercial pilot. |
+| **LAD-1** | **Live Architecture Designer · static implementation** — clickable 7R verdict pill on Discovery opens a TradFi / DeFi / Hybrid mode picker that renders editable layer-library architectures (cloud-native, blockchain-native, hybrid bank-grade). Sample transaction flow per mode. | ~16 hr | Designed in `docs/planning/LIVE_ARCHITECTURE_DESIGNER.md` but never built. Strong demo addition — visualises the 7R verdict instead of just naming it. |
+| **LAD-2** | **Live Architecture Designer · agentic upgrade (Phase E-18)** — converts the static designer to an LLM-driven agent that proposes layer compositions from RFP context + chosen mode. | ~1 week | Builds on LAD-1. |
+| **FEED-1** | **Phase E-9 · post-test feedback loop** — testing-master defect patterns + buyer-question logs feed an LLM that auto-suggests new features / studios / capabilities. Closes the learning loop. | ~1 week | Designed in `docs/planning/AGENTIC_ROADMAP.md` Phase E-9. Differentiator vs static demo tools. |
+
+---
+
+## P3.5 · Enterprise gates (required for tier-1 bank sales)
+
+These are derived from `docs/planning/ENTERPRISE_GRADE_RECOMMENDATIONS.md`. They turn the current "great working demo" into a deployable enterprise-grade agentic banking platform. Most are multi-week or multi-sprint efforts; tier-1 banks WILL ask about them during procurement.
+
+| ID | What it ships | Effort | Why a bank cares |
+|---|---|---|---|
+| **ENT-1** | **Banking trust & safety layer** — (a) Model risk management aligned to SR 11-7 / FFIEC / EBA guidance; (b) Human-in-the-loop approval gates beyond just patch-agent; (c) Explainability & citation enforcement (every LLM output traces to source); (d) Prompt injection / jailbreak defense (input validation + output scanning + monitoring). | ~4 weeks | Banks have model risk committees. No model risk story = no sale. SR 11-7 is the US regulatory floor. |
+| **ENT-2** | **Identity, access, multi-tenancy** — RBAC + ABAC, audit-grade access logs, tenant data isolation at every layer, SSO via SAML/OIDC. Extends FEAT-6. | ~2 weeks | Banks won't let a vendor manage their identities — they federate. |
+| **ENT-3** | **Data residency / sovereignty / BYOK** — Per-region D1 + R2 placement, customer-managed encryption keys via Cloudflare KV-with-HSM, region-locked tenants. | ~2 weeks | EU (GDPR), India (RBI), Singapore (MAS), UAE (DIFC) all require regional residency. BYOK is table stakes. |
+| **ENT-4** | **Immutable, regulator-friendly audit** — Extend the chain_hash design to full WORM audit log + auditor-facing export (Excel/PDF) + retention policy enforcement (7 years for SOX, 11 for MiFID II). | ~1 week | Already partial (chain_hash on exception_index done). Auditors expect this level of evidence. |
+| **ENT-5** | **Production resilience** — Chaos testing (Toxiproxy / Litmus), circuit breakers per sub-agent, retry budgets with jitter, graceful-degradation matrix per service, 99.9% SLA dashboards. | ~2 weeks | Banks expect 99.9%+ availability. Current platform has no failure-injection tests. |
+| **ENT-6** | **Core banking + payment-rail integration depth** — Reference adapters for Temenos T24, Finacle, FIS Profile, Mambu (core banking) + SWIFT, ACH/FedNow, RTP, UPI, SEPA INST (rails). | ~3 weeks per integration | Each integration is an immediate sales lever for that ecosystem. Start with Temenos + SWIFT if you're chasing tier-1. |
+| **ENT-7** | **First-class banking workflows** — KYC/AML pre-built playbook, customer onboarding orchestration, payments orchestration (multi-rail), fraud detection plugins, ECL/IFRS9 model integration. | ~3 weeks per workflow | Differentiates from generic-modernization tools. "We ALSO know banking" wins the demo. |
+| **ENT-8** | **AgentOps & continuous evaluation** — Drift detection, prompt-version A/B testing, reproducibility ledgers (replay any past run), eval harness with golden answers, automatic rollback on quality regression. | ~2 weeks | Extends current testing-master from "did it pass?" to "is it still as good as last week?" |
+| **ENT-9** | **Build once, deploy three ways** — Same Worker code runs on Cloudflare (default), Kubernetes (banks' own cluster), or AWS Lambda + RDS (banks who already standardised on AWS). Conditional bindings + abstraction layer. | ~3 weeks | Banks with on-prem mandates can't host on Cloudflare. Multi-deploy story unlocks those buyers. |
+
+⚠ Pick AT MOST 2-3 of ENT-1 to ENT-9 per quarter. Each one is real engineering and most require external partners (audit firms for ENT-1, payment rails for ENT-6, etc.). Sequencing depends on which buyer segment you target first.
 
 ---
 
@@ -72,6 +103,8 @@ These were debated, decided against, kept here so we don't accidentally rebuild 
 | Active Nishi co-pilot inside Discovery wizard | Existing floating dock + per-step hint already cover 90% of the value. |
 | Custom SVG illustrations on every empty state | Polish, not value. Existing empty states are clear with CTAs. |
 | xterm.js full terminal emulator for Nishi CLI | Existing slash-command-aware chat does the same job with less weight. |
+| Container-first architecture migration (OCI / Kubernetes from day-one) | Designed in `docs/planning/CONTAINERIZED_BLOCKCHAIN_ARCHITECTURE.md` §1. Cloudflare Workers covers 95% of use cases at $0-$5/mo with auto-scale and global edge. Re-evaluate ONLY if a buyer mandates on-prem (handled instead via ENT-9 multi-deploy story) or if a non-Cloudflare cost/feature gap appears. |
+| Cross-chain bridge + HSM key custody (full blockchain stack from day-one) | `docs/planning/CONTAINERIZED_BLOCKCHAIN_ARCHITECTURE.md` §2.d-e. Folded into FEAT-1 expansion when blockchain becomes a confirmed product priority. |
 
 ---
 
