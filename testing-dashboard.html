@@ -342,6 +342,10 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
       <input type="checkbox" id="m-also-e2e" style="width:auto;margin:0" />
       <label for="m-also-e2e" style="margin:0;text-transform:none;letter-spacing:0;font-size:12px;font-weight:500;color:var(--ink-700);cursor:pointer">Also run browser E2E (Playwright)</label>
     </div>
+    <div class="row" id="m-e2e-branch-row" style="display:none">
+      <label for="m-e2e-branch">E2E branch (DEFECT-5 · defaults to main)</label>
+      <input type="text" id="m-e2e-branch" placeholder="e.g. feature/W3-B-defect-sweep" />
+    </div>
     <div class="actions">
       <button class="btn" onclick="closeRunModal()">Cancel</button>
       <button class="btn btn-primary" id="m-run-btn" onclick="triggerRun()">▶ Run now</button>
@@ -848,11 +852,25 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
     document.getElementById('m-also-e2e').checked = !!wasE2e;
   };
 
+  /* DEFECT-5 · show/hide the branch input when the E2E checkbox toggles. */
+  (function wireE2eBranchVisibility(){
+    document.addEventListener('change', function (e) {
+      if (e.target && e.target.id === 'm-also-e2e') {
+        const row = document.getElementById('m-e2e-branch-row');
+        if (row) row.style.display = e.target.checked ? '' : 'none';
+      }
+    });
+  })();
+
   /* Fire-and-forget E2E workflow_dispatch · shared by single-run and sweep paths.
-   * Returns nothing; surfaces all results via toasts. */
+   * Returns nothing; surfaces all results via toasts.
+   * DEFECT-5 · reads optional branch from #m-e2e-branch · defaults to "main". */
   async function fireE2eIfChecked(ref) {
     try {
-      const e2eResult = await window.TM.triggerE2e({ ref });
+      const branchInput = document.getElementById('m-e2e-branch');
+      const branch = branchInput && (branchInput.value || '').trim();
+      const e2eRef = branch || ref; // user-typed branch wins · falls back to run's ref
+      const e2eResult = await window.TM.triggerE2e({ ref: e2eRef });
       if (!window.DI || !window.DI.toast) return;
       if (e2eResult.ok) {
         window.DI.toast({

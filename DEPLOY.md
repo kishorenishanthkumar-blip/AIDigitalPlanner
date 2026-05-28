@@ -114,3 +114,34 @@ node tests/questionnaire.test.js
 - [ ] API-key drawer accepts and persists an Anthropic key?
 
 If all six are green, the deploy is healthy.
+
+---
+
+## OneDrive sync gotchas · DEFECT-1
+
+The DI-Platform repo lives under `OneDrive\Desktop` which means OneDrive's
+file sync sits between every editor write and the actual on-disk bytes.
+Two failure modes seen during development:
+
+1. **Phantom-truncation typecheck errors.** A WSL bash mount can show a
+   freshly-edited file as truncated mid-word while the Windows-native view
+   shows it correctly. `tsc` / `npm test` invoked from WSL trips on the
+   stale snapshot. Fix: wait 10-30 seconds and retry, OR run the same
+   command from a native Windows terminal (Git Bash, PowerShell, cmd).
+
+2. **Stale Read after Edit.** Occasionally an Edit-then-Read sequence
+   reads the pre-edit content. Fix: explicit `git diff` to confirm the
+   intended bytes hit disk before re-running tooling that depends on them.
+
+These are tooling-level quirks, not platform bugs. They don't affect
+deployed Cloudflare Workers or Pages — only local development.
+
+If you need to bypass OneDrive entirely (e.g., for a heavy CI-style
+local test pass), clone the repo to a path NOT under OneDrive:
+
+    git clone <repo> ~/dev/aidp-platform
+    cd ~/dev/aidp-platform
+    npm ci && npx playwright test
+
+The OneDrive-hosted copy stays in sync via `git pull` from this clean
+working clone.

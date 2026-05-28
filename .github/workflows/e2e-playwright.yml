@@ -63,7 +63,21 @@ jobs:
         env:
           TM_URL: https://aiagenticplanner-testing-master.kishorenishanthkumar.workers.dev/mcp
           GITHUB_SHA: ${{ github.sha }}
-        run: node tests/e2e/post-to-testing-master.mjs
+        run: node tests/e2e/post-to-testing-master.mjs 2>&1 | tee /tmp/bridge.log
+
+      - name: Verify bridge ingestion succeeded · DEFECT-2 guard
+        if: always()
+        run: |
+          # Silent ingestion failures were possible because the bridge script
+          # always exits 0 (so Playwright's verdict is what drives the workflow).
+          # If testing-master returned an MCP error, surface it here as a fail
+          # so we don't silently lose runs from the dashboard.
+          if [ -f /tmp/bridge.log ] && grep -q '"isError":true\|"error":"' /tmp/bridge.log; then
+            echo "::error title=Bridge ingestion failed::testing-master returned an MCP error · run results may be missing from the dashboard"
+            tail -20 /tmp/bridge.log
+            exit 1
+          fi
+          echo "✓ Bridge ingestion clean"
 
       - name: Upload Playwright report
         if: always()
