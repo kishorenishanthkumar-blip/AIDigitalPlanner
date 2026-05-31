@@ -342,6 +342,20 @@ function exportPlatformSnapshot() {
       <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
     </a>
 
+    <a class="tile" data-tile-id="status" href="status.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Platform Status" onclick="togglePin('status',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#E8FBF4,#BCEFD9);color:#0A8462">🟢</div><div class="tile-name">Platform Status</div></div>
+      <div class="tile-desc">Live health grid across all 14 Workers. Polls each /health endpoint every 60s. Shows D1, bindings, version, build age, latency per worker.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="cost" href="cost.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Cost analytics" onclick="togglePin('cost',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#EEF2FF,#C7D2FE);color:#1D4ED8">💰</div><div class="tile-name">Cost analytics</div></div>
+      <div class="tile-desc">Live LLM spend, model breakdown, cache-hit rate, and per-user call history. Pulls from master agent's <code>/cost/summary</code> over the agent_calls audit table. 24h / 7d / 30d windows.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
+    </a>
+
     <a class="tile featured" data-tile-id="nishi" href="nishi-chatbot.html">
       <button class="tile-pin" title="Pin / unpin" aria-label="Pin Niche-I" onclick="togglePin('nishi',event)">★</button>
       <div class="tile-head"><div class="tile-icon">🤖</div><div class="tile-name">Niche-I Chatbot</div></div>

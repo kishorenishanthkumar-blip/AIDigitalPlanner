@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDP · Cost analytics</title>
+<meta name="description" content="LLM spend, model breakdown, cache hit rate, and recent calls across the AIDP fleet."/>
+<link rel="stylesheet" href="/assets/theme.css">
+<script defer src="/assets/top-bar.js"></script>
+<script defer src="/assets/toasts.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  body{margin:0;font-family:var(--f-ui,'Outfit',system-ui,sans-serif);background:var(--bg,#F5F7FB);color:var(--ink-900,#0F172A)}
+  main{max-width:1200px;margin:0 auto;padding:30px 24px}
+  .crumb{font-size:11px;color:var(--ink-500);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+  h1{font-size:28px;font-weight:700;margin:0 0 6px;color:var(--ink-900)}
+  .lede{font-size:13px;color:var(--ink-600);max-width:780px;line-height:1.55}
+
+  /* Controls */
+  .c-controls{display:flex;gap:14px;align-items:center;margin:22px 0 18px;flex-wrap:wrap}
+  .c-seg{display:inline-flex;background:#fff;border:1px solid var(--ink-200);border-radius:8px;overflow:hidden}
+  .c-seg button{background:transparent;border:0;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:600;color:var(--ink-600);cursor:pointer;border-right:1px solid var(--ink-200)}
+  .c-seg button:last-child{border-right:0}
+  .c-seg button.active{background:var(--ink-900);color:#fff}
+  .c-seg button:hover:not(.active){background:var(--ink-50)}
+  .c-user{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-600)}
+  .c-user input{font-family:var(--f-mono,'JetBrains Mono',monospace);font-size:12px;padding:6px 10px;border:1px solid var(--ink-200);border-radius:6px;background:#fff;width:220px}
+  .c-meta{font-size:11px;color:var(--ink-500);margin-left:auto}
+  .c-meta strong{font-family:var(--f-mono);color:var(--ink-900)}
+  .btn{background:#fff;border:1px solid var(--ink-300);border-radius:6px;padding:6px 12px;font-family:inherit;font-size:12px;font-weight:500;color:var(--ink-700);cursor:pointer}
+  .btn:hover{background:var(--ink-50);border-color:var(--ink-400)}
+
+  /* KPI strip */
+  .c-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+  .c-kpi{background:#fff;border:1px solid var(--ink-200);border-radius:10px;padding:14px 18px;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+  .c-kpi .lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-500);margin-bottom:6px}
+  .c-kpi .val{font-family:var(--f-mono);font-size:24px;font-weight:600;line-height:1.1;color:var(--ink-900)}
+  .c-kpi .sub{font-size:11px;color:var(--ink-600);margin-top:4px}
+  .c-kpi.green .val{color:#0A8462}
+  .c-kpi.amber .val{color:#C8921A}
+  .c-kpi.blue .val{color:#1D4ED8}
+
+  /* Two-col layout */
+  .c-row{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-bottom:22px}
+  .c-panel{background:#fff;border:1px solid var(--ink-200);border-radius:10px;padding:16px 18px;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+  .c-panel h3{font-size:13px;font-weight:700;color:var(--ink-700);margin:0 0 12px;text-transform:uppercase;letter-spacing:.04em}
+  .c-chart-wrap{position:relative;height:280px}
+  .c-empty{font-size:13px;color:var(--ink-500);padding:30px 12px;text-align:center;font-style:italic}
+
+  /* Model breakdown table */
+  .c-models{width:100%;border-collapse:collapse;font-size:12px}
+  .c-models th{text-align:left;padding:8px 6px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-500);border-bottom:1px solid var(--ink-200)}
+  .c-models td{padding:8px 6px;border-bottom:1px solid var(--ink-100);font-family:var(--f-mono)}
+  .c-models td.model{font-weight:600;color:var(--ink-900);font-size:11.5px}
+  .c-models td.num{text-align:right}
+  .c-models tr:last-child td{border-bottom:0}
+
+  /* Recent calls */
+  .c-recent{margin-top:6px;width:100%;border-collapse:collapse;font-size:11.5px}
+  .c-recent th{text-align:left;padding:8px 6px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-500);border-bottom:1px solid var(--ink-200)}
+  .c-recent td{padding:7px 6px;border-bottom:1px solid var(--ink-100);font-family:var(--f-mono)}
+  .c-recent td.target{font-weight:600;color:var(--ink-900)}
+  .c-recent td.num{text-align:right}
+  .c-recent td.status .pill{display:inline-block;padding:1.5px 7px;border-radius:99px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .c-recent td.status .pill.ok{background:#E8FBF4;color:#0A8462}
+  .c-recent td.status .pill.error{background:#FBEAEA;color:#DC2626}
+  .c-recent td.cache .pill{display:inline-block;padding:1.5px 6px;border-radius:99px;font-size:9.5px;font-weight:700;background:#EEF2FF;color:#4338CA}
+  .c-recent tr:last-child td{border-bottom:0}
+
+  .c-rec-wrap{background:#fff;border:1px solid var(--ink-200);border-radius:10px;padding:16px 18px;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+
+  @media (max-width:980px){.c-kpis{grid-template-columns:repeat(2,1fr)}.c-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+
+<main>
+  <div class="crumb"><a href="home">Home</a> &nbsp;/&nbsp; Cost analytics</div>
+  <h1>Cost analytics</h1>
+  <p class="lede">Live LLM spend, model breakdown, and cache effectiveness across the AIDP agent fleet. Data is pulled from the master agent's <code>/cost/summary</code> endpoint, which aggregates the <code>agent_calls</code> audit table in D1. Switch windows below; filter by user to scope spend to your own session history.</p>
+
+  <div class="c-controls">
+    <div class="c-seg" id="c-window">
+      <button data-w="24h" class="active">24 hours</button>
+      <button data-w="7d">7 days</button>
+      <button data-w="30d">30 days</button>
+    </div>
+    <div class="c-user">
+      <label for="c-user-in">User:</label>
+      <input id="c-user-in" type="email" placeholder="all users" autocomplete="off"/>
+      <button class="btn" id="c-user-apply">Apply</button>
+    </div>
+    <div class="c-meta">Last refreshed: <strong id="c-last">never</strong></div>
+    <button class="btn" id="c-refresh">↻ Refresh</button>
+  </div>
+
+  <div class="c-kpis">
+    <div class="c-kpi blue"><div class="lbl">Total spend</div><div class="val" id="kpi-total">—</div><div class="sub" id="kpi-total-sub">window total</div></div>
+    <div class="c-kpi"><div class="lbl">Calls</div><div class="val" id="kpi-calls">—</div><div class="sub">routed agent calls</div></div>
+    <div class="c-kpi green"><div class="lbl">Cache hit rate</div><div class="val" id="kpi-cache">—</div><div class="sub" id="kpi-cache-sub">hits / total</div></div>
+    <div class="c-kpi amber"><div class="lbl">Your spend</div><div class="val" id="kpi-user">—</div><div class="sub" id="kpi-user-sub">filter by user above</div></div>
+  </div>
+
+  <div class="c-row">
+    <div class="c-panel">
+      <h3>Spend by model</h3>
+      <div class="c-chart-wrap"><canvas id="chart-model"></canvas></div>
+    </div>
+    <div class="c-panel">
+      <h3>Model breakdown</h3>
+      <div id="model-table-wrap">
+        <table class="c-models" id="c-models-tbl">
+          <thead><tr><th>Model</th><th class="num">Calls</th><th class="num">Tokens</th><th class="num">Cost</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="c-rec-wrap" id="c-rec-section">
+    <h3 style="font-size:13px;font-weight:700;color:var(--ink-700);margin:0 0 12px;text-transform:uppercase;letter-spacing:.04em">Recent calls <span id="c-rec-scope" style="font-weight:500;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ink-500)"></span></h3>
+    <div id="c-rec-body">
+      <div class="c-empty">Filter by user above to see their recent call history.</div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  const SUBDOMAIN = 'kishorenishanthkumar';
+  const MASTER_URL = 'https://aiagenticplanner.' + SUBDOMAIN + '.workers.dev';
+
+  // Try to pre-fill the user input from the stored email
+  let storedUser = '';
+  try { storedUser = localStorage.getItem('aidp_user_email') || ''; } catch (e) {}
+
+  const state = {
+    window: '24h',
+    user: '',     // empty = no user filter
+    chart: null
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function fmtUsd(n) {
+    if (n == null) return '—';
+    if (n < 0.01) return '$' + n.toFixed(6);
+    if (n < 1)    return '$' + n.toFixed(4);
+    return '$' + n.toFixed(2);
+  }
+  function fmtPct(n) { return (n * 100).toFixed(1) + '%'; }
+  function fmtInt(n) { return n.toLocaleString(); }
+  function fmtTime(ts) {
+    const d = new Date(ts);
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  }
+  function fmtRelativeAge(ts) {
+    const ms = Date.now() - ts;
+    if (ms < 60_000)        return Math.floor(ms / 1000) + 's ago';
+    if (ms < 3_600_000)     return Math.floor(ms / 60_000) + 'm ago';
+    if (ms < 86_400_000)    return Math.floor(ms / 3_600_000) + 'h ago';
+    return Math.floor(ms / 86_400_000) + 'd ago';
+  }
+
+  async function load() {
+    const qs = new URLSearchParams({ window: state.window, limit: '25' });
+    if (state.user) qs.set('user', state.user);
+    let data;
+    try {
+      const r = await fetch(MASTER_URL + '/cost/summary?' + qs.toString(), {
+        method: 'GET',
+        headers: { 'accept': 'application/json' }
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      data = await r.json();
+    } catch (err) {
+      const msg = '⚠ Cost endpoint unreachable · ' + (err && err.message ? err.message : 'unknown');
+      if (window.DI && window.DI.toast) window.DI.toast(msg, 'error');
+      console.warn('cost_load_failed', err);
+      return;
+    }
+    render(data);
+  }
+
+  function render(data) {
+    /* KPIs */
+    $('kpi-total').textContent = fmtUsd(data.total_usd);
+    $('kpi-total-sub').textContent = data.window + ' window · all users';
+    $('kpi-calls').textContent = fmtInt(data.calls_count || 0);
+    const chr = data.cache_hit_rate || { hits: 0, total: 0, rate: 0 };
+    $('kpi-cache').textContent = chr.total ? fmtPct(chr.rate) : '—';
+    $('kpi-cache-sub').textContent = chr.hits + ' / ' + chr.total + ' calls';
+
+    if (data.user_usd != null) {
+      $('kpi-user').textContent = fmtUsd(data.user_usd);
+      $('kpi-user-sub').textContent = state.user;
+    } else {
+      $('kpi-user').textContent = '—';
+      $('kpi-user-sub').textContent = 'filter by user above';
+    }
+
+    /* Spend by model */
+    const models = data.by_model || [];
+    const tbody = document.querySelector('#c-models-tbl tbody');
+    tbody.innerHTML = '';
+    if (!models.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ink-500);font-style:italic;padding:20px">No spend in this window.</td></tr>';
+    } else {
+      models.forEach(function (m) {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td class="model">' + escapeHtml(m.model) + '</td>' +
+          '<td class="num">' + fmtInt(m.calls) + '</td>' +
+          '<td class="num">' + fmtInt(m.total_tokens) + '</td>' +
+          '<td class="num">' + fmtUsd(m.total_cost) + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    /* Chart */
+    drawChart(models);
+
+    /* Recent calls (only if user filter) */
+    renderRecent(data.recent_calls || []);
+
+    /* Last refreshed */
+    $('c-last').textContent = fmtTime(Date.now());
+  }
+
+  function drawChart(models) {
+    const canvas = $('chart-model');
+    if (!window.Chart) { return; }
+    if (state.chart) { state.chart.destroy(); state.chart = null; }
+    if (!models.length) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = '13px var(--f-ui, system-ui)';
+      ctx.fillStyle = '#94A3B8';
+      ctx.textAlign = 'center';
+      ctx.fillText('No data in this window', canvas.width / 2, canvas.height / 2);
+      return;
+    }
+    const palette = ['#1D4ED8', '#0A8462', '#C8921A', '#9333EA', '#DC2626', '#0891B2', '#65A30D', '#B45309'];
+    state.chart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: models.map(function (m) { return m.model; }),
+        datasets: [{
+          label: 'Cost (USD)',
+          data: models.map(function (m) { return m.total_cost; }),
+          backgroundColor: models.map(function (_, i) { return palette[i % palette.length]; }),
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) {
+                const m = models[ctx.dataIndex];
+                return [
+                  'Cost: ' + fmtUsd(m.total_cost),
+                  'Calls: ' + fmtInt(m.calls),
+                  'Tokens: ' + fmtInt(m.total_tokens)
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function (v) { return '$' + Number(v).toFixed(v < 0.01 ? 4 : 2); },
+              font: { family: 'JetBrains Mono, monospace', size: 11 }
+            },
+            grid: { color: 'rgba(15,23,42,.06)' }
+          },
+          x: {
+            ticks: { font: { family: 'JetBrains Mono, monospace', size: 10 }, maxRotation: 30, minRotation: 0 },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  function renderRecent(rows) {
+    const body = $('c-rec-body');
+    const scope = $('c-rec-scope');
+    if (!state.user) {
+      scope.textContent = '';
+      body.innerHTML = '<div class="c-empty">Filter by user above to see their recent call history.</div>';
+      return;
+    }
+    scope.textContent = '· ' + state.user;
+    if (!rows.length) {
+      body.innerHTML = '<div class="c-empty">No calls for ' + escapeHtml(state.user) + ' in this window.</div>';
+      return;
+    }
+    let html =
+      '<table class="c-recent"><thead><tr>' +
+      '<th>When</th><th>Agent</th><th>Tool</th><th>Model</th>' +
+      '<th class="num">Tokens</th><th class="num">Latency</th><th class="num">Cost</th>' +
+      '<th>Cache</th><th>Status</th>' +
+      '</tr></thead><tbody>';
+    rows.forEach(function (r) {
+      html +=
+        '<tr>' +
+        '<td>' + fmtRelativeAge(r.ts) + '</td>' +
+        '<td class="target">' + escapeHtml(r.target_agent || '—') + '</td>' +
+        '<td>' + escapeHtml(r.tool_name || '—') + '</td>' +
+        '<td>' + escapeHtml(r.model || '—') + '</td>' +
+        '<td class="num">' + fmtInt((r.prompt_tokens || 0) + (r.completion_tokens || 0)) + '</td>' +
+        '<td class="num">' + (r.latency_ms || 0) + 'ms</td>' +
+        '<td class="num">' + fmtUsd(r.cost_usd) + '</td>' +
+        '<td class="cache">' + (r.cache_hit ? '<span class="pill">HIT</span>' : '—') + '</td>' +
+        '<td class="status"><span class="pill ' + (r.status === 'ok' ? 'ok' : 'error') + '">' + escapeHtml(r.status) + '</span></td>' +
+        '</tr>';
+    });
+    html += '</tbody></table>';
+    body.innerHTML = html;
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /* Wire controls */
+  document.addEventListener('DOMContentLoaded', function () {
+    /* Window selector */
+    document.querySelectorAll('#c-window button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('#c-window button').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        state.window = btn.getAttribute('data-w');
+        load();
+      });
+    });
+
+    /* User filter */
+    const userIn = $('c-user-in');
+    userIn.value = storedUser;
+    function applyUser() {
+      state.user = (userIn.value || '').trim();
+      load();
+    }
+    $('c-user-apply').addEventListener('click', applyUser);
+    userIn.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); applyUser(); }
+    });
+
+    /* Refresh */
+    $('c-refresh').addEventListener('click', load);
+
+    /* Default: if we have a stored user, scope to them on first load */
+    state.user = storedUser;
+    load();
+    /* Auto-refresh every 60s */
+    setInterval(load, 60_000);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDP · Status</title>
+<meta name="description" content="Live health status of every AIDP Worker · 14 endpoints polled every 60 seconds."/>
+<link rel="stylesheet" href="/assets/theme.css">
+<script defer src="/assets/top-bar.js"></script>
+<script defer src="/assets/toasts.js"></script>
+<style>
+  body{margin:0;font-family:var(--f-ui,'Outfit',system-ui,sans-serif);background:var(--bg,#F5F7FB);color:var(--ink-900,#0F172A)}
+  main{max-width:1200px;margin:0 auto;padding:30px 24px}
+  .crumb{font-size:11px;color:var(--ink-500);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+  h1{font-size:28px;font-weight:700;margin:0 0 6px;color:var(--ink-900)}
+  .lede{font-size:13px;color:var(--ink-600);max-width:760px;line-height:1.55}
+  .sp-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0 0}
+  .sp-kpi{background:#fff;border:1px solid var(--ink-200);border-radius:10px;padding:14px 18px;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+  .sp-kpi .lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-500);margin-bottom:6px}
+  .sp-kpi .val{font-family:var(--f-mono,'JetBrains Mono',monospace);font-size:24px;font-weight:600;line-height:1.1;color:var(--ink-900)}
+  .sp-kpi.ok .val{color:#0A8462}
+  .sp-kpi.warn .val{color:#C8921A}
+  .sp-kpi.err .val{color:#DC2626}
+  .sp-kpi .sub{font-size:11px;color:var(--ink-600);margin-top:4px}
+  .sp-controls{display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px}
+  .sp-meta{font-size:11px;color:var(--ink-500)}
+  .sp-meta strong{font-family:var(--f-mono);color:var(--ink-900)}
+  .btn{background:#fff;border:1px solid var(--ink-300);border-radius:6px;padding:6px 12px;font-family:inherit;font-size:12px;font-weight:500;color:var(--ink-700);cursor:pointer}
+  .btn:hover{background:var(--ink-50);border-color:var(--ink-400)}
+  .sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+  .sp-card{background:#fff;border:1px solid var(--ink-200);border-left:4px solid var(--ink-300);border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(15,23,42,.04);transition:.12s}
+  .sp-card.ok{border-left-color:#0A8462}
+  .sp-card.warn{border-left-color:#C8921A}
+  .sp-card.err{border-left-color:#DC2626}
+  .sp-card.loading{border-left-color:#94A3B8}
+  .sp-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+  .sp-name{font-size:13.5px;font-weight:700;color:var(--ink-900);font-family:var(--f-mono);letter-spacing:-.01em}
+  .sp-chip{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em}
+  .sp-chip.ok{background:#E8FBF4;color:#0A8462}
+  .sp-chip.warn{background:#FFF7E6;color:#C8921A}
+  .sp-chip.err{background:#FBEAEA;color:#DC2626}
+  .sp-chip.loading{background:var(--ink-100);color:var(--ink-600)}
+  .sp-detail{font-size:11px;color:var(--ink-600);line-height:1.5;display:flex;flex-direction:column;gap:3px}
+  .sp-detail span{font-family:var(--f-mono)}
+  .sp-detail .key{color:var(--ink-500);display:inline-block;width:80px}
+  .sp-foot{font-size:10.5px;color:var(--ink-500);margin-top:12px;border-top:1px solid var(--ink-100);padding-top:8px;display:flex;justify-content:space-between}
+  .sp-bindings{margin-top:6px;font-size:10.5px}
+  .sp-bindings .b-ok{color:#0A8462}
+  .sp-bindings .b-fail{color:#DC2626}
+  @media (max-width:900px){.sp-summary{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+
+<main>
+  <div class="crumb"><a href="home">Home</a> &nbsp;/&nbsp; Status</div>
+  <h1>Platform status</h1>
+  <p class="lede">Live health of every AIDP Worker. Each card polls the Worker's <code>/health</code> endpoint and renders the response. Auto-refreshes every 60 seconds; manual refresh button below. Bindings count and <code>D1.ok</code> come from the response.</p>
+
+  <div class="sp-summary" id="sp-summary">
+    <div class="sp-kpi" id="kpi-total"><div class="lbl">Workers</div><div class="val">14</div><div class="sub">in the fleet</div></div>
+    <div class="sp-kpi ok" id="kpi-ok"><div class="lbl">Online</div><div class="val">—</div><div class="sub">healthy & responding</div></div>
+    <div class="sp-kpi warn" id="kpi-warn"><div class="lbl">Degraded</div><div class="val">—</div><div class="sub">responding but partial</div></div>
+    <div class="sp-kpi err" id="kpi-err"><div class="lbl">Down</div><div class="val">—</div><div class="sub">no response</div></div>
+  </div>
+
+  <div class="sp-controls">
+    <div class="sp-meta">Last refreshed: <strong id="sp-last">never</strong> · auto-refresh every 60s</div>
+    <button class="btn" onclick="refreshAll()">↻ Refresh now</button>
+  </div>
+
+  <div class="sp-grid" id="sp-grid"></div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  const SUBDOMAIN = 'kishorenishanthkumar';
+  const WORKERS = [
+    { name: 'master-agent',     subdomain: '',                title: 'User chat · LLM router' },
+    { name: 'discovery',        subdomain: '-discovery',      title: 'Legacy + 7R verdicts' },
+    { name: 'architecture',     subdomain: '-architecture',   title: '6-cloud design + pricing' },
+    { name: 'requirements',     subdomain: '-requirements',   title: 'MoSCoW + INVEST + compliance' },
+    { name: 'actions',          subdomain: '-actions',        title: 'Role-based action backlog' },
+    { name: 'sow',              subdomain: '-sow',            title: '11-section Statement of Work' },
+    { name: 'governance',       subdomain: '-governance',     title: 'RAID · steering · CRs' },
+    { name: 'operations',       subdomain: '-operations',     title: 'DORA · SLOs · incidents' },
+    { name: 'exception',        subdomain: '-exception',      title: 'chain_hash audit ledger' },
+    { name: 'knowledge',        subdomain: '-knowledge',      title: 'RAG · Vectorize · citations' },
+    { name: 'iac',              subdomain: '-iac',            title: 'Terraform · Helm · Actions' },
+    { name: 'patching',         subdomain: '-patch',          title: 'Self-update via GitHub PRs' },
+    { name: 'validator',        subdomain: '-validator',      title: 'Nightly smoke matrix' },
+    { name: 'testing-master',   subdomain: '-testing-master', title: '8-layer test orchestrator' }
+  ];
+
+  const TIMEOUT_MS = 8000;
+  let lastFetchTs = 0;
+
+  /* Render skeleton cards */
+  function renderGrid() {
+    const grid = document.getElementById('sp-grid');
+    grid.innerHTML = WORKERS.map(w => `
+      <div class="sp-card loading" data-name="${w.name}">
+        <div class="sp-head">
+          <div class="sp-name">${w.name}</div>
+          <span class="sp-chip loading">…</span>
+        </div>
+        <div class="sp-detail">
+          <span class="title" style="font-family:inherit;color:var(--ink-700);font-size:11.5px;font-weight:500">${w.title}</span>
+          <span><span class="key">D1:</span><span class="d1">—</span></span>
+          <span><span class="key">Bindings:</span><span class="bindings">—</span></span>
+          <span><span class="key">Version:</span><span class="version">—</span></span>
+          <span><span class="key">Built:</span><span class="built">—</span></span>
+        </div>
+        <div class="sp-foot">
+          <span class="latency">— ms</span>
+          <a href="https://aiagenticplanner${w.subdomain}.${SUBDOMAIN}.workers.dev/health" target="_blank" style="color:var(--ink-500);text-decoration:none">/health ↗</a>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function probeOne(worker) {
+    const url = `https://aiagenticplanner${worker.subdomain}.${SUBDOMAIN}.workers.dev/health`;
+    const t0 = performance.now();
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+    try {
+      const resp = await fetch(url, { signal: ctl.signal, cache: 'no-store' });
+      clearTimeout(timer);
+      const latency = Math.round(performance.now() - t0);
+      if (!resp.ok) {
+        return { state: 'err', latency, error: `HTTP ${resp.status}` };
+      }
+      const json = await resp.json();
+      /* Determine state from response body */
+      const d1ok = json.bindings?.d1?.ok === true || json.ok === true;
+      const boundCount = json.bindings?.cross?.bound_count;
+      const expected   = json.bindings?.cross?.expected;
+      let state = 'ok';
+      if (!d1ok) state = 'err';
+      else if (boundCount != null && expected != null && boundCount < expected) state = 'warn';
+      return { state, latency, json };
+    } catch (err) {
+      clearTimeout(timer);
+      const latency = Math.round(performance.now() - t0);
+      return { state: 'err', latency, error: err.name === 'AbortError' ? 'timeout' : err.message };
+    }
+  }
+
+  function fmtAge(iso) {
+    if (!iso) return '—';
+    try {
+      const ago = (Date.now() - new Date(iso).getTime()) / 1000;
+      if (ago < 60) return Math.round(ago) + 's ago';
+      if (ago < 3600) return Math.round(ago / 60) + 'm ago';
+      if (ago < 86400) return Math.round(ago / 3600) + 'h ago';
+      return Math.round(ago / 86400) + 'd ago';
+    } catch (_) { return iso; }
+  }
+
+  function updateCard(worker, result) {
+    const card = document.querySelector(`.sp-card[data-name="${worker.name}"]`);
+    if (!card) return;
+    card.className = `sp-card ${result.state}`;
+    card.querySelector('.sp-chip').className = `sp-chip ${result.state}`;
+    card.querySelector('.sp-chip').textContent =
+      result.state === 'ok' ? 'online' :
+      result.state === 'warn' ? 'degraded' :
+      result.state === 'err' ? 'down' : '…';
+    card.querySelector('.latency').textContent = `${result.latency} ms`;
+    if (result.json) {
+      card.querySelector('.d1').textContent = result.json.bindings?.d1?.ok ? '✓ ok' : '✗ fail';
+      const bc = result.json.bindings?.cross?.bound_count;
+      const exp = result.json.bindings?.cross?.expected;
+      card.querySelector('.bindings').textContent = bc != null ? `${bc}${exp != null ? ` / ${exp}` : ''}` : '—';
+      card.querySelector('.version').textContent = result.json.version || '—';
+      card.querySelector('.built').textContent = fmtAge(result.json.built_at);
+    } else if (result.error) {
+      card.querySelector('.d1').textContent = result.error;
+    }
+  }
+
+  function updateSummary(results) {
+    const ok = results.filter(r => r.state === 'ok').length;
+    const warn = results.filter(r => r.state === 'warn').length;
+    const err = results.filter(r => r.state === 'err').length;
+    document.getElementById('kpi-ok').querySelector('.val').textContent = ok;
+    document.getElementById('kpi-warn').querySelector('.val').textContent = warn;
+    document.getElementById('kpi-err').querySelector('.val').textContent = err;
+    document.getElementById('sp-last').textContent = new Date().toLocaleTimeString();
+    if (window.DI && window.DI.toast && err > 0) {
+      const downs = WORKERS.filter((_, i) => results[i].state === 'err').map(w => w.name).join(', ');
+      window.DI.toast({ kind: 'err', title: `${err} worker${err === 1 ? '' : 's'} down`, message: downs, duration: 4000 });
+    }
+  }
+
+  async function refreshAll() {
+    const now = Date.now();
+    if (now - lastFetchTs < 5000) return; // debounce manual mash
+    lastFetchTs = now;
+    const results = await Promise.all(WORKERS.map(probeOne));
+    results.forEach((r, i) => updateCard(WORKERS[i], r));
+    updateSummary(results);
+  }
+
+  window.refreshAll = refreshAll;
+
+  renderGrid();
+  refreshAll();
+  setInterval(refreshAll, 60_000);
+})();
+</script>
+
+</body>
+</html>
