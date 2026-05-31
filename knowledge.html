@@ -718,18 +718,58 @@ if (window.DI && window.DI.audit) window.DI.audit.log('knowledge', 'open', { ite
     if (!KN.lastHits.length) {
       el.innerHTML = KN.lastQuery
         ? '<div class="aidp-state"><div class="icon">🔍</div><h2>No hits</h2><p>No results for "' + escapeHtml(KN.lastQuery) + '". Try a broader query or change the filters.</p></div>'
-        : '<div class="aidp-state"><div class="icon">🔍</div><h2>Type a query above</h2><p>Hybrid vector + filter search across the per-tenant corpus and the system reference library.</p></div>';
+        : '<div class="aidp-state"><div class="icon">🔍</div><h2>Type a query above</h2><p>Hybrid vector + keyword (BM25) search across the per-tenant corpus and the system reference library.</p></div>';
       return;
     }
+
+    /* Hits · reads the SearchHit shape { chunk:{...}, source:{...}, score }
+       with fallbacks to any older flat shape. Each hit gets an anchor id so
+       the Sources footer (E-4-d) can scroll to it. */
+    var hitsHtml = KN.lastHits.map(function (h, i) {
+      var src = h.source || {};
+      var ch  = h.chunk  || {};
+      var score = (typeof h.score === 'number') ? h.score.toFixed(3) : '—';
+      var title = src.title || h.title || h.source_title || ch.source_id || '?';
+      var kind  = src.kind || h.kind || '—';
+      var fw    = src.frameworks || h.frameworks || [];
+      var head  = ch.heading || '';
+      var text  = ch.text || h.snippet || '';
+      var snippet = text.length > 280 ? text.slice(0, 277) + '…' : text;
+      var url = src.source_url || h.source_url || '';
+      var extLink = /^https?:\/\//i.test(url)
+        ? ' · <a href="' + escapeHtml(url) + '#chunk-' + (ch.chunk_index || 0) + '" target="_blank">source ↗</a>'
+        : '';
+      return '<div class="knw-hit" id="knw-hit-' + i + '">' +
+        '<div><span class="score">' + score + '</span><span class="title">' + escapeHtml(title) +
+          '</span> <span style="font-family:var(--aidp-f-mono);font-size:10px;color:var(--aidp-ink-500)">[' + (i + 1) + ']</span></div>' +
+        '<div class="meta">' + escapeHtml(kind) + ' · ' + escapeHtml(fw.join(', ') || 'no framework') +
+          (head ? ' · §' + escapeHtml(head) : '') + extLink + '</div>' +
+        (snippet ? '<div class="snippet">' + escapeHtml(snippet) + '</div>' : '') +
+      '</div>';
+    }).join('');
+
+    /* E-4-d · Sources footer · one clickable chip per distinct cited source.
+       Clicking scrolls to that source's first hit (the cited chunk). */
+    var seen = {}, srcList = [];
+    KN.lastHits.forEach(function (h, i) {
+      var src = h.source || {};
+      var sid = src.id || h.source_id || (h.chunk && h.chunk.source_id) || ('src-' + i);
+      if (seen[sid]) return;
+      seen[sid] = true;
+      srcList.push({ title: src.title || h.title || sid, url: src.source_url || h.source_url || '', hit: i });
+    });
+    var footer = '<div class="knw-sources" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--aidp-ink-200);font-size:12px;color:var(--aidp-ink-700)">' +
+      '<span style="font-weight:600;margin-right:6px">Sources:</span>' +
+      srcList.map(function (s, n) {
+        var label = '[' + (n + 1) + '] ' + escapeHtml(s.title);
+        var ext = /^https?:\/\//i.test(s.url)
+          ? ' <a href="' + escapeHtml(s.url) + '" target="_blank" style="text-decoration:none">↗</a>' : '';
+        return '<a href="#knw-hit-' + s.hit + '" style="display:inline-block;margin:2px 6px 2px 0;padding:2px 8px;background:var(--aidp-canvas);border:1px solid var(--aidp-ink-200);border-radius:12px;text-decoration:none;color:var(--aidp-navy)">' +
+          label + '</a>' + ext;
+      }).join(' ') + '</div>';
+
     el.innerHTML = '<section class="knw-section"><h4>Top hits for "' + escapeHtml(KN.lastQuery) + '" · ' + KN.lastHits.length + ' results</h4>' +
-      KN.lastHits.map(h => {
-        var score = (typeof h.score === 'number') ? h.score.toFixed(3) : '—';
-        return '<div class="knw-hit">' +
-          '<div><span class="score">' + score + '</span><span class="title">' + escapeHtml(h.title || h.source_title || h.chunk_id || '?') + '</span></div>' +
-          '<div class="meta">' + escapeHtml(h.kind || '—') + ' · ' + escapeHtml((h.frameworks || []).join(', ') || 'no framework') + (h.source_url ? ' · <a href="' + escapeHtml(h.source_url) + '" target="_blank">source ↗</a>' : '') + '</div>' +
-          (h.snippet ? '<div class="snippet">' + escapeHtml(h.snippet) + '</div>' : '') +
-        '</div>';
-      }).join('') + '</section>';
+      hitsHtml + footer + '</section>';
   }
 
   function renderSources() {
