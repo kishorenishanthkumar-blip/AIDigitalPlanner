@@ -68,7 +68,7 @@ table.tbl tr:last-child td{border-bottom:none}
 <main class="shell">
   <div class="bread"><a href="home">Home</a> &nbsp;/&nbsp; <a href="testing-services">Testing Services</a> &nbsp;/&nbsp; Test Design</div>
   <h1 class="title">Test Design</h1>
-  <p class="subtitle">Generate and review the <strong>test strategy</strong>, <strong>test plans</strong> and <strong>test cases</strong> for a module &amp; requirement, scoped by discipline. Backed by the live <code>test-design</code> agent; cases use deterministic templates plus optional LLM enrichment.</p>
+  <p class="subtitle">Generate and review <strong>test cases</strong> for a module &amp; requirement, scoped by discipline. Backed by the live <code>test-design</code> agent; cases use deterministic templates plus optional LLM enrichment. (Test <strong>strategy</strong> &amp; <strong>plans</strong> now live under <a href="testing-services">Testing Services → Phase 2</a>; the Strategy/Plan tabs here display saved artifacts.)</p>
 
   <div class="panel">
     <div class="form-row">
@@ -78,10 +78,8 @@ table.tbl tr:last-child td{border-bottom:none}
       <div class="field"><label>Cases</label><input id="f-count" type="number" value="6" min="1" max="30"></div>
       <div class="field"><label>LLM enrich</label><select id="f-llm"><option value="yes">on</option><option value="no" selected>off</option></select></div>
       <button class="btn primary" id="gen-cases">Generate test cases</button>
-      <button class="btn" id="gen-strategy">Generate strategy</button>
-      <button class="btn" id="gen-plan">Generate plan</button>
     </div>
-    <div class="note" id="status">Pick a module, requirement and discipline, then generate. Artifacts are saved automatically.</div>
+    <div class="note" id="status">Pick a module, requirement and discipline, then generate test cases. (Test strategy &amp; plans are generated in Testing Services → Phase 2.) Artifacts are saved automatically.</div>
   </div>
 
   <div class="tabs">
@@ -187,21 +185,6 @@ table.tbl tr:last-child td{border-bottom:none}
       $('status').textContent='Generated '+(r.cases||[]).length+' cases (artifact '+r.artifact_id+').';renderCases(r);
     }).catch(function(e){$('status').textContent='Failed: '+(e.message||e);});
   });
-  $('gen-strategy').addEventListener('click',function(){
-    if(!need())return;var s=scope();$('status').textContent='Generating strategy…';tabTo('strategy');
-    AIDP.callAgent('TEST_DESIGN','testdesign_generate_strategy',{module:s.moduleName,frameworks:['Agile','SAFe','Kanban'],requirements:s.reqs.map(function(r){return {requirement_id:r.id,requirement_title:r.t};})}).then(function(r){
-      if(r&&r.error){$('status').textContent='Error: '+(r.message||r.error);return;}
-      $('status').textContent='Strategy generated (artifact '+r.artifact_id+').';renderStrategy(r.strategy);
-    }).catch(function(e){$('status').textContent='Failed: '+(e.message||e);});
-  });
-  $('gen-plan').addEventListener('click',function(){
-    if(!need())return;var s=scope();$('status').textContent='Generating plan…';tabTo('plan');
-    AIDP.callAgent('TEST_DESIGN','testdesign_generate_plan',{module:s.moduleName,requirement_id:s.reqId,requirement_title:s.reqTitle}).then(function(r){
-      if(r&&r.error){$('status').textContent='Error: '+(r.message||r.error);return;}
-      $('status').textContent='Plan generated (artifact '+r.artifact_id+').';renderPlan(r.plan);
-    }).catch(function(e){$('status').textContent='Failed: '+(e.message||e);});
-  });
-
   function loadSaved(){
     if(!need())return;
     AIDP.callAgent('TEST_DESIGN','testdesign_list',{limit:50}).then(function(r){

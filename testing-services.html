@@ -14,6 +14,7 @@
 <script src="assets/top-bar.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
 <script src="assets/aidp-api.js"></script>
+<script src="assets/multiselect.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -123,6 +124,30 @@ table.tbl tr:last-child td{border-bottom:none}
       <button data-fw="kanban">Kanban</button>
     </div>
     <div class="fw-panel" id="fw-panel"></div>
+
+    <div class="section-label" style="margin-top:26px">Phase 1 · Requirements Analysis</div>
+    <div class="fw-panel">
+      <div class="form-row" style="align-items:flex-end">
+        <div class="field"><label>Modules in scope</label><span id="p1-modules"></span></div>
+        <div class="field"><label>Requirements</label><span id="p1-reqs"></span></div>
+        <div class="field"><label>Frameworks</label><span id="p1-frameworks"></span></div>
+        <button class="btn primary" id="p1-next">Proceed to Phase 2 · Test Planning →</button>
+      </div>
+      <div class="note" id="p1-status">Select the modules and requirements in scope (use the checkboxes / "Select all"), then proceed to Phase 2.</div>
+    </div>
+
+    <div id="phase2" style="display:none">
+      <div class="section-label" style="margin-top:8px">Phase 2 · Test Planning</div>
+      <div class="fw-panel">
+        <div class="form-row">
+          <button class="btn primary" id="p2-strategy">Generate test strategy</button>
+          <button class="btn primary" id="p2-plan">Generate test plans</button>
+          <span class="note" id="p2-status"></span>
+        </div>
+        <div class="note">Word / PDF / PowerPoint export lands in the next increment.</div>
+        <div id="p2-out" style="margin-top:12px"></div>
+      </div>
+    </div>
   </section>
 
   <!-- ══ TAB 2 · RTM DASHBOARD ══ -->
@@ -439,6 +464,62 @@ table.tbl tr:last-child td{border-bottom:none}
       return '<tr><td><strong>'+a.n+'</strong></td><td>'+chip+'</td><td>'+almBtns(a.n)+'</td></tr>';
     }).join('')+'</tbody>';
   window.__alm=function(name,target){toast('Queued "'+name+'" → '+target+' · JIRA/Rally connectors land next increment');};
+
+  /* ── Phase 1 (requirements analysis) → Phase 2 (test planning) ── */
+  (function(){
+    if(!window.AIDPMultiSelect){return;}
+    function esc(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+    function modName(id){var m=MODULES.filter(function(x){return x.id===id;})[0];return m?m.name:id;}
+    function reqInfo(v){var p=v.split('::');var m=MODULES.filter(function(x){return x.id===p[0];})[0];var r=m?m.reqs.filter(function(x){return x.id===p[1];})[0]:null;return {modId:p[0],modName:m?m.name:p[0],reqId:p[1],reqTitle:r?r.t:p[1]};}
+    function need(){if(!window.AIDP||!AIDP.callAgent){toast('API client not loaded.');return false;}return true;}
+
+    var modMs=AIDPMultiSelect.create({options:MODULES.map(function(m){return {value:m.id,label:m.name};}),placeholder:'Modules',onChange:refreshReqs});
+    var reqMs=AIDPMultiSelect.create({options:[],placeholder:'Requirements'});
+    var fwMs=AIDPMultiSelect.create({options:[{value:'Agile',label:'Agile'},{value:'SAFe',label:'SAFe'},{value:'Kanban',label:'Kanban'}],placeholder:'Frameworks'});
+    var pm=document.getElementById('p1-modules'),pr=document.getElementById('p1-reqs'),pf=document.getElementById('p1-frameworks');
+    if(pm)pm.appendChild(modMs.el); if(pr)pr.appendChild(reqMs.el); if(pf)pf.appendChild(fwMs.el);
+    function refreshReqs(){
+      var opts=[];
+      modMs.getSelected().forEach(function(mid){var m=MODULES.filter(function(x){return x.id===mid;})[0];if(m)m.reqs.forEach(function(r){opts.push({value:mid+'::'+r.id,label:m.name+' / '+r.id+' '+r.t});});});
+      reqMs.setOptions(opts,true);
+    }
+
+    document.getElementById('p1-next').addEventListener('click',function(){
+      if(modMs.getSelected().length===0){toast('Select at least one module first.');return;}
+      document.getElementById('phase2').style.display='block';
+      document.getElementById('phase2').scrollIntoView({behavior:'smooth',block:'start'});
+    });
+
+    function ul(t,a){return '<div style="margin:0 0 8px"><div style="font-weight:600;font-size:12px;color:var(--ink-900)">'+t+'</div><ul style="margin:3px 0 0;padding-left:18px;font-size:12px;color:var(--ink-700);line-height:1.5">'+(a||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>';}
+    function strategyCard(r){
+      if(r.err)return '<div class="fw-panel" style="margin-bottom:12px"><h4>'+esc(r.mod)+'</h4><div class="note">Error: '+esc(r.err)+'</div></div>';
+      var s=r.strategy;
+      return '<div class="fw-panel" style="margin-bottom:12px"><h4 style="margin:0 0 4px">Test strategy · '+esc(s.module)+'</h4><div class="note">'+esc(s.scope)+'</div>'+ul('Approach',s.approach)+ul('Entry criteria',s.entry_criteria)+ul('Exit criteria',s.exit_criteria)+ul('Environments',s.environments)+'</div>';
+    }
+    function planCard(r){
+      if(r.err)return '<div class="fw-panel" style="margin-bottom:12px"><h4>'+esc(r.req)+'</h4><div class="note">Error: '+esc(r.err)+'</div></div>';
+      var p=r.plan;
+      return '<div class="fw-panel" style="margin-bottom:12px"><h4 style="margin:0 0 4px">Test plan · '+esc(p.requirement_id)+'</h4><div class="note">'+esc(p.objective)+'</div>'+ul('Deliverables',p.deliverables)+ul('Entry criteria',p.entry_criteria)+ul('Exit criteria',p.exit_criteria)+'</div>';
+    }
+
+    document.getElementById('p2-strategy').addEventListener('click',function(){
+      if(!need())return;var mods=modMs.getSelected();if(!mods.length){toast('Select modules in Phase 1.');return;}
+      var fws=fwMs.getSelected();if(!fws.length)fws=['Agile','SAFe','Kanban'];
+      var selReqs=reqMs.getSelected();
+      var st=document.getElementById('p2-status');st.textContent='Generating strategy for '+mods.length+' module(s)…';document.getElementById('p2-out').innerHTML='';
+      var jobs=mods.slice(0,8).map(function(mid){
+        var reqs=selReqs.filter(function(v){return v.indexOf(mid+'::')===0;}).map(function(v){var i=reqInfo(v);return {requirement_id:i.reqId,requirement_title:i.reqTitle};});
+        return AIDP.callAgent('TEST_DESIGN','testdesign_generate_strategy',{module:modName(mid),frameworks:fws,requirements:reqs}).then(function(r){return {mod:modName(mid),strategy:r.strategy};}).catch(function(e){return {mod:modName(mid),err:(e.message||e)};});
+      });
+      Promise.all(jobs).then(function(rows){st.textContent='Done · '+rows.length+' strategy doc(s).';document.getElementById('p2-out').innerHTML=rows.map(strategyCard).join('');});
+    });
+    document.getElementById('p2-plan').addEventListener('click',function(){
+      if(!need())return;var selReqs=reqMs.getSelected();if(!selReqs.length){toast('Select requirements in Phase 1.');return;}
+      var st=document.getElementById('p2-status');st.textContent='Generating plans for '+selReqs.length+' requirement(s)…';document.getElementById('p2-out').innerHTML='';
+      var jobs=selReqs.slice(0,12).map(function(v){var i=reqInfo(v);return AIDP.callAgent('TEST_DESIGN','testdesign_generate_plan',{module:i.modName,requirement_id:i.reqId,requirement_title:i.reqTitle}).then(function(r){return {req:i.reqId,plan:r.plan};}).catch(function(e){return {req:i.reqId,err:(e.message||e)};});});
+      Promise.all(jobs).then(function(rows){st.textContent='Done · '+rows.length+' plan(s).';document.getElementById('p2-out').innerHTML=rows.map(planCard).join('');});
+    });
+  })();
 })();
 </script>
 </body>
