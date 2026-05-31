@@ -138,6 +138,19 @@ table.tbl tr:last-child td{border-bottom:none}
 
   <!-- ══ TAB 3 · TEST TYPES & DATA ══ -->
   <section class="ts-pane" id="pane-types">
+    <div class="section-label">Module &amp; requirement scope <span class="chip sample">Sample catalog</span></div>
+    <div class="fw-panel" style="margin-bottom:14px">
+      <div class="form-row" style="margin-bottom:6px;align-items:end">
+        <div class="field"><label>Module</label><select id="bulk-module"></select></div>
+        <div class="field"><label>Requirement</label><select id="bulk-req"></select></div>
+        <div class="field"><label>Region</label><select id="bulk-region"><option>US</option><option>CA</option><option>IN</option></select></div>
+        <div class="field"><label>Records / discipline</label><input id="bulk-count" type="number" value="10" min="1" max="200"></div>
+        <button class="btn" id="bulk-cases">Create cases · all disciplines</button>
+        <button class="btn primary" id="bulk-gen">Generate data · all disciplines</button>
+      </div>
+      <div class="note" id="bulk-status">Pick a Module + Requirement (or leave on "All") to drive every discipline below — or use the dropdowns on each card. "Generate data" runs live against the TestData agent.</div>
+      <div id="bulk-out"></div>
+    </div>
     <div class="section-label">Test disciplines</div>
     <div class="grid" id="type-grid"></div>
 
@@ -272,7 +285,21 @@ table.tbl tr:last-child td{border-bottom:none}
     ].map(function(k){return '<div class="card"><h3>'+k[1]+'</h3><p>'+k[0]+' — '+k[2]+'</p></div>';}).join('');
   })();
 
-  /* ── Test types ── */
+  /* ── Modules & requirements (sample catalog · mirrors the RTM) ── */
+  var MODULES=[
+    {id:'onb',name:'Onboarding & KYC',dom:'customer',reqs:[{id:'REQ-001',t:'Customer onboarding / KYC'},{id:'REQ-001.1',t:'Identity verification (IDV)'},{id:'REQ-001.2',t:'Document capture & OCR'}]},
+    {id:'pay',name:'Payments',dom:'payment',reqs:[{id:'REQ-002',t:'Real-time payments (FedNow/RTP)'},{id:'REQ-002.1',t:'Payment initiation'},{id:'REQ-002.2',t:'Sanctions screening'},{id:'REQ-002.3',t:'Settlement & reconciliation'}]},
+    {id:'ldg',name:'Core Ledger',dom:'account',reqs:[{id:'REQ-003',t:'Core ledger postings'},{id:'REQ-003.1',t:'Double-entry integrity'}]},
+    {id:'card',name:'Cards',dom:'card',reqs:[{id:'REQ-004',t:'Card issuance & controls'},{id:'REQ-004.1',t:'PAN tokenization'}]},
+    {id:'aml',name:'AML & Fraud',dom:'transaction',reqs:[{id:'REQ-005',t:'AML transaction monitoring'},{id:'REQ-005.1',t:'Alert triage'}]},
+    {id:'reg',name:'Regulatory Reporting',dom:'transaction',reqs:[{id:'REQ-006',t:'Regulatory reporting (SOX/BCBS-239)'}]}
+  ];
+  function modById(id){return MODULES.filter(function(m){return m.id===id;})[0];}
+  function moduleOpts(){return '<option value="">All modules</option>'+MODULES.map(function(m){return '<option value="'+m.id+'">'+m.name+'</option>';}).join('');}
+  function reqOpts(modId){var m=modById(modId);var h='<option value="">All requirements</option>';return m?h+m.reqs.map(function(r){return '<option value="'+r.id+'">'+r.id+' · '+r.t+'</option>';}).join(''):h;}
+  function modDom(modId,fallback){var m=modById(modId);return m?m.dom:fallback;}
+
+  /* ── Test discipline cards (each carries Module + Requirement dropdowns) ── */
   var TYPES=[
     {ic:'🔍',n:'Whitebox testing',d:'Code-path, branch &amp; condition coverage with unit/integration harnesses.',dom:'account'},
     {ic:'🗄️',n:'Database testing',d:'Schema, referential integrity, stored procs, migrations &amp; data quality.',dom:'account'},
@@ -282,19 +309,62 @@ table.tbl tr:last-child td{border-bottom:none}
     {ic:'✅',n:'Sanity testing',d:'Fast build-acceptance checks on critical paths after each deploy.',dom:'customer'},
     {ic:'🔁',n:'Regression testing',d:'Full suite re-run to catch breakage from changes.',dom:'transaction'}
   ];
-  document.getElementById('type-grid').innerHTML=TYPES.map(function(t){
+  document.getElementById('type-grid').innerHTML=TYPES.map(function(t,i){
     return '<div class="card"><div class="row"><span style="font-size:20px">'+t.ic+'</span><span class="chip planned">Cases planned</span></div>'+
       '<h3>'+t.n+'</h3><p>'+t.d+'</p>'+
+      '<div class="form-row" style="margin-bottom:8px">'+
+        '<div class="field"><label>Module</label><select class="c-mod" data-i="'+i+'">'+moduleOpts()+'</select></div>'+
+        '<div class="field"><label>Requirement</label><select class="c-req" data-i="'+i+'">'+reqOpts('')+'</select></div>'+
+      '</div>'+
       '<div class="row" style="justify-content:flex-start;gap:6px">'+
-      '<button class="btn sm muted" disabled>Create cases</button>'+
-      '<button class="btn sm" data-dom="'+t.dom+'" onclick="window.__tdFor(this)">Generate test data →</button></div></div>';
+      '<button class="btn sm" data-i="'+i+'" onclick="window.__cases(this)">Create cases</button>'+
+      '<button class="btn sm primary" data-i="'+i+'" onclick="window.__tdFor(this)">Generate test data →</button></div></div>';
   }).join('');
+  /* per-card cascade module → requirement */
+  document.querySelectorAll('.c-mod').forEach(function(sel){
+    sel.addEventListener('change',function(){document.querySelector('.c-req[data-i="'+sel.dataset.i+'"]').innerHTML=reqOpts(sel.value);});
+  });
+  function cardCtx(i){
+    var mod=document.querySelector('.c-mod[data-i="'+i+'"]'),req=document.querySelector('.c-req[data-i="'+i+'"]');
+    return {modName:mod.value?mod.options[mod.selectedIndex].text:'all modules',req:req.value||'all requirements',dom:modDom(mod.value,TYPES[i].dom)};
+  }
+  window.__cases=function(btn){var c=cardCtx(btn.dataset.i);toast('Planned: create '+TYPES[btn.dataset.i].n+' cases for '+c.modName+' / '+c.req);};
   window.__tdFor=function(btn){
-    document.querySelector('.ts-tab[data-pane="types"]').click();
-    document.getElementById('td-domain').value=btn.dataset.dom;
+    var c=cardCtx(btn.dataset.i);
+    document.getElementById('td-domain').value=c.dom;
     document.getElementById('td-gen').scrollIntoView({behavior:'smooth',block:'center'});
-    toast('Pre-filled domain: '+btn.dataset.dom+' — click Generate');
+    toast('Pre-filled '+c.dom+' data for '+c.modName+' — click Generate');
   };
+
+  /* ── Bulk runner across all disciplines ── */
+  document.getElementById('bulk-module').innerHTML=moduleOpts();
+  document.getElementById('bulk-req').innerHTML=reqOpts('');
+  document.getElementById('bulk-module').addEventListener('change',function(){document.getElementById('bulk-req').innerHTML=reqOpts(this.value);});
+  document.getElementById('bulk-cases').addEventListener('click',function(){
+    var mod=document.getElementById('bulk-module');var modName=mod.value?mod.options[mod.selectedIndex].text:'all modules';
+    var req=document.getElementById('bulk-req');var reqName=req.value?req.options[req.selectedIndex].text:'all requirements';
+    toast('Planned: create cases across all '+TYPES.length+' disciplines for '+modName+' / '+reqName);
+  });
+  document.getElementById('bulk-gen').addEventListener('click',function(){
+    if(!AIDP||!AIDP.callAgent){toast('API client not loaded.');return;}
+    var modId=document.getElementById('bulk-module').value;
+    var modName=modId?modById(modId).name:'all modules';
+    var region=document.getElementById('bulk-region').value;
+    var count=Math.max(1,Math.min(200,parseInt(document.getElementById('bulk-count').value,10)||10));
+    var st=document.getElementById('bulk-status');st.textContent='Generating across '+TYPES.length+' disciplines…';
+    var jobs=TYPES.map(function(t){
+      var dom=modId?modDom(modId,t.dom):t.dom;
+      return AIDP.callAgent('TESTDATA','testdata_generate',{domain:dom,region:region,count:count}).then(function(r){return {disc:t.n,dom:dom,n:(r.records||[]).length,res:r};}).catch(function(e){return {disc:t.n,dom:dom,n:0,err:(e.message||e)};});
+    });
+    Promise.all(jobs).then(function(rows){
+      window.__bulkRows=rows;
+      var tot=rows.reduce(function(a,r){return a+r.n;},0);
+      st.textContent='Done — '+tot+' records across '+rows.length+' disciplines for '+modName+' ('+region+').';
+      document.getElementById('bulk-out').innerHTML='<div class="scroll" style="margin-top:8px"><table class="tbl"><thead><tr><th>Discipline</th><th>Data domain</th><th>Records</th><th>Download</th></tr></thead><tbody>'+
+        rows.map(function(r,i){return '<tr><td>'+r.disc+'</td><td>'+r.dom+'</td><td>'+(r.err?'<span class="chip bad">err</span>':r.n)+'</td><td>'+(r.err?'—':'<button class="btn sm" onclick="window.__bulkDl('+i+')">⬇ JSON</button>')+'</td></tr>';}).join('')+'</tbody></table></div>';
+    });
+  });
+  window.__bulkDl=function(i){var r=window.__bulkRows&&window.__bulkRows[i];if(r&&r.res)download('testdata-'+r.disc.replace(/\s+/g,'_')+'-'+r.dom+'.json',JSON.stringify(r.res.records,null,2),'application/json');};
 
   /* ── Live TestData generator ── */
   var lastResult=null;
