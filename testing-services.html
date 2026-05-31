@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Testing Services · AIDP</title>
+<meta name="description" content="Audit-ready continuous testing · test data management · strategy · plans · evidence packs." />
+
+<!-- Shared platform assets -->
+<script src="assets/toasts.js" defer></script>
+<script src="assets/audit.js" defer></script>
+<script src="assets/cmdk.js" defer></script>
+<script src="assets/shortcuts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+
+<!-- Enterprise typography -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+
+<style>
+:root {
+  --ink-900:#0F172A; --ink-800:#1E293B; --ink-700:#334155; --ink-600:#475569;
+  --ink-500:#64748B; --ink-400:#94A3B8; --ink-300:#CBD5E1; --ink-200:#E2E8F0;
+  --ink-100:#F1F5F9; --ink-50:#F8FAFC; --white:#FFFFFF;
+  --navy:#1E40AF; --navy-lt:#DBEAFE; --green:#15803D; --green-lt:#DCFCE7;
+  --amber:#B45309; --amber-lt:#FEF3C7; --teal:#0E7490; --teal-lt:#CFFAFE;
+  --radius:6px; --radius-lg:10px;
+  --shadow:0 1px 3px rgba(15,23,42,.08),0 4px 12px rgba(15,23,42,.04);
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family:Inter,system-ui,sans-serif; color:var(--ink-800); background:var(--ink-50); }
+.ts-shell { max-width:1140px; margin:0 auto; padding:28px 24px 80px; }
+.ts-bread { font-size:12px; color:var(--ink-500); margin-bottom:6px; }
+.ts-bread a { color:var(--ink-500); text-decoration:none; }
+.ts-bread a:hover { color:var(--navy); }
+.ts-title { font-size:26px; font-weight:700; color:var(--ink-900); margin:0 0 4px; }
+.ts-subtitle { font-size:14px; color:var(--ink-600); margin:0 0 24px; max-width:760px; line-height:1.55; }
+.ts-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:16px; }
+.ts-card { background:var(--white); border:1px solid var(--ink-200); border-radius:var(--radius-lg);
+  padding:18px 20px; box-shadow:var(--shadow); display:flex; flex-direction:column; }
+.ts-card .icon { font-size:22px; }
+.ts-card h3 { font-size:16px; font-weight:700; color:var(--ink-900); margin:8px 0 4px; }
+.ts-card p { font-size:13px; color:var(--ink-600); line-height:1.5; margin:0 0 14px; flex:1; }
+.ts-badge { display:inline-block; font-size:10px; font-weight:700; letter-spacing:.03em;
+  padding:2px 8px; border-radius:10px; text-transform:uppercase; }
+.ts-badge.live    { background:var(--green-lt); color:var(--green); }
+.ts-badge.planned { background:var(--amber-lt); color:var(--amber); }
+.ts-card .row { display:flex; align-items:center; justify-content:space-between; }
+.ts-cta { font-size:13px; font-weight:600; text-decoration:none; padding:7px 12px; border-radius:var(--radius);
+  display:inline-block; }
+.ts-cta.open { background:var(--navy); color:#fff; }
+.ts-cta.open:hover { background:#1E3A8A; }
+.ts-cta.muted { background:var(--ink-100); color:var(--ink-400); cursor:not-allowed; }
+.ts-section-label { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-500); margin:32px 0 12px; }
+.ts-note { font-size:12px; color:var(--ink-500); margin-top:6px; }
+</style>
+</head>
+<body>
+
+<div data-di-topbar></div>
+
+<main class="ts-shell">
+
+  <div class="ts-bread"><a href="home">Home</a> &nbsp;/&nbsp; Testing Services</div>
+  <h1 class="ts-title">Testing Services</h1>
+  <p class="ts-subtitle">
+    Audit-ready continuous testing for banking modernization — test-data management,
+    test strategy &amp; plans generated from your requirements, and regulator-ready
+    evidence packs. Capabilities marked <span class="ts-badge planned">Planned</span>
+    are landing increment by increment under Batch E-5.
+  </p>
+
+  <div class="ts-section-label">Live today</div>
+  <div class="ts-grid">
+
+    <!-- Testing Dashboard · LIVE -->
+    <div class="ts-card">
+      <div class="row"><span class="icon">🩺</span><span class="ts-badge live">Live</span></div>
+      <h3>Testing Dashboard</h3>
+      <p>testing-master runs across 8 layers — smoke, unit, integration, functional,
+         business, database, performance, jobs — plus Playwright E2E, with a normalized
+         defect manifest and gate verdicts.</p>
+      <div><a class="ts-cta open" href="testing-dashboard">Open dashboard →</a></div>
+    </div>
+
+    <!-- Test Data Management · engine live (E-5-a) -->
+    <div class="ts-card">
+      <div class="row"><span class="icon">🧬</span><span class="ts-badge live">Engine live</span></div>
+      <h3>Test Data Management (TDM)</h3>
+      <p>Synthetic-but-compliant banking data for US, Canada &amp; India — customers,
+         accounts, transactions, payments, loans, cards. Every field PII-tagged and
+         anonymizable; deterministic from a seed, so zero real-PII risk.</p>
+      <div class="row">
+        <span class="ts-badge planned">Studio UI soon</span>
+        <span class="ts-note">via the <code>testdata_generate</code> agent</span>
+      </div>
+    </div>
+
+    <!-- Platform Status · LIVE -->
+    <div class="ts-card">
+      <div class="row"><span class="icon">📡</span><span class="ts-badge live">Live</span></div>
+      <h3>Fleet health</h3>
+      <p>Live <code>/health</code> probe across every Worker — bindings, latency, and
+         which agents are responding — so a test run never lies about a degraded backend.</p>
+      <div><a class="ts-cta open" href="status">Open status →</a></div>
+    </div>
+
+  </div>
+
+  <div class="ts-section-label">Planned · Batch E-5</div>
+  <div class="ts-grid">
+
+    <!-- Test Strategy -->
+    <div class="ts-card">
+      <div class="row"><span class="icon">🎯</span><span class="ts-badge planned">Planned</span></div>
+      <h3>Test Strategy</h3>
+      <p>Reads your Requirements Studio output and drafts a risk-based test strategy —
+         scope, layers, entry/exit criteria, environments, and coverage targets.</p>
+      <div><span class="ts-cta muted">Coming soon</span></div>
+    </div>
+
+    <!-- Test Plans -->
+    <div class="ts-card">
+      <div class="row"><span class="icon">📋</span><span class="ts-badge planned">Planned</span></div>
+      <h3>Test Plans</h3>
+      <p>Per-requirement test plans with cases, preconditions, expected results and
+         traceability back to each requirement and SOW section.</p>
+      <div><span class="ts-cta muted">Coming soon</span></div>
+    </div>
+
+    <!-- Discipline test agents -->
+    <div class="ts-card">
+      <div class="row"><span class="icon">🧪</span><span class="ts-badge planned">Planned</span></div>
+      <h3>Discipline test agents</h3>
+      <p>Functional, performance, security, accessibility, compliance, contract,
+         integration &amp; e2e — each generates a spec and dispatches the real run to CI,
+         then ingests results.</p>
+      <div><span class="ts-cta muted">Coming soon</span></div>
+    </div>
+
+    <!-- Evidence Packs -->
+    <div class="ts-card">
+      <div class="row"><span class="icon">📑</span><span class="ts-badge planned">Planned</span></div>
+      <h3>Evidence Packs</h3>
+      <p>Regulator-ready export bundling test plans, run results, defect history and the
+         closed Defect → CR → Patch audit chain into a single signed artifact.</p>
+      <div><span class="ts-cta muted">Coming soon</span></div>
+    </div>
+
+  </div>
+
+  <p class="ts-note" style="margin-top:28px">
+    Need data right now? Ask Niche-I — e.g. <em>"generate 25 synthetic US KYC customers"</em> —
+    and it routes to the TestData agent. <a href="nishi-chatbot">Open Niche-I →</a>
+  </p>
+
+</main>
+
+</body>
+</html>
