@@ -30,7 +30,8 @@
       KNOWLEDGE:    `https://aiagenticplanner-knowledge.${SUBDOMAIN}.workers.dev`,
       IAC:          `https://aiagenticplanner-iac.${SUBDOMAIN}.workers.dev`,
       PATCH:        `https://aiagenticplanner-patch.${SUBDOMAIN}.workers.dev`,
-      VALIDATOR:    `https://aiagenticplanner-validator.${SUBDOMAIN}.workers.dev`
+      VALIDATOR:    `https://aiagenticplanner-validator.${SUBDOMAIN}.workers.dev`,
+      TESTDATA:     `https://aiagenticplanner-testdata.${SUBDOMAIN}.workers.dev`
     },
     DEFAULT_USER: 'guest@aidp.demo',
     TIMEOUT_MS: 30000
