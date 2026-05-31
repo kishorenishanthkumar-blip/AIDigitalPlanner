@@ -328,7 +328,13 @@ table.tbl tr:last-child td{border-bottom:none}
     var mod=document.querySelector('.c-mod[data-i="'+i+'"]'),req=document.querySelector('.c-req[data-i="'+i+'"]');
     return {modName:mod.value?mod.options[mod.selectedIndex].text:'all modules',req:req.value||'all requirements',dom:modDom(mod.value,TYPES[i].dom)};
   }
-  window.__cases=function(btn){var c=cardCtx(btn.dataset.i);toast('Planned: create '+TYPES[btn.dataset.i].n+' cases for '+c.modName+' / '+c.req);};
+  var DISC_KEY=['whitebox','database','api','batch','integration','sanity','regression'];
+  window.__cases=function(btn){
+    var i=btn.dataset.i;
+    var modSel=document.querySelector('.c-mod[data-i="'+i+'"]'),reqSel=document.querySelector('.c-req[data-i="'+i+'"]');
+    var q='test-design.html?disc='+DISC_KEY[i]+(modSel.value?'&mod='+encodeURIComponent(modSel.value):'')+(reqSel.value?'&req='+encodeURIComponent(reqSel.value):'');
+    window.location.href=q;
+  };
   window.__tdFor=function(btn){
     var c=cardCtx(btn.dataset.i);
     document.getElementById('td-domain').value=c.dom;
@@ -341,9 +347,9 @@ table.tbl tr:last-child td{border-bottom:none}
   document.getElementById('bulk-req').innerHTML=reqOpts('');
   document.getElementById('bulk-module').addEventListener('change',function(){document.getElementById('bulk-req').innerHTML=reqOpts(this.value);});
   document.getElementById('bulk-cases').addEventListener('click',function(){
-    var mod=document.getElementById('bulk-module');var modName=mod.value?mod.options[mod.selectedIndex].text:'all modules';
-    var req=document.getElementById('bulk-req');var reqName=req.value?req.options[req.selectedIndex].text:'all requirements';
-    toast('Planned: create cases across all '+TYPES.length+' disciplines for '+modName+' / '+reqName);
+    var mod=document.getElementById('bulk-module').value,req=document.getElementById('bulk-req').value;
+    var qp=[mod?'mod='+encodeURIComponent(mod):'',req?'req='+encodeURIComponent(req):''].filter(Boolean).join('&');
+    window.location.href='test-design.html'+(qp?'?'+qp:'');
   });
   document.getElementById('bulk-gen').addEventListener('click',function(){
     if(!AIDP||!AIDP.callAgent){toast('API client not loaded.');return;}

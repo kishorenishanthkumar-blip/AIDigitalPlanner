@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Test Design · AIDP</title>
+<meta name="description" content="Generate and view test strategy, test plans and test cases per discipline." />
+
+<script src="assets/toasts.js" defer></script>
+<script src="assets/audit.js" defer></script>
+<script src="assets/cmdk.js" defer></script>
+<script src="assets/shortcuts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+
+<style>
+:root{
+  --ink-900:#0F172A;--ink-800:#1E293B;--ink-700:#334155;--ink-600:#475569;--ink-500:#64748B;
+  --ink-400:#94A3B8;--ink-300:#CBD5E1;--ink-200:#E2E8F0;--ink-100:#F1F5F9;--ink-50:#F8FAFC;--white:#FFF;
+  --navy:#1E40AF;--navy-dk:#1E3A8A;--navy-lt:#DBEAFE;--green:#15803D;--green-lt:#DCFCE7;
+  --amber:#B45309;--amber-lt:#FEF3C7;--red:#B91C1C;--red-lt:#FEE2E2;--purple:#6D28D9;--purple-lt:#EDE9FE;
+  --radius:6px;--radius-lg:10px;--shadow:0 1px 3px rgba(15,23,42,.08),0 4px 12px rgba(15,23,42,.04);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--ink-800);background:var(--ink-50)}
+.shell{max-width:1180px;margin:0 auto;padding:26px 22px 90px}
+.bread{font-size:12px;color:var(--ink-500);margin-bottom:6px}
+.bread a{color:var(--ink-500);text-decoration:none}.bread a:hover{color:var(--navy)}
+.title{font-size:25px;font-weight:700;color:var(--ink-900);margin:0 0 4px}
+.subtitle{font-size:13.5px;color:var(--ink-600);margin:0 0 18px;max-width:820px;line-height:1.55}
+.panel{background:var(--white);border:1px solid var(--ink-200);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow);margin-bottom:14px}
+.form-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;color:var(--ink-500);font-weight:600}
+.field select,.field input{font-size:13px;padding:7px 9px;border:1px solid var(--ink-300);border-radius:var(--radius);background:#fff;color:var(--ink-800);min-width:130px}
+.btn{font-size:12.5px;font-weight:600;border-radius:var(--radius);padding:8px 13px;border:1px solid var(--ink-200);background:#fff;color:var(--ink-700);cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{border-color:var(--navy);color:var(--navy)}
+.btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}.btn.primary:hover{background:var(--navy-dk)}
+.btn.sm{padding:4px 9px;font-size:11.5px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--ink-200);margin:6px 0 14px;flex-wrap:wrap}
+.tab{padding:8px 14px;font-size:13px;font-weight:600;color:var(--ink-500);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer}
+.tab.active{color:var(--navy);border-bottom-color:var(--navy)}
+.pane{display:none}.pane.active{display:block}
+.chip{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:uppercase}
+.chip.P1{background:var(--red-lt);color:var(--red)}.chip.P2{background:var(--amber-lt);color:var(--amber)}.chip.P3{background:var(--ink-100);color:var(--ink-500)}
+.chip.t{background:var(--navy-lt);color:var(--navy)}
+table.tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--ink-200);border-radius:var(--radius-lg);overflow:hidden;font-size:12.5px}
+table.tbl th{background:var(--ink-50);text-align:left;padding:8px 10px;font-weight:600;color:var(--ink-600);border-bottom:1px solid var(--ink-200)}
+table.tbl td{padding:8px 10px;border-bottom:1px solid var(--ink-100);color:var(--ink-700);vertical-align:top}
+table.tbl tr:last-child td{border-bottom:none}
+.scroll{overflow:auto;border-radius:var(--radius-lg);max-height:520px}
+.kv{margin:0 0 10px}.kv h4{margin:0 0 4px;font-size:13px;color:var(--ink-900)}
+.kv ul{margin:4px 0 0;padding-left:18px;font-size:12.5px;color:var(--ink-700);line-height:1.55}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.note{font-size:12px;color:var(--ink-500);margin-top:6px}
+.steps{margin:0;padding-left:16px}.steps li{margin:1px 0}
+@media(max-width:760px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<main class="shell">
+  <div class="bread"><a href="home">Home</a> &nbsp;/&nbsp; <a href="testing-services">Testing Services</a> &nbsp;/&nbsp; Test Design</div>
+  <h1 class="title">Test Design</h1>
+  <p class="subtitle">Generate and review the <strong>test strategy</strong>, <strong>test plans</strong> and <strong>test cases</strong> for a module &amp; requirement, scoped by discipline. Backed by the live <code>test-design</code> agent; cases use deterministic templates plus optional LLM enrichment.</p>
+
+  <div class="panel">
+    <div class="form-row">
+      <div class="field"><label>Module</label><select id="f-module"></select></div>
+      <div class="field"><label>Requirement</label><select id="f-req"></select></div>
+      <div class="field"><label>Discipline</label><select id="f-disc"></select></div>
+      <div class="field"><label>Cases</label><input id="f-count" type="number" value="6" min="1" max="30"></div>
+      <div class="field"><label>LLM enrich</label><select id="f-llm"><option value="yes">on</option><option value="no" selected>off</option></select></div>
+      <button class="btn primary" id="gen-cases">Generate test cases</button>
+      <button class="btn" id="gen-strategy">Generate strategy</button>
+      <button class="btn" id="gen-plan">Generate plan</button>
+    </div>
+    <div class="note" id="status">Pick a module, requirement and discipline, then generate. Artifacts are saved automatically.</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-pane="cases">Test cases</button>
+    <button class="tab" data-pane="strategy">Strategy</button>
+    <button class="tab" data-pane="plan">Plan</button>
+    <button class="tab" data-pane="saved">Saved artifacts</button>
+  </div>
+  <section class="pane active" id="pane-cases"><p class="note">No cases yet — generate above.</p></section>
+  <section class="pane" id="pane-strategy"><p class="note">No strategy yet — click "Generate strategy".</p></section>
+  <section class="pane" id="pane-plan"><p class="note">No plan yet — click "Generate plan".</p></section>
+  <section class="pane" id="pane-saved"><button class="btn sm" id="refresh-saved">↻ Load saved artifacts</button><div id="saved-out" style="margin-top:10px"></div></section>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var AIDP=window.AIDP||null;
+  function $(id){return document.getElementById(id);}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function toast(m){var t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0F172A;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:9999';document.body.appendChild(t);setTimeout(function(){t.remove();},2600);}
+  function download(name,text,type){var b=new Blob([text],{type:type});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(u);},500);}
+
+  var MODULES=[
+    {id:'onb',name:'Onboarding & KYC',reqs:[{id:'REQ-001',t:'Customer onboarding / KYC'},{id:'REQ-001.1',t:'Identity verification (IDV)'},{id:'REQ-001.2',t:'Document capture & OCR'}]},
+    {id:'pay',name:'Payments',reqs:[{id:'REQ-002',t:'Real-time payments (FedNow/RTP)'},{id:'REQ-002.1',t:'Payment initiation'},{id:'REQ-002.2',t:'Sanctions screening'},{id:'REQ-002.3',t:'Settlement & reconciliation'}]},
+    {id:'ldg',name:'Core Ledger',reqs:[{id:'REQ-003',t:'Core ledger postings'},{id:'REQ-003.1',t:'Double-entry integrity'}]},
+    {id:'card',name:'Cards',reqs:[{id:'REQ-004',t:'Card issuance & controls'},{id:'REQ-004.1',t:'PAN tokenization'}]},
+    {id:'aml',name:'AML & Fraud',reqs:[{id:'REQ-005',t:'AML transaction monitoring'},{id:'REQ-005.1',t:'Alert triage'}]},
+    {id:'reg',name:'Regulatory Reporting',reqs:[{id:'REQ-006',t:'Regulatory reporting (SOX/BCBS-239)'}]}
+  ];
+  var DISCIPLINES=['functional','whitebox','database','api','batch','integration','e2e','sanity','regression','performance','security','accessibility','compliance','contract'];
+  function modById(id){return MODULES.filter(function(m){return m.id===id;})[0];}
+
+  /* populate selects */
+  $('f-module').innerHTML=MODULES.map(function(m){return '<option value="'+m.id+'">'+esc(m.name)+'</option>';}).join('');
+  $('f-disc').innerHTML=DISCIPLINES.map(function(d){return '<option value="'+d+'">'+d+'</option>';}).join('');
+  function fillReqs(modId){var m=modById(modId);$('f-req').innerHTML=(m?m.reqs:[]).map(function(r){return '<option value="'+r.id+'">'+esc(r.id+' · '+r.t)+'</option>';}).join('');}
+  $('f-module').addEventListener('change',function(){fillReqs(this.value);});
+  fillReqs(MODULES[0].id);
+
+  /* prefill from query (?mod=&req=&disc=) coming from testing-services */
+  (function(){var q=new URLSearchParams(location.search);
+    if(q.get('mod')){$('f-module').value=q.get('mod');fillReqs(q.get('mod'));}
+    if(q.get('req')){$('f-req').value=q.get('req');}
+    if(q.get('disc')){$('f-disc').value=q.get('disc');}
+  })();
+
+  function scope(){
+    var modId=$('f-module').value,m=modById(modId);
+    var reqId=$('f-req').value,r=(m?m.reqs:[]).filter(function(x){return x.id===reqId;})[0];
+    return {moduleName:m?m.name:modId, reqId:reqId, reqTitle:r?r.t:reqId, discipline:$('f-disc').value,
+      count:Math.max(1,Math.min(30,parseInt($('f-count').value,10)||6)), useLlm:$('f-llm').value==='yes',
+      reqs:m?m.reqs:[]};
+  }
+  function tabTo(name){document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active',t.dataset.pane===name);});document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('active',p.id==='pane-'+name);});}
+  document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){tabTo(t.dataset.pane);});});
+
+  /* ── renderers ── */
+  var lastCases=null;
+  function renderCases(res){
+    lastCases=res;
+    var cs=res.cases||[];
+    var html='<div class="form-row" style="margin-bottom:10px"><div><strong>'+cs.length+'</strong> '+esc(res.discipline)+' cases · '+esc(res.module)+' / '+esc(res.requirement_id)+' · LLM '+(res.llm_used?'on':'off')+'</div>'+
+      '<button class="btn sm" id="dl-csv">⬇ CSV</button><button class="btn sm" id="dl-json">⬇ JSON</button></div>'+
+      '<div class="scroll"><table class="tbl"><thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Pri</th><th>Steps</th><th>Expected</th><th>Data</th></tr></thead><tbody>'+
+      cs.map(function(c){return '<tr><td style="font-family:IBM Plex Mono,monospace;font-size:11px;white-space:nowrap">'+esc(c.id)+'</td><td>'+esc(c.title)+'</td><td><span class="chip t">'+esc(c.type)+'</span></td><td><span class="chip '+esc(c.priority)+'">'+esc(c.priority)+'</span></td>'+
+        '<td><ol class="steps">'+(c.steps||[]).map(function(s){return '<li>'+esc(s)+'</li>';}).join('')+'</ol></td><td>'+esc(c.expected)+'</td><td>'+esc(c.test_data)+'</td></tr>';}).join('')+'</tbody></table></div>';
+    $('pane-cases').innerHTML=html;
+    $('dl-csv').onclick=function(){
+      var rows=[['id','title','discipline','type','priority','preconditions','steps','expected','test_data']];
+      cs.forEach(function(c){rows.push([c.id,c.title,c.discipline,c.type,c.priority,(c.preconditions||[]).join(' | '),(c.steps||[]).join(' | '),c.expected,c.test_data]);});
+      var csv=rows.map(function(r){return r.map(function(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(',');}).join('\n');
+      download('testcases-'+res.requirement_id+'-'+res.discipline+'.csv',csv,'text/csv');
+    };
+    $('dl-json').onclick=function(){download('testcases-'+res.requirement_id+'-'+res.discipline+'.json',JSON.stringify(cs,null,2),'application/json');};
+  }
+  function list(title,arr){return '<div class="kv"><h4>'+title+'</h4><ul>'+(arr||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>';}
+  function renderStrategy(s){
+    $('pane-strategy').innerHTML='<div class="panel"><h3 style="margin:0 0 4px">Test strategy · '+esc(s.module)+'</h3><p class="note">'+esc(s.scope)+'</p>'+
+      '<div class="kv"><h4>Frameworks</h4><ul><li>'+(s.frameworks||[]).map(esc).join(', ')+'</li></ul></div>'+
+      list('Approach',s.approach)+
+      '<div class="cols">'+list('In scope',s.in_scope)+list('Out of scope',s.out_of_scope)+'</div>'+
+      '<div class="cols">'+list('Entry criteria',s.entry_criteria)+list('Exit criteria',s.exit_criteria)+'</div>'+
+      list('Environments',s.environments)+
+      '<div class="kv"><h4>Risks &amp; mitigations</h4><table class="tbl"><thead><tr><th>Risk</th><th>Mitigation</th></tr></thead><tbody>'+(s.risks||[]).map(function(r){return '<tr><td>'+esc(r.risk)+'</td><td>'+esc(r.mitigation)+'</td></tr>';}).join('')+'</tbody></table></div></div>';
+  }
+  function renderPlan(p){
+    $('pane-plan').innerHTML='<div class="panel"><h3 style="margin:0 0 4px">Test plan · '+esc(p.requirement_id)+'</h3><p class="note">'+esc(p.objective)+'</p>'+
+      '<div class="kv"><h4>Disciplines</h4><ul><li>'+(p.disciplines||[]).map(esc).join(', ')+'</li></ul></div>'+
+      '<div class="cols"><div class="kv"><h4>Schedule</h4><table class="tbl"><thead><tr><th>Phase</th><th>Duration</th></tr></thead><tbody>'+(p.schedule||[]).map(function(x){return '<tr><td>'+esc(x.phase)+'</td><td>'+esc(x.duration)+'</td></tr>';}).join('')+'</tbody></table></div>'+
+      '<div class="kv"><h4>Resources</h4><table class="tbl"><thead><tr><th>Role</th><th>Count</th></tr></thead><tbody>'+(p.resources||[]).map(function(x){return '<tr><td>'+esc(x.role)+'</td><td>'+esc(x.count)+'</td></tr>';}).join('')+'</tbody></table></div></div>'+
+      list('Deliverables',p.deliverables)+
+      '<div class="cols">'+list('Entry criteria',p.entry_criteria)+list('Exit criteria',p.exit_criteria)+'</div></div>';
+  }
+
+  function need(){if(!AIDP||!AIDP.callAgent){toast('API client not loaded — open from the live site.');return false;}return true;}
+
+  $('gen-cases').addEventListener('click',function(){
+    if(!need())return;var s=scope();$('status').textContent='Generating '+s.discipline+' cases…';tabTo('cases');
+    AIDP.callAgent('TEST_DESIGN','testdesign_generate_cases',{module:s.moduleName,requirement_id:s.reqId,requirement_title:s.reqTitle,discipline:s.discipline,count:s.count,use_llm:s.useLlm}).then(function(r){
+      if(r&&r.error){$('status').textContent='Error: '+(r.message||r.error);return;}
+      $('status').textContent='Generated '+(r.cases||[]).length+' cases (artifact '+r.artifact_id+').';renderCases(r);
+    }).catch(function(e){$('status').textContent='Failed: '+(e.message||e);});
+  });
+  $('gen-strategy').addEventListener('click',function(){
+    if(!need())return;var s=scope();$('status').textContent='Generating strategy…';tabTo('strategy');
+    AIDP.callAgent('TEST_DESIGN','testdesign_generate_strategy',{module:s.moduleName,frameworks:['Agile','SAFe','Kanban'],requirements:s.reqs.map(function(r){return {requirement_id:r.id,requirement_title:r.t};})}).then(function(r){
+      if(r&&r.error){$('status').textContent='Error: '+(r.message||r.error);return;}
+      $('status').textContent='Strategy generated (artifact '+r.artifact_id+').';renderStrategy(r.strategy);
+    }).catch(function(e){$('status').textContent='Failed: '+(e.message||e);});
+  });
+  $('gen-plan').addEventListener('click',function(){
+    if(!need())return;var s=scope();$('status').textContent='Generating plan…';tabTo('plan');
+    AIDP.callAgent('TEST_DESIGN','testdesign_generate_plan',{module:s.moduleName,requirement_id:s.reqId,requirement_title:s.reqTitle}).then(function(r){
+      if(r&&r.error){$('status').textContent='Error: '+(r.message||r.error);return;}
+      $('status').textContent='Plan generated (artifact '+r.artifact_id+').';renderPlan(r.plan);
+    }).catch(function(e){$('status').textContent='Failed: '+(e.message||e);});
+  });
+
+  function loadSaved(){
+    if(!need())return;
+    AIDP.callAgent('TEST_DESIGN','testdesign_list',{limit:50}).then(function(r){
+      var a=(r&&r.artifacts)||[];
+      $('saved-out').innerHTML='<div class="scroll"><table class="tbl"><thead><tr><th>Kind</th><th>Module</th><th>Requirement</th><th>Discipline</th><th>Cases</th><th>Title</th><th></th></tr></thead><tbody>'+
+        a.map(function(x){return '<tr><td>'+esc(x.kind)+'</td><td>'+esc(x.module)+'</td><td>'+esc(x.requirement_id||'—')+'</td><td>'+esc(x.discipline||'—')+'</td><td>'+x.case_count+'</td><td>'+esc(x.title)+'</td><td><button class="btn sm" onclick="window.__open(\''+x.artifact_id+'\',\''+x.kind+'\')">Open</button></td></tr>';}).join('')+'</tbody></table></div>';
+    }).catch(function(e){toast('List failed: '+(e.message||e));});
+  }
+  $('refresh-saved').addEventListener('click',loadSaved);
+  window.__open=function(id,kind){
+    if(!need())return;
+    AIDP.callAgent('TEST_DESIGN','testdesign_get',{artifact_id:id}).then(function(r){
+      var p=r&&r.payload;if(!p){toast('Empty artifact');return;}
+      if(kind==='cases'){renderCases({cases:p.cases,discipline:p.discipline,module:(p.requirement&&p.requirement.module)||'',requirement_id:(p.requirement&&p.requirement.requirement_id)||'',llm_used:false});tabTo('cases');}
+      else if(kind==='strategy'){renderStrategy(p);tabTo('strategy');}
+      else if(kind==='plan'){renderPlan(p);tabTo('plan');}
+    }).catch(function(e){toast('Open failed: '+(e.message||e));});
+  };
+})();
+</script>
+</body>
+</html>
