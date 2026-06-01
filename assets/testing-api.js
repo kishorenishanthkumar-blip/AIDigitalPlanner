@@ -106,11 +106,64 @@
     return callTool('tm_trigger_e2e', { ref: opts.ref, inputs: opts.inputs });
   }
 
+  /* ─── E-5-j · Defect -> CR -> Patch + New-Requirement loop ─── */
+
+  async function escalateToCr(defId, opts) {
+    opts = opts || {};
+    return callTool('tm_escalate_to_cr', {
+      defect_id:    defId,
+      user_email:   opts.user_email || DEFAULT_TRIGGERED_BY(),
+      title:        opts.title,
+      description:  opts.description,
+      kind:         opts.kind,
+      route_source: opts.route_source
+    });
+  }
+
+  async function escalateToPatch(defId, opts) {
+    opts = opts || {};
+    return callTool('tm_escalate_to_patch', {
+      defect_id:    defId,
+      created_by:   opts.created_by || DEFAULT_TRIGGERED_BY(),
+      route_source: opts.route_source
+    });
+  }
+
+  async function raiseRequirement(opts) {
+    opts = opts || {};
+    return callTool('tm_raise_requirement', {
+      user_email:         opts.user_email || DEFAULT_TRIGGERED_BY(),
+      title:              opts.title,
+      detail:             opts.detail,
+      module:             opts.module,
+      type:               opts.type,
+      domain:             opts.domain,
+      defect_id:          opts.defect_id,
+      suggest_compliance: opts.suggest_compliance,
+      route_source:       opts.route_source
+    });
+  }
+
+  async function escalationStatus(opts) {
+    opts = opts || {};
+    return callTool('tm_escalation_status', {
+      defect_id: opts.defect_id,
+      esc_id:    opts.esc_id,
+      kind:      opts.kind,
+      limit:     opts.limit
+    });
+  }
+
+  async function suggestEscalation(defId) {
+    return callTool('tm_suggest_escalation', { defect_id: defId });
+  }
+
   /* ─── Expose ────────────────────────────────────── */
 
   window.TM = {
     runSuite, runLayer, getReport, listRuns,
     knownLayers, patchStatus, postExternal, health, triggerE2e,
+    escalateToCr, escalateToPatch, raiseRequirement, escalationStatus, suggestEscalation,
     BASE_URL
   };
 

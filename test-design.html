@@ -80,6 +80,7 @@ table.tbl tr:last-child td{border-bottom:none}
       <div class="field"><label>Cases</label><input id="f-count" type="number" value="6" min="1" max="30"></div>
       <div class="field"><label>LLM enrich</label><select id="f-llm"><option value="yes">on</option><option value="no" selected>off</option></select></div>
       <button class="btn primary" id="gen-cases">Generate test cases</button>
+      <button class="btn" id="raise-req" title="Raise a new requirement (E-5-j loop) — lands in Requirements Studio">→ Raise as new requirement</button>
     </div>
     <div class="note" id="status">Pick a module, requirement and discipline, then generate test cases. (Test strategy &amp; plans are generated in Testing Services → Phase 2.) Artifacts are saved automatically.</div>
   </div>
@@ -198,6 +199,18 @@ table.tbl tr:last-child td{border-bottom:none}
       if(r&&r.error){$('status').textContent='Error: '+(r.message||r.error);return;}
       $('status').textContent='Generated '+(r.cases||[]).length+' cases (artifact '+r.artifact_id+').';renderCases(r);
     }).catch(function(e){$('status').textContent='Failed: '+(e.message||e);});
+  });
+  /* E-5-j · Raise as new requirement (testing-master loop -> Requirements Studio). */
+  $('raise-req').addEventListener('click',function(){
+    if(!need())return;var s=scope();
+    var title=window.prompt('Requirement title (imperative, e.g. "System shall …"):', s.reqTitle?('Refine: '+s.reqTitle):'');
+    if(!title)return;
+    var detail=window.prompt('Detail (optional):','')||undefined;
+    $('status').textContent='Raising requirement…';
+    AIDP.callAgent('TESTING','tm_raise_requirement',{user_email:(AIDP.getUserEmail&&AIDP.getUserEmail())||'guest@aidp.demo',title:title,detail:detail,module:s.moduleName,type:'functional',route_source:'manual'}).then(function(r){
+      if(r&&r.ok){$('status').textContent='Requirement '+(r.requirement_id||'')+' raised in Requirements Studio'+(r.chain_hash?(' · audit '+String(r.chain_hash).slice(0,12)+'…'):'')+'.';toast('Requirement raised: '+(r.requirement_id||''));}
+      else {$('status').textContent='Raise failed: '+((r&&(r.error||r.message))||'unknown');}
+    }).catch(function(e){$('status').textContent='Raise failed: '+(e.message||e);});
   });
   function loadSaved(){
     if(!need())return;

@@ -149,6 +149,14 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
 .td-defect-detail .row{margin-bottom:12px}
 .td-defect-detail .row:last-child{margin-bottom:0}
 .td-defect-detail code{font-family:var(--f-mono);font-size:11px;background:var(--white);border:1px solid var(--ink-200);padding:8px 10px;border-radius:4px;display:block;white-space:pre-wrap;word-break:break-word;color:var(--ink-700);max-height:280px;overflow:auto}
+/* E-5-j escalation bar */
+.td-esc-bar{border-top:1px dashed var(--ink-200);padding-top:12px;margin-top:4px}
+.td-esc-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.td-esc-result{margin-top:10px;font-size:12px;line-height:1.6;padding:8px 10px;border-radius:6px;background:var(--white);border:1px solid var(--ink-200);color:var(--ink-700)}
+.td-esc-result.ok{border-color:#16a34a;background:#f0fdf4}
+.td-esc-result.err{border-color:#dc2626;background:#fef2f2;color:#991b1b}
+.td-esc-result code{display:inline;padding:1px 5px;background:var(--ink-100);border:0;max-height:none}
+.td-esc-hash{color:var(--ink-500);font-family:var(--f-mono);font-size:11px}
 
 /* States */
 .td-state{background:var(--white);border:1px dashed var(--ink-300);border-radius:var(--radius-lg);padding:48px 24px;text-align:center;color:var(--ink-600)}
@@ -637,7 +645,7 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
       html += '</td>';
       html += '</tr>';
       html += '<tr class="defect-detail-row" data-idx="' + i + '" style="display:none"><td colspan="7" style="padding:0">';
-      html += renderDefectDetail(d);
+      html += renderDefectDetail(d, i);
       html += '</td></tr>';
     });
     html += '</tbody></table>';
@@ -707,7 +715,7 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
     }
   }
 
-  function renderDefectDetail(d) {
+  function renderDefectDetail(d, i) {
     let html = '<div class="td-defect-detail">';
     if (d.description) {
       html += '<div class="row"><h4>Description</h4><div>' + escapeHtml(d.description) + '</div></div>';
@@ -723,8 +731,102 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
       try { ev = JSON.stringify(d.evidence, null, 2); } catch { ev = String(d.evidence); }
       html += '<div class="row"><h4>Evidence</h4><code>' + escapeHtml(ev) + '</code></div>';
     }
+    /* E-5-j · Defect -> CR / Patch / Requirement escalation bar.
+     * Each action calls the testing-master loop and chains into the
+     * immutable audit ledger. Patch is human-gated (proposed plan only). */
+    const did = escapeHtml(d.id || '');
+    html += '<div class="row td-esc-bar">';
+    html +=   '<h4>Escalate this defect</h4>';
+    html +=   '<div class="td-esc-actions">';
+    html +=     '<button class="btn btn-sm" onclick="suggestDefectRoute(\'' + did + '\',' + i + ')" title="Let testing-master recommend a route">✨ Suggest route</button>';
+    html +=     '<button class="btn btn-sm" onclick="escDefectCr(\'' + did + '\',' + i + ')" title="Open a governance Change Request">→ Change Request</button>';
+    html +=     '<button class="btn btn-sm" onclick="escDefectPatch(\'' + did + '\',' + i + ')" title="Create a proposed patch plan (human-gated apply)">→ Patch plan</button>';
+    html +=     '<button class="btn btn-sm" onclick="raiseDefectReq(\'' + did + '\',' + i + ')" title="Raise this as a new requirement">→ Raise requirement</button>';
+    html +=   '</div>';
+    html +=   '<div class="td-esc-result" id="esc-result-' + i + '" style="display:none"></div>';
+    html += '</div>';
     html += '</div>';
     return html;
+  }
+
+  /* ─── E-5-j escalation handlers ───────────────────── */
+
+  function escSetResult(i, kind, payload) {
+    const box = document.getElementById('esc-result-' + i);
+    if (!box) return;
+    box.style.display = '';
+    if (payload && payload.ok === false) {
+      box.className = 'td-esc-result err';
+      box.innerHTML = '<strong>' + kind + ' failed:</strong> ' + escapeHtml(payload.error || 'unknown error');
+      return;
+    }
+    box.className = 'td-esc-result ok';
+    let lines = [];
+    if (payload.cr_id)          lines.push('Change Request <code>' + escapeHtml(payload.cr_id) + '</code> raised in Governance.');
+    if (payload.patch_plan_id)  lines.push('Patch plan <code>' + escapeHtml(payload.patch_plan_id) + '</code> proposed · apply is human-gated (patch_approve → patch_apply).');
+    if (payload.requirement_id) lines.push('Requirement <code>' + escapeHtml(payload.requirement_id) + '</code> added to Requirements Studio.');
+    if (payload.recommended_route) {
+      lines.push('Recommended route: <strong>' + escapeHtml(payload.recommended_route) + '</strong> (' + (payload.confidence || 0) + '% confidence) — ' + escapeHtml(payload.rationale || ''));
+    }
+    if (payload.chain_hash) lines.push('<span class="td-esc-hash">audit chain_hash: ' + escapeHtml(String(payload.chain_hash).slice(0, 16)) + '…</span>');
+    box.innerHTML = lines.join('<br>') || ('<code>' + escapeHtml(JSON.stringify(payload)) + '</code>');
+  }
+
+  function escBusy(i, on) {
+    const box = document.getElementById('esc-result-' + i);
+    if (!box) return;
+    if (on) { box.style.display = ''; box.className = 'td-esc-result'; box.innerHTML = 'Working…'; }
+  }
+
+  window.suggestDefectRoute = async function (defId, i) {
+    escBusy(i, true);
+    try { escSetResult(i, 'Suggest', await window.TM.suggestEscalation(defId)); }
+    catch (e) { escSetResult(i, 'Suggest', { ok: false, error: (e.message || String(e)) }); }
+  };
+
+  window.escDefectCr = async function (defId, i) {
+    escBusy(i, true);
+    try {
+      const r = await window.TM.escalateToCr(defId, {});
+      escSetResult(i, 'Change Request', r);
+      if (r && r.ok) reflectDefectStatus(defId, 'in_progress');
+    } catch (e) { escSetResult(i, 'Change Request', { ok: false, error: (e.message || String(e)) }); }
+  };
+
+  window.escDefectPatch = async function (defId, i) {
+    escBusy(i, true);
+    try {
+      const r = await window.TM.escalateToPatch(defId, {});
+      escSetResult(i, 'Patch plan', r);
+      if (r && r.ok) reflectDefectStatus(defId, 'in_progress');
+    } catch (e) { escSetResult(i, 'Patch plan', { ok: false, error: (e.message || String(e)) }); }
+  };
+
+  window.raiseDefectReq = async function (defId, i) {
+    const title = window.prompt('Requirement title (imperative, e.g. "System shall …"):');
+    if (!title) return;
+    escBusy(i, true);
+    try {
+      escSetResult(i, 'Requirement', await window.TM.raiseRequirement({ title: title, defect_id: defId }));
+    } catch (e) { escSetResult(i, 'Requirement', { ok: false, error: (e.message || String(e)) }); }
+  };
+
+  /* Reflect the round-trip status onto the defect row + KPI. */
+  function reflectDefectStatus(defId, status) {
+    const rpt = STATE.selectedReport;
+    if (rpt && Array.isArray(rpt.defects)) {
+      const d = rpt.defects.find(x => x.id === defId);
+      if (d) d.patch_status = status;
+    }
+    const sel = document.querySelector('.td-status-select[data-def-id="' + defId + '"]');
+    if (sel) {
+      const prev = sel.value;
+      sel.classList.remove('chip-status-' + prev);
+      sel.value = status;
+      sel.classList.add('chip-status-' + status);
+      sel.setAttribute('data-prev', status);
+    }
+    refreshOpenDefectsKpi();
   }
 
   window.toggleDefect = function (i) {

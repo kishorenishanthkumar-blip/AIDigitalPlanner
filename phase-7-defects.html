@@ -33,13 +33,13 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;color:#1E293B;background:#F
   <div class="bread"><a href="home">Home</a> / <a href="testing-services">Testing Services</a> / Phase 7</div>
   <div data-phase-stepper="7"></div>
   <h1 class="title">Phase 7 · Defect Management</h1>
-  <p class="sub">Triage the normalized defect manifest from the testing-master, set status, and re-test. The closed <strong>Defect → Change Request → Patch</strong> loop is the planned backend increment.</p>
+  <p class="sub">Triage the normalized defect manifest from the testing-master, set status, and re-test. The closed <strong>Defect → Change Request → Patch → Requirement</strong> loop is now <strong>live</strong> — expand any defect in the manifest to escalate it, with a full signed audit chain.</p>
   <div class="panel">
     <h3 style="margin:0 0 6px">What happens in this phase</h3>
     <ul>
       <li>Review defects by layer / scope / severity; set status (open → fixed → won't-fix → duplicate).</li>
       <li>Re-run with the same scope after a fix.</li>
-      <li>Defect → CR (governance) → Patch (patching agent) → PR — closed-loop integration planned.</li>
+      <li><strong>Escalate per defect:</strong> ✨ suggest route, → Change Request (governance), → Patch plan (patching agent, human-gated apply), → Raise requirement (Requirements Studio). Every action is chained into the immutable audit ledger (chain_hash).</li>
     </ul>
     <div style="margin-top:12px">
       <a class="btn primary" href="testing-dashboard">Open Defect Manifest →</a>
