@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>E2E Demo &amp; Video · AIDP</title>
+<script src="assets/toasts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<style>
+:root{--ink-50:#F8FAFC;--ink-100:#F1F5F9;--ink-200:#E2E8F0;--ink-300:#CBD5E1;--ink-500:#64748B;--ink-700:#334155;--ink-900:#0F172A;--blue:#1E40AF;--amber:#C8921A;--green:#15803D;--red:#B91C1C}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#1E293B;background:#F8FAFC}
+.shell{max-width:1240px;margin:0 auto;padding:22px 22px 80px}
+.bread{font-size:12px;color:var(--ink-500);margin-bottom:6px}.bread a{color:var(--ink-500);text-decoration:none}.bread a:hover{color:var(--blue)}
+.title{font-size:24px;font-weight:800;color:var(--ink-900);margin:8px 0 4px}
+.sub{font-size:13.5px;color:#475569;max-width:920px;line-height:1.55;margin:0 0 16px}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.btn{font-size:13px;font-weight:600;padding:9px 14px;border-radius:7px;border:1px solid var(--ink-200);color:var(--ink-700);background:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.primary:hover{background:#1b3a9c;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.dl{border-color:var(--green);color:var(--green)}.btn.dl:hover{background:#F0FDF4}
+.stage-wrap{background:#0B1220;border:1px solid #1E293B;border-radius:14px;padding:10px;box-shadow:0 8px 30px rgba(2,6,23,.18)}
+canvas{width:100%;height:auto;display:block;border-radius:9px}
+.statusline{font-size:12.5px;color:var(--ink-500);margin:10px 2px 0;min-height:18px;font-family:'IBM Plex Mono',monospace}
+.statusline .rec{color:var(--red);font-weight:700}
+.panel{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:840px){.panel{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--ink-200);border-radius:10px;padding:14px 16px}
+.card h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-500)}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-top:1px solid var(--ink-100)}
+.steps li:first-child{border-top:0}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ink-300);flex:0 0 auto}
+.dot.done{background:var(--green)}.dot.fail{background:var(--red)}.dot.active{background:var(--amber)}
+.steps .nm{font-weight:600;color:var(--ink-900);flex:1}
+.steps .ct{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-500)}
+.finale{display:flex;align-items:center;gap:16px}
+.ring{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:800;font-size:28px;color:#fff;background:var(--ink-300)}
+.ring.green{background:var(--green)}.ring.amber{background:var(--amber)}.ring.red{background:var(--red)}
+.kv{font-size:12.5px;color:var(--ink-700);line-height:1.7}.kv b{color:var(--ink-900)}
+.kv .id{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-500)}
+.narr{font-size:13px;line-height:1.6;color:var(--ink-700);margin-top:10px;white-space:pre-wrap}
+.note{font-size:12px;color:var(--ink-500);margin-top:8px}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:999px;background:var(--ink-100);color:var(--ink-500)}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<main class="shell">
+  <div class="bread"><a href="home">Home</a> / E2E Demo &amp; Video</div>
+  <h1 class="title">End-to-end demo &amp; video generator</h1>
+  <p class="sub">Watch the whole AIDP fleet run as one system: the orchestrator drives the lifecycle DAG across all agents — Discovery → Requirements → Architecture → SOW → Governance → IaC → Test Design → Test Data → Disciplines → Insights — building a live lineage graph, then scoring program health. The run renders on a canvas you can <strong>record to WebM</strong> or <strong>export as a GIF</strong>. If the live fleet is unreachable, a scripted walkthrough plays instead (also recordable).</p>
+
+  <div class="toolbar">
+    <button class="btn primary" id="runLive" onclick="runLive()">▶ Run live e2e demo</button>
+    <button class="btn" id="runScript" onclick="runScripted()">▣ Scripted walkthrough (offline)</button>
+    <button class="btn dl" id="dlWebm" disabled onclick="downloadWebm()">⬇ WebM</button>
+    <button class="btn dl" id="dlGif" disabled onclick="downloadGif()">⬇ GIF</button>
+    <button class="btn" id="recScreen" onclick="recordScreen()" title="Record the whole tab/screen via the browser screen-capture API">⛶ Record screen</button>
+    <span class="tag" id="recTag" style="display:none">● REC</span>
+  </div>
+
+  <div class="stage-wrap">
+    <canvas id="stage" width="1280" height="720" aria-label="Live pipeline animation"></canvas>
+  </div>
+  <div class="statusline" id="status">Ready. Click <b>Run live e2e demo</b> to drive the fleet and capture a video.</div>
+
+  <div class="panel">
+    <div class="card">
+      <h3>Lifecycle steps</h3>
+      <ul class="steps" id="stepList"></ul>
+    </div>
+    <div class="card">
+      <h3>Program health (finale)</h3>
+      <div class="finale">
+        <div class="ring" id="ring">–</div>
+        <div class="kv">
+          <div><b id="ragLabel">Awaiting run</b></div>
+          <div class="id" id="progId"></div>
+          <div id="graphKv" style="margin-top:6px"></div>
+        </div>
+      </div>
+      <p class="narr" id="narr"></p>
+      <p class="note">Tip: WebM records the canvas directly (no permissions). “Record screen” captures the whole tab including the lineage graph on <a href="program.html">Program Flow</a>.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ─── stage model ─────────────────────────────────────────── */
+const STAGES = [
+  { key:'discovery',     label:'Discovery',     icon:'🔍' },
+  { key:'requirements',  label:'Requirements',  icon:'📋' },
+  { key:'architecture',  label:'Architecture',  icon:'🏗' },
+  { key:'sow',           label:'SOW',           icon:'📄' },
+  { key:'governance',    label:'Governance',    icon:'🛡' },
+  { key:'iac',           label:'IaC',           icon:'⚙' },
+  { key:'test-design',   label:'Test Design',   icon:'📐' },
+  { key:'testdata',      label:'Test Data',     icon:'🧬' },
+  { key:'disciplines',   label:'Disciplines',   icon:'🧪' },
+  { key:'insights',      label:'Insights',      icon:'📈' }
+];
+const state = {};            // key -> {status:'pending|active|done|fail', count}
+STAGES.forEach(s => state[s.key] = { status:'pending', count:null });
+let activeKey = null, activeProg = 0, running = false, banner = 'Ready';
+let programId = '', nodeCount = 0, edgeCount = 0, health = null;
+
+/* ─── canvas geometry ─────────────────────────────────────── */
+const cv = document.getElementById('stage'), ctx = cv.getContext('2d');
+const W = cv.width, H = cv.height;
+function nodePos(i){
+  const perRow = 5, row = Math.floor(i/perRow), col = i % perRow;
+  const x0 = 150, x1 = W-150, gx = (x1-x0)/(perRow-1);
+  const y = row === 0 ? 250 : 470;
+  return { x: x0 + col*gx, y };
+}
+const COL = { bg:'#0B1220', grid:'#13203A', edge:'#243a5e', edgeOn:'#38bdf8',
+  pend:'#1e2c47', pendBorder:'#2b3d5e', active:'#C8921A', done:'#15803D', fail:'#B91C1C',
+  text:'#E2E8F0', sub:'#7e93b4', white:'#F8FAFC' };
+
+function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+function draw(t){
+  ctx.fillStyle = COL.bg; ctx.fillRect(0,0,W,H);
+  // subtle grid
+  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1;
+  for(let x=0;x<W;x+=40){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for(let y=0;y<H;y+=40){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // header
+  ctx.fillStyle = COL.white; ctx.font = '700 30px Inter, sans-serif'; ctx.textBaseline='alphabetic';
+  ctx.fillText('AIDP · one system, live', 150, 90);
+  ctx.fillStyle = COL.sub; ctx.font = '500 16px Inter, sans-serif';
+  ctx.fillText('Orchestrator drives the lifecycle DAG across the agent fleet', 150, 120);
+  // banner
+  ctx.fillStyle = '#0ea5e9'; ctx.font = "600 15px 'IBM Plex Mono', monospace";
+  ctx.fillText(banner, 150, 160);
+
+  // edges first
+  for(let i=0;i<STAGES.length-1;i++){
+    const a = nodePos(i), b = nodePos(i+1);
+    const lit = state[STAGES[i].key].status==='done' && (state[STAGES[i+1].key].status!=='pending');
+    drawEdge(a,b,lit,t,i);
+  }
+  // moving packet into the active node
+  if(activeKey){
+    const idx = STAGES.findIndex(s=>s.key===activeKey);
+    if(idx>0){ const a=nodePos(idx-1), b=nodePos(idx); const p=easeInOut(activeProg);
+      const pt = edgePoint(a,b,p);
+      ctx.fillStyle = COL.edgeOn; ctx.shadowColor=COL.edgeOn; ctx.shadowBlur=16;
+      ctx.beginPath(); ctx.arc(pt.x,pt.y,6,0,7); ctx.fill(); ctx.shadowBlur=0;
+    }
+  }
+  // nodes
+  STAGES.forEach((s,i)=>{ drawNode(s,i,t); });
+
+  // footer counts
+  ctx.fillStyle = COL.sub; ctx.font = "500 14px 'IBM Plex Mono', monospace";
+  const done = STAGES.filter(s=>state[s.key].status==='done').length;
+  ctx.fillText('stages '+done+'/'+STAGES.length+'   ·   graph '+nodeCount+' nodes / '+edgeCount+' edges'+(programId?('   ·   '+programId):''), 150, H-40);
+  // health badge bottom-right
+  if(health){
+    const rag = (health.rag||'na'); const c = rag==='green'?COL.done:rag==='amber'?COL.active:rag==='red'?COL.fail:COL.pend;
+    ctx.fillStyle=c; ctx.beginPath(); ctx.arc(W-200, H-70, 36, 0, 7); ctx.fill();
+    ctx.fillStyle=COL.white; ctx.font='800 24px Inter'; ctx.textAlign='center';
+    ctx.fillText(String(health.health_score!=null?health.health_score:'–'), W-200, H-62);
+    ctx.font='600 12px Inter'; ctx.fillText('HEALTH', W-200, H-44); ctx.textAlign='left';
+  }
+}
+function drawEdge(a,b,lit,t,i){
+  ctx.strokeStyle = lit ? COL.edgeOn : COL.edge; ctx.lineWidth = lit?3:2;
+  if(lit){ ctx.shadowColor=COL.edgeOn; ctx.shadowBlur=8; }
+  ctx.beginPath(); ctx.moveTo(a.x, a.y);
+  const mx=(a.x+b.x)/2; ctx.bezierCurveTo(mx,a.y, mx,b.y, b.x,b.y); ctx.stroke(); ctx.shadowBlur=0;
+}
+function edgePoint(a,b,p){ const mx=(a.x+b.x)/2;
+  const x=cub(a.x,mx,mx,b.x,p), y=cub(a.y,a.y,b.y,b.y,p); return {x,y}; }
+function cub(p0,p1,p2,p3,t){ const u=1-t; return u*u*u*p0+3*u*u*t*p1+3*u*t*t*p2+t*t*t*p3; }
+function easeInOut(t){ return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
+function drawNode(s,i,t){
+  const {x,y}=nodePos(i), st=state[s.key].status, w=170,h=86;
+  const cx=x-w/2, cy=y-h/2;
+  let border = COL.pendBorder, fill = COL.pend, glow=null;
+  if(st==='active'){ border=COL.active; glow=COL.active; }
+  else if(st==='done'){ border=COL.done; fill='#0f2a1c'; }
+  else if(st==='fail'){ border=COL.fail; fill='#2a1216'; }
+  if(glow){ const pulse=0.5+0.5*Math.sin(t/180); ctx.shadowColor=glow; ctx.shadowBlur=10+18*pulse; }
+  rr(cx,cy,w,h,12); ctx.fillStyle=fill; ctx.fill();
+  ctx.lineWidth=2.5; ctx.strokeStyle=border; ctx.stroke(); ctx.shadowBlur=0;
+  // icon + label
+  ctx.font='26px Inter'; ctx.textAlign='left'; ctx.fillText(s.icon, cx+14, cy+38);
+  ctx.fillStyle=COL.text; ctx.font='700 16px Inter'; ctx.fillText(s.label, cx+50, cy+33);
+  // status / count
+  ctx.font="500 12px 'IBM Plex Mono', monospace"; ctx.fillStyle=COL.sub;
+  let sub = st==='pending'?'waiting': st==='active'?'running…': st==='fail'?'error': (state[s.key].count!=null? (''+state[s.key].count+(typeof state[s.key].count==='number'?' nodes':'')):'done');
+  ctx.fillText(sub, cx+50, cy+58);
+  // check badge
+  if(st==='done'){ ctx.fillStyle=COL.done; ctx.beginPath(); ctx.arc(cx+w-18, cy+18, 10, 0, 7); ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(cx+w-23,cy+18); ctx.lineTo(cx+w-19,cy+22); ctx.lineTo(cx+w-13,cy+13); ctx.stroke(); }
+  if(st==='fail'){ ctx.fillStyle=COL.fail; ctx.beginPath(); ctx.arc(cx+w-18, cy+18, 10, 0, 7); ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(cx+w-22,cy+14); ctx.lineTo(cx+w-14,cy+22); ctx.moveTo(cx+w-14,cy+14); ctx.lineTo(cx+w-22,cy+22); ctx.stroke(); }
+}
+
+/* ─── animation loop + GIF capture ───────────────────────── */
+let rafId=null, gif=null, gifTimer=0, lastGifAt=0;
+function loop(ts){
+  draw(ts);
+  if(gif && ts-lastGifAt > 140){ lastGifAt=ts; addGifFrame(); }
+  rafId = requestAnimationFrame(loop);
+}
+function startLoop(){ if(!rafId) rafId=requestAnimationFrame(loop); }
+function stopLoop(){ if(rafId){ cancelAnimationFrame(rafId); rafId=null; } draw(performance.now()); }
+
+/* ─── recorders ──────────────────────────────────────────── */
+let mediaRec=null, chunks=[], webmUrl=null, gifUrl=null, screenRec=null, screenChunks=[], screenUrl=null;
+function startCanvasRecording(){
+  try{
+    chunks=[]; webmUrl=null; document.getElementById('dlWebm').disabled=true;
+    const stream = cv.captureStream(30);
+    const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
+    mediaRec = new MediaRecorder(stream,{mimeType:mime, videoBitsPerSecond:6_000_000});
+    mediaRec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+    mediaRec.onstop=()=>{ const b=new Blob(chunks,{type:'video/webm'}); webmUrl=URL.createObjectURL(b);
+      document.getElementById('dlWebm').disabled=false; toast('WebM ready · click ⬇ WebM'); };
+    mediaRec.start();
+  }catch(e){ console.warn('canvas record unsupported', e); }
+}
+function stopCanvasRecording(){ try{ if(mediaRec && mediaRec.state!=='inactive') mediaRec.stop(); }catch(e){} }
+function startGif(){
+  if(typeof GIF==='undefined'){ return; }
+  try{
+    gifUrl=null; document.getElementById('dlGif').disabled=true;
+    gif = new GIF({ workers:2, quality:12, width:640, height:360,
+      workerScript:'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js' });
+    gif.on('finished', b=>{ gifUrl=URL.createObjectURL(b);
+      document.getElementById('dlGif').disabled=false; toast('GIF ready · click ⬇ GIF'); });
+    lastGifAt=0;
+  }catch(e){ gif=null; console.warn('gif unsupported', e); }
+}
+const gifScratch = Object.assign(document.createElement('canvas'),{width:640,height:360});
+const gsx = gifScratch.getContext('2d');
+function addGifFrame(){ try{ gsx.drawImage(cv,0,0,640,360); gif.addFrame(gsx,{copy:true, delay:140}); }catch(e){} }
+function finishGif(){ if(gif){ try{ gif.render(); }catch(e){} gif=null; } }
+
+function toast(m){ try{ if(window.DI && window.DI.toast) window.DI.toast(m); }catch(e){} }
+function setStatus(html){ document.getElementById('status').innerHTML = html; }
+function setRec(on){ document.getElementById('recTag').style.display = on?'inline-block':'none'; }
+
+/* ─── runners ────────────────────────────────────────────── */
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+function resetRun(){
+  STAGES.forEach(s=>state[s.key]={status:'pending',count:null});
+  activeKey=null; programId=''; nodeCount=0; edgeCount=0; health=null; banner='Initializing…';
+  renderSteps(); renderFinale();
+}
+async function animateActive(key, ms){
+  activeKey=key; state[key].status='active'; activeProg=0;
+  const t0=performance.now();
+  while(performance.now()-t0 < ms){ activeProg=Math.min(1,(performance.now()-t0)/ms); await sleep(16); }
+  renderSteps();
+}
+function markDone(key, count, ok){ state[key].status = ok===false?'fail':'done'; state[key].count = count; activeKey=null; renderSteps(); }
+
+async function runLive(){
+  if(running) return; running=true; toggleButtons(true);
+  resetRun(); startLoop(); startCanvasRecording(); startGif(); setRec(true);
+  setStatus('<span class="rec">● REC</span> Driving the live fleet…');
+  banner='Creating program…';
+  try{
+    if(!window.AIDP) throw new Error('AIDP client not loaded');
+    const start = await AIDP.callAgent('ORCHESTRATOR','program_start',{ title:'E2E Demo '+new Date().toISOString().slice(0,19), tenant_id:'demo' });
+    programId = start.program_id || '';
+    banner='Driving the lifecycle DAG across the fleet…';
+    const run = await AIDP.callAgent('ORCHESTRATOR','program_run_full',{ program_id:programId, scope:'fleet' });
+    const steps = (run && run.steps) || [];
+    const find = k => steps.find(s => (s.step||'').toLowerCase() === k);
+    for(let i=0;i<9;i++){
+      const s = STAGES[i]; banner = s.icon+'  '+s.label+'…';
+      await animateActive(s.key, 650);
+      const r = find(s.key);
+      const cnt = r ? (r.count!=null?r.count : (r.ok!==false?'ok':'err')) : 'ok';
+      markDone(s.key, cnt, !r || r.ok!==false);
+      await sleep(160);
+    }
+    banner='Reading the lineage graph…';
+    const g = await AIDP.callAgent('ORCHESTRATOR','program_graph',{ program_id:programId });
+    nodeCount=(g.nodes||[]).length; edgeCount=(g.edges||[]).length;
+    banner='Scoring program health (Workers AI)…';
+    await animateActive('insights', 700);
+    const rep = await AIDP.callAgent('INSIGHTS','insights_tenant_report',{ program_id:programId, tenant_id:'demo' });
+    health = rep && rep.ok!==false ? rep : { health_score:null, rag:'na' };
+    markDone('insights', health.rag||'ok', rep && rep.ok!==false);
+    banner = health.health_score!=null ? ('Done · health '+health.health_score+'/100 ('+(health.rag||'').toUpperCase()+')') : 'Done';
+    renderFinale();
+    setStatus('Live run complete · '+nodeCount+' nodes / '+edgeCount+' edges · preparing downloads…');
+  }catch(e){
+    banner='Live fleet unreachable · '+e.message;
+    setStatus('⚠ Live run failed ('+e.message+'). Try the scripted walkthrough.');
+    markFailRemaining();
+  }
+  await sleep(900);            // let the final frame breathe in the recording
+  finalizeRecording(); running=false; toggleButtons(false); setRec(false);
+}
+
+async function runScripted(){
+  if(running) return; running=true; toggleButtons(true);
+  resetRun(); startLoop(); startCanvasRecording(); startGif(); setRec(true);
+  setStatus('<span class="rec">● REC</span> Scripted walkthrough (offline demo data)…');
+  programId='PRG-DEMO-SCRIPTED';
+  const fake = { discovery:7, requirements:12, architecture:3, sow:11, governance:5, iac:1, 'test-design':9, testdata:5, disciplines:8 };
+  let n=0;
+  for(let i=0;i<9;i++){ const s=STAGES[i]; banner=s.icon+'  '+s.label+'…';
+    await animateActive(s.key, 620); const c=fake[s.key]; n+=c; nodeCount=n; markDone(s.key,c,true); await sleep(150); }
+  banner='Scoring program health…'; await animateActive('insights',650);
+  edgeCount=Math.round(n*0.7); health={health_score:82,rag:'green',summary:'Scripted demo: program "Modernization Pilot" is GREEN (health 82/100). 7/7 lifecycle stages have artifacts; 12 requirements, 8 discipline runs, 0 open defects.'};
+  markDone('insights','green',true); banner='Done · health 82/100 (GREEN)'; renderFinale();
+  setStatus('Scripted walkthrough complete · preparing downloads…');
+  await sleep(900); finalizeRecording(); running=false; toggleButtons(false); setRec(false);
+}
+function markFailRemaining(){ STAGES.forEach(s=>{ if(state[s.key].status==='pending'||state[s.key].status==='active') markDone(s.key,'–',false); }); }
+function finalizeRecording(){ stopCanvasRecording(); finishGif(); setStatus(document.getElementById('status').textContent.replace('preparing downloads…','downloads ready below ⬇')); stopSoon(); }
+function stopSoon(){ setTimeout(stopLoop, 400); }
+
+/* ─── screen recording (getDisplayMedia) ─────────────────── */
+async function recordScreen(){
+  if(screenRec && screenRec.state==='recording'){ screenRec.stop(); document.getElementById('recScreen').textContent='⛶ Record screen'; return; }
+  try{
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video:{frameRate:30}, audio:false });
+    screenChunks=[]; screenUrl=null;
+    screenRec = new MediaRecorder(stream,{mimeType:'video/webm'});
+    screenRec.ondataavailable=e=>{ if(e.data.size) screenChunks.push(e.data); };
+    screenRec.onstop=()=>{ stream.getTracks().forEach(t=>t.stop());
+      const b=new Blob(screenChunks,{type:'video/webm'}); screenUrl=URL.createObjectURL(b);
+      const a=document.createElement('a'); a.href=screenUrl; a.download='aidp-screen-demo.webm'; a.click();
+      document.getElementById('recScreen').textContent='⛶ Record screen'; toast('Screen recording downloaded'); };
+    stream.getVideoTracks()[0].addEventListener('ended', ()=>{ if(screenRec.state==='recording') screenRec.stop(); });
+    screenRec.start(); document.getElementById('recScreen').textContent='⏹ Stop screen rec';
+    toast('Recording screen · click Stop or the browser bar to finish');
+  }catch(e){ toast('Screen capture canceled'); }
+}
+
+/* ─── downloads ──────────────────────────────────────────── */
+function downloadWebm(){ if(!webmUrl) return; const a=document.createElement('a'); a.href=webmUrl; a.download='aidp-e2e-demo.webm'; a.click(); }
+function downloadGif(){ if(!gifUrl) return; const a=document.createElement('a'); a.href=gifUrl; a.download='aidp-e2e-demo.gif'; a.click(); }
+
+/* ─── side panels (HTML mirror) ──────────────────────────── */
+function renderSteps(){
+  document.getElementById('stepList').innerHTML = STAGES.map(s=>{
+    const st=state[s.key].status, cls = st==='done'?'done':st==='fail'?'fail':st==='active'?'active':'';
+    const c = state[s.key].count;
+    const ct = st==='done'?(c!=null?(''+c+(typeof c==='number'?' nodes':'')):'ok'): st==='fail'?'error': st==='active'?'running…':'waiting';
+    return '<li><span class="dot '+cls+'"></span><span class="nm">'+s.icon+' '+s.label+'</span><span class="ct">'+ct+'</span></li>';
+  }).join('');
+}
+function renderFinale(){
+  const ring=document.getElementById('ring');
+  const rag = health&&health.rag?health.rag:'na';
+  ring.className='ring '+(rag==='green'||rag==='amber'||rag==='red'?rag:'');
+  ring.textContent = health&&health.health_score!=null?health.health_score:'–';
+  document.getElementById('ragLabel').textContent = health? ((rag||'na').toUpperCase()+(health.health_score!=null?(' · '+health.health_score+'/100'):'')) : 'Awaiting run';
+  document.getElementById('progId').textContent = programId||'';
+  document.getElementById('graphKv').innerHTML = (nodeCount||edgeCount)? ('<b>'+nodeCount+'</b> nodes · <b>'+edgeCount+'</b> edges in the lineage graph') : '';
+  document.getElementById('narr').textContent = health&&health.summary?health.summary:'';
+}
+function toggleButtons(on){ ['runLive','runScript','recScreen'].forEach(id=>document.getElementById(id).disabled=on); }
+
+/* boot */
+function boot(){ renderSteps(); renderFinale(); draw(performance.now()); }
+boot();
+</script>
+</body>
+</html>

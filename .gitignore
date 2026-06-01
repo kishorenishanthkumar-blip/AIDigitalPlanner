@@ -68,3 +68,5 @@ docker-compose.override.yml
 .dev.vars*
 !.dev.vars.example
 !.env.example
+node_modules/
+FETCH_HEAD

@@ -48,13 +48,17 @@
     { id: 'cost',         icon: '💰', name: 'Cost analytics',       desc: 'LLM spend, model breakdown, cache hit rate, per-user history · 24h/7d/30d windows.', badge: 'LIVE', href: 'cost.html' },
     { id: 'program-flow', icon: '🕸', name: 'Program Flow',         desc: 'The unified agentic spine · run the lifecycle DAG and watch the lineage graph + correlation trace build.', badge: 'LIVE', href: 'program.html' },
     { id: 'fleet',        icon: '🛰', name: 'Fleet Architecture',   desc: 'Every worker in the fleet, grouped by tier, with live /health — the runtime architecture as one view.', badge: 'LIVE', href: 'fleet.html' },
-    { id: 'insights',     icon: '📈', name: 'Program Insights',     desc: 'Per-program R/A/G health score, scoring drivers, AI executive narrative, and cross-program trends.', badge: 'LIVE', href: 'insights.html' }
+    { id: 'insights',     icon: '📈', name: 'Program Insights',     desc: 'Per-program R/A/G health score, scoring drivers, AI executive narrative, and cross-program trends.', badge: 'LIVE', href: 'insights.html' },
+    { id: 'console',      icon: '🎛', name: 'Console',              desc: 'Fleet control center · live health, version, latency, quick-run actions and studio links for every agent.', badge: 'LIVE', href: 'console.html' },
+    { id: 'demo',         icon: '🎬', name: 'E2E Demo & Video',     desc: 'Drive the whole fleet end-to-end on a live canvas · record the run to WebM or export a GIF.', badge: 'LIVE', href: 'demo.html' }
   ];
 
   // Top-level navigation
   const NAV = [
     { label: 'Home',       href: 'home.html',           match: /^\/(home(\.html)?)?$/i },
     { label: 'Features',   isMega: true },
+    { label: 'Console',    href: 'console.html',        match: /console/i },
+    { label: 'Demo',       href: 'demo.html',           match: /demo/i },
     { label: 'Library',    href: 'questionnaire.html',  match: /questionnaire/i },
     { label: 'Operations', href: 'operations.html',     match: /operations/i }
   ];

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AIDP Console · fleet control center</title>
+<script src="assets/toasts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<style>
+:root{--ink-50:#F8FAFC;--ink-100:#F1F5F9;--ink-200:#E2E8F0;--ink-300:#CBD5E1;--ink-500:#64748B;--ink-700:#334155;--ink-900:#0F172A;--blue:#1E40AF;--amber:#C8921A;--green:#15803D;--red:#B91C1C}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#1E293B;background:#F8FAFC}
+.shell{max-width:1240px;margin:0 auto;padding:22px 22px 80px}
+.bread{font-size:12px;color:var(--ink-500);margin-bottom:6px}.bread a{color:var(--ink-500);text-decoration:none}.bread a:hover{color:var(--blue)}
+.title{font-size:24px;font-weight:700;color:var(--ink-900);margin:8px 0 4px}
+.sub{font-size:13.5px;color:#475569;max-width:900px;line-height:1.55;margin:0 0 14px}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.btn{font-size:13px;font-weight:600;padding:8px 13px;border-radius:6px;border:1px solid var(--ink-200);color:var(--ink-700);background:#fff;cursor:pointer}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.primary:hover{background:#1b3a9c;color:#fff}
+.kpi{font-size:13px;color:var(--ink-700)}.kpi strong{font-size:16px}
+.tier{margin-bottom:16px}
+.tier-hd{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-500);margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.tier-hd .bar{height:1px;flex:1;background:var(--ink-200)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--ink-200);border-left-width:3px;border-radius:9px;padding:12px 14px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.card.up{border-left-color:var(--green)}.card.down{border-left-color:var(--red)}.card.pending{border-left-color:var(--ink-300)}
+.card .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card .nm{font-weight:600;font-size:14px;color:var(--ink-900);display:flex;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ink-300);flex:0 0 auto}
+.dot.up{background:var(--green)}.dot.down{background:var(--red)}
+.card .role{font-size:12px;color:var(--ink-500);margin-top:3px;min-height:16px}
+.card .meta{font-size:10.5px;color:var(--ink-500);font-family:'IBM Plex Mono',monospace;margin-top:7px;display:flex;justify-content:space-between}
+.card .acts{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.act{font-size:11.5px;font-weight:600;padding:5px 9px;border-radius:6px;border:1px solid var(--ink-200);background:#fff;color:var(--ink-700);cursor:pointer;text-decoration:none;display:inline-block}
+.act:hover{border-color:var(--blue);color:var(--blue)}
+.act.run{border-color:var(--blue);color:var(--blue)}.act.run:hover{background:#EFF4FF}
+.out{margin-top:8px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--ink-700);background:var(--ink-50);border:1px solid var(--ink-100);border-radius:6px;padding:7px 9px;max-height:120px;overflow:auto;display:none;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<main class="shell">
+  <div class="bread"><a href="home">Home</a> / Console</div>
+  <h1 class="title">AIDP Console · fleet control center</h1>
+  <p class="sub">Every agent in one place — live <code>/health</code>, version, latency, a deep link to its studio, and a one-click smoke action. Use this to drive or verify any part of the platform without leaving the page. For the full guided run, open the <a href="demo.html">E2E Demo</a>.</p>
+
+  <div class="toolbar">
+    <button class="btn primary" onclick="probeAll()">↻ Re-probe fleet</button>
+    <a class="btn" href="demo.html">▶ E2E Demo &amp; Video</a>
+    <a class="btn" href="program.html">🕸 Program Flow</a>
+    <a class="btn" href="fleet.html">🛰 Fleet Architecture</a>
+    <span class="kpi" id="kpi"></span>
+  </div>
+
+  <div id="tiers"></div>
+</main>
+
+<script>
+const SUB='kishorenishanthkumar';
+const url = slug => slug==='master' ? `https://aiagenticplanner.${SUB}.workers.dev` : `https://aiagenticplanner-${slug}.${SUB}.workers.dev`;
+
+/* agent registry · slug, name, role, studio link, optional quick action */
+const TIERS = [
+  { name:'Entry · NL Router & Spine', agents:[
+    ['master','Master Router','routes NL → agents', 'nishi-chatbot.html', null],
+    ['orchestrator','Program Orchestrator','lifecycle DAG · lineage graph','program.html',
+      {label:'Self-test', agent:'ORCHESTRATOR', tool:'program_selftest', args:{title:'console-selftest',tenant_id:'selftest',scope:'fleet'}, pick:r=>'pass='+r.pass+' · '+r.node_count+' nodes'}],
+  ]},
+  { name:'Delivery agents', agents:[
+    ['discovery','Discovery','7R verdicts · capabilities','discovery-studio.html',
+      {label:'List', agent:'DISCOVERY', tool:'discovery_list_capabilities', args:{}, pick:r=>((r.capabilities||r.items||[]).length)+' capabilities'}],
+    ['architecture','Architecture','cloud design · pricing','architecture-studio.html', null],
+    ['requirements','Requirements','MoSCoW · INVEST','requirements.html',
+      {label:'List', agent:'REQUIREMENTS', tool:'requirements_list', args:{}, pick:r=>((r.requirements||r.items||[]).length)+' requirements'}],
+    ['actions','Actions','role-based action plans','actions.html', null],
+    ['sow','SOW','statement of work','sow.html',
+      {label:'Summary', agent:'SOW', tool:'sow_list', args:{}, pick:r=>((r.sections||r.items||[]).length)+' sections'}],
+    ['governance','Governance','RAID · CR · steering','program-governance.html',
+      {label:'RAID', agent:'GOVERNANCE', tool:'governance_raid_list', args:{}, pick:r=>((r.raid||r.items||[]).length)+' RAID items'}],
+    ['operations','Operations','runbooks · DORA','operations.html', null],
+    ['iac','IaC','terraform · helm · CI','iac.html', null],
+  ]},
+  { name:'Testing fleet', agents:[
+    ['testing-master','Testing Master','orchestrator · defect manifest','testing-dashboard.html',
+      {label:'Recent runs', agent:'TESTING_MASTER', tool:'tm_list_runs', args:{limit:5}, pick:r=>((r.runs||[]).length)+' recent runs'}],
+    ['test-design','Test Design','strategy · plans · cases','test-design.html',
+      {label:'List', agent:'TEST_DESIGN', tool:'testdesign_list', args:{limit:5}, pick:r=>((r.artifacts||r.items||[]).length)+' artifacts'}],
+    ['testdata','Test Data','synthetic · PII-tagged','testdata.html',
+      {label:'Generate', agent:'TESTDATA', tool:'testdata_generate', args:{domain:'payments',region:'US',count:3}, pick:r=>((r.records||[]).length||r.count||0)+' records'}],
+    ['test-functional','Functional','node assertions','testing-services.html', null],
+    ['test-performance','Performance','k6 · Lighthouse','testing-services.html', null],
+    ['test-security','Security','OWASP ZAP · Snyk','testing-services.html', null],
+    ['test-accessibility','Accessibility','Pa11y · WCAG','testing-services.html', null],
+    ['test-compliance','Compliance','headers · transport','testing-services.html', null],
+    ['test-contract','Contract','MCP tool contracts','testing-services.html', null],
+    ['test-integration','Integration','cross-agent flows','testing-services.html', null],
+    ['test-e2e','E2E','Playwright journeys','testing-services.html', null],
+  ]},
+  { name:'Insight & substrate', agents:[
+    ['insights','Insights','health score · trends','insights.html',
+      {label:'Trends', agent:'INSIGHTS', tool:'insights_trends', args:{}, pick:r=>(r.programs||0)+' programs · avg '+(r.avg_health_score!=null?r.avg_health_score:'–')}],
+    ['knowledge','Knowledge / RAG','shared memory · Vectorize','knowledge.html', null],
+    ['exception','Exception','audit ledger · chain_hash','operations.html', null],
+    ['validator','Validator','smoke matrix','status.html', null],
+    ['patch','Patch','gated code changes','operations.html', null],
+  ]},
+];
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function render(){
+  document.getElementById('tiers').innerHTML = TIERS.map(t=>`
+    <div class="tier"><div class="tier-hd">${esc(t.name)}<span class="bar"></span></div>
+      <div class="cards">${t.agents.map(([slug,nm,role,href,act])=>`
+        <div class="card pending" id="c-${slug}">
+          <div class="top"><div class="nm">${esc(nm)} <span class="dot" id="d-${slug}"></span></div></div>
+          <div class="role">${esc(role)}</div>
+          <div class="meta"><span id="v-${slug}">probing…</span><span id="l-${slug}"></span></div>
+          <div class="acts">
+            <a class="act" href="${href}">Open studio →</a>
+            ${act?`<button class="act run" onclick='runAct(${JSON.stringify(slug)})'>▶ ${esc(act.label)}</button>`:''}
+          </div>
+          <div class="out" id="o-${slug}"></div>
+        </div>`).join('')}</div>
+    </div>`).join('');
+}
+
+async function probe(slug){
+  const card=document.getElementById('c-'+slug), dot=document.getElementById('d-'+slug);
+  const v=document.getElementById('v-'+slug), l=document.getElementById('l-'+slug);
+  const t0=performance.now();
+  try{
+    const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),8000);
+    const r=await fetch(url(slug)+'/health',{signal:ctl.signal}); clearTimeout(to);
+    const j=await r.json().catch(()=>({}));
+    const ms=Math.round(performance.now()-t0);
+    const okv = j && j.ok===true;
+    card.className='card '+(okv?'up':'down'); dot.className='dot '+(okv?'up':'down');
+    v.textContent = j.version || (okv?'ok':('http '+r.status));
+    l.textContent = ms+' ms';
+    return okv;
+  }catch(e){ card.className='card down'; dot.className='dot down'; v.textContent='unreachable'; l.textContent=''; return false; }
+}
+async function probeAll(){
+  const all=TIERS.flatMap(t=>t.agents.map(a=>a[0]));
+  document.getElementById('kpi').textContent='Probing '+all.length+' workers…';
+  const res=await Promise.all(all.map(probe));
+  const up=res.filter(Boolean).length;
+  document.getElementById('kpi').innerHTML=`<strong>${up}</strong> / ${all.length} workers healthy`;
+}
+
+const ACTS = {};
+TIERS.forEach(t=>t.agents.forEach(([slug,,,,act])=>{ if(act) ACTS[slug]=act; }));
+async function runAct(slug){
+  const act=ACTS[slug]; if(!act) return;
+  const out=document.getElementById('o-'+slug); out.style.display='block'; out.textContent='running '+act.tool+'…';
+  try{
+    if(!window.AIDP) throw new Error('AIDP client not loaded');
+    const r = await AIDP.callAgent(act.agent, act.tool, act.args||{});
+    let line; try{ line = act.pick(r); }catch(_){ line = 'ok'; }
+    out.textContent = '✓ '+line;
+  }catch(e){ out.textContent = '✗ '+e.message; }
+}
+
+render(); probeAll();
+</script>
+</body>
+</html>
