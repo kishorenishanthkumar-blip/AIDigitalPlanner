@@ -803,12 +803,38 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
     } catch (e) { escSetResult(i, 'Patch plan', { ok: false, error: (e.message || String(e)) }); }
   };
 
+  /* Infer a banking domain from defect text so the requirement isn't blank. */
+  function inferReqDomain(text) {
+    const t = (text || '').toLowerCase();
+    const map = [
+      ['payments', ['payment', 'transfer', 'pacs', 'iso 20022', 'rtp', 'fednow', 'remittance']],
+      ['cards',    ['card', 'pan', 'pci', 'tokeniz']],
+      ['deposits', ['deposit', 'account balance', 'statement']],
+      ['lending',  ['loan', 'lending', 'credit limit', 'mortgage']],
+      ['trade',    ['trade', 'equit', 'settlement', 'securities']],
+      ['compliance', ['aml', 'kyc', 'fraud', 'sanction', 'regulat', 'compliance']],
+      ['channels', ['login', 'session', 'auth', 'cookie', 'ui', 'portal', 'mobile']],
+      ['core-banking', ['ledger', 'posting', 'core']]
+    ];
+    for (const [dom, kws] of map) { if (kws.some(k => t.includes(k))) return dom; }
+    return undefined;
+  }
+
   window.raiseDefectReq = async function (defId, i) {
-    const title = window.prompt('Requirement title (imperative, e.g. "System shall …"):');
+    const rpt = STATE.selectedReport;
+    const d = (rpt && rpt.defects && rpt.defects[i]) || {};
+    const title = window.prompt('Requirement title (imperative, e.g. "System shall …"):',
+      d.suggested_fix ? ('System shall ' + d.suggested_fix.replace(/^add a?n? ?/i, '').replace(/^./, c => c.toLowerCase())) : '');
     if (!title) return;
+    // Populate description + domain from the defect so the requirement isn't blank.
+    const detail = [d.description, d.suggested_fix && ('Suggested fix: ' + d.suggested_fix), d.id && ('Source defect: ' + d.id)]
+      .filter(Boolean).join(' · ') || undefined;
+    const domain = inferReqDomain((d.title || '') + ' ' + (d.description || '') + ' ' + (d.suggested_fix || ''));
     escBusy(i, true);
     try {
-      escSetResult(i, 'Requirement', await window.TM.raiseRequirement({ title: title, defect_id: defId }));
+      escSetResult(i, 'Requirement', await window.TM.raiseRequirement({
+        title: title, detail: detail, domain: domain, defect_id: defId
+      }));
     } catch (e) { escSetResult(i, 'Requirement', { ok: false, error: (e.message || String(e)) }); }
   };
 

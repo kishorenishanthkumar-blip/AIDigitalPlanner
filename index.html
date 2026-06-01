@@ -801,7 +801,7 @@ input,select,textarea{font-family:var(--f-ui)}
 
           <div class="ag full">
             <label class="al" for="acc-role-pick">Select Your Role(s) ⓘ <span style="color:#FF4D6A">*</span></label>
-            <select class="ai" id="acc-role-pick" onchange="addRole(this.value);this.value=''">
+            <select class="ai" id="acc-role-pick" data-no-enhance onchange="addRole(this.value);this.value=''">
               <option value="">Select one or more roles</option>
               <option>Execution Leader</option>
               <option>EVP</option><option>SVP</option>
@@ -2776,5 +2776,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script src="assets/aidp-api.js"></script>
   <script src="assets/nishi.js" defer></script>
+  <!-- App-wide checkbox-dropdown enhancer (landing page loads it directly · it has no top-bar) -->
+  <script src="assets/select-enhance.js" defer></script>
 </body>
 </html>

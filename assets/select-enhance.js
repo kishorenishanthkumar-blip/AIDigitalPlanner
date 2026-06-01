@@ -23,9 +23,13 @@
       '.aidp-se-btn{font:inherit;font-size:13px;padding:7px 10px;border:1px solid #CBD5E1;border-radius:6px;background:#fff;color:#1E293B;cursor:pointer;text-align:left;min-width:140px;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
       '.aidp-se-btn:hover{border-color:#1E40AF}' +
       '.aidp-se-panel{position:absolute;z-index:9999;top:100%;left:0;margin-top:4px;background:#fff;border:1px solid #E2E8F0;border-radius:8px;box-shadow:0 6px 16px rgba(15,23,42,.16);max-height:300px;overflow:auto;min-width:200px;padding:6px}' +
-      '.aidp-se-opt{display:flex;align-items:flex-start;gap:7px;padding:5px 8px;font-size:13px;color:#334155;cursor:pointer;border-radius:4px;line-height:1.35}' +
-      '.aidp-se-opt:hover{background:#F1F5F9}.aidp-se-opt input{margin-top:2px}' +
-      '.aidp-se-all{font-weight:600;border-bottom:1px solid #E2E8F0;margin-bottom:4px;color:#0F172A}';
+      /* !important + flex-start guard against page-level `label{justify-content:space-between}`
+         rules leaking in (the option row IS a <label>), which would right-align the text. */
+      '.aidp-se-opt{display:flex !important;align-items:center !important;justify-content:flex-start !important;text-align:left !important;gap:8px;margin:0;padding:6px 8px;font-size:13px;color:#334155;cursor:pointer;border-radius:4px;line-height:1.35;text-transform:none}' +
+      '.aidp-se-opt:hover{background:#F1F5F9}' +
+      '.aidp-se-opt input[type=checkbox]{margin:0;flex:0 0 auto;width:15px;height:15px;cursor:pointer}' +
+      '.aidp-se-lbl{flex:1 1 auto;text-align:left !important;white-space:normal;word-break:break-word}' +
+      '.aidp-se-all{font-weight:600;border-bottom:1px solid #E2E8F0;margin-bottom:4px;padding-bottom:8px;color:#0F172A}';
     document.head.appendChild(st);
   }
 
@@ -71,7 +75,8 @@
           var acb = document.createElement('input'); acb.type = 'checkbox';
           acb.checked = list.length > 0 && list.every(function (o) { return o.selected; });
           acb.addEventListener('change', function () { setMulti(acb.checked ? list.map(function (o) { return o.value; }) : []); render(); updateBtn(); fire(); });
-          all.appendChild(acb); all.appendChild(document.createTextNode('Select all')); panel.appendChild(all);
+          var albl = document.createElement('span'); albl.className = 'aidp-se-lbl'; albl.textContent = 'Select all';
+          all.appendChild(acb); all.appendChild(albl); panel.appendChild(all);
         }
         list.forEach(function (o) {
           var l = document.createElement('label'); l.className = 'aidp-se-opt';
@@ -88,7 +93,8 @@
               setSingle(o.value); panel.style.display = 'none'; render(); updateBtn(); fire();
             }
           });
-          l.appendChild(cb); l.appendChild(document.createTextNode(o.label)); panel.appendChild(l);
+          var lbl = document.createElement('span'); lbl.className = 'aidp-se-lbl'; lbl.textContent = o.label;
+          l.appendChild(cb); l.appendChild(lbl); panel.appendChild(l);
         });
       }
 

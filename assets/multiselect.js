@@ -21,10 +21,13 @@
       '.aidp-ms-btn{font-size:13px;padding:7px 10px;border:1px solid #CBD5E1;border-radius:6px;background:#fff;color:#1E293B;cursor:pointer;min-width:170px;text-align:left;font-family:inherit}' +
       '.aidp-ms-btn:hover{border-color:#1E40AF}' +
       '.aidp-ms-panel{position:absolute;z-index:60;top:100%;left:0;margin-top:4px;background:#fff;border:1px solid #E2E8F0;border-radius:8px;box-shadow:0 4px 14px rgba(15,23,42,.14);max-height:280px;overflow:auto;min-width:240px;padding:6px}' +
-      '.aidp-ms-opt{display:flex;align-items:flex-start;gap:7px;padding:5px 8px;font-size:13px;color:#334155;cursor:pointer;border-radius:4px;line-height:1.35}' +
+      /* !important + flex-start guard against page-level `label{justify-content:space-between}`
+         rules leaking in (the option row IS a <label>), which would right-align the text. */
+      '.aidp-ms-opt{display:flex !important;align-items:center !important;justify-content:flex-start !important;text-align:left !important;gap:8px;margin:0;padding:6px 8px;font-size:13px;color:#334155;cursor:pointer;border-radius:4px;line-height:1.35;text-transform:none}' +
       '.aidp-ms-opt:hover{background:#F1F5F9}' +
-      '.aidp-ms-opt input{margin-top:2px}' +
-      '.aidp-ms-all{font-weight:600;border-bottom:1px solid #E2E8F0;margin-bottom:4px;color:#0F172A}';
+      '.aidp-ms-opt input[type=checkbox]{margin:0;flex:0 0 auto;width:15px;height:15px;cursor:pointer}' +
+      '.aidp-ms-lbl{flex:1 1 auto;text-align:left !important;white-space:normal;word-break:break-word}' +
+      '.aidp-ms-all{font-weight:600;border-bottom:1px solid #E2E8F0;margin-bottom:4px;padding-bottom:8px;color:#0F172A}';
     document.head.appendChild(st);
   }
 
@@ -55,7 +58,8 @@
         else selected.clear();
         render(); updateBtn(); fire();
       });
-      all.appendChild(allcb); all.appendChild(document.createTextNode('Select all'));
+      var albl = document.createElement('span'); albl.className = 'aidp-ms-lbl'; albl.textContent = 'Select all';
+      all.appendChild(allcb); all.appendChild(albl);
       panel.appendChild(all);
 
       options.forEach(function (o) {
@@ -67,7 +71,8 @@
           var a = panel.querySelector('.aidp-ms-all input'); if (a) a.checked = options.length > 0 && selected.size === options.length;
           fire();
         });
-        l.appendChild(cb); l.appendChild(document.createTextNode(o.label));
+        var lbl = document.createElement('span'); lbl.className = 'aidp-ms-lbl'; lbl.textContent = o.label;
+        l.appendChild(cb); l.appendChild(lbl);
         panel.appendChild(l);
       });
     }
