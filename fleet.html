@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Fleet Architecture · AIDP</title>
+<script src="assets/toasts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<style>
+:root{--ink-50:#F8FAFC;--ink-100:#F1F5F9;--ink-200:#E2E8F0;--ink-300:#CBD5E1;--ink-500:#64748B;--ink-700:#334155;--ink-900:#0F172A;--blue:#1E40AF;--amber:#C8921A;--green:#15803D;--red:#B91C1C}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#1E293B;background:#F8FAFC}
+.shell{max-width:1280px;margin:0 auto;padding:22px 22px 80px}
+.bread{font-size:12px;color:var(--ink-500);margin-bottom:6px}.bread a{color:var(--ink-500);text-decoration:none}.bread a:hover{color:var(--blue)}
+.title{font-size:24px;font-weight:700;color:var(--ink-900);margin:8px 0 4px}
+.sub{font-size:13.5px;color:#475569;max-width:900px;line-height:1.55;margin:0 0 14px}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.btn{font-size:13px;font-weight:600;padding:8px 13px;border-radius:6px;border:1px solid var(--ink-200);color:var(--ink-700);background:#fff;cursor:pointer}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.kpi{font-size:13px;color:var(--ink-700)}
+.kpi strong{font-size:16px}
+.tier{margin-bottom:14px}
+.tier-hd{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-500);margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.tier-hd .bar{height:1px;flex:1;background:var(--ink-200)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.card{background:#fff;border:1px solid var(--ink-200);border-left-width:3px;border-radius:8px;padding:10px 12px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.card.up{border-left-color:var(--green)}.card.down{border-left-color:var(--red)}.card.pending{border-left-color:var(--ink-300)}
+.card .nm{font-weight:600;font-size:13.5px;color:var(--ink-900);display:flex;align-items:center;justify-content:space-between;gap:6px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ink-300);flex:0 0 auto}
+.dot.up{background:var(--green)}.dot.down{background:var(--red)}
+.card .role{font-size:11.5px;color:var(--ink-500);margin-top:2px}
+.card .meta{font-size:10.5px;color:var(--ink-500);font-family:'IBM Plex Mono',monospace;margin-top:6px;display:flex;justify-content:space-between}
+.legend{background:#fff;border:1px solid var(--ink-200);border-radius:10px;padding:14px 16px;margin-top:6px;font-size:13px;color:var(--ink-700);line-height:1.6}
+.legend h3{margin:0 0 6px;font-size:13px}
+.legend code{font-family:'IBM Plex Mono',monospace;font-size:11.5px;background:var(--ink-100);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<main class="shell">
+  <div class="bread"><a href="home">Home</a> / Fleet Architecture</div>
+  <h1 class="title">Fleet Architecture · one system, live</h1>
+  <p class="sub">Every worker in the AIDP fleet, grouped by tier, with live <code>/health</code> status. This is the runtime architecture — the master router fans out to agents, the orchestrator drives the lifecycle DAG, testing-master fans out to the disciplines, and knowledge is shared memory across all of them.</p>
+
+  <div class="toolbar">
+    <button class="btn" onclick="probeAll()">↻ Re-probe health</button>
+    <span class="kpi" id="kpi"></span>
+  </div>
+
+  <div id="tiers"></div>
+
+  <div class="legend">
+    <h3>How it's wired (runtime data flow)</h3>
+    <div>• <strong>NL → fleet:</strong> the <code>master</code> router classifies a request and routes to the right agent (incl. <code>program_*</code> → orchestrator, <code>tm_run_discipline</code> → testing-master).</div>
+    <div>• <strong>Spine:</strong> <code>orchestrator.program_run_full</code> drives discovery → requirements → architecture → SOW → governance → IaC → test-design → testdata → disciplines, writing one lineage graph + a correlation trace.</div>
+    <div>• <strong>Testing fan-out:</strong> <code>testing-master</code> dispatches the 8 discipline agents (real CI tools), normalizes results into the defect manifest, and runs the Defect → CR/Patch/Requirement escalation loop.</div>
+    <div>• <strong>Shared memory:</strong> agents write entities into <code>knowledge</code> (Vectorize) and read them back (e.g. test-design recalls similar past requirements/defects before generating).</div>
+    <div>• <strong>Audit:</strong> every escalation chains through <code>exception</code> for an immutable <code>chain_hash</code> ledger.</div>
+  </div>
+</main>
+
+<script>
+const SUB='kishorenishanthkumar';
+const url=(slug)=> slug==='master' ? `https://aiagenticplanner.${SUB}.workers.dev` : `https://aiagenticplanner-${slug}.${SUB}.workers.dev`;
+const TIERS=[
+  { name:'Entry · NL Router', agents:[['master','Master LLM Router','routes natural language → agents']] },
+  { name:'Unifying Spine', agents:[['orchestrator','Program Orchestrator','lifecycle DAG · lineage graph · trace']] },
+  { name:'Delivery agents', agents:[
+    ['discovery','Discovery','capabilities · 7R verdicts'],
+    ['architecture','Architecture','cloud design · pricing'],
+    ['requirements','Requirements','MoSCoW · INVEST · compliance'],
+    ['actions','Actions','action plans'],
+    ['sow','SOW','statement of work'],
+    ['governance','Governance','RAID · CR · steering'],
+    ['operations','Operations','runbooks · DORA'],
+    ['iac','IaC','terraform · helm · CI'] ] },
+  { name:'Testing fleet', agents:[
+    ['test-design','Test Design','strategy · plans · cases'],
+    ['testdata','Test Data','synthetic · PII-tagged'],
+    ['testing-master','Testing Master','orchestrator · defect manifest'],
+    ['test-functional','Functional','node assertions'],
+    ['test-performance','Performance','k6 · Lighthouse'],
+    ['test-security','Security','OWASP ZAP · Snyk'],
+    ['test-accessibility','Accessibility','Pa11y · WCAG'],
+    ['test-compliance','Compliance','headers · transport'],
+    ['test-contract','Contract','MCP tool contracts'],
+    ['test-integration','Integration','cross-agent API flows'],
+    ['test-e2e','E2E','Playwright journeys'] ] },
+  { name:'Shared substrate', agents:[
+    ['knowledge','Knowledge / RAG','shared memory · Vectorize + FTS'],
+    ['exception','Exception','audit ledger · chain_hash'],
+    ['validator','Validator','smoke matrix'],
+    ['patch','Patch','gated code changes'] ] }
+];
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function render(){
+  document.getElementById('tiers').innerHTML = TIERS.map(t=>`
+    <div class="tier"><div class="tier-hd">${esc(t.name)}<span class="bar"></span></div>
+      <div class="cards">${t.agents.map(([slug,nm,role])=>`
+        <div class="card pending" id="c-${slug}" data-slug="${slug}">
+          <div class="nm">${esc(nm)} <span class="dot" id="d-${slug}"></span></div>
+          <div class="role">${esc(role)}</div>
+          <div class="meta"><span id="v-${slug}">probing…</span><span id="l-${slug}"></span></div>
+        </div>`).join('')}</div>
+    </div>`).join('');
+}
+
+async function probe(slug){
+  const card=document.getElementById('c-'+slug), dot=document.getElementById('d-'+slug);
+  const v=document.getElementById('v-'+slug), l=document.getElementById('l-'+slug);
+  const t0=performance.now();
+  try{
+    const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),8000);
+    const r=await fetch(url(slug)+'/health',{signal:ctl.signal}); clearTimeout(to);
+    const j=await r.json().catch(()=>({}));
+    const ms=Math.round(performance.now()-t0);
+    const okv = j && j.ok===true;
+    card.className='card '+(okv?'up':'down'); dot.className='dot '+(okv?'up':'down');
+    v.textContent = j.version || (okv?'ok':('http '+r.status));
+    l.textContent = ms+' ms';
+    return okv;
+  }catch(e){
+    card.className='card down'; dot.className='dot down';
+    v.textContent='unreachable'; l.textContent='';
+    return false;
+  }
+}
+
+async function probeAll(){
+  const all=TIERS.flatMap(t=>t.agents.map(a=>a[0]));
+  document.getElementById('kpi').textContent='Probing '+all.length+' workers…';
+  const results=await Promise.all(all.map(probe));
+  const up=results.filter(Boolean).length;
+  document.getElementById('kpi').innerHTML=`<strong>${up}</strong> / ${all.length} workers healthy`;
+}
+
+render(); probeAll();
+</script>
+</body>
+</html>
