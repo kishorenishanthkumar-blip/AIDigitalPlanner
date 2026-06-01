@@ -14,6 +14,7 @@
 <script src="assets/nishi-dock.js" defer></script>
 <script src="assets/testing-nav.js" defer></script>
 <script src="assets/aidp-api.js"></script>
+<script src="assets/multiselect.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,13 +92,15 @@ table.tbl tr:last-child td{border-bottom:none}
   <section class="pane active" id="pane-cases"><p class="note">No cases yet — generate above.</p></section>
   <section class="pane" id="pane-testdata">
     <div class="panel">
-      <div class="form-row">
+      <div class="form-row" style="align-items:flex-end">
+        <div class="field"><label>Test case IDs</label><span id="tdx-cases"></span></div>
+        <div class="field"><label>Data categories</label><span id="tdx-cats"></span></div>
         <div class="field"><label>Region</label><select id="tdx-region"><option>US</option><option>CA</option><option>IN</option></select></div>
         <div class="field"><label>Count</label><input id="tdx-count" type="number" value="20" min="1" max="500"></div>
-        <button class="btn primary" id="tdx-gen">Generate test data for these cases</button>
+        <button class="btn primary" id="tdx-gen">Generate test data</button>
         <a class="btn" href="testdata" target="_blank" rel="noopener">Open Test Data page ↗</a>
-        <span class="note" id="tdx-status">Generate test cases first — this creates data for the domains those cases use.</span>
       </div>
+      <div class="note" id="tdx-status">Generate test cases first, then choose case IDs + data categories (use the checkboxes / "Select all"). Region applies to the generated data.</div>
       <div id="tdx-out" style="margin-top:12px"></div>
     </div>
   </section>
@@ -152,6 +155,7 @@ table.tbl tr:last-child td{border-bottom:none}
   var lastCases=null;
   function renderCases(res){
     lastCases=res;
+    tdxRefreshCases();
     var cs=res.cases||[];
     var html='<div class="form-row" style="margin-bottom:10px"><div><strong>'+cs.length+'</strong> '+esc(res.discipline)+' cases · '+esc(res.module)+' / '+esc(res.requirement_id)+' · LLM '+(res.llm_used?'on':'off')+'</div>'+
       '<button class="btn sm" id="dl-csv">⬇ CSV</button><button class="btn sm" id="dl-json">⬇ JSON</button></div>'+
@@ -214,21 +218,31 @@ table.tbl tr:last-child td{border-bottom:none}
     }).catch(function(e){toast('Open failed: '+(e.message||e));});
   };
 
-  /* ── Test Data tab · create data for the domains the current cases use ── */
+  /* ── Test Data tab · select case IDs + data categories, then generate ── */
+  var caseMs=null, catMs=null;
+  if(window.AIDPMultiSelect){
+    caseMs=AIDPMultiSelect.create({options:[],placeholder:'Test case IDs'});
+    catMs=AIDPMultiSelect.create({options:['technical','product','functional','integration','regulatory','compliance'].map(function(c){return {value:c,label:c};}),placeholder:'Categories'});
+    var mc=$('tdx-cases'),mt=$('tdx-cats'); if(mc)mc.appendChild(caseMs.el); if(mt)mt.appendChild(catMs.el);
+  }
+  function tdxRefreshCases(){ if(caseMs&&lastCases&&lastCases.cases){caseMs.setOptions(lastCases.cases.map(function(c){return {value:c.id,label:c.id+' · '+c.type};}),false);} }
   $('tdx-gen').addEventListener('click',function(){
     if(!need())return;
     if(!lastCases||!lastCases.cases||!lastCases.cases.length){toast('Generate test cases first (Test cases tab).');return;}
-    var domains=[];lastCases.cases.forEach(function(c){if(c.test_data&&domains.indexOf(c.test_data)<0)domains.push(c.test_data);});
+    var selIds=caseMs?caseMs.getSelected():[];
+    var cases=selIds.length?lastCases.cases.filter(function(c){return selIds.indexOf(c.id)>=0;}):lastCases.cases;
+    var cats=catMs?catMs.getSelected():[]; var catLabel=cats.length?cats.join(', '):'all categories';
+    var domains=[];cases.forEach(function(c){if(c.test_data&&domains.indexOf(c.test_data)<0)domains.push(c.test_data);});
     var region=$('tdx-region').value,count=Math.max(1,Math.min(500,parseInt($('tdx-count').value,10)||20));
-    var st=$('tdx-status');st.textContent='Generating data for: '+domains.join(', ')+'…';$('tdx-out').innerHTML='';
+    var st=$('tdx-status');st.textContent='Generating data for '+cases.length+' case(s) · '+domains.join(', ')+' · '+catLabel+'…';$('tdx-out').innerHTML='';
     var jobs=domains.map(function(d){return AIDP.callAgent('TESTDATA','testdata_generate',{domain:d,region:region,count:count}).then(function(r){return {dom:d,res:r,n:(r.records||[]).length};}).catch(function(e){return {dom:d,n:0,err:(e.message||e)};});});
-    Promise.all(jobs).then(function(rows){window.__tdx=rows;st.textContent='Generated '+rows.reduce(function(a,r){return a+r.n;},0)+' records for '+rows.length+' domain(s).';
+    Promise.all(jobs).then(function(rows){window.__tdx=rows;st.textContent='Generated '+rows.reduce(function(a,r){return a+r.n;},0)+' records · '+cases.length+' case(s) · categories: '+catLabel+'.';
       $('tdx-out').innerHTML=rows.map(function(r,i){
         if(r.err)return '<div class="note">'+esc(r.dom)+': '+esc(r.err)+'</div>';
         var recs=r.res.records||[],fields=(r.res.pii_manifest||[]).map(function(m){return m.field;});
         var head='<tr>'+fields.map(function(f){return '<th>'+esc(f)+'</th>';}).join('')+'</tr>';
         var body=recs.slice(0,50).map(function(rec){return '<tr>'+fields.map(function(f){return '<td>'+esc(rec[f])+'</td>';}).join('')+'</tr>';}).join('');
-        return '<div style="margin-bottom:12px"><div class="note" style="margin-bottom:4px"><strong>'+esc(r.dom)+'</strong> · '+recs.length+' records <button class="btn sm" onclick="window.__tdxdl('+i+')">⬇ JSON</button></div><div class="scroll"><table class="tbl">'+head+body+'</table></div></div>';
+        return '<div style="margin-bottom:12px"><div class="note" style="margin-bottom:4px"><strong>'+esc(r.dom)+'</strong> · '+recs.length+' records · covers: '+esc(catLabel)+' <button class="btn sm" onclick="window.__tdxdl('+i+')">⬇ JSON</button></div><div class="scroll"><table class="tbl">'+head+body+'</table></div></div>';
       }).join('');
     });
   });
