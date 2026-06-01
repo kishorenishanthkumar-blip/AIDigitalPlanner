@@ -146,6 +146,75 @@ table.tbl tr:last-child td{border-bottom:none}
         </div>
         <div class="note">Word / PDF / PowerPoint export lands in the next increment.</div>
         <div id="p2-out" style="margin-top:12px"></div>
+        <button class="btn" id="p2-next" style="margin-top:10px">Proceed to Phase 3 · Test Design →</button>
+      </div>
+    </div>
+
+    <div id="phase3" style="display:none">
+      <div class="section-label" style="margin-top:8px">Phase 3 · Test Design</div>
+      <div class="fw-panel">
+        <div class="form-row" style="align-items:flex-end">
+          <div class="field"><label>Disciplines</label><span id="p3-disc"></span></div>
+          <button class="btn primary" id="p3-gen">Generate test cases</button>
+          <a class="btn" href="test-design">Open Test Design page →</a>
+          <span class="note" id="p3-status"></span>
+        </div>
+        <div id="p3-out" style="margin-top:10px"></div>
+        <button class="btn" id="p3-next" style="margin-top:8px">Proceed to Phase 4 →</button>
+      </div>
+    </div>
+
+    <div id="phase4" style="display:none">
+      <div class="section-label" style="margin-top:8px">Phase 4 · Test Data Setup</div>
+      <div class="fw-panel">
+        <div class="form-row" style="align-items:flex-end">
+          <div class="field"><label>Region</label><select id="p4-region"><option>US</option><option>CA</option><option>IN</option></select></div>
+          <div class="field"><label>Records / module</label><input id="p4-count" type="number" value="10" min="1" max="200"></div>
+          <button class="btn primary" id="p4-gen">Generate test data</button>
+          <span class="note" id="p4-status"></span>
+        </div>
+        <div id="p4-out" style="margin-top:10px"></div>
+        <button class="btn" id="p4-next" style="margin-top:8px">Proceed to Phase 5 →</button>
+      </div>
+    </div>
+
+    <div id="phase5" style="display:none">
+      <div class="section-label" style="margin-top:8px">Phase 5 · Environment Setup</div>
+      <div class="fw-panel">
+        <div class="note">Provision &amp; verify the test environments before execution.</div>
+        <ul style="font-size:13px;color:var(--ink-700);line-height:1.7;margin:6px 0">
+          <li>DEV · unit + component</li><li>SIT · cross-service integration</li><li>UAT · business acceptance</li><li>Pre-prod · performance + security</li>
+        </ul>
+        <a class="btn primary" href="status">Open Platform Status (live /health) →</a>
+        <button class="btn" id="p5-next" style="margin-left:6px">Proceed to Phase 6 →</button>
+      </div>
+    </div>
+
+    <div id="phase6" style="display:none">
+      <div class="section-label" style="margin-top:8px">Phase 6 · Test Execution</div>
+      <div class="fw-panel">
+        <div class="note">Run the suites and browser E2E via the testing-master orchestrator.</div>
+        <a class="btn primary" href="testing-dashboard">Open Testing Dashboard →</a>
+        <button class="btn" id="p6-next" style="margin-left:6px">Proceed to Phase 7 →</button>
+      </div>
+    </div>
+
+    <div id="phase7" style="display:none">
+      <div class="section-label" style="margin-top:8px">Phase 7 · Defect Management</div>
+      <div class="fw-panel">
+        <div class="note">Triage the normalized defect manifest. Defect → CR → Patch closed loop is planned.</div>
+        <a class="btn primary" href="testing-dashboard">Open Defect Manifest →</a>
+        <button class="btn" id="p7-next" style="margin-left:6px">Proceed to Phase 8 →</button>
+      </div>
+    </div>
+
+    <div id="phase8" style="display:none">
+      <div class="section-label" style="margin-top:8px">Phase 8 · Test Closure</div>
+      <div class="fw-panel">
+        <button class="btn primary" id="p8-gen">Generate closure summary</button>
+        <span class="note" id="p8-status"></span>
+        <div id="p8-out" style="margin-top:10px"></div>
+        <div class="note" style="margin-top:6px">Word / PDF evidence pack export lands with the document-export increment.</div>
       </div>
     </div>
   </section>
@@ -511,13 +580,55 @@ table.tbl tr:last-child td{border-bottom:none}
         var reqs=selReqs.filter(function(v){return v.indexOf(mid+'::')===0;}).map(function(v){var i=reqInfo(v);return {requirement_id:i.reqId,requirement_title:i.reqTitle};});
         return AIDP.callAgent('TEST_DESIGN','testdesign_generate_strategy',{module:modName(mid),frameworks:fws,requirements:reqs}).then(function(r){return {mod:modName(mid),strategy:r.strategy};}).catch(function(e){return {mod:modName(mid),err:(e.message||e)};});
       });
-      Promise.all(jobs).then(function(rows){st.textContent='Done · '+rows.length+' strategy doc(s).';document.getElementById('p2-out').innerHTML=rows.map(strategyCard).join('');});
+      Promise.all(jobs).then(function(rows){session.strategies+=rows.filter(function(r){return !r.err;}).length;st.textContent='Done · '+rows.length+' strategy doc(s).';document.getElementById('p2-out').innerHTML=rows.map(strategyCard).join('');});
     });
     document.getElementById('p2-plan').addEventListener('click',function(){
       if(!need())return;var selReqs=reqMs.getSelected();if(!selReqs.length){toast('Select requirements in Phase 1.');return;}
       var st=document.getElementById('p2-status');st.textContent='Generating plans for '+selReqs.length+' requirement(s)…';document.getElementById('p2-out').innerHTML='';
       var jobs=selReqs.slice(0,12).map(function(v){var i=reqInfo(v);return AIDP.callAgent('TEST_DESIGN','testdesign_generate_plan',{module:i.modName,requirement_id:i.reqId,requirement_title:i.reqTitle}).then(function(r){return {req:i.reqId,plan:r.plan};}).catch(function(e){return {req:i.reqId,err:(e.message||e)};});});
-      Promise.all(jobs).then(function(rows){st.textContent='Done · '+rows.length+' plan(s).';document.getElementById('p2-out').innerHTML=rows.map(planCard).join('');});
+      Promise.all(jobs).then(function(rows){session.plans+=rows.filter(function(r){return !r.err;}).length;st.textContent='Done · '+rows.length+' plan(s).';document.getElementById('p2-out').innerHTML=rows.map(planCard).join('');});
+    });
+
+    /* ── Phases 3-8 · guided next steps ── */
+    var session={strategies:0,plans:0,cases:0,dataRecords:0};
+    var DISCS=['functional','whitebox','database','api','batch','integration','e2e','sanity','regression','performance','security','accessibility','compliance','contract'];
+    var MOD_DOMAIN={onb:'customer',pay:'payment',ldg:'account',card:'card',aml:'transaction',reg:'transaction'};
+    function reveal(id){var e=document.getElementById(id);if(e){e.style.display='block';e.scrollIntoView({behavior:'smooth',block:'start'});}}
+    [['p2-next','phase3'],['p3-next','phase4'],['p4-next','phase5'],['p5-next','phase6'],['p6-next','phase7'],['p7-next','phase8']].forEach(function(p){var b=document.getElementById(p[0]);if(b)b.addEventListener('click',function(){reveal(p[1]);});});
+
+    /* Phase 3 · test cases per discipline */
+    var discMs=AIDPMultiSelect.create({options:DISCS.map(function(d){return {value:d,label:d};}),placeholder:'Disciplines'});
+    var p3d=document.getElementById('p3-disc'); if(p3d)p3d.appendChild(discMs.el);
+    document.getElementById('p3-gen').addEventListener('click',function(){
+      if(!need())return;
+      var reqs=reqMs.getSelected(),discs=discMs.getSelected();
+      if(!reqs.length){toast('Select requirements in Phase 1.');return;}
+      if(!discs.length){toast('Select at least one discipline.');return;}
+      var combos=[];reqs.forEach(function(rv){discs.forEach(function(d){combos.push({rv:rv,d:d});});});combos=combos.slice(0,12);
+      var st=document.getElementById('p3-status');st.textContent='Generating cases for '+combos.length+' combo(s)…';document.getElementById('p3-out').innerHTML='';
+      var jobs=combos.map(function(cb){var i=reqInfo(cb.rv);return AIDP.callAgent('TEST_DESIGN','testdesign_generate_cases',{module:i.modName,requirement_id:i.reqId,requirement_title:i.reqTitle,discipline:cb.d,count:6,use_llm:false}).then(function(r){return {req:i.reqId,disc:cb.d,n:(r.cases||[]).length};}).catch(function(e){return {req:i.reqId,disc:cb.d,n:0,err:(e.message||e)};});});
+      Promise.all(jobs).then(function(rows){var tot=rows.reduce(function(a,r){return a+r.n;},0);session.cases+=tot;st.textContent='Generated '+tot+' cases · view full detail on the Test Design page.';
+        document.getElementById('p3-out').innerHTML='<div class="scroll"><table class="tbl"><thead><tr><th>Requirement</th><th>Discipline</th><th>Cases</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+esc(r.req)+'</td><td>'+esc(r.disc)+'</td><td>'+(r.err?'<span class="chip bad">err</span>':r.n)+'</td></tr>';}).join('')+'</tbody></table></div>';});
+    });
+
+    /* Phase 4 · test data per module */
+    document.getElementById('p4-gen').addEventListener('click',function(){
+      if(!need())return;var mods=modMs.getSelected();if(!mods.length){toast('Select modules in Phase 1.');return;}
+      var region=document.getElementById('p4-region').value,count=Math.max(1,Math.min(200,parseInt(document.getElementById('p4-count').value,10)||10));
+      var st=document.getElementById('p4-status');st.textContent='Generating test data for '+mods.length+' module(s)…';document.getElementById('p4-out').innerHTML='';
+      var jobs=mods.map(function(mid){var dom=MOD_DOMAIN[mid]||'customer';return AIDP.callAgent('TESTDATA','testdata_generate',{domain:dom,region:region,count:count}).then(function(r){return {mod:modName(mid),dom:dom,n:(r.records||[]).length,res:r};}).catch(function(e){return {mod:modName(mid),dom:dom,n:0,err:(e.message||e)};});});
+      Promise.all(jobs).then(function(rows){window.__p4=rows;var tot=rows.reduce(function(a,r){return a+r.n;},0);session.dataRecords+=tot;st.textContent='Generated '+tot+' records across '+rows.length+' module(s).';
+        document.getElementById('p4-out').innerHTML='<div class="scroll"><table class="tbl"><thead><tr><th>Module</th><th>Domain</th><th>Records</th><th>Download</th></tr></thead><tbody>'+rows.map(function(r,i){return '<tr><td>'+esc(r.mod)+'</td><td>'+esc(r.dom)+'</td><td>'+(r.err?'<span class="chip bad">err</span>':r.n)+'</td><td>'+(r.err?'—':'<button class="btn sm" onclick="window.__p4dl('+i+')">⬇ JSON</button>')+'</td></tr>';}).join('')+'</tbody></table></div>';});
+    });
+    window.__p4dl=function(i){var r=window.__p4&&window.__p4[i];if(r&&r.res){var b=new Blob([JSON.stringify(r.res.records,null,2)],{type:'application/json'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='testdata-'+r.dom+'.json';a.click();setTimeout(function(){URL.revokeObjectURL(u);},500);}};
+
+    /* Phase 8 · closure summary */
+    document.getElementById('p8-gen').addEventListener('click',function(){
+      var sum={generated_at:new Date().toISOString(),modules:modMs.getSelected().map(modName),requirements_in_scope:reqMs.getSelected().length,test_strategies:session.strategies,test_plans:session.plans,test_cases:session.cases,test_data_records:session.dataRecords};
+      document.getElementById('p8-out').innerHTML='<div class="scroll"><table class="tbl"><tbody>'+Object.keys(sum).map(function(k){return '<tr><td style="font-weight:600">'+k+'</td><td>'+esc(Array.isArray(sum[k])?sum[k].join(', '):sum[k])+'</td></tr>';}).join('')+'</tbody></table></div>';
+      var st=document.getElementById('p8-status');st.textContent='Closure summary compiled. ';
+      var b=new Blob([JSON.stringify(sum,null,2)],{type:'application/json'});var u=URL.createObjectURL(b);
+      var a=document.createElement('a');a.href=u;a.download='test-closure-summary.json';a.textContent='⬇ download';a.className='btn sm';a.style.marginLeft='6px';st.appendChild(a);
     });
   })();
 })();
