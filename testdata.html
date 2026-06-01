@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Test Data · AIDP</title>
+<meta name="description" content="Generate synthetic-but-compliant banking test data (US/CA/IN) with PII tagging, download and save." />
+
+<script src="assets/toasts.js" defer></script>
+<script src="assets/audit.js" defer></script>
+<script src="assets/cmdk.js" defer></script>
+<script src="assets/shortcuts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/nishi-dock.js" defer></script>
+<script src="assets/testing-nav.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<style>
+:root{--ink-900:#0F172A;--ink-800:#1E293B;--ink-700:#334155;--ink-600:#475569;--ink-500:#64748B;--ink-400:#94A3B8;--ink-300:#CBD5E1;--ink-200:#E2E8F0;--ink-100:#F1F5F9;--ink-50:#F8FAFC;--white:#FFF;--navy:#1E40AF;--navy-dk:#1E3A8A;--navy-lt:#DBEAFE;--green:#15803D;--green-lt:#DCFCE7;--amber:#B45309;--amber-lt:#FEF3C7;--red:#B91C1C;--red-lt:#FEE2E2;--radius:6px;--radius-lg:10px;--shadow:0 1px 3px rgba(15,23,42,.08),0 4px 12px rgba(15,23,42,.04);}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--ink-800);background:var(--ink-50)}
+.shell{max-width:1180px;margin:0 auto;padding:22px 22px 90px}
+.bread{font-size:12px;color:var(--ink-500);margin-bottom:6px}.bread a{color:var(--ink-500);text-decoration:none}.bread a:hover{color:var(--navy)}
+.title{font-size:25px;font-weight:700;color:var(--ink-900);margin:0 0 4px}
+.subtitle{font-size:13.5px;color:var(--ink-600);margin:0 0 18px;max-width:820px;line-height:1.55}
+.panel{background:var(--white);border:1px solid var(--ink-200);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow)}
+.form-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:3px}.field label{font-size:11px;color:var(--ink-500);font-weight:600}
+.field select,.field input{font-size:13px;padding:7px 9px;border:1px solid var(--ink-300);border-radius:var(--radius);background:#fff;color:var(--ink-800);min-width:120px}
+.btn{font-size:12.5px;font-weight:600;border-radius:var(--radius);padding:8px 13px;border:1px solid var(--ink-200);background:#fff;color:var(--ink-700);cursor:pointer;display:inline-block}
+.btn:hover{border-color:var(--navy);color:var(--navy)}.btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}.btn.primary:hover{background:var(--navy-dk)}
+.btn.sm{padding:4px 9px;font-size:11.5px}.btn:disabled{background:var(--ink-100);color:var(--ink-400);cursor:not-allowed}
+table.tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--ink-200);border-radius:var(--radius-lg);overflow:hidden;font-size:12.5px}
+table.tbl th{background:var(--ink-50);text-align:left;padding:8px 10px;font-weight:600;color:var(--ink-600);border-bottom:1px solid var(--ink-200);white-space:nowrap}
+table.tbl td{padding:7px 10px;border-bottom:1px solid var(--ink-100);color:var(--ink-700);white-space:nowrap}
+.scroll{overflow:auto;border-radius:var(--radius-lg);max-height:520px}
+.pii{font-family:IBM Plex Mono,monospace;font-size:9px;padding:1px 5px;border-radius:4px;margin-left:4px}
+.pii-direct{background:var(--red-lt);color:var(--red)}.pii-sensitive{background:var(--amber-lt);color:var(--amber)}.pii-quasi{background:var(--navy-lt);color:var(--navy)}.pii-none{background:var(--ink-100);color:var(--ink-500)}
+.note{font-size:12px;color:var(--ink-500);margin-top:6px}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<main class="shell">
+  <div class="bread"><a href="home">Home</a> &nbsp;/&nbsp; <a href="testing-services">Testing Services</a> &nbsp;/&nbsp; Test Data</div>
+  <h1 class="title">Test Data</h1>
+  <p class="subtitle">Synthetic-but-compliant banking test data for US, Canada &amp; India — customers, accounts, transactions, payments, loans, cards. PII-tagged, anonymizable, deterministic from a seed. Backed by the live <code>testdata</code> agent.</p>
+
+  <div class="panel">
+    <div class="form-row">
+      <div class="field"><label>Domain</label><select id="d-domain">
+        <option value="customer">customer (KYC)</option><option value="account">account</option><option value="transaction">transaction</option>
+        <option value="payment">payment</option><option value="loan">loan</option><option value="card">card</option></select></div>
+      <div class="field"><label>Region</label><select id="d-region"><option>US</option><option>CA</option><option>IN</option></select></div>
+      <div class="field"><label>Count</label><input id="d-count" type="number" value="20" min="1" max="1000"></div>
+      <div class="field"><label>PII mode</label><select id="d-pii"><option value="tagged">tagged</option><option value="raw">raw</option><option value="anonymized">anonymized</option></select></div>
+      <div class="field"><label>Seed (optional)</label><input id="d-seed" type="number" placeholder="auto"></div>
+      <button class="btn primary" id="d-gen">Generate</button>
+    </div>
+    <div class="form-row" style="margin-top:10px;justify-content:flex-start">
+      <button class="btn sm" id="d-csv" disabled>⬇ CSV</button>
+      <button class="btn sm" id="d-json" disabled>⬇ JSON</button>
+      <button class="btn sm" id="d-save" disabled>💾 Save dataset</button>
+      <button class="btn sm" id="d-list">📁 My datasets</button>
+      <span class="note" id="d-status"></span>
+    </div>
+    <div id="d-out" style="margin-top:14px"></div>
+  </div>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var AIDP=window.AIDP||null;
+  function $(id){return document.getElementById(id);}
+  function esc(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function toast(m){var t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0F172A;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:9999';document.body.appendChild(t);setTimeout(function(){t.remove();},2600);}
+  function download(name,text,type){var b=new Blob([text],{type:type});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(u);},500);}
+  function need(){if(!AIDP||!AIDP.callAgent){toast('API client not loaded — open from the live site.');return false;}return true;}
+
+  /* prefill domain from ?domain= (deep-link from Test Design) */
+  (function(){var d=new URLSearchParams(location.search).get('domain');if(d)$('d-domain').value=d;})();
+
+  var last=null;
+  function render(res){
+    last=res; var fields=(res.pii_manifest||[]).map(function(m){return m.field;}); var pmap={};(res.pii_manifest||[]).forEach(function(m){pmap[m.field]=m.pii;});
+    var recs=res.records||[];
+    var head='<tr>'+fields.map(function(f){return '<th>'+esc(f)+'<span class="pii pii-'+(pmap[f]||'none')+'">'+(pmap[f]||'none')+'</span></th>';}).join('')+'</tr>';
+    var body=recs.slice(0,200).map(function(r){return '<tr>'+fields.map(function(f){return '<td>'+esc(r[f])+'</td>';}).join('')+'</tr>';}).join('');
+    $('d-out').innerHTML='<div class="note" style="margin-bottom:6px">'+recs.length+' records · seed <code>'+esc(res.seed)+'</code> · '+esc(res.region)+' · '+esc(res.pii_mode)+(recs.length>200?' · showing first 200':'')+'</div><div class="scroll"><table class="tbl">'+head+body+'</table></div>';
+    ['d-csv','d-json','d-save'].forEach(function(id){$(id).disabled=false;});
+  }
+  function toCSV(res){var fields=(res.pii_manifest||[]).map(function(m){return m.field;});var e=function(v){if(v==null)return '';v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};return [fields.join(',')].concat((res.records||[]).map(function(r){return fields.map(function(f){return e(r[f]);}).join(',');})).join('\n');}
+
+  $('d-gen').addEventListener('click',function(){
+    if(!need())return;var st=$('d-status');st.textContent='Generating…';
+    var args={domain:$('d-domain').value,region:$('d-region').value,count:parseInt($('d-count').value,10)||20,pii_mode:$('d-pii').value};
+    var seed=$('d-seed').value;if(seed!=='')args.seed=parseInt(seed,10);
+    AIDP.callAgent('TESTDATA','testdata_generate',args).then(function(r){if(r&&r.error){st.textContent='Error: '+(r.message||r.error);return;}st.textContent='Done.';render(r);}).catch(function(e){st.textContent='Failed: '+(e.message||e);});
+  });
+  $('d-csv').addEventListener('click',function(){if(last)download('testdata-'+last.domain+'-'+last.region+'.csv',toCSV(last),'text/csv');});
+  $('d-json').addEventListener('click',function(){if(last)download('testdata-'+last.domain+'-'+last.region+'.json',JSON.stringify(last.records,null,2),'application/json');});
+  $('d-save').addEventListener('click',function(){if(!last||!need())return;var st=$('d-status');st.textContent='Saving…';
+    AIDP.callAgent('TESTDATA','testdata_dataset_save',{domain:last.domain,region:last.region,count:last.count,seed:last.seed,pii_mode:last.pii_mode,name:last.domain+'/'+last.region}).then(function(r){st.textContent='Saved '+(r.dataset_id||'');toast('Dataset saved: '+(r.dataset_id||''));}).catch(function(e){st.textContent='Save failed: '+(e.message||e);});});
+  $('d-list').addEventListener('click',function(){if(!need())return;
+    AIDP.callAgent('TESTDATA','testdata_dataset_list',{limit:25}).then(function(r){var ds=(r&&r.datasets)||[];
+      $('d-out').innerHTML='<div class="note" style="margin-bottom:6px">'+ds.length+' saved datasets</div><div class="scroll"><table class="tbl"><thead><tr><th>ID</th><th>Name</th><th>Domain</th><th>Region</th><th>Count</th><th>Mode</th></tr></thead><tbody>'+ds.map(function(d){return '<tr><td>'+esc(d.dataset_id)+'</td><td>'+esc(d.name||'—')+'</td><td>'+esc(d.domain)+'</td><td>'+esc(d.region)+'</td><td>'+d.count+'</td><td>'+esc(d.pii_mode)+'</td></tr>';}).join('')+'</tbody></table></div>';
+    }).catch(function(e){toast('List failed: '+(e.message||e));});});
+})();
+</script>
+</body>
+</html>

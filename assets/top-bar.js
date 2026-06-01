@@ -31,6 +31,7 @@
     { id: 'iac',          icon: '⚙', name: 'IaC bundle generator', desc: 'Terraform · Helm · GitHub Actions scaffolds.',         badge: 'LIVE', href: 'iac.html' },
     { id: 'testing-svc',  icon: '🧪', name: 'Testing Services',     desc: 'Audit-ready continuous testing · TDM · strategy · plans · evidence packs.', badge: 'LIVE', href: 'testing-services.html' },
     { id: 'test-design',  icon: '📐', name: 'Test Design',          desc: 'Generate test strategy · plans · test cases per discipline, per requirement.', badge: 'LIVE', href: 'test-design.html' },
+    { id: 'test-data',    icon: '🧬', name: 'Test Data',            desc: 'Synthetic, compliant banking test data (US/CA/IN) · PII-tagged · download & save.', badge: 'LIVE', href: 'testdata.html' },
     { id: 'testing-dash', icon: '🩺', name: 'Testing Dashboard',    desc: 'testing-master runs · Playwright E2E · defect manifest · re-run with same scope.', badge: 'LIVE', href: 'testing-dashboard.html' },
     { id: 'status',       icon: '🟢', name: 'Platform Status',      desc: 'Live /health probe across all 14 Workers · D1 + bindings + latency per worker.', badge: 'LIVE', href: 'status.html' },
     { id: 'cost',         icon: '💰', name: 'Cost analytics',       desc: 'LLM spend, model breakdown, cache hit rate, per-user history · 24h/7d/30d windows.', badge: 'LIVE', href: 'cost.html' }

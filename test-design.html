@@ -12,6 +12,7 @@
 <script src="assets/shortcuts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
 <script src="assets/nishi-dock.js" defer></script>
+<script src="assets/testing-nav.js" defer></script>
 <script src="assets/aidp-api.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -84,14 +85,23 @@ table.tbl tr:last-child td{border-bottom:none}
 
   <div class="tabs">
     <button class="tab active" data-pane="cases">Test cases</button>
-    <button class="tab" data-pane="strategy">Strategy</button>
-    <button class="tab" data-pane="plan">Plan</button>
+    <button class="tab" data-pane="testdata">Test data</button>
     <button class="tab" data-pane="saved">Saved artifacts</button>
   </div>
   <section class="pane active" id="pane-cases"><p class="note">No cases yet — generate above.</p></section>
-  <section class="pane" id="pane-strategy"><p class="note">No strategy yet — click "Generate strategy".</p></section>
-  <section class="pane" id="pane-plan"><p class="note">No plan yet — click "Generate plan".</p></section>
-  <section class="pane" id="pane-saved"><button class="btn sm" id="refresh-saved">↻ Load saved artifacts</button><div id="saved-out" style="margin-top:10px"></div></section>
+  <section class="pane" id="pane-testdata">
+    <div class="panel">
+      <div class="form-row">
+        <div class="field"><label>Region</label><select id="tdx-region"><option>US</option><option>CA</option><option>IN</option></select></div>
+        <div class="field"><label>Count</label><input id="tdx-count" type="number" value="20" min="1" max="500"></div>
+        <button class="btn primary" id="tdx-gen">Generate test data for these cases</button>
+        <a class="btn" href="testdata" target="_blank" rel="noopener">Open Test Data page ↗</a>
+        <span class="note" id="tdx-status">Generate test cases first — this creates data for the domains those cases use.</span>
+      </div>
+      <div id="tdx-out" style="margin-top:12px"></div>
+    </div>
+  </section>
+  <section class="pane" id="pane-saved"><button class="btn sm" id="refresh-saved">↻ Load saved artifacts</button><div id="saved-out" style="margin-top:10px"></div><div id="saved-detail" style="margin-top:12px"></div></section>
 </main>
 
 <script>
@@ -159,7 +169,7 @@ table.tbl tr:last-child td{border-bottom:none}
   }
   function list(title,arr){return '<div class="kv"><h4>'+title+'</h4><ul>'+(arr||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>';}
   function renderStrategy(s){
-    $('pane-strategy').innerHTML='<div class="panel"><h3 style="margin:0 0 4px">Test strategy · '+esc(s.module)+'</h3><p class="note">'+esc(s.scope)+'</p>'+
+    $('saved-detail').innerHTML='<div class="panel"><h3 style="margin:0 0 4px">Test strategy · '+esc(s.module)+'</h3><p class="note">'+esc(s.scope)+'</p>'+
       '<div class="kv"><h4>Frameworks</h4><ul><li>'+(s.frameworks||[]).map(esc).join(', ')+'</li></ul></div>'+
       list('Approach',s.approach)+
       '<div class="cols">'+list('In scope',s.in_scope)+list('Out of scope',s.out_of_scope)+'</div>'+
@@ -168,7 +178,7 @@ table.tbl tr:last-child td{border-bottom:none}
       '<div class="kv"><h4>Risks &amp; mitigations</h4><table class="tbl"><thead><tr><th>Risk</th><th>Mitigation</th></tr></thead><tbody>'+(s.risks||[]).map(function(r){return '<tr><td>'+esc(r.risk)+'</td><td>'+esc(r.mitigation)+'</td></tr>';}).join('')+'</tbody></table></div></div>';
   }
   function renderPlan(p){
-    $('pane-plan').innerHTML='<div class="panel"><h3 style="margin:0 0 4px">Test plan · '+esc(p.requirement_id)+'</h3><p class="note">'+esc(p.objective)+'</p>'+
+    $('saved-detail').innerHTML='<div class="panel"><h3 style="margin:0 0 4px">Test plan · '+esc(p.requirement_id)+'</h3><p class="note">'+esc(p.objective)+'</p>'+
       '<div class="kv"><h4>Disciplines</h4><ul><li>'+(p.disciplines||[]).map(esc).join(', ')+'</li></ul></div>'+
       '<div class="cols"><div class="kv"><h4>Schedule</h4><table class="tbl"><thead><tr><th>Phase</th><th>Duration</th></tr></thead><tbody>'+(p.schedule||[]).map(function(x){return '<tr><td>'+esc(x.phase)+'</td><td>'+esc(x.duration)+'</td></tr>';}).join('')+'</tbody></table></div>'+
       '<div class="kv"><h4>Resources</h4><table class="tbl"><thead><tr><th>Role</th><th>Count</th></tr></thead><tbody>'+(p.resources||[]).map(function(x){return '<tr><td>'+esc(x.role)+'</td><td>'+esc(x.count)+'</td></tr>';}).join('')+'</tbody></table></div></div>'+
@@ -199,10 +209,30 @@ table.tbl tr:last-child td{border-bottom:none}
     AIDP.callAgent('TEST_DESIGN','testdesign_get',{artifact_id:id}).then(function(r){
       var p=r&&r.payload;if(!p){toast('Empty artifact');return;}
       if(kind==='cases'){renderCases({cases:p.cases,discipline:p.discipline,module:(p.requirement&&p.requirement.module)||'',requirement_id:(p.requirement&&p.requirement.requirement_id)||'',llm_used:false});tabTo('cases');}
-      else if(kind==='strategy'){renderStrategy(p);tabTo('strategy');}
-      else if(kind==='plan'){renderPlan(p);tabTo('plan');}
+      else if(kind==='strategy'){renderStrategy(p);document.getElementById('saved-detail').scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(kind==='plan'){renderPlan(p);document.getElementById('saved-detail').scrollIntoView({behavior:'smooth',block:'start'});}
     }).catch(function(e){toast('Open failed: '+(e.message||e));});
   };
+
+  /* ── Test Data tab · create data for the domains the current cases use ── */
+  $('tdx-gen').addEventListener('click',function(){
+    if(!need())return;
+    if(!lastCases||!lastCases.cases||!lastCases.cases.length){toast('Generate test cases first (Test cases tab).');return;}
+    var domains=[];lastCases.cases.forEach(function(c){if(c.test_data&&domains.indexOf(c.test_data)<0)domains.push(c.test_data);});
+    var region=$('tdx-region').value,count=Math.max(1,Math.min(500,parseInt($('tdx-count').value,10)||20));
+    var st=$('tdx-status');st.textContent='Generating data for: '+domains.join(', ')+'…';$('tdx-out').innerHTML='';
+    var jobs=domains.map(function(d){return AIDP.callAgent('TESTDATA','testdata_generate',{domain:d,region:region,count:count}).then(function(r){return {dom:d,res:r,n:(r.records||[]).length};}).catch(function(e){return {dom:d,n:0,err:(e.message||e)};});});
+    Promise.all(jobs).then(function(rows){window.__tdx=rows;st.textContent='Generated '+rows.reduce(function(a,r){return a+r.n;},0)+' records for '+rows.length+' domain(s).';
+      $('tdx-out').innerHTML=rows.map(function(r,i){
+        if(r.err)return '<div class="note">'+esc(r.dom)+': '+esc(r.err)+'</div>';
+        var recs=r.res.records||[],fields=(r.res.pii_manifest||[]).map(function(m){return m.field;});
+        var head='<tr>'+fields.map(function(f){return '<th>'+esc(f)+'</th>';}).join('')+'</tr>';
+        var body=recs.slice(0,50).map(function(rec){return '<tr>'+fields.map(function(f){return '<td>'+esc(rec[f])+'</td>';}).join('')+'</tr>';}).join('');
+        return '<div style="margin-bottom:12px"><div class="note" style="margin-bottom:4px"><strong>'+esc(r.dom)+'</strong> · '+recs.length+' records <button class="btn sm" onclick="window.__tdxdl('+i+')">⬇ JSON</button></div><div class="scroll"><table class="tbl">'+head+body+'</table></div></div>';
+      }).join('');
+    });
+  });
+  window.__tdxdl=function(i){var r=window.__tdx&&window.__tdx[i];if(r&&r.res){var b=new Blob([JSON.stringify(r.res.records,null,2)],{type:'application/json'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='testdata-'+r.dom+'.json';a.click();setTimeout(function(){URL.revokeObjectURL(u);},500);}};
 })();
 </script>
 </body>
