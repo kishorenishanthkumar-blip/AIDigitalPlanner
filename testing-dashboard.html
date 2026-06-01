@@ -278,6 +278,7 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
       </select>
     </div>
     <div class="td-grow"></div>
+    <button class="btn btn-ghost btn-sm" onclick="injectTestDefect()" title="Demo/QA · inject a synthetic defect under the 'escalation-smoke' scope so you can exercise the Defect → CR / Patch / Requirement loop">🧪 Inject test defect</button>
     <button class="btn btn-ghost btn-sm" onclick="refreshAll()" title="Reload runs + defects (R)">↻ Refresh</button>
   </div>
 
@@ -890,6 +891,52 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
     renderDefects(STATE.selectedReport);
   }
   window.selectRun = function (runId) { selectRunInternal(runId); };
+
+  /* ─── E-5-j demo · inject a synthetic defect ──────── */
+  /* Posts one realistic defect under the 'escalation-smoke' scope via
+   * tm_post_external, then loads + opens it so the escalation bar is one
+   * click away. Clearly a QA/demo affordance · safe to run repeatedly. */
+  window.injectTestDefect = async function () {
+    const btn = document.querySelector('button[onclick="injectTestDefect()"]');
+    if (btn) { btn.disabled = true; btn.textContent = '🧪 Injecting…'; }
+    const scenarios = [
+      { title: 'Login returns 500 when session is absent',
+        description: 'POST /login throws a null reference when no session cookie is present',
+        suggested_fix: 'Guard the null session in the auth middleware before dereferencing',
+        reproduction: '1. clear cookies  2. POST /login  3. observe 500', severity: 'high' },
+      { title: 'Payment amount accepts negative values',
+        description: 'The transfer endpoint does not reject negative amounts — a requirements gap',
+        suggested_fix: 'Add a validation rule: amount must be > 0 (new acceptance criteria)',
+        reproduction: '1. POST /transfer amount=-100  2. observe accepted', severity: 'critical' },
+      { title: 'Statement export times out for large accounts',
+        description: 'CSV export exceeds the 30s budget for accounts with >50k transactions',
+        suggested_fix: 'Stream the export and paginate the query', severity: 'medium',
+        reproduction: '1. open a 50k-txn account  2. export CSV  3. observe timeout' }
+    ];
+    const s = scenarios[Math.floor(Math.random() * scenarios.length)];
+    try {
+      const run = await window.TM.postExternal('escalation-smoke', 'e2e-browser', [
+        { name: s.title, status: 'fail', duration_ms: 12 + Math.floor(Math.random() * 40), defect: s }
+      ]);
+      const defId = (run.defects && run.defects[0] && run.defects[0].id) || '';
+      STATE.scopeFilter = '';                 // make sure the new run is visible
+      const scopeSel = document.getElementById('f-scope');
+      if (scopeSel) scopeSel.value = '';
+      await loadRuns();                        // refresh the runs list
+      await selectRunInternal(run.run_id);     // open the new run's defects
+      // Auto-expand the first defect so the escalation bar shows immediately.
+      setTimeout(() => { if (typeof window.toggleDefect === 'function') window.toggleDefect(0); }, 60);
+      if (window.DI && window.DI.toast) {
+        window.DI.toast({ kind: 'ok', title: 'Test defect injected', message: (defId.slice(-12)) + ' · expand it to escalate' });
+      }
+    } catch (err) {
+      if (window.DI && window.DI.toast) {
+        window.DI.toast({ kind: 'err', title: 'Inject failed', message: (err.message || String(err)).slice(0, 120) });
+      } else { alert('Inject failed: ' + (err.message || err)); }
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '🧪 Inject test defect'; }
+    }
+  };
 
   /* ─── Refresh ─────────────────────────────────────── */
   window.refreshAll = function () {
