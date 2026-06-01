@@ -8,6 +8,17 @@
    Active-page highlight is derived from location.pathname.
 ═══════════════════════════════════════════════════════ */
 (function () {
+  /* App-wide: load the select enhancer (checkbox dropdowns + bulk select)
+     on every page that includes the top bar. */
+  try {
+    if (!window.__aidpSelectEnhanceLoaded) {
+      window.__aidpSelectEnhanceLoaded = true;
+      var se = document.createElement('script');
+      se.src = 'assets/select-enhance.js';
+      document.head.appendChild(se);
+    }
+  } catch (e) {}
+
   function ready(fn) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
     else fn();
