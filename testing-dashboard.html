@@ -920,9 +920,15 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
         reproduction: '1. open a 50k-txn account  2. export CSV  3. observe timeout' }
     ];
     const s = scenarios[Math.floor(Math.random() * scenarios.length)];
+    /* Unique id per injection · the backend numbers external defects per-run
+     * (EXT-001), so without this every escalation-smoke defect would collide
+     * on the same id and be dropped by ON CONFLICT DO NOTHING. */
+    const uid = 'DEF-ESC-' + Date.now().toString(36).toUpperCase() + '-' +
+                Math.floor(Math.random() * 46655).toString(36).toUpperCase();
+    const defectPayload = Object.assign({ id: uid }, s);
     try {
       const run = await window.TM.postExternal('escalation-smoke', 'e2e-browser', [
-        { name: s.title, status: 'fail', duration_ms: 12 + Math.floor(Math.random() * 40), defect: s }
+        { name: s.title, status: 'fail', duration_ms: 12 + Math.floor(Math.random() * 40), defect: defectPayload }
       ]);
       const defId = (run.defects && run.defects[0] && run.defects[0].id) || '';
       STATE.scopeFilter = '';                 // make sure the new run is visible
