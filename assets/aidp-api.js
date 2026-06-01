@@ -35,7 +35,8 @@
       TEST_DESIGN:  `https://aiagenticplanner-test-design.${SUBDOMAIN}.workers.dev`,
       TESTING:      `https://aiagenticplanner-testing-master.${SUBDOMAIN}.workers.dev`,
       TESTING_MASTER: `https://aiagenticplanner-testing-master.${SUBDOMAIN}.workers.dev`,
-      ORCHESTRATOR: `https://aiagenticplanner-orchestrator.${SUBDOMAIN}.workers.dev`
+      ORCHESTRATOR: `https://aiagenticplanner-orchestrator.${SUBDOMAIN}.workers.dev`,
+      INSIGHTS:     `https://aiagenticplanner-insights.${SUBDOMAIN}.workers.dev`
     },
     DEFAULT_USER: 'guest@aidp.demo',
     TIMEOUT_MS: 30000

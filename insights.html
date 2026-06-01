@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Program Insights · AIDP</title>
+<script src="assets/toasts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<style>
+:root{--ink-50:#F8FAFC;--ink-100:#F1F5F9;--ink-200:#E2E8F0;--ink-300:#CBD5E1;--ink-500:#64748B;--ink-700:#334155;--ink-900:#0F172A;--blue:#1E40AF;--amber:#C8921A;--green:#15803D;--red:#B91C1C}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#1E293B;background:#F8FAFC}
+.shell{max-width:1180px;margin:0 auto;padding:22px 22px 80px}
+.bread{font-size:12px;color:var(--ink-500);margin-bottom:6px}.bread a{color:var(--ink-500);text-decoration:none}.bread a:hover{color:var(--blue)}
+.title{font-size:24px;font-weight:700;color:var(--ink-900);margin:8px 0 4px}
+.sub{font-size:13.5px;color:#475569;max-width:880px;line-height:1.55;margin:0 0 16px}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.btn{font-size:13px;font-weight:600;padding:8px 13px;border-radius:6px;border:1px solid var(--ink-200);color:var(--ink-700);background:#fff;cursor:pointer}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.primary:hover{background:#1b3a9c;color:#fff}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+select{font-size:13px;padding:8px 10px;border-radius:6px;border:1px solid var(--ink-200);color:var(--ink-700);background:#fff;min-width:260px}
+.grid{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--ink-200);border-radius:10px;padding:16px 18px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.card h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-500)}
+.score{display:flex;align-items:center;gap:16px}
+.ring{width:108px;height:108px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:700;font-size:30px;color:#fff}
+.ring small{font-size:12px;font-weight:600;opacity:.85}
+.rag-green{background:var(--green)}.rag-amber{background:var(--amber)}.rag-red{background:var(--red)}.rag-na{background:var(--ink-300)}
+.pill{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:999px;color:#fff}
+.scoreinfo .nm{font-size:15px;font-weight:700;color:var(--ink-900)}
+.scoreinfo .id{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--ink-500);margin-top:2px}
+.drivers{margin-top:14px;list-style:none;padding:0}
+.drivers li{font-size:12.5px;color:var(--ink-700);padding:6px 0;border-top:1px solid var(--ink-100);display:flex;gap:8px}
+.drivers li:before{content:"▸";color:var(--blue)}
+.narr{font-size:13.5px;line-height:1.6;color:var(--ink-700);white-space:pre-wrap}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+.metric{background:var(--ink-50);border:1px solid var(--ink-100);border-radius:8px;padding:10px 12px}
+.metric .v{font-size:20px;font-weight:700;color:var(--ink-900)}
+.metric .k{font-size:11px;color:var(--ink-500);margin-top:2px}
+.stages{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.stage{font-size:11px;padding:4px 9px;border-radius:6px;border:1px solid var(--ink-200);color:var(--ink-500);background:#fff}
+.stage.on{border-color:var(--green);color:var(--green);background:#F0FDF4;font-weight:600}
+.trends{margin-top:16px}
+.trendgrid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:center}
+@media(max-width:860px){.trendgrid{grid-template-columns:1fr}}
+.tmetrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.muted{color:var(--ink-500);font-size:13px}
+.empty{padding:40px 18px;text-align:center;color:var(--ink-500);font-size:14px}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--ink-300);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<main class="shell">
+  <div class="bread"><a href="home">Home</a> / Program Insights</div>
+  <h1 class="title">Program Insights · health, drivers &amp; trends</h1>
+  <p class="sub">The Insights agent reads the orchestrator's lineage graph for a program, computes an <strong>R/A/G health score</strong> from lifecycle-stage coverage, testing depth and open defects, lists the scoring drivers, and writes a ~200-word executive narrative with Workers AI. Trends anonymize across all programs.</p>
+
+  <div class="toolbar">
+    <select id="progSel"><option value="">Loading programs…</option></select>
+    <button class="btn primary" id="genBtn" onclick="generate()" disabled>Generate report</button>
+    <button class="btn" id="trendBtn" onclick="loadTrends()">Cross-program trends</button>
+    <span class="muted" id="status"></span>
+  </div>
+
+  <div class="grid">
+    <div class="card" id="scoreCard">
+      <h3>Health score</h3>
+      <div class="empty" id="scoreEmpty">Pick a program and generate a report.</div>
+      <div id="scoreBody" style="display:none">
+        <div class="score">
+          <div class="ring rag-na" id="ring"><span id="ringScore">–</span></div>
+          <div class="scoreinfo">
+            <div class="nm" id="progTitle">—</div>
+            <div class="id" id="progId"></div>
+            <div style="margin-top:8px"><span class="pill rag-na" id="ragPill">—</span></div>
+          </div>
+        </div>
+        <ul class="drivers" id="drivers"></ul>
+      </div>
+    </div>
+
+    <div class="card" id="reportCard">
+      <h3>Executive narrative</h3>
+      <div class="empty" id="narrEmpty">No report yet.</div>
+      <div id="narrBody" style="display:none">
+        <p class="narr" id="narrative"></p>
+        <div class="stages" id="stages"></div>
+        <div class="metrics" id="metrics" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card trends" id="trendCard" style="display:none">
+    <h3>Cross-program trends · anonymized</h3>
+    <div class="trendgrid">
+      <div class="tmetrics" id="tmetrics"></div>
+      <div><canvas id="ragChart" height="200"></canvas></div>
+    </div>
+  </div>
+</main>
+
+<script>
+let RAGCHART=null;
+function $(id){return document.getElementById(id);}
+function setStatus(html){$('status').innerHTML=html||'';}
+function ragClass(r){return r==='green'?'rag-green':r==='amber'?'rag-amber':r==='red'?'rag-red':'rag-na';}
+
+async function loadPrograms(){
+  try{
+    const r=await AIDP.callAgent('ORCHESTRATOR','program_list',{limit:50});
+    const progs=(r&&r.programs)||[];
+    const sel=$('progSel');
+    if(!progs.length){sel.innerHTML='<option value="">No programs yet · run one from Program Flow</option>';$('genBtn').disabled=true;return;}
+    sel.innerHTML=progs.map(p=>`<option value="${p.program_id}">${(p.title||p.program_id)}</option>`).join('');
+    $('genBtn').disabled=false;
+  }catch(e){
+    $('progSel').innerHTML='<option value="">Could not reach orchestrator</option>';
+    setStatus('orchestrator unreachable');
+  }
+}
+
+async function generate(){
+  const pid=$('progSel').value; if(!pid)return;
+  $('genBtn').disabled=true; setStatus('<span class="spin"></span>generating report…');
+  try{
+    const rep=await AIDP.callAgent('INSIGHTS','insights_tenant_report',{program_id:pid});
+    if(!rep||rep.ok===false){setStatus(rep&&rep.error?rep.error:'report failed');return;}
+    renderReport(rep); setStatus('report '+(rep.report_id||''));
+  }catch(e){setStatus('error · '+e.message);}
+  finally{$('genBtn').disabled=false;}
+}
+
+function renderReport(r){
+  $('scoreEmpty').style.display='none'; $('scoreBody').style.display='';
+  $('narrEmpty').style.display='none';  $('narrBody').style.display='';
+  const rc=ragClass(r.rag);
+  const ring=$('ring'); ring.className='ring '+rc; $('ringScore').textContent=r.health_score;
+  $('progTitle').textContent=r.title||'Program'; $('progId').textContent=r.program_id||'';
+  const pill=$('ragPill'); pill.className='pill '+rc; pill.textContent=(r.rag||'n/a')+' · '+r.health_score+'/100';
+  $('drivers').innerHTML=(r.drivers||[]).map(d=>`<li>${d}</li>`).join('')||'<li>no drivers</li>';
+  $('narrative').textContent=r.summary||'(no narrative)';
+  const m=r.metrics||{};
+  const STG=[['capability','Discovery'],['requirement','Requirements'],['architecture','Architecture'],['sow','SOW'],['governance','Governance'],['test','Test design'],['run','Disciplines']];
+  const on=[m.capabilities>0,m.requirements>0,m.architecture>0,m.sow_sections>0,m.governance>0,(m.test_strategies+m.test_cases+m.testdata_sets)>0,m.discipline_runs>0];
+  $('stages').innerHTML=STG.map((s,i)=>`<span class="stage ${on[i]?'on':''}">${s[1]}</span>`).join('');
+  const cells=[['Requirements',m.requirements],['Architecture',m.architecture],['SOW sections',m.sow_sections],['Test cases',m.test_cases],['Discipline runs',m.discipline_runs],['Open defects',m.open_defects],['Escalations',m.escalations],['Test data sets',m.testdata_sets],['Stages',(m.stages_present||0)+'/'+(m.stages_total||7)]];
+  $('metrics').innerHTML=cells.map(c=>`<div class="metric"><div class="v">${c[1]??0}</div><div class="k">${c[0]}</div></div>`).join('');
+}
+
+async function loadTrends(){
+  $('trendBtn').disabled=true; setStatus('<span class="spin"></span>aggregating trends…');
+  try{
+    const t=await AIDP.callAgent('INSIGHTS','insights_trends',{});
+    if(!t||t.ok===false){setStatus('trends failed');return;}
+    renderTrends(t); setStatus('');
+  }catch(e){setStatus('error · '+e.message);}
+  finally{$('trendBtn').disabled=false;}
+}
+
+function renderTrends(t){
+  $('trendCard').style.display='';
+  const cells=[['Programs',t.programs],['Avg health',t.avg_health_score],['% with testing',(t.pct_with_testing||0)+'%'],['% blocked (red)',(t.pct_blocked||0)+'%'],['Avg open defects',t.avg_open_defects],['Avg requirements',t.avg_requirements]];
+  $('tmetrics').innerHTML=cells.map(c=>`<div class="metric"><div class="v">${c[1]??0}</div><div class="k">${c[0]}</div></div>`).join('');
+  const d=t.rag_distribution||{green:0,amber:0,red:0};
+  const data={labels:['Green','Amber','Red'],datasets:[{data:[d.green||0,d.amber||0,d.red||0],backgroundColor:['#15803D','#C8921A','#B91C1C'],borderWidth:0}]};
+  if(RAGCHART)RAGCHART.destroy();
+  RAGCHART=new Chart($('ragChart'),{type:'doughnut',data,options:{plugins:{legend:{position:'bottom'},title:{display:true,text:'RAG distribution'}},cutout:'58%'}});
+}
+
+function boot(){ if(!window.AIDP){return setTimeout(boot,120);} loadPrograms(); }
+boot();
+</script>
+</body>
+</html>

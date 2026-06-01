@@ -47,7 +47,8 @@
     { id: 'status',       icon: '🟢', name: 'Platform Status',      desc: 'Live /health probe across all 14 Workers · D1 + bindings + latency per worker.', badge: 'LIVE', href: 'status.html' },
     { id: 'cost',         icon: '💰', name: 'Cost analytics',       desc: 'LLM spend, model breakdown, cache hit rate, per-user history · 24h/7d/30d windows.', badge: 'LIVE', href: 'cost.html' },
     { id: 'program-flow', icon: '🕸', name: 'Program Flow',         desc: 'The unified agentic spine · run the lifecycle DAG and watch the lineage graph + correlation trace build.', badge: 'LIVE', href: 'program.html' },
-    { id: 'fleet',        icon: '🛰', name: 'Fleet Architecture',   desc: 'Every worker in the fleet, grouped by tier, with live /health — the runtime architecture as one view.', badge: 'LIVE', href: 'fleet.html' }
+    { id: 'fleet',        icon: '🛰', name: 'Fleet Architecture',   desc: 'Every worker in the fleet, grouped by tier, with live /health — the runtime architecture as one view.', badge: 'LIVE', href: 'fleet.html' },
+    { id: 'insights',     icon: '📈', name: 'Program Insights',     desc: 'Per-program R/A/G health score, scoring drivers, AI executive narrative, and cross-program trends.', badge: 'LIVE', href: 'insights.html' }
   ];
 
   // Top-level navigation
