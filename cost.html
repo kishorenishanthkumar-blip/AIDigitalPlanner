@@ -118,6 +118,38 @@
     </div>
   </div>
 
+  <!-- ── FinOps (Cost agent · Wave 4) ───────────────────── -->
+  <div class="c-rec-wrap" id="c-finops" style="margin-bottom:18px">
+    <h3 style="font-size:13px;font-weight:700;color:var(--ink-700);margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em">FinOps · forecast &amp; infrastructure <span style="font-weight:500;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ink-500)">— from the Cost agent</span></h3>
+    <p style="font-size:12px;color:var(--ink-500);margin:0 0 12px">LLM-spend forecast plus a modelled Cloudflare infrastructure estimate at public list prices, and FinOps signals. Estimates — tune in the agent.</p>
+    <div class="c-kpis" style="margin-bottom:14px">
+      <div class="c-kpi blue"><div class="lbl">Projected LLM / month</div><div class="val" id="fo-proj">—</div><div class="sub" id="fo-rate">run-rate</div></div>
+      <div class="c-kpi"><div class="lbl">Modelled infra / month</div><div class="val" id="fo-infra">—</div><div class="sub">Workers · D1 · R2 · Vectorize · KV · AI</div></div>
+      <div class="c-kpi amber"><div class="lbl">Projected total / month</div><div class="val" id="fo-tot">—</div><div class="sub">LLM + infra (modelled)</div></div>
+      <div class="c-kpi green"><div class="lbl">Projected / year</div><div class="val" id="fo-year">—</div><div class="sub">LLM run-rate × 365</div></div>
+    </div>
+    <div class="c-row">
+      <div class="c-panel">
+        <h3>FinOps signals</h3>
+        <div id="fo-signals"><div class="c-empty">Loading…</div></div>
+      </div>
+      <div class="c-panel">
+        <h3>Modelled infra line items</h3>
+        <table class="c-models" id="fo-infra-tbl">
+          <thead><tr><th>Item</th><th>Basis</th><th class="num">Monthly</th></tr></thead>
+          <tbody><tr><td colspan="3" class="c-empty" style="text-align:center">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="c-panel" style="margin-top:14px">
+      <h3>Cost by program <span style="font-weight:400;font-size:11px;color:var(--ink-500)">— modelled: trace hops × avg cost/call</span></h3>
+      <table class="c-models" id="fo-prog-tbl">
+        <thead><tr><th>Program</th><th class="num">Hops</th><th class="num">Est. cost</th></tr></thead>
+        <tbody><tr><td colspan="3" class="c-empty" style="text-align:center">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="c-rec-wrap" id="c-rec-section">
     <h3 style="font-size:13px;font-weight:700;color:var(--ink-700);margin:0 0 12px;text-transform:uppercase;letter-spacing:.04em">Recent calls <span id="c-rec-scope" style="font-weight:500;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ink-500)"></span></h3>
     <div id="c-rec-body">
@@ -182,7 +214,61 @@
       return;
     }
     render(data);
+    loadFinOps();
   }
+
+  /* ── FinOps · Cost agent (Wave 4) ──────────────────────── */
+  const COST_URL = 'https://aiagenticplanner-cost.' + SUBDOMAIN + '.workers.dev';
+  async function costCall(tool, args) {
+    const r = await fetch(COST_URL + '/mcp', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: '1', method: 'tools/call', params: { name: tool, arguments: args || {} } })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const env = await r.json();
+    if (env.error) throw new Error(env.error.message || 'jsonrpc error');
+    const text = env.result && env.result.content && env.result.content[0] && env.result.content[0].text;
+    return text ? JSON.parse(text) : {};
+  }
+  function fmtMoney(n) { return (n == null) ? '—' : '$' + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  async function loadFinOps() {
+    const win = state.window, user = state.user || undefined;
+    try {
+      const [fc, infra, sig] = await Promise.all([
+        costCall('cost_forecast', { window: win, user: user }),
+        costCall('cost_infra_estimate', { window: win, user: user }),
+        costCall('finops_signals', { window: win, user: user })
+      ]);
+      const projLlm = fc.projected_month_usd || 0, projInfra = infra.monthly_usd || 0;
+      $('fo-proj').textContent = fmtMoney(projLlm);
+      $('fo-rate').textContent = '$' + (fc.run_rate_daily_usd || 0).toFixed(4) + '/day';
+      $('fo-infra').textContent = fmtMoney(projInfra);
+      $('fo-tot').textContent = fmtMoney(projLlm + projInfra);
+      $('fo-year').textContent = fmtMoney(fc.projected_year_usd || 0);
+      const sigs = (sig.signals || []);
+      $('fo-signals').innerHTML = sigs.length ? sigs.map(function (s) {
+        var c = s.level === 'warn' ? '#B91C1C' : s.level === 'good' ? '#15803D' : '#475569';
+        var ic = s.level === 'warn' ? '⚠' : s.level === 'good' ? '✓' : 'ℹ';
+        return '<div style="display:flex;gap:9px;padding:8px 0;border-top:1px solid var(--ink-100)"><span style="color:' + c + ';font-weight:700">' + ic + '</span><span><b style="color:var(--ink-900)">' + esc(s.title) + '</b><br><span style="font-size:12px;color:var(--ink-600)">' + esc(s.detail) + '</span></span></div>';
+      }).join('') : '<div class="c-empty">No signals in this window.</div>';
+      var li = (infra.line_items || []);
+      $('fo-infra-tbl').querySelector('tbody').innerHTML = li.length ? li.map(function (x) {
+        return '<tr><td>' + esc(x.item) + '</td><td style="font-size:11px;color:var(--ink-500)">' + esc(x.basis) + '</td><td class="num">' + fmtMoney(x.monthly_usd) + '</td></tr>';
+      }).join('') + '<tr style="font-weight:700"><td>Total (modelled)</td><td></td><td class="num">' + fmtMoney(projInfra) + '</td></tr>' : '<tr><td colspan="3" class="c-empty" style="text-align:center">No data.</td></tr>';
+    } catch (err) {
+      $('fo-signals').innerHTML = '<div class="c-empty">Cost agent unreachable · ' + esc(err.message) + '</div>';
+    }
+    try {
+      const bp = await costCall('cost_by_program', { window: win, limit: 12 });
+      const ps = (bp.programs || []);
+      $('fo-prog-tbl').querySelector('tbody').innerHTML = ps.length ? ps.map(function (p) {
+        return '<tr><td>' + esc(p.title || p.program_id) + '</td><td class="num">' + (p.hops || 0) + '</td><td class="num">' + fmtMoney(p.est_usd) + '</td></tr>';
+      }).join('') : '<tr><td colspan="3" class="c-empty" style="text-align:center">No programs yet.</td></tr>';
+    } catch (e) {
+      $('fo-prog-tbl').querySelector('tbody').innerHTML = '<tr><td colspan="3" class="c-empty" style="text-align:center">—</td></tr>';
+    }
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
 
   function render(data) {
     /* KPIs */

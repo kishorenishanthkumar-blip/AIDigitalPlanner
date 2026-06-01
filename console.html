@@ -102,6 +102,8 @@ const TIERS = [
   { name:'Insight & substrate', agents:[
     ['insights','Insights','health score · trends','insights.html',
       {label:'Trends', agent:'INSIGHTS', tool:'insights_trends', args:{}, pick:r=>(r.programs||0)+' programs · avg '+(r.avg_health_score!=null?r.avg_health_score:'–')}],
+    ['cost','Cost / FinOps','spend · infra · forecast','cost.html',
+      {label:'Forecast', agent:'COST', tool:'cost_forecast', args:{window:'30d'}, pick:r=>'$'+(r.projected_month_usd!=null?Number(r.projected_month_usd).toFixed(2):'0')+'/mo'}],
     ['knowledge','Knowledge / RAG','shared memory · Vectorize','knowledge.html', null],
     ['exception','Exception','audit ledger · chain_hash','operations.html', null],
     ['validator','Validator','smoke matrix','status.html', null],
