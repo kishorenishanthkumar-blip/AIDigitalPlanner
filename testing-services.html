@@ -16,6 +16,8 @@
 <script src="assets/testing-nav.js" defer></script>
 <script src="assets/aidp-api.js"></script>
 <script src="assets/multiselect.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js" defer></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -145,7 +147,7 @@ table.tbl tr:last-child td{border-bottom:none}
           <button class="btn primary" id="p2-plan">Generate test plans</button>
           <span class="note" id="p2-status"></span>
         </div>
-        <div class="note">Word / PDF / PowerPoint export lands in the next increment.</div>
+        <div class="note">Each generated strategy &amp; plan has ⬇ Word / PDF / PPT export buttons.</div>
         <div id="p2-out" style="margin-top:12px"></div>
         <button class="btn" id="p2-next" style="margin-top:10px">Proceed to Phase 3 · Test Design →</button>
       </div>
@@ -566,15 +568,16 @@ table.tbl tr:last-child td{border-bottom:none}
     });
 
     function ul(t,a){return '<div style="margin:0 0 8px"><div style="font-weight:600;font-size:12px;color:var(--ink-900)">'+t+'</div><ul style="margin:3px 0 0;padding-left:18px;font-size:12px;color:var(--ink-700);line-height:1.5">'+(a||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>';}
-    function strategyCard(r){
+    function expBtns(kind,i){return '<div style="margin:4px 0 8px">'+['word','pdf','ppt'].map(function(f){return '<button class="btn" style="font-size:11px;padding:4px 10px;margin-right:6px" onclick="window.__exp(\''+kind+'\','+i+',\''+f+'\')">⬇ '+f.toUpperCase()+'</button>';}).join('')+'</div>';}
+    function strategyCard(r,i){
       if(r.err)return '<div class="fw-panel" style="margin-bottom:12px"><h4>'+esc(r.mod)+'</h4><div class="note">Error: '+esc(r.err)+'</div></div>';
       var s=r.strategy;
-      return '<div class="fw-panel" style="margin-bottom:12px"><h4 style="margin:0 0 4px">Test strategy · '+esc(s.module)+'</h4><div class="note">'+esc(s.scope)+'</div>'+ul('Approach',s.approach)+ul('Entry criteria',s.entry_criteria)+ul('Exit criteria',s.exit_criteria)+ul('Environments',s.environments)+'</div>';
+      return '<div class="fw-panel" style="margin-bottom:12px"><h4 style="margin:0 0 4px">Test strategy · '+esc(s.module)+'</h4>'+expBtns('strat',i)+'<div class="note">'+esc(s.scope)+'</div>'+ul('Approach',s.approach)+ul('Entry criteria',s.entry_criteria)+ul('Exit criteria',s.exit_criteria)+ul('Environments',s.environments)+'</div>';
     }
-    function planCard(r){
+    function planCard(r,i){
       if(r.err)return '<div class="fw-panel" style="margin-bottom:12px"><h4>'+esc(r.req)+'</h4><div class="note">Error: '+esc(r.err)+'</div></div>';
       var p=r.plan;
-      return '<div class="fw-panel" style="margin-bottom:12px"><h4 style="margin:0 0 4px">Test plan · '+esc(p.requirement_id)+'</h4><div class="note">'+esc(p.objective)+'</div>'+ul('Deliverables',p.deliverables)+ul('Entry criteria',p.entry_criteria)+ul('Exit criteria',p.exit_criteria)+'</div>';
+      return '<div class="fw-panel" style="margin-bottom:12px"><h4 style="margin:0 0 4px">Test plan · '+esc(p.requirement_id)+'</h4>'+expBtns('plan',i)+'<div class="note">'+esc(p.objective)+'</div>'+ul('Deliverables',p.deliverables)+ul('Entry criteria',p.entry_criteria)+ul('Exit criteria',p.exit_criteria)+'</div>';
     }
 
     document.getElementById('p2-strategy').addEventListener('click',function(){
@@ -586,13 +589,13 @@ table.tbl tr:last-child td{border-bottom:none}
         var reqs=selReqs.filter(function(v){return v.indexOf(mid+'::')===0;}).map(function(v){var i=reqInfo(v);return {requirement_id:i.reqId,requirement_title:i.reqTitle};});
         return AIDP.callAgent('TEST_DESIGN','testdesign_generate_strategy',{module:modName(mid),frameworks:fws,requirements:reqs}).then(function(r){return {mod:modName(mid),strategy:r.strategy};}).catch(function(e){return {mod:modName(mid),err:(e.message||e)};});
       });
-      Promise.all(jobs).then(function(rows){session.strategies+=rows.filter(function(r){return !r.err;}).length;st.textContent='Done · '+rows.length+' strategy doc(s).';document.getElementById('p2-out').innerHTML=rows.map(strategyCard).join('');});
+      Promise.all(jobs).then(function(rows){window.__p2strat=rows;session.strategies+=rows.filter(function(r){return !r.err;}).length;st.textContent='Done · '+rows.length+' strategy doc(s).';document.getElementById('p2-out').innerHTML=rows.map(function(r,i){return strategyCard(r,i);}).join('');});
     });
     document.getElementById('p2-plan').addEventListener('click',function(){
       if(!need())return;var selReqs=reqMs.getSelected();if(!selReqs.length){toast('Select requirements in Phase 1.');return;}
       var st=document.getElementById('p2-status');st.textContent='Generating plans for '+selReqs.length+' requirement(s)…';document.getElementById('p2-out').innerHTML='';
       var jobs=selReqs.slice(0,12).map(function(v){var i=reqInfo(v);return AIDP.callAgent('TEST_DESIGN','testdesign_generate_plan',{module:i.modName,requirement_id:i.reqId,requirement_title:i.reqTitle}).then(function(r){return {req:i.reqId,plan:r.plan};}).catch(function(e){return {req:i.reqId,err:(e.message||e)};});});
-      Promise.all(jobs).then(function(rows){session.plans+=rows.filter(function(r){return !r.err;}).length;st.textContent='Done · '+rows.length+' plan(s).';document.getElementById('p2-out').innerHTML=rows.map(planCard).join('');});
+      Promise.all(jobs).then(function(rows){window.__p2plan=rows;session.plans+=rows.filter(function(r){return !r.err;}).length;st.textContent='Done · '+rows.length+' plan(s).';document.getElementById('p2-out').innerHTML=rows.map(function(r,i){return planCard(r,i);}).join('');});
     });
 
     /* ── Phases 3-8 · guided next steps ── */
@@ -636,6 +639,46 @@ table.tbl tr:last-child td{border-bottom:none}
       var b=new Blob([JSON.stringify(sum,null,2)],{type:'application/json'});var u=URL.createObjectURL(b);
       var a=document.createElement('a');a.href=u;a.download='test-closure-summary.json';a.textContent='⬇ download';a.className='btn sm';a.style.marginLeft='6px';st.appendChild(a);
     });
+
+    /* ── document export · Word / PDF / PowerPoint ── */
+    function dl(blob,name){var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(u);},800);}
+    function fname(t){return t.replace(/[^\w.-]+/g,'_');}
+    function strategySections(s){return [
+      {h:'Scope',l:[s.scope]},{h:'Frameworks',l:s.frameworks||[]},{h:'Approach',l:s.approach||[]},
+      {h:'In scope',l:s.in_scope||[]},{h:'Out of scope',l:s.out_of_scope||[]},
+      {h:'Entry criteria',l:s.entry_criteria||[]},{h:'Exit criteria',l:s.exit_criteria||[]},
+      {h:'Environments',l:s.environments||[]},{h:'Risks & mitigations',l:(s.risks||[]).map(function(r){return r.risk+' -> '+r.mitigation;})}
+    ];}
+    function planSections(p){return [
+      {h:'Objective',l:[p.objective]},{h:'Disciplines',l:p.disciplines||[]},
+      {h:'Schedule',l:(p.schedule||[]).map(function(x){return x.phase+' - '+x.duration;})},
+      {h:'Resources',l:(p.resources||[]).map(function(x){return x.role+' x '+x.count;})},
+      {h:'Deliverables',l:p.deliverables||[]},{h:'Entry criteria',l:p.entry_criteria||[]},{h:'Exit criteria',l:p.exit_criteria||[]}
+    ];}
+    function exportWord(title,secs){
+      var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body style="font-family:Calibri,Arial,sans-serif"><h1>'+esc(title)+'</h1>'+secs.map(function(s){return '<h2>'+esc(s.h)+'</h2>'+(s.l.length>1?'<ul>'+s.l.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'<p>'+esc(s.l[0]||'')+'</p>');}).join('')+'</body></html>';
+      dl(new Blob(['﻿'+html],{type:'application/msword'}),fname(title)+'.doc');
+    }
+    function exportPDF(title,secs){
+      var J=window.jspdf&&window.jspdf.jsPDF;if(!J){toast('PDF library still loading — try again in a moment.');return;}
+      var d=new J({unit:'pt',format:'a4'}),W=d.internal.pageSize.getWidth(),M=40,y=50;
+      d.setFont('helvetica','bold');d.setFontSize(16);d.text(title,M,y);y+=24;d.setFontSize(11);
+      secs.forEach(function(s){if(y>770){d.addPage();y=50;}d.setFont('helvetica','bold');d.text(s.h,M,y);y+=16;d.setFont('helvetica','normal');
+        s.l.forEach(function(x){d.splitTextToSize('• '+x,W-2*M).forEach(function(w){if(y>790){d.addPage();y=50;}d.text(w,M,y);y+=14;});});y+=8;});
+      d.save(fname(title)+'.pdf');
+    }
+    function exportPPT(title,secs){
+      if(!window.PptxGenJS){toast('PowerPoint library still loading — try again in a moment.');return;}
+      var p=new PptxGenJS();var t=p.addSlide();t.addText(title,{x:0.5,y:2.4,w:9,h:1,fontSize:28,bold:true,color:'1E40AF'});
+      secs.forEach(function(s){var sl=p.addSlide();sl.addText(s.h,{x:0.5,y:0.4,w:9,h:0.6,fontSize:20,bold:true,color:'1E3A8A'});sl.addText((s.l.length?s.l:[' ']).map(function(x){return {text:String(x),options:{bullet:true}};}),{x:0.6,y:1.2,w:8.8,h:5,fontSize:14,color:'334155'});});
+      p.writeFile({fileName:fname(title)+'.pptx'});
+    }
+    window.__exp=function(kind,i,fmt){
+      var title,secs;
+      if(kind==='strat'){var r=(window.__p2strat||[])[i];if(!r||!r.strategy)return;title='Test Strategy - '+r.strategy.module;secs=strategySections(r.strategy);}
+      else {var q=(window.__p2plan||[])[i];if(!q||!q.plan)return;title='Test Plan - '+q.plan.requirement_id;secs=planSections(q.plan);}
+      if(fmt==='word')exportWord(title,secs);else if(fmt==='pdf')exportPDF(title,secs);else exportPPT(title,secs);
+    };
   })();
 })();
 </script>
