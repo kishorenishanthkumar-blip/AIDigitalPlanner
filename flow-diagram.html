@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Program Flow · Lifecycle Diagram · AIDP</title>
+<script src="assets/toasts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<style>
+:root{--ink-50:#F8FAFC;--ink-100:#F1F5F9;--ink-200:#E2E8F0;--ink-300:#CBD5E1;--ink-500:#64748B;--ink-700:#334155;--ink-900:#0F172A;--blue:#1E40AF}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#1E293B;background:#F8FAFC}
+.shell{max-width:1280px;margin:0 auto;padding:18px 18px 70px}
+.bread{font-size:12px;color:var(--ink-500);margin-bottom:6px}.bread a{color:var(--ink-500);text-decoration:none}.bread a:hover{color:var(--blue)}
+.title{font-size:23px;font-weight:800;color:var(--ink-900);margin:6px 0 3px}
+.sub{font-size:13px;color:#475569;max-width:920px;line-height:1.5;margin:0 0 12px}
+body.embed [data-di-topbar],body.embed .bread,body.embed .title,body.embed .sub{display:none!important}
+body.embed .shell{padding:8px}
+.toolbar{display:flex;gap:9px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.btn{font-size:13px;font-weight:600;padding:8px 13px;border-radius:7px;border:1px solid var(--ink-200);color:var(--ink-700);background:#fff;cursor:pointer;text-decoration:none;display:inline-flex;gap:7px;align-items:center}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.diagram{background:#fff;border:1px solid var(--ink-200);border-radius:12px;padding:16px;overflow:auto;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+.diagram svg{max-width:100%;height:auto}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--ink-700)}
+.legend .it{display:inline-flex;align-items:center;gap:6px}
+.legend .sw{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.note{font-size:12px;color:var(--ink-500);margin-top:10px;line-height:1.5}
+code{font-family:'IBM Plex Mono',monospace;font-size:11.5px;background:var(--ink-100);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<main class="shell">
+  <div class="bread"><a href="home">Home</a> / Program Flow · Diagram</div>
+  <h1 class="title">Program flow — lifecycle DAG &amp; lineage</h1>
+  <p class="sub">What <code>program_run_full</code> drives, end to end. Each stage produces typed entity nodes in one lineage graph, connected by relationship edges (<code>derives</code>, <code>covers</code>, <code>seeds</code>, <code>tests</code>, <code>found_in</code>, <code>escalates_to</code>, <code>fixes</code>). Disciplines dispatch to CI and land asynchronously via <code>program_sync</code>; insights then scores the graph. Every hop also writes a correlation trace, and every escalation chains into the audit ledger.</p>
+
+  <div class="toolbar">
+    <button class="btn" onclick="downloadSvg()">⬇ Download SVG</button>
+    <a class="btn" href="arch-diagram.html">↗ Fleet architecture diagram</a>
+    <a class="btn" href="program.html">🕸 Run it live</a>
+    <a class="btn" href="insights.html">📈 Insights</a>
+  </div>
+
+  <div class="diagram"><pre class="mermaid" id="mmd">
+flowchart LR
+  classDef stage fill:#eef2ff,stroke:#4338ca,color:#1e1b4b,font-weight:600;
+  classDef ent fill:#ecfdf5,stroke:#15803d,color:#064e3b;
+  classDef test fill:#fffbeb,stroke:#b45309,color:#7c2d12;
+  classDef defect fill:#fef2f2,stroke:#b91c1c,color:#7f1d1d;
+  classDef fix fill:#f0f9ff,stroke:#0369a1,color:#0c4a6e;
+  classDef sys fill:#0f172a,stroke:#0f172a,color:#e2e8f0;
+
+  START(["program_start<br/>create program + trace_id"]):::sys
+
+  CAP["capability<br/><i>Discovery</i>"]:::ent
+  REQ["requirement<br/><i>Requirements</i>"]:::ent
+  ARC["architecture<br/><i>Architecture</i>"]:::ent
+  SOW["sow_section<br/><i>SOW</i>"]:::ent
+  GOV["governance_item<br/><i>Governance</i>"]:::ent
+  IAC["iac_bundle<br/><i>IaC</i>"]:::ent
+  TS["test_strategy / test_case<br/><i>Test Design</i>"]:::test
+  TDS["testdata_set<br/><i>Test Data</i>"]:::test
+  RUN["discipline_run × 8<br/><i>Testing Master → CI</i>"]:::test
+  DEF["defect<br/><i>defect manifest</i>"]:::defect
+  CR["change_request<br/><i>Governance</i>"]:::fix
+  PAT["patch<br/><i>Patch</i>"]:::fix
+  NREQ["new requirement"]:::fix
+  INS["health score + R/A/G<br/>+ AI narrative<br/><i>Insights</i>"]:::sys
+  AUD["audit ledger · chain_hash<br/><i>Exception</i>"]:::sys
+
+  START --> CAP
+  CAP -->|derives| REQ
+  CAP -->|derives| ARC
+  REQ -->|derives| IAC
+  ARC --> SOW
+  SOW --> GOV
+  REQ -->|covers| TS
+  TS -->|seeds| TDS
+  REQ -->|tests| RUN
+  TDS -.feeds.-> RUN
+  RUN -->|found_in| DEF
+  DEF -->|escalates_to| CR
+  DEF -->|fixes| PAT
+  DEF -->|raises| NREQ
+  NREQ -.re-enters.-> REQ
+  RUN --> INS
+  DEF --> INS
+  GOV --> INS
+  CR --> AUD
+  PAT --> AUD
+  DEF --> AUD
+  INS -.reads whole graph.-> START
+  </pre></div>
+
+  <div class="legend">
+    <span class="it"><span class="sw" style="background:#0f172a"></span> Orchestration / system</span>
+    <span class="it"><span class="sw" style="background:#ecfdf5;border-color:#15803d"></span> Delivery entities</span>
+    <span class="it"><span class="sw" style="background:#fffbeb;border-color:#b45309"></span> Testing entities</span>
+    <span class="it"><span class="sw" style="background:#fef2f2;border-color:#b91c1c"></span> Defect</span>
+    <span class="it"><span class="sw" style="background:#f0f9ff;border-color:#0369a1"></span> Escalation / fix</span>
+  </div>
+  <p class="note">Edge labels are the real relationship types stored on <code>program_edge</code>. The defect → CR / patch / requirement fan-out is the closed escalation loop; a raised requirement re-enters the lifecycle. Dashed edges are asynchronous (test data feeds CI runs; insights reads the full graph after the fact).</p>
+</main>
+
+<script>
+const q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
+mermaid.initialize({ startOnLoad:true, theme:'base', securityLevel:'loose',
+  themeVariables:{ fontFamily:'Inter, sans-serif', fontSize:'13px', lineColor:'#64748b' },
+  flowchart:{ curve:'basis', nodeSpacing:30, rankSpacing:60, htmlLabels:true } });
+function downloadSvg(){
+  const svg=document.querySelector('#mmd svg'); if(!svg){ return; }
+  const s=new XMLSerializer().serializeToString(svg);
+  const b=new Blob(['<?xml version="1.0"?>\n'+s],{type:'image/svg+xml'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='aidp-program-flow.svg'; a.click();
+}
+</script>
+</body>
+</html>

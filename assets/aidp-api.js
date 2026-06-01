@@ -179,16 +179,21 @@
    *
    * Throws on HTTP errors, JSON-RPC errors, or unparseable responses.
    */
-  async function callAgent(agentName, toolName, args) {
+  async function callAgent(agentName, toolName, args, opts) {
     args = args || {};
+    opts = opts || {};
     /* Auto-inject user_email from the auth flow if the caller didn't pass it.
        Most sub-agent tools require it as the tenant key. */
     if (args.user_email === undefined) args.user_email = getUserEmail();
     const baseUrl = CONFIG.AGENTS[String(agentName).toUpperCase()];
     if (!baseUrl) throw new Error(`Unknown agent: ${agentName}`);
 
+    /* Per-call timeout override (ms). Long fan-out tools like
+       program_run_full need more than the 30s default. */
+    const timeoutMs = (typeof opts.timeoutMs === 'number' && opts.timeoutMs > 0) ? opts.timeoutMs : CONFIG.TIMEOUT_MS;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
 
     try {
       const resp = await fetch(`${baseUrl}/mcp`, {
@@ -213,6 +218,11 @@
       if (env.result?.isError) throw new Error(`Tool error: ${text}`);
 
       try { return JSON.parse(text); } catch (_) { return { raw: text }; }
+    } catch (err) {
+      if (timedOut || (err && err.name === 'AbortError')) {
+        throw new Error(`${agentName}.${toolName} timed out after ${Math.round(timeoutMs/1000)}s — this fan-out tool can be slow; try again or increase the timeout.`);
+      }
+      throw err;
     } finally {
       clearTimeout(timer);
     }

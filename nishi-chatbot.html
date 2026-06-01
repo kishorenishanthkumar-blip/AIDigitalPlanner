@@ -169,6 +169,8 @@ body{background:linear-gradient(180deg,#F8FAFD,#EEF2F8);color:var(--t1);font-fam
       <h3 class="suggest-old-h">Suggested prompts</h3>
       <div class="suggest" id="suggest">
         <button onclick="sendSuggested('Show me a 5-minute narrated demo of the AIDP platform')">🎬 5-minute AIDP demo (narrated video)</button>
+        <button onclick="sendSuggested('Show me the fleet architecture diagram')">🗺 Fleet architecture diagram</button>
+        <button onclick="sendSuggested('Show me the program flow / lifecycle diagram')">🔀 Program flow diagram</button>
         <button onclick="sendSuggested('Start an RFP-style questionnaire for me — I am a Solution Architect for a Tier-1 retail bank in Singapore.')">Start RFP-style questionnaire (Solution Architect, MAS/Singapore)</button>
         <button onclick="sendSuggested('Generate a discovery summary for the Core Payments module on AWS, target FY26 H2.')">Discovery summary · Core Payments · AWS</button>
         <button onclick="sendSuggested('What are the regulatory must-haves for a Treasury workload in the EU (London + Frankfurt)?')">Regulatory must-haves · Treasury · EU</button>
@@ -657,6 +659,8 @@ async function sendMessage(){
 
   // Niche-I · "show me a demo of the application" → embed the narrated player
   if (maybeDemoIntent(text)) { return; }
+  // Niche-I · "show the fleet architecture / program flow diagram" → embed the diagram
+  if (maybeDiagramIntent(text)) { return; }
 
   // CLI mode local commands
   if (sess.mode === 'cli' && text.startsWith('/')) {
@@ -769,6 +773,49 @@ function appendDemoCard(){
       '<div style="margin-top:8px;font-size:12px">' +
         '<a href="demo.html?play=narrated" target="_blank" rel="noopener" style="color:var(--amber);font-weight:600">Open the full demo ↗</a>' +
         ' · inside it you can <b>record a shareable video</b> or generate a broadcast 1080p MP4.' +
+      '</div>' +
+      '<div class="time">' + nowStr() + '</div>' +
+    '</div>';
+  document.getElementById('messages').appendChild(div);
+  scrollToBot();
+}
+
+/* ── Niche-I diagram generator ───────────────────────────
+   "show the fleet architecture" → arch-diagram.html
+   "program flow / lifecycle diagram" → flow-diagram.html  */
+function maybeDiagramIntent(text){
+  const t = (text || '').toLowerCase();
+  const wantsDiagram = /(diagram|architecture|flow|lifecycle|wiring|how .*(connect|wired|fit together)|topology|blueprint)/.test(t);
+  if (!wantsDiagram) return false;
+  const isFlow = /(program flow|lifecycle|dag|program.*flow|flow.*program|run.*flow|stages?)/.test(t)
+              && !/fleet|infrastructure|worker/.test(t);
+  if (isFlow) { appendDiagramCard('flow'); }
+  else if (/(fleet|architecture|wiring|topology|blueprint|agents?|workers?|infrastructure|system)/.test(t)) { appendDiagramCard('arch'); }
+  else return false;
+  document.getElementById('status-text').textContent = 'Generated the diagram';
+  bumpCount('diagram');
+  return true;
+}
+
+function appendDiagramCard(kind){
+  const flow = kind === 'flow';
+  const src = flow ? 'flow-diagram.html' : 'arch-diagram.html';
+  const title = flow ? 'program lifecycle flow' : 'fleet architecture';
+  const blurb = flow
+    ? 'Here’s the <b>program flow diagram</b> — what <code>program_run_full</code> drives end to end: each stage’s entity nodes and the relationship edges (derives, covers, tests, found_in, escalates_to, fixes) that connect them in one lineage graph.'
+    : 'Here’s the <b>fleet architecture diagram</b> — every worker and how they wire together: the master router, the orchestrator spine, the delivery agents, the eight-discipline testing fan-out to CI, shared knowledge memory, the audit ledger, and the Cloudflare data plane.';
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.innerHTML =
+    '<div class="msg-av">N</div>' +
+    '<div class="msg-body">' + blurb +
+      '<div style="margin-top:10px;border:1px solid var(--b1);border-radius:12px;overflow:hidden;background:#fff">' +
+        '<iframe src="' + src + '?embed=1" title="AIDP ' + title + ' diagram" ' +
+          'style="width:100%;height:520px;border:0;display:block"></iframe>' +
+      '</div>' +
+      '<div style="margin-top:8px;font-size:12px">' +
+        '<a href="' + src + '" target="_blank" rel="noopener" style="color:var(--amber);font-weight:600">Open the full diagram ↗</a>' +
+        ' · download it as SVG inside, or ask me for the <b>' + (flow ? 'fleet architecture' : 'program flow') + '</b> diagram too.' +
       '</div>' +
       '<div class="time">' + nowStr() + '</div>' +
     '</div>';

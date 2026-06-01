@@ -50,7 +50,9 @@
     { id: 'fleet',        icon: '🛰', name: 'Fleet Architecture',   desc: 'Every worker in the fleet, grouped by tier, with live /health — the runtime architecture as one view.', badge: 'LIVE', href: 'fleet.html' },
     { id: 'insights',     icon: '📈', name: 'Program Insights',     desc: 'Per-program R/A/G health score, scoring drivers, AI executive narrative, and cross-program trends.', badge: 'LIVE', href: 'insights.html' },
     { id: 'console',      icon: '🎛', name: 'Console',              desc: 'Fleet control center · live health, version, latency, quick-run actions and studio links for every agent.', badge: 'LIVE', href: 'console.html' },
-    { id: 'demo',         icon: '🎬', name: 'E2E Demo & Video',     desc: 'Drive the whole fleet end-to-end on a live canvas · record the run to WebM or export a GIF.', badge: 'LIVE', href: 'demo.html' }
+    { id: 'demo',         icon: '🎬', name: 'E2E Demo & Video',     desc: 'Drive the whole fleet end-to-end on a live canvas · record the run to WebM or export a GIF.', badge: 'LIVE', href: 'demo.html' },
+    { id: 'arch-diagram', icon: '🗺', name: 'Architecture Diagram', desc: 'Full fleet flow diagram — router, orchestrator spine, agents, testing fan-out, stores and data flows.', badge: 'LIVE', href: 'arch-diagram.html' },
+    { id: 'flow-diagram', icon: '🔀', name: 'Program Flow Diagram', desc: 'The lifecycle DAG — every stage’s entity nodes and the relationship edges that build one lineage graph.', badge: 'LIVE', href: 'flow-diagram.html' }
   ];
 
   // Top-level navigation

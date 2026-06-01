@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Fleet Architecture · Flow Diagram · AIDP</title>
+<script src="assets/toasts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<style>
+:root{--ink-50:#F8FAFC;--ink-100:#F1F5F9;--ink-200:#E2E8F0;--ink-300:#CBD5E1;--ink-500:#64748B;--ink-700:#334155;--ink-900:#0F172A;--blue:#1E40AF}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#1E293B;background:#F8FAFC}
+.shell{max-width:1280px;margin:0 auto;padding:18px 18px 70px}
+.bread{font-size:12px;color:var(--ink-500);margin-bottom:6px}.bread a{color:var(--ink-500);text-decoration:none}.bread a:hover{color:var(--blue)}
+.title{font-size:23px;font-weight:800;color:var(--ink-900);margin:6px 0 3px}
+.sub{font-size:13px;color:#475569;max-width:900px;line-height:1.5;margin:0 0 12px}
+body.embed [data-di-topbar],body.embed .bread,body.embed .title,body.embed .sub{display:none!important}
+body.embed .shell{padding:8px}
+.toolbar{display:flex;gap:9px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.btn{font-size:13px;font-weight:600;padding:8px 13px;border-radius:7px;border:1px solid var(--ink-200);color:var(--ink-700);background:#fff;cursor:pointer;text-decoration:none;display:inline-flex;gap:7px;align-items:center}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.diagram{background:#fff;border:1px solid var(--ink-200);border-radius:12px;padding:16px;overflow:auto;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+.diagram svg{max-width:100%;height:auto}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--ink-700)}
+.legend .it{display:inline-flex;align-items:center;gap:6px}
+.legend .sw{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.note{font-size:12px;color:var(--ink-500);margin-top:10px;line-height:1.5}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<main class="shell">
+  <div class="bread"><a href="home">Home</a> / Fleet Architecture · Diagram</div>
+  <h1 class="title">Fleet architecture — full flow diagram</h1>
+  <p class="sub">Every worker in the AIDP fleet and how they wire together at runtime: the master router fans out to agents, the orchestrator drives the lifecycle and writes the lineage graph, the testing master dispatches eight disciplines to real CI tooling, knowledge is shared memory, and every escalation is chained into the audit ledger. Solid arrows are in-process service bindings; dashed arrows cross to GitHub Actions CI.</p>
+
+  <div class="toolbar">
+    <button class="btn" onclick="downloadSvg()">⬇ Download SVG</button>
+    <a class="btn" href="flow-diagram.html">↗ Program flow diagram</a>
+    <a class="btn" href="fleet.html">🛰 Live fleet health</a>
+    <a class="btn" href="console.html">🎛 Console</a>
+  </div>
+
+  <div class="diagram"><pre class="mermaid" id="mmd">
+flowchart TB
+  classDef entry fill:#0ea5e9,stroke:#0369a1,color:#fff,font-weight:600;
+  classDef spine fill:#6366f1,stroke:#4338ca,color:#fff,font-weight:600;
+  classDef deliver fill:#ecfdf5,stroke:#15803d,color:#064e3b;
+  classDef testing fill:#fffbeb,stroke:#b45309,color:#7c2d12;
+  classDef sub fill:#f1f5f9,stroke:#475569,color:#0f172a;
+  classDef store fill:#0f172a,stroke:#0f172a,color:#e2e8f0;
+  classDef ext fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d;
+
+  U(["User · Niche-I chat<br/>natural language"]):::entry
+
+  subgraph ENTRY["Entry · NL Router"]
+    M["Master Router<br/><i>aiagenticplanner</i><br/>keyword + LLM routing"]:::entry
+  end
+
+  subgraph SPINE["Unifying Spine"]
+    O["Program Orchestrator<br/>program_run_full · lineage graph · trace"]:::spine
+  end
+
+  subgraph DELIVERY["Delivery agents"]
+    DISC["Discovery<br/>7R · capabilities"]:::deliver
+    REQ["Requirements<br/>MoSCoW · INVEST · compliance"]:::deliver
+    ARCH["Architecture<br/>6 clouds · pricing"]:::deliver
+    SOW["SOW<br/>statement of work"]:::deliver
+    GOV["Governance<br/>RAID · CR · steering"]:::deliver
+    IAC["IaC<br/>Terraform · Helm · CI"]:::deliver
+    ACT["Actions<br/>role-based plans"]:::deliver
+    OPS["Operations<br/>DORA · SLO · incidents"]:::deliver
+  end
+
+  subgraph TESTING["Testing fleet"]
+    TD["Test Design<br/>strategy · plans · cases"]:::testing
+    TDATA["Test Data<br/>synthetic · PII-tagged"]:::testing
+    TM["Testing Master<br/>defect manifest · escalation loop"]:::testing
+    FUN["Functional"]:::testing
+    PERF["Performance<br/>k6 · Lighthouse"]:::testing
+    SEC["Security<br/>OWASP ZAP · Snyk"]:::testing
+    A11Y["Accessibility<br/>Pa11y · WCAG"]:::testing
+    CMP["Compliance"]:::testing
+    CON["Contract"]:::testing
+    INT["Integration"]:::testing
+    E2E["E2E<br/>Playwright"]:::testing
+  end
+
+  subgraph SUBSTRATE["Shared substrate"]
+    KN["Knowledge / RAG<br/>shared memory"]:::sub
+    EXC["Exception<br/>audit ledger · chain_hash"]:::sub
+    VAL["Validator<br/>smoke matrix"]:::sub
+    PAT["Patch<br/>gated code changes"]:::sub
+    INS["Insights<br/>R/A/G health · trends"]:::sub
+  end
+
+  subgraph STORES["Data plane (Cloudflare)"]
+    D1[("D1 · aidp-state")]:::store
+    R2[("R2 · artifacts")]:::store
+    VEC[("Vectorize · aidp-kb")]:::store
+    KVS[("KV")]:::store
+    WAI{{"Workers AI<br/>llama-3.1 · bge embeddings"}}:::store
+    CI[["GitHub Actions CI<br/>real test tools"]]:::ext
+  end
+
+  U --> M
+  M -->|classifies + routes| O
+  M -.routes single tool.-> DISC & REQ & ARCH & SOW & GOV & IAC & ACT & OPS & TM & INS
+
+  O -->|reads| DISC & REQ & ARCH & SOW & GOV & IAC
+  O -->|generates| TD & TDATA
+  O -->|fan-out| TM
+  O -->|writes back| KN
+  O -->|scores| INS
+
+  TM --> FUN & PERF & SEC & A11Y & CMP & CON & INT & E2E
+  FUN & PERF & SEC & A11Y & CMP & CON & INT & E2E -.workflow_dispatch.-> CI
+  CI -.ingest results.-> TM
+  TM -->|defect → CR/patch/req| GOV & PAT & REQ
+  TM --> EXC
+
+  TD -->|recall prior art| KN
+  DISC & REQ --> KN
+  INS -->|reads graph| O
+  INS --> WAI
+
+  O --> D1
+  KN --> VEC
+  KN --> WAI
+  M --> D1
+  M --> R2
+  M --> KVS
+  EXC --> D1
+  </pre></div>
+
+  <div class="legend">
+    <span class="it"><span class="sw" style="background:#0ea5e9"></span> Entry · router</span>
+    <span class="it"><span class="sw" style="background:#6366f1"></span> Orchestrator spine</span>
+    <span class="it"><span class="sw" style="background:#ecfdf5;border-color:#15803d"></span> Delivery agents</span>
+    <span class="it"><span class="sw" style="background:#fffbeb;border-color:#b45309"></span> Testing fleet</span>
+    <span class="it"><span class="sw" style="background:#f1f5f9;border-color:#475569"></span> Shared substrate</span>
+    <span class="it"><span class="sw" style="background:#0f172a"></span> Data plane</span>
+    <span class="it"><span class="sw" style="background:#fee2e2;border-color:#b91c1c"></span> External CI</span>
+  </div>
+  <p class="note">Solid arrows = Cloudflare service bindings (worker-to-worker, in-process). Dashed = cross to GitHub Actions CI (the disciplines orchestrate-and-dispatch real tools, then post results back). The orchestrator is the only writer of the lineage graph; insights reads it; exception holds the immutable ledger.</p>
+</main>
+
+<script>
+const q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
+mermaid.initialize({ startOnLoad:true, theme:'base', securityLevel:'loose',
+  themeVariables:{ fontFamily:'Inter, sans-serif', fontSize:'13px', lineColor:'#64748b', primaryColor:'#fff' },
+  flowchart:{ curve:'basis', nodeSpacing:34, rankSpacing:46, htmlLabels:true } });
+function downloadSvg(){
+  const svg=document.querySelector('#mmd svg'); if(!svg){ return; }
+  const s=new XMLSerializer().serializeToString(svg);
+  const b=new Blob(['<?xml version="1.0"?>\n'+s],{type:'image/svg+xml'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='aidp-fleet-architecture.svg'; a.click();
+}
+</script>
+</body>
+</html>

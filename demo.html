@@ -409,11 +409,13 @@ async function runLive(){
   const out=document.getElementById('runout'); out.style.display='block'; out.textContent='Creating program and driving the lifecycle DAG…';
   try{
     if(!window.AIDP) throw new Error('AIDP client not loaded');
+    const LONG={timeoutMs:180000};
     const start=await AIDP.callAgent('ORCHESTRATOR','program_start',{title:'Demo run '+new Date().toISOString().slice(0,19),tenant_id:'demo'});
     const pid=start.program_id;
-    const run=await AIDP.callAgent('ORCHESTRATOR','program_run_full',{program_id:pid,scope:'fleet'});
-    const g=await AIDP.callAgent('ORCHESTRATOR','program_graph',{program_id:pid});
-    const rep=await AIDP.callAgent('INSIGHTS','insights_tenant_report',{program_id:pid,tenant_id:'demo'});
+    out.textContent='Program '+pid+' created · driving the lifecycle DAG across the fleet (this can take up to a minute)…';
+    const run=await AIDP.callAgent('ORCHESTRATOR','program_run_full',{program_id:pid,scope:'fleet'},LONG);
+    const g=await AIDP.callAgent('ORCHESTRATOR','program_graph',{program_id:pid},LONG);
+    const rep=await AIDP.callAgent('INSIGHTS','insights_tenant_report',{program_id:pid,tenant_id:'demo'},LONG);
     const steps=(run.steps||[]).map(s=>'  '+(s.ok===false?'✗':'✓')+' '+s.step+(s.count!=null?(' ('+s.count+')'):'')).join('\n');
     out.textContent='Program '+pid+'\n'+steps+'\n\nLineage: '+((g.nodes||[]).length)+' nodes / '+((g.edges||[]).length)+' edges'+
       (rep&&rep.health_score!=null?('\nHealth: '+rep.health_score+'/100 ('+(rep.rag||'').toUpperCase()+')'):'')+
