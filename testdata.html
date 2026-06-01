@@ -14,6 +14,7 @@
 <script src="assets/nishi-dock.js" defer></script>
 <script src="assets/testing-nav.js" defer></script>
 <script src="assets/aidp-api.js"></script>
+<script src="assets/multiselect.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,6 +59,7 @@ table.tbl td{padding:7px 10px;border-bottom:1px solid var(--ink-100);color:var(-
       <div class="field"><label>Region</label><select id="d-region"><option>US</option><option>CA</option><option>IN</option></select></div>
       <div class="field"><label>Count</label><input id="d-count" type="number" value="20" min="1" max="1000"></div>
       <div class="field"><label>PII mode</label><select id="d-pii"><option value="tagged">tagged</option><option value="raw">raw</option><option value="anonymized">anonymized</option></select></div>
+      <div class="field"><label>Categories</label><span id="d-cats"></span></div>
       <div class="field"><label>Seed (optional)</label><input id="d-seed" type="number" placeholder="auto"></div>
       <button class="btn primary" id="d-gen">Generate</button>
     </div>
@@ -96,12 +98,32 @@ table.tbl td{padding:7px 10px;border-bottom:1px solid var(--ink-100);color:var(-
   }
   function toCSV(res){var fields=(res.pii_manifest||[]).map(function(m){return m.field;});var e=function(v){if(v==null)return '';v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};return [fields.join(',')].concat((res.records||[]).map(function(r){return fields.map(function(f){return e(r[f]);}).join(',');})).join('\n');}
 
+  var catMs=null;
+  if(window.AIDPMultiSelect){catMs=AIDPMultiSelect.create({options:['technical','product','functional','integration','regulatory','compliance'].map(function(c){return {value:c,label:c};}),placeholder:'Categories'});var mcc=$('d-cats');if(mcc)mcc.appendChild(catMs.el);}
   $('d-gen').addEventListener('click',function(){
-    if(!need())return;var st=$('d-status');st.textContent='Generating…';
-    var args={domain:$('d-domain').value,region:$('d-region').value,count:parseInt($('d-count').value,10)||20,pii_mode:$('d-pii').value};
-    var seed=$('d-seed').value;if(seed!=='')args.seed=parseInt(seed,10);
-    AIDP.callAgent('TESTDATA','testdata_generate',args).then(function(r){if(r&&r.error){st.textContent='Error: '+(r.message||r.error);return;}st.textContent='Done.';render(r);}).catch(function(e){st.textContent='Failed: '+(e.message||e);});
+    if(!need())return;var st=$('d-status');
+    var base={domain:$('d-domain').value,region:$('d-region').value,count:parseInt($('d-count').value,10)||20,pii_mode:$('d-pii').value};
+    var seed=$('d-seed').value;if(seed!=='')base.seed=parseInt(seed,10);
+    var cats=catMs?catMs.getSelected():[];
+    if(cats.length<=1){
+      var args={domain:base.domain,region:base.region,count:base.count,pii_mode:base.pii_mode};if(base.seed!=null)args.seed=base.seed;if(cats.length===1)args.category=cats[0];
+      st.textContent='Generating…';
+      AIDP.callAgent('TESTDATA','testdata_generate',args).then(function(r){if(r&&r.error){st.textContent='Error: '+(r.message||r.error);return;}st.textContent='Done'+(cats.length?' · '+cats[0]:'')+'.';render(r);}).catch(function(e){st.textContent='Failed: '+(e.message||e);});
+      return;
+    }
+    st.textContent='Generating '+cats.length+' category datasets…';last=null;['d-csv','d-json','d-save'].forEach(function(id){$(id).disabled=true;});
+    var jobs=cats.map(function(cat){var a={domain:base.domain,region:base.region,count:base.count,pii_mode:base.pii_mode,category:cat};if(base.seed!=null)a.seed=base.seed;return AIDP.callAgent('TESTDATA','testdata_generate',a).then(function(r){return {cat:cat,res:r,n:(r.records||[]).length};}).catch(function(e){return {cat:cat,n:0,err:(e.message||e)};});});
+    Promise.all(jobs).then(function(rows){window.__dcat=rows;st.textContent='Generated '+rows.reduce(function(a,r){return a+r.n;},0)+' records across '+rows.length+' categories.';
+      $('d-out').innerHTML=rows.map(function(r,i){
+        if(r.err)return '<div class="note">'+esc(r.cat)+': '+esc(r.err)+'</div>';
+        var recs=r.res.records||[],fields=(r.res.pii_manifest||[]).map(function(m){return m.field;});
+        var head='<tr>'+fields.map(function(f){return '<th>'+esc(f)+'</th>';}).join('')+'</tr>';
+        var body=recs.slice(0,30).map(function(rec){return '<tr>'+fields.map(function(f){return '<td>'+esc(rec[f])+'</td>';}).join('')+'</tr>';}).join('');
+        return '<div style="margin-bottom:12px"><div class="note" style="margin-bottom:4px"><strong>'+esc(r.cat)+'</strong> · '+recs.length+' records <button class="btn sm" onclick="window.__dcatdl('+i+')">⬇ JSON</button></div><div class="scroll"><table class="tbl">'+head+body+'</table></div></div>';
+      }).join('');
+    });
   });
+  window.__dcatdl=function(i){var r=window.__dcat&&window.__dcat[i];if(r&&r.res){download('testdata-'+r.cat+'-'+r.res.domain+'.json',JSON.stringify(r.res.records,null,2),'application/json');}};
   $('d-csv').addEventListener('click',function(){if(last)download('testdata-'+last.domain+'-'+last.region+'.csv',toCSV(last),'text/csv');});
   $('d-json').addEventListener('click',function(){if(last)download('testdata-'+last.domain+'-'+last.region+'.json',JSON.stringify(last.records,null,2),'application/json');});
   $('d-save').addEventListener('click',function(){if(!last||!need())return;var st=$('d-status');st.textContent='Saving…';

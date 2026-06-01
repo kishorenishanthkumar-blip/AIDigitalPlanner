@@ -231,22 +231,23 @@ table.tbl tr:last-child td{border-bottom:none}
     if(!lastCases||!lastCases.cases||!lastCases.cases.length){toast('Generate test cases first (Test cases tab).');return;}
     var selIds=caseMs?caseMs.getSelected():[];
     var cases=selIds.length?lastCases.cases.filter(function(c){return selIds.indexOf(c.id)>=0;}):lastCases.cases;
-    var cats=catMs?catMs.getSelected():[]; var catLabel=cats.length?cats.join(', '):'all categories';
+    var cats=catMs?catMs.getSelected():[]; if(!cats.length)cats=['functional'];
     var domains=[];cases.forEach(function(c){if(c.test_data&&domains.indexOf(c.test_data)<0)domains.push(c.test_data);});
     var region=$('tdx-region').value,count=Math.max(1,Math.min(500,parseInt($('tdx-count').value,10)||20));
-    var st=$('tdx-status');st.textContent='Generating data for '+cases.length+' case(s) · '+domains.join(', ')+' · '+catLabel+'…';$('tdx-out').innerHTML='';
-    var jobs=domains.map(function(d){return AIDP.callAgent('TESTDATA','testdata_generate',{domain:d,region:region,count:count}).then(function(r){return {dom:d,res:r,n:(r.records||[]).length};}).catch(function(e){return {dom:d,n:0,err:(e.message||e)};});});
-    Promise.all(jobs).then(function(rows){window.__tdx=rows;st.textContent='Generated '+rows.reduce(function(a,r){return a+r.n;},0)+' records · '+cases.length+' case(s) · categories: '+catLabel+'.';
+    var combos=[];cats.forEach(function(cat){domains.forEach(function(d){combos.push({cat:cat,d:d});});});combos=combos.slice(0,18);
+    var st=$('tdx-status');st.textContent='Generating '+combos.length+' category×domain dataset(s) for '+cases.length+' case(s)…';$('tdx-out').innerHTML='';
+    var jobs=combos.map(function(cb){return AIDP.callAgent('TESTDATA','testdata_generate',{domain:cb.d,region:region,count:count,category:cb.cat}).then(function(r){return {cat:cb.cat,dom:cb.d,res:r,n:(r.records||[]).length};}).catch(function(e){return {cat:cb.cat,dom:cb.d,n:0,err:(e.message||e)};});});
+    Promise.all(jobs).then(function(rows){window.__tdx=rows;st.textContent='Generated '+rows.reduce(function(a,r){return a+r.n;},0)+' records across '+rows.length+' dataset(s) · categories: '+cats.join(', ')+'.';
       $('tdx-out').innerHTML=rows.map(function(r,i){
-        if(r.err)return '<div class="note">'+esc(r.dom)+': '+esc(r.err)+'</div>';
+        if(r.err)return '<div class="note">'+esc(r.cat)+'/'+esc(r.dom)+': '+esc(r.err)+'</div>';
         var recs=r.res.records||[],fields=(r.res.pii_manifest||[]).map(function(m){return m.field;});
         var head='<tr>'+fields.map(function(f){return '<th>'+esc(f)+'</th>';}).join('')+'</tr>';
-        var body=recs.slice(0,50).map(function(rec){return '<tr>'+fields.map(function(f){return '<td>'+esc(rec[f])+'</td>';}).join('')+'</tr>';}).join('');
-        return '<div style="margin-bottom:12px"><div class="note" style="margin-bottom:4px"><strong>'+esc(r.dom)+'</strong> · '+recs.length+' records · covers: '+esc(catLabel)+' <button class="btn sm" onclick="window.__tdxdl('+i+')">⬇ JSON</button></div><div class="scroll"><table class="tbl">'+head+body+'</table></div></div>';
+        var body=recs.slice(0,30).map(function(rec){return '<tr>'+fields.map(function(f){return '<td>'+esc(rec[f])+'</td>';}).join('')+'</tr>';}).join('');
+        return '<div style="margin-bottom:12px"><div class="note" style="margin-bottom:4px"><strong>'+esc(r.cat)+'</strong> · '+esc(r.dom)+' · '+recs.length+' records <button class="btn sm" onclick="window.__tdxdl('+i+')">⬇ JSON</button></div><div class="scroll"><table class="tbl">'+head+body+'</table></div></div>';
       }).join('');
     });
   });
-  window.__tdxdl=function(i){var r=window.__tdx&&window.__tdx[i];if(r&&r.res){var b=new Blob([JSON.stringify(r.res.records,null,2)],{type:'application/json'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='testdata-'+r.dom+'.json';a.click();setTimeout(function(){URL.revokeObjectURL(u);},500);}};
+  window.__tdxdl=function(i){var r=window.__tdx&&window.__tdx[i];if(r&&r.res){var b=new Blob([JSON.stringify(r.res.records,null,2)],{type:'application/json'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='testdata-'+r.cat+'-'+r.dom+'.json';a.click();setTimeout(function(){URL.revokeObjectURL(u);},500);}};
 })();
 </script>
 </body>
