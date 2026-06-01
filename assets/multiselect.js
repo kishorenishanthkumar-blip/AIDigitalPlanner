@@ -23,7 +23,7 @@
       '.aidp-ms-panel{position:absolute;z-index:60;top:100%;left:0;margin-top:4px;background:#fff;border:1px solid #E2E8F0;border-radius:8px;box-shadow:0 4px 14px rgba(15,23,42,.14);max-height:280px;overflow:auto;min-width:240px;padding:6px}' +
       /* !important + flex-start guard against page-level `label{justify-content:space-between}`
          rules leaking in (the option row IS a <label>), which would right-align the text. */
-      '.aidp-ms-opt{display:flex !important;align-items:center !important;justify-content:flex-start !important;text-align:left !important;gap:8px;margin:0;padding:6px 8px;font-size:13px;color:#334155;cursor:pointer;border-radius:4px;line-height:1.35;text-transform:none}' +
+      '.aidp-ms-opt{display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start !important;text-align:left !important;text-transform:none !important;letter-spacing:normal !important;gap:8px;margin:0;padding:6px 8px;font-size:13px;font-weight:400;color:#334155;cursor:pointer;border-radius:4px;line-height:1.35}' +
       '.aidp-ms-opt:hover{background:#F1F5F9}' +
       '.aidp-ms-opt input[type=checkbox]{margin:0;flex:0 0 auto;width:15px;height:15px;cursor:pointer}' +
       '.aidp-ms-lbl{flex:1 1 auto;text-align:left !important;white-space:normal;word-break:break-word}' +
