@@ -311,9 +311,14 @@ table.tbl tr:last-child td{border-bottom:none}
   });
 
   /* ── STLC flow ── */
-  var STLC=['Requirements Analysis','Test Planning','Test Design','Test Data Setup','Environment Setup','Test Execution','Defect Management','Test Closure'];
+  var STLC=[
+    {t:'Requirements Analysis',h:'phase-1-requirements'},{t:'Test Planning',h:'phase-2-planning'},
+    {t:'Test Design',h:'phase-3-design'},{t:'Test Data Setup',h:'phase-4-data'},
+    {t:'Environment Setup',h:'phase-5-environment'},{t:'Test Execution',h:'phase-6-execution'},
+    {t:'Defect Management',h:'phase-7-defects'},{t:'Test Closure',h:'phase-8-closure'}
+  ];
   document.getElementById('stlc-flow').innerHTML = STLC.map(function(s,i){
-    return '<div class="step"><div class="n">PHASE '+(i+1)+'</div><div class="t">'+s+'</div></div>';
+    return '<a class="step" href="'+s.h+'" style="text-decoration:none;color:inherit"><div class="n">PHASE '+(i+1)+'</div><div class="t">'+s.t+'</div></a>';
   }).join('');
 
   /* ── frameworks ── */
