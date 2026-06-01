@@ -21,12 +21,19 @@
   const SUBDOMAIN = 'kishorenishanthkumar';
   const BASE_URL  = `https://aiagenticplanner-testing-master.${SUBDOMAIN}.workers.dev`;
   const TIMEOUT_MS = 60_000;
+  /* Must match the app-wide default user in aidp-api.js (CONFIG.DEFAULT_USER =
+   * 'guest@aidp.demo') so escalations (CR / patch / requirement) land under the
+   * SAME user the studios read · otherwise a raised requirement is invisible in
+   * Requirements Studio. Prefer the shared AIDP resolver when present. */
   const DEFAULT_TRIGGERED_BY = () => {
     try {
+      if (window.AIDP && typeof window.AIDP.getUserEmail === 'function') {
+        return window.AIDP.getUserEmail();
+      }
       const ls = window.localStorage;
-      const u  = (ls && (ls.getItem('aidp_user_email') || ls.getItem('user_email'))) || '';
-      return u || 'browser@aidp.local';
-    } catch { return 'browser@aidp.local'; }
+      const u  = (ls && (ls.getItem('aidp_user_email') || ls.getItem('aidp_email') || ls.getItem('user_email'))) || '';
+      return u || 'guest@aidp.demo';
+    } catch { return 'guest@aidp.demo'; }
   };
 
   async function callTool(toolName, args) {
