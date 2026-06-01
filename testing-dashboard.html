@@ -833,7 +833,13 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
   window.toggleDefect = function (i) {
     const detail = document.querySelector('tr.defect-detail-row[data-idx="' + i + '"]');
     if (!detail) return;
-    detail.style.display = (detail.style.display === 'none') ? '' : 'none';
+    const opening = detail.style.display === 'none';
+    detail.style.display = opening ? '' : 'none';
+    // When opening near the bottom of a long page, bring the detail (with the
+    // escalate bar + status dropdown) into view so it isn't below the fold.
+    if (opening) {
+      setTimeout(() => { try { detail.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} }, 30);
+    }
   };
 
   /* ─── Status bar ──────────────────────────────────── */
