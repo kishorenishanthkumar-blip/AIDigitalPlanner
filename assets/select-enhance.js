@@ -22,13 +22,17 @@
       '.aidp-se{position:relative;display:inline-block;vertical-align:middle}' +
       '.aidp-se-btn{font:inherit;font-size:13px;padding:7px 10px;border:1px solid #CBD5E1;border-radius:6px;background:#fff;color:#1E293B;cursor:pointer;text-align:left;min-width:140px;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
       '.aidp-se-btn:hover{border-color:#1E40AF}' +
-      '.aidp-se-panel{position:absolute;z-index:9999;top:100%;left:0;margin-top:4px;background:#fff;border:1px solid #E2E8F0;border-radius:8px;box-shadow:0 6px 16px rgba(15,23,42,.16);max-height:300px;overflow:auto;min-width:200px;padding:6px}' +
+      /* width:max-content sizes the panel to the longest option on one line,
+         which defeats the absolute-positioned shrink-to-fit collapse that
+         otherwise wraps option text one character per line inside a narrow
+         flex-column parent (e.g. label.fld). */
+      '.aidp-se-panel{position:absolute;z-index:9999;top:100%;left:0;margin-top:4px;background:#fff;border:1px solid #E2E8F0;border-radius:8px;box-shadow:0 6px 16px rgba(15,23,42,.16);max-height:300px;overflow-y:auto;overflow-x:hidden;width:max-content !important;min-width:200px;max-width:360px;padding:6px}' +
       /* !important + flex-start guard against page-level `label{justify-content:space-between}`
          rules leaking in (the option row IS a <label>), which would right-align the text. */
       '.aidp-se-opt{display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start !important;text-align:left !important;text-transform:none !important;letter-spacing:normal !important;gap:8px;margin:0;padding:6px 8px;font-size:13px;font-weight:400;color:#334155;cursor:pointer;border-radius:4px;line-height:1.35}' +
       '.aidp-se-opt:hover{background:#F1F5F9}' +
       '.aidp-se-opt input[type=checkbox]{margin:0;flex:0 0 auto;width:15px;height:15px;cursor:pointer}' +
-      '.aidp-se-lbl{flex:1 1 auto;text-align:left !important;white-space:normal;word-break:break-word}' +
+      '.aidp-se-lbl{flex:1 1 auto;min-width:0;text-align:left !important;white-space:nowrap !important;overflow:hidden;text-overflow:ellipsis;word-break:normal !important}' +
       '.aidp-se-all{font-weight:600;border-bottom:1px solid #E2E8F0;margin-bottom:4px;padding-bottom:8px;color:#0F172A}';
     document.head.appendChild(st);
   }
