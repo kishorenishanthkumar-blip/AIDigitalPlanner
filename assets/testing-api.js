@@ -165,12 +165,38 @@
     return callTool('tm_suggest_escalation', { defect_id: defId });
   }
 
+  /* ─── E-5-b..i · discipline orchestration ─────────── */
+
+  async function runDiscipline(discipline, scope, opts) {
+    opts = opts || {};
+    return callTool('tm_run_discipline', {
+      discipline: discipline, scope: scope,
+      target_url: opts.target_url, ref: opts.ref, thresholds: opts.thresholds
+    });
+  }
+
+  async function runAllDisciplines(scope, opts) {
+    opts = opts || {};
+    return callTool('tm_run_all_disciplines', {
+      scope: scope, target_url: opts.target_url, ref: opts.ref, disciplines: opts.disciplines
+    });
+  }
+
+  async function disciplineStatus(opts) {
+    opts = opts || {};
+    return callTool('tm_discipline_status', {
+      discipline: opts.discipline, run_id: opts.run_id, scope: opts.scope, limit: opts.limit
+    });
+  }
+
   /* ─── Expose ────────────────────────────────────── */
 
   window.TM = {
     runSuite, runLayer, getReport, listRuns,
     knownLayers, patchStatus, postExternal, health, triggerE2e,
     escalateToCr, escalateToPatch, raiseRequirement, escalationStatus, suggestEscalation,
+    runDiscipline, runAllDisciplines, disciplineStatus,
+    DISCIPLINES: ['functional','performance','security','accessibility','compliance','contract','integration','e2e'],
     BASE_URL
   };
 

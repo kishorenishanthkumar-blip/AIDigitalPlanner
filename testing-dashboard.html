@@ -157,6 +157,18 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
 .td-esc-result.err{border-color:#dc2626;background:#fef2f2;color:#991b1b}
 .td-esc-result code{display:inline;padding:1px 5px;background:var(--ink-100);border:0;max-height:none}
 .td-esc-hash{color:var(--ink-500);font-family:var(--f-mono);font-size:11px}
+/* E-5-b..i discipline runner panel */
+.td-disc-panel{background:#fff;border:1px solid var(--ink-200);border-radius:10px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+.td-disc-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.td-disc-head h3{margin:0;font-size:14px}
+.td-disc-sub{font-size:12px;color:var(--ink-500)}
+.td-disc-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.td-disc-controls label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-500)}
+.td-disc-controls input,.td-disc-controls select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--ink-200);border-radius:6px;color:var(--ink-700);text-transform:none;font-weight:400}
+.td-disc-controls input{min-width:200px}
+.td-disc-result{margin-top:12px;font-size:12px;line-height:1.6;padding:10px 12px;border-radius:6px;background:var(--ink-50);border:1px solid var(--ink-200);color:var(--ink-700);max-height:280px;overflow:auto}
+.td-disc-result code{font-family:var(--f-mono);font-size:11px;white-space:pre-wrap;word-break:break-word}
+.td-disc-result .ok{color:#16a34a;font-weight:600}.td-disc-result .bad{color:#dc2626;font-weight:600}
 
 /* States */
 .td-state{background:var(--white);border:1px dashed var(--ink-300);border-radius:var(--radius-lg);padding:48px 24px;text-align:center;color:var(--ink-600)}
@@ -284,6 +296,34 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
 
   <!-- ERROR BANNER -->
   <div id="td-error" style="display:none"></div>
+
+  <!-- DISCIPLINE RUNNERS (E-5-b..i) -->
+  <div class="td-disc-panel" id="td-disc-panel">
+    <div class="td-disc-head">
+      <h3>Discipline test runners</h3>
+      <span class="td-disc-sub">Plan + dispatch real tooling per discipline · results flow back into the defect manifest below.</span>
+    </div>
+    <div class="td-disc-controls">
+      <label>Discipline
+        <select id="disc-pick">
+          <option value="functional">functional</option>
+          <option value="performance">performance</option>
+          <option value="security">security</option>
+          <option value="accessibility">accessibility</option>
+          <option value="compliance">compliance</option>
+          <option value="contract">contract</option>
+          <option value="integration">integration</option>
+          <option value="e2e">e2e</option>
+        </select>
+      </label>
+      <label>Scope <input type="text" id="disc-scope" value="fleet" placeholder="e.g. discovery-studio"></label>
+      <label>Target URL <input type="text" id="disc-target" value="https://aidp-platform.pages.dev" placeholder="deployed URL"></label>
+      <button class="btn btn-sm" onclick="runOneDiscipline()" title="Plan + dispatch the selected discipline">▶ Run discipline</button>
+      <button class="btn btn-sm" onclick="runAllDisciplines()" title="Fan out across all 8 disciplines">▶▶ Run all disciplines</button>
+      <button class="btn btn-ghost btn-sm" onclick="loadDisciplineStatus()" title="Poll recent discipline runs">↻ Status</button>
+    </div>
+    <div class="td-disc-result" id="disc-result" style="display:none"></div>
+  </div>
 
   <!-- RECENT RUNS TABLE -->
   <div class="td-table-wrap" id="td-runs-wrap">
@@ -749,6 +789,64 @@ body{font-family:var(--f-ui);font-size:13px;line-height:1.5;color:var(--ink-800)
     html += '</div>';
     return html;
   }
+
+  /* ─── E-5-b..i discipline runner handlers ─────────── */
+
+  function discBox(html, cls) {
+    const box = document.getElementById('disc-result');
+    if (!box) return;
+    box.style.display = '';
+    box.innerHTML = (cls ? '<div class="' + cls + '">' + html + '</div>' : html);
+  }
+  function discScope() { return (document.getElementById('disc-scope').value || 'fleet').trim(); }
+  function discTarget() { return (document.getElementById('disc-target').value || '').trim() || undefined; }
+
+  window.runOneDiscipline = async function () {
+    const disc = document.getElementById('disc-pick').value;
+    discBox('Planning + dispatching <strong>' + disc + '</strong>…');
+    try {
+      const r = await window.TM.runDiscipline(disc, discScope(), { target_url: discTarget() });
+      if (r && r.ok) {
+        discBox('<span class="ok">✓ ' + disc + '</span> run <code>' + escapeHtml(r.run_id || '') + '</code> ' +
+          (r.dispatched ? 'dispatched to CI.' : 'planned.') +
+          (r.note ? '<br><em>' + escapeHtml(r.note) + '</em>' : '') +
+          '<br>Results will appear as <strong>' + disc + '</strong>-layer defects below once CI finishes.');
+      } else {
+        discBox('<span class="bad">✗ ' + disc + '</span> ' + escapeHtml((r && (r.error || r.detail)) ? (r.error || JSON.stringify(r.detail)) : 'failed') +
+          (r && r.available === false ? '<br><em>This discipline agent is not deployed yet (a later wave).</em>' : ''));
+      }
+    } catch (e) { discBox('<span class="bad">✗</span> ' + escapeHtml(e.message || String(e))); }
+  };
+
+  window.runAllDisciplines = async function () {
+    discBox('Fanning out across all 8 disciplines…');
+    try {
+      const r = await window.TM.runAllDisciplines(discScope(), { target_url: discTarget() });
+      const rows = (r.results || []).map(function (x) {
+        const ok = x.ok;
+        return '<div>' + (ok ? '<span class="ok">✓</span> ' : '<span class="bad">·</span> ') + escapeHtml(x.discipline) +
+          (ok ? (' → <code>' + escapeHtml(x.run_id || '') + '</code>' + (x.dispatched ? ' dispatched' : ' planned')) :
+                (x.available === false ? ' <em>(not deployed yet)</em>' : ' <em>' + escapeHtml(x.error || 'failed') + '</em>')) + '</div>';
+      }).join('');
+      discBox('<strong>' + (r.dispatched || 0) + '</strong> of 8 disciplines dispatched for scope <code>' + escapeHtml(r.scope || '') + '</code>:<br>' + rows);
+    } catch (e) { discBox('<span class="bad">✗</span> ' + escapeHtml(e.message || String(e))); }
+  };
+
+  window.loadDisciplineStatus = async function () {
+    discBox('Polling discipline runs…');
+    try {
+      const r = await window.TM.disciplineStatus({ scope: discScope(), limit: 5 });
+      const ds = r.disciplines || [];
+      if (!ds.length) { discBox('No deployed discipline agents responded yet for this scope.'); return; }
+      const rows = ds.map(function (d) {
+        const runs = (d.results && d.results.runs) || [];
+        return '<div><strong>' + escapeHtml(d.discipline) + '</strong> · ' + runs.length + ' recent run(s)' +
+          (runs[0] ? ' · latest <code>' + escapeHtml((runs[0].run_id || '').slice(-14)) + '</code> ' +
+            (runs[0].passed === true ? '<span class="ok">passed</span>' : runs[0].passed === false ? '<span class="bad">failed</span>' : runs[0].status || '') : '') + '</div>';
+      }).join('');
+      discBox('<strong>' + ds.length + '</strong> discipline agent(s) live:<br>' + rows);
+    } catch (e) { discBox('<span class="bad">✗</span> ' + escapeHtml(e.message || String(e))); }
+  };
 
   /* ─── E-5-j escalation handlers ───────────────────── */
 
