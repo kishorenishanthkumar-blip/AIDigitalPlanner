@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Program Flow · AIDP</title>
+<script src="assets/toasts.js" defer></script>
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<style>
+:root{--ink-50:#F8FAFC;--ink-100:#F1F5F9;--ink-200:#E2E8F0;--ink-300:#CBD5E1;--ink-500:#64748B;--ink-700:#334155;--ink-900:#0F172A;--blue:#1E40AF;--amber:#C8921A}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#1E293B;background:#F8FAFC}
+.shell{max-width:1280px;margin:0 auto;padding:22px 22px 80px}
+.bread{font-size:12px;color:var(--ink-500);margin-bottom:6px}.bread a{color:var(--ink-500);text-decoration:none}.bread a:hover{color:var(--blue)}
+.title{font-size:24px;font-weight:700;color:var(--ink-900);margin:8px 0 4px}
+.sub{font-size:13.5px;color:#475569;max-width:880px;line-height:1.55;margin:0 0 16px}
+.panel{background:#fff;border:1px solid var(--ink-200);border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(15,23,42,.05);margin-bottom:16px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+label.fld{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-500)}
+input,select{font:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--ink-200);border-radius:6px;color:var(--ink-700);text-transform:none;font-weight:400}
+input{min-width:220px}
+.btn{font-size:13px;font-weight:600;padding:8px 13px;border-radius:6px;border:1px solid var(--ink-200);color:var(--ink-700);background:#fff;cursor:pointer}
+.btn:hover{border-color:var(--blue);color:var(--blue)}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.btn.primary:hover{color:#fff}
+.btn.amber{background:var(--amber);color:#fff;border-color:var(--amber)}.btn.amber:hover{color:#fff}
+.statusbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
+.pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+.pill.open{background:#F1F5F9;color:#475569}.pill.running{background:#EFF6FF;color:#1E40AF}.pill.blocked{background:#FEF2F2;color:#B91C1C}.pill.done{background:#F0FDF4;color:#15803D}
+/* flow */
+.flow{display:flex;gap:0;overflow-x:auto;padding:6px 2px}
+.stage{min-width:190px;flex:1 1 0;display:flex;flex-direction:column}
+.stage-hd{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500);padding:0 0 6px;display:flex;justify-content:space-between;align-items:center}
+.stage-hd .n{background:var(--ink-100);border-radius:999px;padding:1px 8px;color:var(--ink-700);font-size:11px}
+.stage-body{background:var(--ink-50);border:1px solid var(--ink-200);border-radius:8px;padding:8px;min-height:60px;margin-right:18px;position:relative;flex:1}
+.stage:last-child .stage-body{margin-right:0}
+.stage-body:after{content:"";position:absolute;right:-13px;top:50%;width:13px;height:2px;background:var(--ink-300)}
+.stage:last-child .stage-body:after{display:none}
+.chip{background:#fff;border:1px solid var(--ink-200);border-radius:6px;padding:6px 8px;margin-bottom:6px;font-size:12px;line-height:1.3}
+.chip .ref{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-500);word-break:break-all}
+.chip .ttl{color:var(--ink-900);font-weight:500}
+.chip.sev-critical,.chip.sev-high{border-color:#FCA5A5}
+.st{font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--ink-100);color:var(--ink-700);margin-left:4px}
+.st.passed,.st.done{background:#F0FDF4;color:#15803D}.st.failed,.st.blocked{background:#FEF2F2;color:#B91C1C}.st.dispatched,.st.running{background:#EFF6FF;color:#1E40AF}
+.empty{color:var(--ink-500);font-size:12px;font-style:italic;padding:6px}
+.muted{color:var(--ink-500);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--ink-100)}
+th{color:var(--ink-500);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+td.mono{font-family:'IBM Plex Mono',monospace;font-size:11px}
+.ok{color:#15803D;font-weight:600}.bad{color:#B91C1C;font-weight:600}
+.note{font-size:12px;color:var(--ink-500);margin-top:8px}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<main class="shell">
+  <div class="bread"><a href="home">Home</a> / Program Flow</div>
+  <h1 class="title">Program Flow · the unified agentic spine</h1>
+  <p class="sub">Start a program, run the lifecycle DAG (discovery → requirements → test-design → test-data → disciplines), then watch the lineage build as one traced graph. Backed by the live <code>orchestrator</code> agent.</p>
+
+  <div class="panel">
+    <div class="row">
+      <label class="fld">Program
+        <select id="prog-pick"><option value="">— select —</option></select>
+      </label>
+      <label class="fld">New title <input id="prog-title" placeholder="e.g. Q3 Payments modernization"></label>
+      <button class="btn" onclick="startProgram()">+ Start program</button>
+      <div style="flex:1"></div>
+      <label class="fld">Scope <input id="run-scope" value="fleet" style="min-width:130px"></label>
+      <label class="fld">Target URL <input id="run-target" value="https://aidp-platform.pages.dev"></label>
+      <button class="btn primary" onclick="runFull()">▶ Run full lifecycle</button>
+      <button class="btn amber" onclick="syncDefects()">⟳ Sync defects</button>
+      <button class="btn" onclick="refresh()">↻ Refresh</button>
+    </div>
+    <div id="run-result" class="note"></div>
+  </div>
+
+  <div class="panel" id="status-panel" style="display:none">
+    <div class="statusbar" id="statusbar"></div>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin:0 0 10px;font-size:14px">Lineage flow</h3>
+    <div class="flow" id="flow"><div class="empty">Select or start a program, then run the lifecycle.</div></div>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin:0 0 8px;font-size:14px">Correlation trace <span class="muted" id="trace-meta"></span></h3>
+    <div id="trace"><div class="empty">No trace yet.</div></div>
+  </div>
+</main>
+
+<script>
+const AIDP = window.AIDP;
+let CURRENT = null;
+
+const STAGES = [
+  { key: "Discovery",    types: ["capability"] },
+  { key: "Requirements", types: ["requirement"] },
+  { key: "Test design",  types: ["test_strategy","test_case"] },
+  { key: "Test data",    types: ["testdata_set"] },
+  { key: "Execution",    types: ["discipline_run"] },
+  { key: "Defects",      types: ["defect"] },
+  { key: "Escalation",   types: ["escalation","change_request","patch"] }
+];
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function need(){ if(!AIDP||!AIDP.callAgent){ alert("API client not loaded — open from the live site."); return false; } return true; }
+async function orch(tool,args){ return AIDP.callAgent("ORCHESTRATOR",tool,args||{}); }
+
+async function loadList(){
+  if(!need())return;
+  try{
+    const r = await orch("program_list",{limit:50});
+    const sel = document.getElementById("prog-pick");
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— select —</option>' +
+      (r.programs||[]).map(p=>`<option value="${esc(p.program_id)}">${esc(p.title)} · ${esc(p.program_id)} (${esc(p.status)})</option>`).join("");
+    if(cur) sel.value = cur;
+  }catch(e){ /* ignore */ }
+}
+
+async function startProgram(){
+  if(!need())return;
+  const title = (document.getElementById("prog-title").value||"").trim();
+  if(!title){ alert("Enter a title"); return; }
+  const r = await orch("program_start",{title});
+  if(r&&r.ok){ CURRENT=r.program_id; document.getElementById("prog-title").value=""; await loadList(); document.getElementById("prog-pick").value=CURRENT; await refresh();
+    setResult(`Started <code>${esc(r.program_id)}</code> · trace <code>${esc(r.trace_id)}</code>`); }
+  else setResult(`<span class="bad">Start failed: ${esc(r&&r.error)}</span>`);
+}
+
+function setResult(html){ document.getElementById("run-result").innerHTML = html; }
+
+function selectedProgram(){ return CURRENT || document.getElementById("prog-pick").value; }
+
+async function runFull(){
+  const pid = selectedProgram(); if(!pid){ alert("Select or start a program first"); return; }
+  CURRENT=pid;
+  setResult("Running lifecycle…");
+  const r = await orch("program_run_full",{ program_id:pid, scope:(document.getElementById("run-scope").value||"fleet"), target_url:(document.getElementById("run-target").value||undefined) });
+  if(r&&r.ok){
+    const steps=(r.steps||[]).map(s=>`<span class="st ${s.ok?'passed':'failed'}">${esc(s.step)}${s.count!=null?" "+s.count:""}${s.dispatched!=null?" "+s.dispatched+"/"+(s.requested||0):""}</span>`).join(" ");
+    setResult(`Lifecycle ran · ${r.node_count} nodes · ${r.edge_count} edges<br>${steps}<br><span class="note">${esc(r.note||"")}</span>`);
+  } else setResult(`<span class="bad">Run failed: ${esc(r&&r.error)}</span>`);
+  await refresh();
+}
+
+async function syncDefects(){
+  const pid = selectedProgram(); if(!pid){ alert("Select a program first"); return; }
+  setResult("Syncing defects from CI…");
+  const r = await orch("program_sync",{ program_id:pid, scope:(document.getElementById("run-scope").value||undefined) });
+  if(r&&r.ok) setResult(`Synced · ${r.runs_seen} runs seen · ${r.defects_synced} defects added`);
+  else setResult(`<span class="bad">Sync failed: ${esc(r&&r.error)}</span>`);
+  await refresh();
+}
+
+async function refresh(){
+  const pid = selectedProgram(); if(!pid){ return; }
+  CURRENT=pid;
+  try{
+    const [g,st,tr] = await Promise.all([ orch("program_graph",{program_id:pid}), orch("program_status",{program_id:pid}), orch("program_trace",{program_id:pid,limit:60}) ]);
+    renderStatus(st); renderFlow(g); renderTrace(tr);
+  }catch(e){ setResult(`<span class="bad">Refresh failed: ${esc(e.message||e)}</span>`); }
+}
+
+function renderStatus(st){
+  const p = document.getElementById("status-panel"); const bar = document.getElementById("statusbar");
+  if(!st||!st.ok){ p.style.display="none"; return; }
+  p.style.display="";
+  const stages = (st.stages||[]).map(s=>`<span class="st ${s.present?'passed':''}">${esc(s.stage)} ${s.count}</span>`).join(" ");
+  bar.innerHTML = `<strong>${esc(st.title||st.program_id)}</strong> <span class="pill ${esc(st.status)}">${esc(st.status)}</span>
+    <span class="muted">${st.node_count} nodes · ${st.edge_count} edges</span> &nbsp; ${stages}`;
+}
+
+function renderFlow(g){
+  const flow = document.getElementById("flow");
+  if(!g||!g.ok){ flow.innerHTML='<div class="empty">No graph.</div>'; return; }
+  const byType = {};
+  (g.nodes||[]).forEach(n=>{ (byType[n.entity_type]=byType[n.entity_type]||[]).push(n); });
+  flow.innerHTML = STAGES.map(stage=>{
+    const nodes = stage.types.flatMap(t=>byType[t]||[]);
+    const chips = nodes.length ? nodes.slice(0,12).map(n=>chip(n)).join("") + (nodes.length>12?`<div class="muted">+${nodes.length-12} more</div>`:"") : '<div class="empty">—</div>';
+    return `<div class="stage"><div class="stage-hd">${esc(stage.key)}<span class="n">${nodes.length}</span></div><div class="stage-body">${chips}</div></div>`;
+  }).join("");
+}
+
+function chip(n){
+  const d = n.data||{};
+  const ttl = d.title || d.name || d.discipline || n.entity_ref;
+  const sev = d.severity ? ` sev-${esc(d.severity)}` : "";
+  const stat = n.status ? `<span class="st ${esc(n.status)}">${esc(n.status)}</span>` : "";
+  return `<div class="chip${sev}"><div class="ttl">${esc(String(ttl).slice(0,60))}${stat}</div><div class="ref">${esc(n.entity_ref)}</div></div>`;
+}
+
+function renderTrace(tr){
+  const box = document.getElementById("trace"); const meta=document.getElementById("trace-meta");
+  if(!tr||!tr.ok||!(tr.events||[]).length){ box.innerHTML='<div class="empty">No trace yet.</div>'; meta.textContent=""; return; }
+  meta.textContent = `· ${tr.count} hops`;
+  box.innerHTML = '<table><thead><tr><th>When</th><th>Caller → Target</th><th>Tool</th><th>Status</th><th>Latency</th></tr></thead><tbody>' +
+    tr.events.map(e=>`<tr><td class="mono">${esc((e.ts||"").slice(11))}</td><td>${esc(e.agent)} → <strong>${esc(e.target_agent||"")}</strong></td><td class="mono">${esc(e.tool||"")}</td><td class="${e.status==='ok'?'ok':'bad'}">${esc(e.status)}</td><td>${e.latency_ms!=null?e.latency_ms+" ms":""}</td></tr>`).join("") +
+    '</tbody></table>';
+}
+
+document.getElementById("prog-pick").addEventListener("change", e=>{ CURRENT=e.target.value; if(CURRENT) refresh(); });
+loadList();
+</script>
+</body>
+</html>
