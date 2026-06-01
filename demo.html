@@ -2,375 +2,437 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>E2E Demo &amp; Video · AIDP</title>
+<title>AIDP · Narrated Demo &amp; Video</title>
 <script src="assets/toasts.js" defer></script>
 <script src="assets/top-bar.js" defer></script>
 <script src="assets/aidp-api.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/aidp-enterprise.css">
 <style>
-:root{--ink-50:#F8FAFC;--ink-100:#F1F5F9;--ink-200:#E2E8F0;--ink-300:#CBD5E1;--ink-500:#64748B;--ink-700:#334155;--ink-900:#0F172A;--blue:#1E40AF;--amber:#C8921A;--green:#15803D;--red:#B91C1C}
+:root{--ink-50:#F8FAFC;--ink-100:#F1F5F9;--ink-200:#E2E8F0;--ink-300:#CBD5E1;--ink-500:#64748B;--ink-700:#334155;--ink-900:#0F172A;--blue:#1E40AF;--sky:#0EA5E9;--amber:#C8921A;--green:#15803D;--red:#B91C1C}
 body{margin:0;font-family:Inter,system-ui,sans-serif;color:#1E293B;background:#F8FAFC}
-.shell{max-width:1240px;margin:0 auto;padding:22px 22px 80px}
+.shell{max-width:1180px;margin:0 auto;padding:18px 18px 70px}
 .bread{font-size:12px;color:var(--ink-500);margin-bottom:6px}.bread a{color:var(--ink-500);text-decoration:none}.bread a:hover{color:var(--blue)}
-.title{font-size:24px;font-weight:800;color:var(--ink-900);margin:8px 0 4px}
-.sub{font-size:13.5px;color:#475569;max-width:920px;line-height:1.55;margin:0 0 16px}
-.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
-.btn{font-size:13px;font-weight:600;padding:9px 14px;border-radius:7px;border:1px solid var(--ink-200);color:var(--ink-700);background:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.title{font-size:23px;font-weight:800;color:var(--ink-900);margin:6px 0 3px}
+.sub{font-size:13px;color:#475569;max-width:880px;line-height:1.5;margin:0 0 14px}
+body.embed .bread,body.embed .title,body.embed .sub,body.embed [data-di-topbar],body.embed .extra{display:none!important}
+body.embed .shell{padding:8px}
+
+/* ── player ── */
+.player{background:#0B1220;border:1px solid #1E293B;border-radius:14px;overflow:hidden;box-shadow:0 14px 50px rgba(2,6,23,.22)}
+.stage{position:relative;aspect-ratio:16/9;width:100%;background:radial-gradient(1200px 500px at 50% -10%,#13233f 0%,#0B1220 60%);overflow:hidden}
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:6% 7%;opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease;pointer-events:none}
+.scene.on{opacity:1;transform:none;pointer-events:auto}
+.eyebrow{font-size:clamp(11px,1.5vw,15px);font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--sky);margin-bottom:10px}
+.headline{font-size:clamp(22px,4.6vw,52px);font-weight:900;line-height:1.05;color:#fff;margin:0 0 14px;letter-spacing:-.01em}
+.lede{font-size:clamp(13px,2vw,22px);color:#AFC2DE;line-height:1.45;max-width:80%}
+.kfade{opacity:0;transform:translateY(10px);animation:kf .7s ease forwards}
+@keyframes kf{to{opacity:1;transform:none}}
+.bul{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:9px}
+.bul li{display:flex;gap:12px;align-items:flex-start;font-size:clamp(12px,1.8vw,19px);color:#D5E0F0;line-height:1.35}
+.bul li .ic{flex:0 0 auto;width:30px;height:30px;border-radius:8px;background:#13233f;border:1px solid #2a3e5e;display:flex;align-items:center;justify-content:center;font-size:16px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:6px}
+.metric{background:#0f2138;border:1px solid #24405f;border-radius:12px;padding:14px 16px}
+.metric .v{font-size:clamp(20px,3.6vw,40px);font-weight:900;color:#fff;line-height:1}
+.metric .k{font-size:clamp(10px,1.3vw,13px);color:#9fb4d4;margin-top:6px}
+/* arch + pipeline svg fill parent */
+.diagram{margin-top:8px}
+.diagram svg{width:100%;height:auto;max-height:46vh;display:block}
+.brandmark{position:absolute;left:7%;bottom:5%;display:flex;align-items:center;gap:9px;color:#7e93b4;font-size:12px;font-weight:600;letter-spacing:.03em}
+.brandmark .b{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#C8921A,#1A2238);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px}
+.progwrap{position:absolute;top:0;left:0;right:0;height:100%;pointer-events:none}
+.recdot{position:absolute;top:14px;right:16px;display:none;align-items:center;gap:6px;color:#fff;font-size:12px;font-weight:700;background:rgba(185,28,28,.92);padding:4px 9px;border-radius:999px}
+.recdot.on{display:flex}.recdot .d{width:8px;height:8px;border-radius:50%;background:#fff;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.3}}
+
+/* ── captions ── */
+.caption{background:#070d18;color:#E7EEF8;font-size:clamp(12px,1.7vw,17px);line-height:1.45;text-align:center;padding:12px 8%;min-height:24px;border-top:1px solid #16243d}
+.caption b{color:#fff;background:#1d4ed8;border-radius:3px;padding:0 2px}
+.caption.hidden{display:none}
+
+/* ── controls ── */
+.controls{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0a111e;border-top:1px solid #16243d;flex-wrap:wrap}
+.ctl{background:#152339;border:1px solid #25395a;color:#dbe6f5;border-radius:8px;width:38px;height:34px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px}
+.ctl:hover{border-color:var(--sky);color:#fff}
+.ctl.play{width:46px;background:var(--sky);border-color:var(--sky);color:#062235;font-weight:800}
+.seg{flex:1 1 240px;display:flex;gap:3px;align-items:center;min-width:200px}
+.seg .s{flex:1;height:6px;border-radius:4px;background:#1c2c47;cursor:pointer;position:relative;overflow:hidden}
+.seg .s .f{position:absolute;inset:0;width:0;background:var(--sky)}
+.seg .s.done .f{width:100%}
+.time{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9fb4d4;min-width:88px;text-align:center}
+.spd{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9fb4d4;border:1px solid #25395a;border-radius:6px;padding:6px 8px}
+.voice{font-size:12px;background:#152339;border:1px solid #25395a;color:#dbe6f5;border-radius:8px;padding:7px 8px;max-width:190px}
+
+/* ── secondary toolbar ── */
+.bar2{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.btn{font-size:13px;font-weight:600;padding:8px 13px;border-radius:8px;border:1px solid var(--ink-200);color:var(--ink-700);background:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none}
 .btn:hover{border-color:var(--blue);color:var(--blue)}
 .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.primary:hover{background:#1b3a9c;color:#fff}
-.btn:disabled{opacity:.5;cursor:not-allowed}
 .btn.dl{border-color:var(--green);color:var(--green)}.btn.dl:hover{background:#F0FDF4}
-.stage-wrap{background:#0B1220;border:1px solid #1E293B;border-radius:14px;padding:10px;box-shadow:0 8px 30px rgba(2,6,23,.18)}
-canvas{width:100%;height:auto;display:block;border-radius:9px}
-.statusline{font-size:12.5px;color:var(--ink-500);margin:10px 2px 0;min-height:18px;font-family:'IBM Plex Mono',monospace}
-.statusline .rec{color:var(--red);font-weight:700}
-.panel{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:16px}
-@media(max-width:840px){.panel{grid-template-columns:1fr}}
-.card{background:#fff;border:1px solid var(--ink-200);border-radius:10px;padding:14px 16px}
-.card h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-500)}
-.steps{list-style:none;margin:0;padding:0}
-.steps li{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-top:1px solid var(--ink-100)}
-.steps li:first-child{border-top:0}
-.dot{width:9px;height:9px;border-radius:50%;background:var(--ink-300);flex:0 0 auto}
-.dot.done{background:var(--green)}.dot.fail{background:var(--red)}.dot.active{background:var(--amber)}
-.steps .nm{font-weight:600;color:var(--ink-900);flex:1}
-.steps .ct{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-500)}
-.finale{display:flex;align-items:center;gap:16px}
-.ring{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:800;font-size:28px;color:#fff;background:var(--ink-300)}
-.ring.green{background:var(--green)}.ring.amber{background:var(--amber)}.ring.red{background:var(--red)}
-.kv{font-size:12.5px;color:var(--ink-700);line-height:1.7}.kv b{color:var(--ink-900)}
-.kv .id{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-500)}
-.narr{font-size:13px;line-height:1.6;color:var(--ink-700);margin-top:10px;white-space:pre-wrap}
-.note{font-size:12px;color:var(--ink-500);margin-top:8px}
-.tag{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:999px;background:var(--ink-100);color:var(--ink-500)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.hint{font-size:12px;color:var(--ink-500);margin-top:8px;line-height:1.5}
+.extra{margin-top:22px;border-top:1px solid var(--ink-200);padding-top:16px}
+.extra h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500);margin:0 0 8px}
+.runout{font-size:12.5px;font-family:'IBM Plex Mono',monospace;color:var(--ink-700);background:#fff;border:1px solid var(--ink-200);border-radius:8px;padding:10px 12px;margin-top:10px;white-space:pre-wrap;display:none}
 </style>
 </head>
 <body>
 <div data-di-topbar></div>
 <main class="shell">
-  <div class="bread"><a href="home">Home</a> / E2E Demo &amp; Video</div>
-  <h1 class="title">End-to-end demo &amp; video generator</h1>
-  <p class="sub">Watch the whole AIDP fleet run as one system: the orchestrator drives the lifecycle DAG across all agents — Discovery → Requirements → Architecture → SOW → Governance → IaC → Test Design → Test Data → Disciplines → Insights — building a live lineage graph, then scoring program health. The run renders on a canvas you can <strong>record to WebM</strong> or <strong>export as a GIF</strong>. If the live fleet is unreachable, a scripted walkthrough plays instead (also recordable).</p>
+  <div class="bread"><a href="home">Home</a> / Narrated Demo &amp; Video</div>
+  <h1 class="title">AIDP — narrated product demo &amp; video</h1>
+  <p class="sub">A ~5-minute narrated explainer of the whole platform — what problem it solves, how the agent fleet is architected, and the benefits — with real voice-over, synced captions, and YouTube-style controls at 1.0× speed. Press play, or record it to a shareable video.</p>
 
-  <div class="toolbar">
-    <button class="btn primary" id="runLive" onclick="runLive()">▶ Run live e2e demo</button>
-    <button class="btn" id="runScript" onclick="runScripted()">▣ Scripted walkthrough (offline)</button>
-    <button class="btn dl" id="dlWebm" disabled onclick="downloadWebm()">⬇ WebM</button>
-    <button class="btn dl" id="dlGif" disabled onclick="downloadGif()">⬇ GIF</button>
-    <button class="btn" id="recScreen" onclick="recordScreen()" title="Record the whole tab/screen via the browser screen-capture API">⛶ Record screen</button>
-    <span class="tag" id="recTag" style="display:none">● REC</span>
+  <div class="player">
+    <div class="stage" id="stage">
+      <div class="recdot" id="recdot"><span class="d"></span> REC</div>
+      <!-- scenes injected here -->
+      <div class="brandmark"><span class="b">AI</span> AIDP · Agentic Delivery &amp; Testing Platform</div>
+    </div>
+    <div class="caption" id="caption">Press play to start the narrated walkthrough.</div>
+    <div class="controls">
+      <button class="ctl play" id="playBtn" onclick="togglePlay()" title="Play / Pause">▶</button>
+      <button class="ctl" onclick="jump(-1)" title="Previous scene">⏮</button>
+      <button class="ctl" onclick="jump(1)" title="Next scene">⏭</button>
+      <div class="seg" id="seg"></div>
+      <span class="time" id="time">0:00 / 5:00</span>
+      <span class="spd" title="Playback speed">1.0×</span>
+      <button class="ctl" id="ccBtn" onclick="toggleCC()" title="Captions">CC</button>
+      <select class="voice" id="voice" title="Narration voice"></select>
+      <button class="ctl" onclick="fs()" title="Fullscreen">⛶</button>
+    </div>
   </div>
 
-  <div class="stage-wrap">
-    <canvas id="stage" width="1280" height="720" aria-label="Live pipeline animation"></canvas>
+  <div class="bar2">
+    <button class="btn primary" id="recBtn" onclick="recordNarrated()">⏺ Record narrated video</button>
+    <button class="btn dl" id="dlWebm" disabled onclick="dl('webm')">⬇ Download video</button>
+    <button class="btn" id="mp4Btn" onclick="renderMp4()" title="Render a broadcast-quality 1080p MP4 via the Remotion backend">🎬 Generate broadcast MP4 (1080p)</button>
+    <a class="btn" href="program.html">🕸 See the live lineage graph</a>
   </div>
-  <div class="statusline" id="status">Ready. Click <b>Run live e2e demo</b> to drive the fleet and capture a video.</div>
+  <div class="hint" id="recHint">Recording uses your browser’s screen-capture. When prompted, choose <b>This Tab</b> and enable <b>“Also share tab audio”</b> so the narration is captured (on some systems, pick <b>Entire Screen</b> + system audio). Playback starts automatically; click Stop sharing when the outro ends.</div>
 
-  <div class="panel">
-    <div class="card">
-      <h3>Lifecycle steps</h3>
-      <ul class="steps" id="stepList"></ul>
-    </div>
-    <div class="card">
-      <h3>Program health (finale)</h3>
-      <div class="finale">
-        <div class="ring" id="ring">–</div>
-        <div class="kv">
-          <div><b id="ragLabel">Awaiting run</b></div>
-          <div class="id" id="progId"></div>
-          <div id="graphKv" style="margin-top:6px"></div>
-        </div>
-      </div>
-      <p class="narr" id="narr"></p>
-      <p class="note">Tip: WebM records the canvas directly (no permissions). “Record screen” captures the whole tab including the lineage graph on <a href="program.html">Program Flow</a>.</p>
-    </div>
+  <div class="extra">
+    <h3>Interactive · run a real end-to-end program</h3>
+    <p class="hint">The narration above is the product story. To prove it on the live fleet, run an actual program — the orchestrator drives every agent and returns the lineage counts and health score.</p>
+    <button class="btn" id="liveBtn" onclick="runLive()">▶ Run live e2e on the fleet</button>
+    <div class="runout" id="runout"></div>
   </div>
 </main>
 
 <script>
-/* ─── stage model ─────────────────────────────────────────── */
-const STAGES = [
-  { key:'discovery',     label:'Discovery',     icon:'🔍' },
-  { key:'requirements',  label:'Requirements',  icon:'📋' },
-  { key:'architecture',  label:'Architecture',  icon:'🏗' },
-  { key:'sow',           label:'SOW',           icon:'📄' },
-  { key:'governance',    label:'Governance',    icon:'🛡' },
-  { key:'iac',           label:'IaC',           icon:'⚙' },
-  { key:'test-design',   label:'Test Design',   icon:'📐' },
-  { key:'testdata',      label:'Test Data',     icon:'🧬' },
-  { key:'disciplines',   label:'Disciplines',   icon:'🧪' },
-  { key:'insights',      label:'Insights',      icon:'📈' }
+/* ════════ SCRIPT · 12 scenes · ~5 min @ rate 1.0 ════════ */
+const SCENES = [
+  { id:'title', kind:'title', dur:9,
+    eyebrow:'Agentic AI Digital Platform',
+    headline:'AIDP — one fleet of AI agents, from idea to evidence.',
+    lede:'Discovery, delivery, testing, governance and program health — as a single, traceable system.',
+    narration:"Welcome to AIDP, the Agentic AI Digital Platform. It's one system of specialized AI agents that takes an enterprise application all the way from discovery through delivery, testing, governance, and live program health. Let's see how it works." },
+
+  { id:'problem', kind:'bullets', dur:30,
+    eyebrow:'The problem',
+    headline:'Modernization is slow and fragmented.',
+    bullets:[['🧩','Discovery, requirements, architecture and testing live in disconnected tools.'],
+             ['🧪','Quality checks happen late, by hand, across a dozen scripts.'],
+             ['📑','Governance sits in spreadsheets — nothing is traceable end to end.'],
+             ['⏳','Teams spend months stitching it together, and still can’t prove what was built or whether it’s safe to ship.']],
+    narration:"Modernizing enterprise software is slow and fragmented. Discovery lives in one tool, requirements in another, architecture in slides, and testing in a dozen disconnected scripts. Governance sits in spreadsheets, nothing is traceable end to end, and quality checks happen late and by hand. Teams spend months stitching it together, and still can't prove what was built, why, or whether it's safe to ship." },
+
+  { id:'whatis', kind:'bullets', dur:30,
+    eyebrow:'What AIDP is',
+    headline:'One fleet. Twenty-five-plus agents. As a single system.',
+    bullets:[['🧭','A master router understands natural language and dispatches to the right specialist.'],
+             ['🪢','An orchestrator drives the entire delivery lifecycle as one traced graph.'],
+             ['🧠','Every agent shares memory; every action is recorded for audit.']],
+    narration:"AIDP replaces that patchwork with a single fleet of more than twenty-five AI agents that work as one system. A master router understands natural language and dispatches your request to the right specialist. An orchestrator drives the entire delivery lifecycle as one traced graph. Every agent shares memory, and every action is recorded for audit." },
+
+  { id:'arch', kind:'arch', dur:40,
+    eyebrow:'Architecture',
+    headline:'Router. Spine. Specialists. One graph.',
+    narration:"Here is the architecture. At the entry sits the master router; it classifies any natural-language request and routes it to an agent. Beneath it, the orchestrator is the unifying spine that runs the lifecycle and writes a lineage graph. Around it, delivery agents handle discovery, architecture, requirements, statement of work, governance, and infrastructure as code. A dedicated testing fleet runs eight real testing disciplines. Knowledge provides shared memory, and insights scores program health. One system, many specialists." },
+
+  { id:'lifecycle', kind:'pipeline', dur:35,
+    eyebrow:'The lifecycle',
+    headline:'One run drives the whole delivery flow.',
+    narration:"When you run a program, the orchestrator drives the full lifecycle as a single directed flow. Discovery identifies capabilities, requirements derive from them, architecture and the statement of work take shape, governance and infrastructure-as-code follow, then test design, synthetic test data, and the eight testing disciplines execute. Every step writes a node and an edge into one lineage graph, with a correlation trace across every hop." },
+
+  { id:'delivery', kind:'bullets', dur:30,
+    eyebrow:'Delivery agents',
+    headline:'The heavy lifting, specialized.',
+    bullets:[['🔍','Discovery applies the seven-R strategies and scores each capability.'],
+             ['🏗','Architecture designs across six clouds with live pricing.'],
+             ['📋','Requirements drafts technical, business and regulatory needs with MoSCoW and INVEST.'],
+             ['📄','SOW assembles the engagement; Governance keeps RAID, change requests and steering packs.']],
+    narration:"The delivery agents do the heavy lifting. Discovery applies the seven-R modernization strategies and scores each capability. Architecture designs across six clouds with live pricing. Requirements drafts technical, business, and regulatory needs with MoSCoW and INVEST. The statement-of-work agent assembles a full engagement, and governance maintains the RAID register, change requests, and steering packs." },
+
+  { id:'testing', kind:'bullets', dur:37,
+    eyebrow:'The testing fleet',
+    headline:'Eight disciplines. Real tools. A closed loop.',
+    bullets:[['🧪','A testing master fans out to functional, performance, security, accessibility, compliance, contract, integration and end-to-end agents.'],
+             ['🛠','Each wraps real tooling — k6, OWASP ZAP, Pa11y, Playwright and more.'],
+             ['🔁','Defects normalize into one manifest, then escalate to a change request, a patch, or a new requirement — automatically.']],
+    narration:"Testing is where AIDP stands apart. A testing master fans out to eight discipline agents: functional, performance, security, accessibility, compliance, contract, integration, and end-to-end. Each wraps real industry tools like k6, OWASP ZAP, Pa11y, and Playwright. Results normalize into a single defect manifest, and a closed loop escalates each defect into a change request, a patch, or a new requirement, automatically." },
+
+  { id:'knowledge', kind:'bullets', dur:25,
+    eyebrow:'Shared memory',
+    headline:'The platform gets smarter every run.',
+    bullets:[['🧠','Knowledge uses retrieval-augmented generation over a vector store.'],
+             ['♻️','Test design first recalls similar past requirements and defects before generating new cases.']],
+    narration:"Underneath everything is shared memory. The knowledge agent uses retrieval-augmented generation over a vector store, so agents learn from past programs. When test design generates new cases, it first recalls similar requirements and defects it has seen before. The platform gets smarter with every run." },
+
+  { id:'insights', kind:'metrics', dur:30,
+    eyebrow:'Insights',
+    headline:'The lineage graph becomes a decision.',
+    metrics:[['R/A/G','Health score'],['~200w','AI narrative'],['Portfolio','Cross-program trends'],['Drivers','Explained scoring']],
+    narration:"The insights agent turns the lineage graph into a decision. It computes a red-amber-green health score from stage coverage, testing depth, and open defects, lists the scoring drivers, and writes a two-hundred-word executive narrative with on-platform AI. Cross-program trends roll up across the whole portfolio: health, blockers, and testing coverage at a glance." },
+
+  { id:'trace', kind:'bullets', dur:25,
+    eyebrow:'Traceability',
+    headline:'Audit-ready by construction.',
+    bullets:[['🕸','The program flow page shows the lineage build in real time.'],
+             ['🔗','Every cross-agent hop is captured in a correlation trace.'],
+             ['🛡','Every escalation is chained into an immutable audit ledger.']],
+    narration:"Because every agent writes into one graph, you get full traceability. The program flow page shows the lineage build in real time, every cross-agent hop is captured in a correlation trace, and every escalation is chained into an immutable audit ledger — the explainability and evidence that regulated industries require." },
+
+  { id:'benefits', kind:'metrics', dur:30,
+    eyebrow:'The payoff',
+    headline:'Months of coordination, now one governed system.',
+    metrics:[['Faster','Idea → evidence'],['Audit-ready','By default'],['Self-testing','Golden gate on every deploy'],['One system','25+ agents']],
+    narration:"The result: what took months of manual coordination now runs as one governed, self-testing system. It's faster, it's audit-ready by default, and it proves its own health — a golden self-test runs on every deploy and fails loudly if the spine breaks. One platform, from idea to evidence." },
+
+  { id:'outro', kind:'title', dur:11,
+    eyebrow:'AIDP',
+    headline:'Your delivery &amp; testing fleet — working as one.',
+    lede:'Open the Console to drive any agent, or run a live end-to-end program yourself.',
+    narration:"That's AIDP, your enterprise delivery and testing fleet, working as one. Open the console to drive any agent, or run a live end-to-end program yourself. Thanks for watching." }
 ];
-const state = {};            // key -> {status:'pending|active|done|fail', count}
-STAGES.forEach(s => state[s.key] = { status:'pending', count:null });
-let activeKey = null, activeProg = 0, running = false, banner = 'Ready';
-let programId = '', nodeCount = 0, edgeCount = 0, health = null;
+const TOTAL = SCENES.reduce((s,x)=>s+x.dur,0);
 
-/* ─── canvas geometry ─────────────────────────────────────── */
-const cv = document.getElementById('stage'), ctx = cv.getContext('2d');
-const W = cv.width, H = cv.height;
-function nodePos(i){
-  const perRow = 5, row = Math.floor(i/perRow), col = i % perRow;
-  const x0 = 150, x1 = W-150, gx = (x1-x0)/(perRow-1);
-  const y = row === 0 ? 250 : 470;
-  return { x: x0 + col*gx, y };
+/* ════════ render scenes into the stage ════════ */
+const stage = document.getElementById('stage');
+function svgArch(){
+  return `<div class="diagram kfade"><svg viewBox="0 0 980 430" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+   ${tier(40,'Master Router · natural language → agents','#0ea5e9',[['Master Router',420,120]])}
+   ${box(420,86,140,40,'Master Router','#0ea5e9')}
+   ${box(420,150,140,40,'Orchestrator · spine','#6366f1')}
+   ${['Discovery','Architecture','Requirements','SOW','Governance','IaC'].map((n,i)=>box(60+i*150,220,130,38,n,'#22c55e')).join('')}
+   ${['Test Master','+ 8 disciplines','Test Design','Test Data'].map((n,i)=>box(60+i*220,290,200,38,n,'#f59e0b')).join('')}
+   ${['Knowledge · RAG memory','Insights · health & trends','Exception · audit ledger'].map((n,i)=>box(60+i*300,360,280,38,n,'#94a3b8')).join('')}
+   ${line(490,126,490,150)}${line(490,190,490,220)}
+  </svg></div>`;
 }
-const COL = { bg:'#0B1220', grid:'#13203A', edge:'#243a5e', edgeOn:'#38bdf8',
-  pend:'#1e2c47', pendBorder:'#2b3d5e', active:'#C8921A', done:'#15803D', fail:'#B91C1C',
-  text:'#E2E8F0', sub:'#7e93b4', white:'#F8FAFC' };
-
-function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-
-function draw(t){
-  ctx.fillStyle = COL.bg; ctx.fillRect(0,0,W,H);
-  // subtle grid
-  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1;
-  for(let x=0;x<W;x+=40){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
-  for(let y=0;y<H;y+=40){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
-
-  // header
-  ctx.fillStyle = COL.white; ctx.font = '700 30px Inter, sans-serif'; ctx.textBaseline='alphabetic';
-  ctx.fillText('AIDP · one system, live', 150, 90);
-  ctx.fillStyle = COL.sub; ctx.font = '500 16px Inter, sans-serif';
-  ctx.fillText('Orchestrator drives the lifecycle DAG across the agent fleet', 150, 120);
-  // banner
-  ctx.fillStyle = '#0ea5e9'; ctx.font = "600 15px 'IBM Plex Mono', monospace";
-  ctx.fillText(banner, 150, 160);
-
-  // edges first
-  for(let i=0;i<STAGES.length-1;i++){
-    const a = nodePos(i), b = nodePos(i+1);
-    const lit = state[STAGES[i].key].status==='done' && (state[STAGES[i+1].key].status!=='pending');
-    drawEdge(a,b,lit,t,i);
-  }
-  // moving packet into the active node
-  if(activeKey){
-    const idx = STAGES.findIndex(s=>s.key===activeKey);
-    if(idx>0){ const a=nodePos(idx-1), b=nodePos(idx); const p=easeInOut(activeProg);
-      const pt = edgePoint(a,b,p);
-      ctx.fillStyle = COL.edgeOn; ctx.shadowColor=COL.edgeOn; ctx.shadowBlur=16;
-      ctx.beginPath(); ctx.arc(pt.x,pt.y,6,0,7); ctx.fill(); ctx.shadowBlur=0;
-    }
-  }
-  // nodes
-  STAGES.forEach((s,i)=>{ drawNode(s,i,t); });
-
-  // footer counts
-  ctx.fillStyle = COL.sub; ctx.font = "500 14px 'IBM Plex Mono', monospace";
-  const done = STAGES.filter(s=>state[s.key].status==='done').length;
-  ctx.fillText('stages '+done+'/'+STAGES.length+'   ·   graph '+nodeCount+' nodes / '+edgeCount+' edges'+(programId?('   ·   '+programId):''), 150, H-40);
-  // health badge bottom-right
-  if(health){
-    const rag = (health.rag||'na'); const c = rag==='green'?COL.done:rag==='amber'?COL.active:rag==='red'?COL.fail:COL.pend;
-    ctx.fillStyle=c; ctx.beginPath(); ctx.arc(W-200, H-70, 36, 0, 7); ctx.fill();
-    ctx.fillStyle=COL.white; ctx.font='800 24px Inter'; ctx.textAlign='center';
-    ctx.fillText(String(health.health_score!=null?health.health_score:'–'), W-200, H-62);
-    ctx.font='600 12px Inter'; ctx.fillText('HEALTH', W-200, H-44); ctx.textAlign='left';
-  }
+function tier(){return '';}
+function box(cx,y,w,t,label,col){const x=cx-w/2;return `<g><rect x="${x}" y="${y}" width="${w}" height="${t}" rx="9" fill="#0f2138" stroke="${col}" stroke-width="1.6"/><text x="${cx}" y="${y+t/2+4}" fill="#dbe6f5" font-size="13" font-weight="600" text-anchor="middle">${label}</text></g>`;}
+function line(x1,y1,x2,y2){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#38507a" stroke-width="2"/>`;}
+function svgPipe(){
+  const st=['Discovery','Requirements','Architecture','SOW','Governance','IaC','Test Design','Test Data','Disciplines','Insights'];
+  const per=5,gx=170,gy=150;
+  let nodes='',edges='';
+  st.forEach((n,i)=>{const r=Math.floor(i/per),c=i%per;const x=90+c*gx,y=70+r*gy;
+    nodes+=`<g><rect x="${x-72}" y="${y-26}" width="144" height="52" rx="10" fill="#0f2138" stroke="#0ea5e9" stroke-width="1.5"/><text x="${x}" y="${y+5}" fill="#e2eefb" font-size="13" font-weight="600" text-anchor="middle">${n}</text></g>`;
+    if(i>0 && c!==0){const px=90+(c-1)*gx;edges+=`<line x1="${px+72}" y1="${y}" x2="${x-72}" y2="${y}" stroke="#33507c" stroke-width="2"/>`;}
+  });
+  edges+=`<path d="M ${90+4*gx} ${70+26} C ${90+4*gx} 150, 90 150, 90 ${70+gy-26}" fill="none" stroke="#33507c" stroke-width="2"/>`;
+  return `<div class="diagram kfade"><svg viewBox="0 0 940 320" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">${edges}${nodes}</svg></div>`;
 }
-function drawEdge(a,b,lit,t,i){
-  ctx.strokeStyle = lit ? COL.edgeOn : COL.edge; ctx.lineWidth = lit?3:2;
-  if(lit){ ctx.shadowColor=COL.edgeOn; ctx.shadowBlur=8; }
-  ctx.beginPath(); ctx.moveTo(a.x, a.y);
-  const mx=(a.x+b.x)/2; ctx.bezierCurveTo(mx,a.y, mx,b.y, b.x,b.y); ctx.stroke(); ctx.shadowBlur=0;
+function sceneHTML(s){
+  let body='';
+  if(s.kind==='title'){ body=`<div class="lede kfade" style="animation-delay:.25s">${s.lede||''}</div>`; }
+  else if(s.kind==='bullets'){ body=`<ul class="bul">${s.bullets.map((b,i)=>`<li style="animation-delay:${.2+i*.18}s" class="kfade"><span class="ic">${b[0]}</span><span>${b[1]}</span></li>`).join('')}</ul>`; }
+  else if(s.kind==='metrics'){ body=`<div class="metrics">${s.metrics.map((m,i)=>`<div class="metric kfade" style="animation-delay:${.15+i*.15}s"><div class="v">${m[0]}</div><div class="k">${m[1]}</div></div>`).join('')}</div>`; }
+  else if(s.kind==='arch'){ body=svgArch(); }
+  else if(s.kind==='pipeline'){ body=svgPipe(); }
+  return `<div class="eyebrow kfade">${s.eyebrow}</div><h2 class="headline kfade" style="animation-delay:.08s">${s.headline}</h2>${body}`;
 }
-function edgePoint(a,b,p){ const mx=(a.x+b.x)/2;
-  const x=cub(a.x,mx,mx,b.x,p), y=cub(a.y,a.y,b.y,b.y,p); return {x,y}; }
-function cub(p0,p1,p2,p3,t){ const u=1-t; return u*u*u*p0+3*u*u*t*p1+3*u*t*t*p2+t*t*t*p3; }
-function easeInOut(t){ return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
-function drawNode(s,i,t){
-  const {x,y}=nodePos(i), st=state[s.key].status, w=170,h=86;
-  const cx=x-w/2, cy=y-h/2;
-  let border = COL.pendBorder, fill = COL.pend, glow=null;
-  if(st==='active'){ border=COL.active; glow=COL.active; }
-  else if(st==='done'){ border=COL.done; fill='#0f2a1c'; }
-  else if(st==='fail'){ border=COL.fail; fill='#2a1216'; }
-  if(glow){ const pulse=0.5+0.5*Math.sin(t/180); ctx.shadowColor=glow; ctx.shadowBlur=10+18*pulse; }
-  rr(cx,cy,w,h,12); ctx.fillStyle=fill; ctx.fill();
-  ctx.lineWidth=2.5; ctx.strokeStyle=border; ctx.stroke(); ctx.shadowBlur=0;
-  // icon + label
-  ctx.font='26px Inter'; ctx.textAlign='left'; ctx.fillText(s.icon, cx+14, cy+38);
-  ctx.fillStyle=COL.text; ctx.font='700 16px Inter'; ctx.fillText(s.label, cx+50, cy+33);
-  // status / count
-  ctx.font="500 12px 'IBM Plex Mono', monospace"; ctx.fillStyle=COL.sub;
-  let sub = st==='pending'?'waiting': st==='active'?'running…': st==='fail'?'error': (state[s.key].count!=null? (''+state[s.key].count+(typeof state[s.key].count==='number'?' nodes':'')):'done');
-  ctx.fillText(sub, cx+50, cy+58);
-  // check badge
-  if(st==='done'){ ctx.fillStyle=COL.done; ctx.beginPath(); ctx.arc(cx+w-18, cy+18, 10, 0, 7); ctx.fill();
-    ctx.strokeStyle='#fff'; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(cx+w-23,cy+18); ctx.lineTo(cx+w-19,cy+22); ctx.lineTo(cx+w-13,cy+13); ctx.stroke(); }
-  if(st==='fail'){ ctx.fillStyle=COL.fail; ctx.beginPath(); ctx.arc(cx+w-18, cy+18, 10, 0, 7); ctx.fill();
-    ctx.strokeStyle='#fff'; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(cx+w-22,cy+14); ctx.lineTo(cx+w-14,cy+22); ctx.moveTo(cx+w-14,cy+14); ctx.lineTo(cx+w-22,cy+22); ctx.stroke(); }
-}
+SCENES.forEach((s,i)=>{ const d=document.createElement('div'); d.className='scene'; d.id='sc-'+i; d.innerHTML=sceneHTML(s); stage.insertBefore(d, stage.querySelector('.brandmark')); });
+// segmented progress
+document.getElementById('seg').innerHTML = SCENES.map((s,i)=>`<div class="s" id="seg-${i}" title="${s.eyebrow}" onclick="seek(${i})"><div class="f" id="segf-${i}"></div></div>`).join('');
 
-/* ─── animation loop + GIF capture ───────────────────────── */
-let rafId=null, gif=null, gifTimer=0, lastGifAt=0;
-function loop(ts){
-  draw(ts);
-  if(gif && ts-lastGifAt > 140){ lastGifAt=ts; addGifFrame(); }
-  rafId = requestAnimationFrame(loop);
-}
-function startLoop(){ if(!rafId) rafId=requestAnimationFrame(loop); }
-function stopLoop(){ if(rafId){ cancelAnimationFrame(rafId); rafId=null; } draw(performance.now()); }
+/* ════════ playback engine ════════ */
+let idx=-1, playing=false, paused=false, sceneT0=0, rafP=null, ccOn=true, voices=[], chosenVoice=null;
+const synth = window.speechSynthesis;
+const fmt = s => Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
 
-/* ─── recorders ──────────────────────────────────────────── */
-let mediaRec=null, chunks=[], webmUrl=null, gifUrl=null, screenRec=null, screenChunks=[], screenUrl=null;
-function startCanvasRecording(){
+function loadVoices(){
+  voices = synth ? synth.getVoices() : [];
+  const sel=document.getElementById('voice'); if(!voices.length){ sel.innerHTML='<option>System voice</option>'; return; }
+  const en = voices.filter(v=>/^en[-_]/i.test(v.lang));
+  const list = en.length?en:voices;
+  // prefer natural/aria/google voices
+  const score=v=>(/natural|aria|jenny|guy|google|libby|microsoft/i.test(v.name)?1:0);
+  list.sort((a,b)=>score(b)-score(a));
+  sel.innerHTML = list.map((v,i)=>`<option value="${voices.indexOf(v)}">${v.name.replace(/\s*\(.*?\)\s*/,' ')} · ${v.lang}</option>`).join('');
+  chosenVoice = list[0];
+  sel.onchange = ()=>{ chosenVoice = voices[+sel.value]; };
+}
+if(synth){ loadVoices(); synth.onvoiceschanged = loadVoices; }
+
+function showScene(i){
+  SCENES.forEach((_,k)=>{ const el=document.getElementById('sc-'+k); el.classList.toggle('on', k===i);
+    if(k===i){ /* restart entrance anims */ el.querySelectorAll('.kfade').forEach(n=>{n.style.animation='none'; n.offsetHeight; n.style.animation='';}); }
+    document.getElementById('seg-'+k).classList.toggle('done', k<i);
+    document.getElementById('segf-'+k).style.width = k<i?'100%':'0';
+  });
+  setCaption(SCENES[i].narration, 0);
+}
+function setCaption(text, charIdx){
+  const cap=document.getElementById('caption');
+  if(charIdx<=0){ cap.textContent=text; return; }
+  // bold up to current word
+  cap.innerHTML = '<b>'+escapeH(text.slice(0,charIdx))+'</b>'+escapeH(text.slice(charIdx));
+}
+function escapeH(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+function speak(i){
+  if(!synth){ return false; }
+  synth.cancel();
+  const u=new SpeechSynthesisUtterance(SCENES[i].narration);
+  u.rate=1.0; u.pitch=1.0; u.volume=1.0; if(chosenVoice) u.voice=chosenVoice;
+  u.onboundary=e=>{ if(e.name==='word'||e.charIndex!=null) setCaption(SCENES[i].narration, e.charIndex); };
+  u.onend=()=>{ if(playing && !paused && idx===i) next(); };
+  synth.speak(u); return true;
+}
+function playScene(i){
+  idx=i; sceneT0=performance.now(); showScene(i);
+  const spoke = speak(i);
+  if(!spoke){ /* no TTS · fall back to timed advance */ scheduleFallback(i); }
+}
+let fallbackTimer=null;
+function scheduleFallback(i){ clearTimeout(fallbackTimer); fallbackTimer=setTimeout(()=>{ if(playing&&!paused&&idx===i) next(); }, SCENES[i].dur*1000); }
+function next(){ if(idx<SCENES.length-1) playScene(idx+1); else stop(true); }
+function jump(d){ const t=Math.min(SCENES.length-1,Math.max(0,idx+d)); if(!playing){ playing=true; document.getElementById('playBtn').textContent='⏸'; startRAF(); } playScene(t); }
+function seek(i){ if(!playing){ playing=true; document.getElementById('playBtn').textContent='⏸'; startRAF(); } paused=false; playScene(i); }
+
+function togglePlay(){
+  if(!playing){ playing=true; paused=false; document.getElementById('playBtn').textContent='⏸'; startRAF(); playScene(idx<0?0:idx); }
+  else if(paused){ paused=false; document.getElementById('playBtn').textContent='⏸'; if(synth) synth.resume(); }
+  else { paused=true; document.getElementById('playBtn').textContent='▶'; if(synth) synth.pause(); }
+}
+function stop(ended){ playing=false; paused=false; if(synth) synth.cancel(); clearTimeout(fallbackTimer); stopRAF();
+  document.getElementById('playBtn').textContent='▶';
+  if(ended){ document.getElementById('caption').textContent='Demo complete. Replay, record, or run a live program below.'; if(recState) stopRecording(); }
+}
+function toggleCC(){ ccOn=!ccOn; document.getElementById('caption').classList.toggle('hidden',!ccOn); document.getElementById('ccBtn').style.color=ccOn?'':'#5b7299'; }
+
+function startRAF(){ if(!rafP) rafP=requestAnimationFrame(tick); }
+function stopRAF(){ if(rafP){ cancelAnimationFrame(rafP); rafP=null; } }
+function tick(){
+  // elapsed approximation: completed scenes' dur + within-scene progress
+  let done=0; for(let k=0;k<idx;k++) done+=SCENES[k].dur;
+  const within = paused?lastWithin:Math.min(SCENES[idx]?.dur||0,(performance.now()-sceneT0)/1000); lastWithin=within;
+  if(idx>=0){ document.getElementById('segf-'+idx).style.width=Math.min(100,(within/(SCENES[idx].dur||1))*100)+'%'; }
+  document.getElementById('time').textContent = fmt(done+within)+' / '+fmt(TOTAL);
+  rafP=requestAnimationFrame(tick);
+}
+let lastWithin=0;
+
+function fs(){ const p=document.querySelector('.player'); if(!document.fullscreenElement){ p.requestFullscreen&&p.requestFullscreen(); } else document.exitFullscreen&&document.exitFullscreen(); }
+
+/* ════════ record narrated video (screen+audio) ════════ */
+let recState=null, recChunks=[], recUrl=null;
+async function recordNarrated(){
+  if(recState){ stopRecording(); return; }
   try{
-    chunks=[]; webmUrl=null; document.getElementById('dlWebm').disabled=true;
-    const stream = cv.captureStream(30);
-    const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
-    mediaRec = new MediaRecorder(stream,{mimeType:mime, videoBitsPerSecond:6_000_000});
-    mediaRec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
-    mediaRec.onstop=()=>{ const b=new Blob(chunks,{type:'video/webm'}); webmUrl=URL.createObjectURL(b);
-      document.getElementById('dlWebm').disabled=false; toast('WebM ready · click ⬇ WebM'); };
-    mediaRec.start();
-  }catch(e){ console.warn('canvas record unsupported', e); }
-}
-function stopCanvasRecording(){ try{ if(mediaRec && mediaRec.state!=='inactive') mediaRec.stop(); }catch(e){} }
-function startGif(){
-  if(typeof GIF==='undefined'){ return; }
-  try{
-    gifUrl=null; document.getElementById('dlGif').disabled=true;
-    gif = new GIF({ workers:2, quality:12, width:640, height:360,
-      workerScript:'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js' });
-    gif.on('finished', b=>{ gifUrl=URL.createObjectURL(b);
-      document.getElementById('dlGif').disabled=false; toast('GIF ready · click ⬇ GIF'); });
-    lastGifAt=0;
-  }catch(e){ gif=null; console.warn('gif unsupported', e); }
-}
-const gifScratch = Object.assign(document.createElement('canvas'),{width:640,height:360});
-const gsx = gifScratch.getContext('2d');
-function addGifFrame(){ try{ gsx.drawImage(cv,0,0,640,360); gif.addFrame(gsx,{copy:true, delay:140}); }catch(e){} }
-function finishGif(){ if(gif){ try{ gif.render(); }catch(e){} gif=null; } }
-
-function toast(m){ try{ if(window.DI && window.DI.toast) window.DI.toast(m); }catch(e){} }
-function setStatus(html){ document.getElementById('status').innerHTML = html; }
-function setRec(on){ document.getElementById('recTag').style.display = on?'inline-block':'none'; }
-
-/* ─── runners ────────────────────────────────────────────── */
-const sleep = ms => new Promise(r=>setTimeout(r,ms));
-function resetRun(){
-  STAGES.forEach(s=>state[s.key]={status:'pending',count:null});
-  activeKey=null; programId=''; nodeCount=0; edgeCount=0; health=null; banner='Initializing…';
-  renderSteps(); renderFinale();
-}
-async function animateActive(key, ms){
-  activeKey=key; state[key].status='active'; activeProg=0;
-  const t0=performance.now();
-  while(performance.now()-t0 < ms){ activeProg=Math.min(1,(performance.now()-t0)/ms); await sleep(16); }
-  renderSteps();
-}
-function markDone(key, count, ok){ state[key].status = ok===false?'fail':'done'; state[key].count = count; activeKey=null; renderSteps(); }
-
-async function runLive(){
-  if(running) return; running=true; toggleButtons(true);
-  resetRun(); startLoop(); startCanvasRecording(); startGif(); setRec(true);
-  setStatus('<span class="rec">● REC</span> Driving the live fleet…');
-  banner='Creating program…';
-  try{
-    if(!window.AIDP) throw new Error('AIDP client not loaded');
-    const start = await AIDP.callAgent('ORCHESTRATOR','program_start',{ title:'E2E Demo '+new Date().toISOString().slice(0,19), tenant_id:'demo' });
-    programId = start.program_id || '';
-    banner='Driving the lifecycle DAG across the fleet…';
-    const run = await AIDP.callAgent('ORCHESTRATOR','program_run_full',{ program_id:programId, scope:'fleet' });
-    const steps = (run && run.steps) || [];
-    const find = k => steps.find(s => (s.step||'').toLowerCase() === k);
-    for(let i=0;i<9;i++){
-      const s = STAGES[i]; banner = s.icon+'  '+s.label+'…';
-      await animateActive(s.key, 650);
-      const r = find(s.key);
-      const cnt = r ? (r.count!=null?r.count : (r.ok!==false?'ok':'err')) : 'ok';
-      markDone(s.key, cnt, !r || r.ok!==false);
-      await sleep(160);
-    }
-    banner='Reading the lineage graph…';
-    const g = await AIDP.callAgent('ORCHESTRATOR','program_graph',{ program_id:programId });
-    nodeCount=(g.nodes||[]).length; edgeCount=(g.edges||[]).length;
-    banner='Scoring program health (Workers AI)…';
-    await animateActive('insights', 700);
-    const rep = await AIDP.callAgent('INSIGHTS','insights_tenant_report',{ program_id:programId, tenant_id:'demo' });
-    health = rep && rep.ok!==false ? rep : { health_score:null, rag:'na' };
-    markDone('insights', health.rag||'ok', rep && rep.ok!==false);
-    banner = health.health_score!=null ? ('Done · health '+health.health_score+'/100 ('+(health.rag||'').toUpperCase()+')') : 'Done';
-    renderFinale();
-    setStatus('Live run complete · '+nodeCount+' nodes / '+edgeCount+' edges · preparing downloads…');
-  }catch(e){
-    banner='Live fleet unreachable · '+e.message;
-    setStatus('⚠ Live run failed ('+e.message+'). Try the scripted walkthrough.');
-    markFailRemaining();
-  }
-  await sleep(900);            // let the final frame breathe in the recording
-  finalizeRecording(); running=false; toggleButtons(false); setRec(false);
-}
-
-async function runScripted(){
-  if(running) return; running=true; toggleButtons(true);
-  resetRun(); startLoop(); startCanvasRecording(); startGif(); setRec(true);
-  setStatus('<span class="rec">● REC</span> Scripted walkthrough (offline demo data)…');
-  programId='PRG-DEMO-SCRIPTED';
-  const fake = { discovery:7, requirements:12, architecture:3, sow:11, governance:5, iac:1, 'test-design':9, testdata:5, disciplines:8 };
-  let n=0;
-  for(let i=0;i<9;i++){ const s=STAGES[i]; banner=s.icon+'  '+s.label+'…';
-    await animateActive(s.key, 620); const c=fake[s.key]; n+=c; nodeCount=n; markDone(s.key,c,true); await sleep(150); }
-  banner='Scoring program health…'; await animateActive('insights',650);
-  edgeCount=Math.round(n*0.7); health={health_score:82,rag:'green',summary:'Scripted demo: program "Modernization Pilot" is GREEN (health 82/100). 7/7 lifecycle stages have artifacts; 12 requirements, 8 discipline runs, 0 open defects.'};
-  markDone('insights','green',true); banner='Done · health 82/100 (GREEN)'; renderFinale();
-  setStatus('Scripted walkthrough complete · preparing downloads…');
-  await sleep(900); finalizeRecording(); running=false; toggleButtons(false); setRec(false);
-}
-function markFailRemaining(){ STAGES.forEach(s=>{ if(state[s.key].status==='pending'||state[s.key].status==='active') markDone(s.key,'–',false); }); }
-function finalizeRecording(){ stopCanvasRecording(); finishGif(); setStatus(document.getElementById('status').textContent.replace('preparing downloads…','downloads ready below ⬇')); stopSoon(); }
-function stopSoon(){ setTimeout(stopLoop, 400); }
-
-/* ─── screen recording (getDisplayMedia) ─────────────────── */
-async function recordScreen(){
-  if(screenRec && screenRec.state==='recording'){ screenRec.stop(); document.getElementById('recScreen').textContent='⛶ Record screen'; return; }
-  try{
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video:{frameRate:30}, audio:false });
-    screenChunks=[]; screenUrl=null;
-    screenRec = new MediaRecorder(stream,{mimeType:'video/webm'});
-    screenRec.ondataavailable=e=>{ if(e.data.size) screenChunks.push(e.data); };
-    screenRec.onstop=()=>{ stream.getTracks().forEach(t=>t.stop());
-      const b=new Blob(screenChunks,{type:'video/webm'}); screenUrl=URL.createObjectURL(b);
-      const a=document.createElement('a'); a.href=screenUrl; a.download='aidp-screen-demo.webm'; a.click();
-      document.getElementById('recScreen').textContent='⛶ Record screen'; toast('Screen recording downloaded'); };
-    stream.getVideoTracks()[0].addEventListener('ended', ()=>{ if(screenRec.state==='recording') screenRec.stop(); });
-    screenRec.start(); document.getElementById('recScreen').textContent='⏹ Stop screen rec';
-    toast('Recording screen · click Stop or the browser bar to finish');
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video:{ frameRate:30 }, audio:true });
+    recChunks=[]; recUrl=null; document.getElementById('dlWebm').disabled=true;
+    const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')?'video/webm;codecs=vp9,opus':'video/webm';
+    recState = new MediaRecorder(stream,{ mimeType:mime, videoBitsPerSecond:6_000_000 });
+    recState.ondataavailable=e=>{ if(e.data.size) recChunks.push(e.data); };
+    recState.onstop=()=>{ stream.getTracks().forEach(t=>t.stop()); const b=new Blob(recChunks,{type:'video/webm'}); recUrl=URL.createObjectURL(b);
+      document.getElementById('dlWebm').disabled=false; document.getElementById('recdot').classList.remove('on');
+      document.getElementById('recBtn').textContent='⏺ Record narrated video'; recState=null; toast('Recording ready · click Download video'); };
+    stream.getVideoTracks()[0].addEventListener('ended', stopRecording);
+    recState.start();
+    document.getElementById('recdot').classList.add('on');
+    document.getElementById('recBtn').textContent='⏹ Stop recording';
+    // start the show from the top
+    idx=-1; playing=false; togglePlay();
+    toast('Recording · narration starting from the top');
   }catch(e){ toast('Screen capture canceled'); }
 }
+function stopRecording(){ try{ if(recState && recState.state!=='inactive') recState.stop(); }catch(e){} }
+function dl(kind){ if(kind==='webm'&&recUrl){ const a=document.createElement('a'); a.href=recUrl; a.download='aidp-narrated-demo.webm'; a.click(); } }
 
-/* ─── downloads ──────────────────────────────────────────── */
-function downloadWebm(){ if(!webmUrl) return; const a=document.createElement('a'); a.href=webmUrl; a.download='aidp-e2e-demo.webm'; a.click(); }
-function downloadGif(){ if(!gifUrl) return; const a=document.createElement('a'); a.href=gifUrl; a.download='aidp-e2e-demo.gif'; a.click(); }
-
-/* ─── side panels (HTML mirror) ──────────────────────────── */
-function renderSteps(){
-  document.getElementById('stepList').innerHTML = STAGES.map(s=>{
-    const st=state[s.key].status, cls = st==='done'?'done':st==='fail'?'fail':st==='active'?'active':'';
-    const c = state[s.key].count;
-    const ct = st==='done'?(c!=null?(''+c+(typeof c==='number'?' nodes':'')):'ok'): st==='fail'?'error': st==='active'?'running…':'waiting';
-    return '<li><span class="dot '+cls+'"></span><span class="nm">'+s.icon+' '+s.label+'</span><span class="ct">'+ct+'</span></li>';
-  }).join('');
+/* ════════ Remotion broadcast MP4 (optional backend) ════════ */
+function renderMp4(){
+  const cfg = (window.AIDP && AIDP.CONFIG && AIDP.CONFIG.VIDEO_RENDER_URL) || '';
+  if(!cfg){
+    toast('Broadcast MP4 needs the render backend');
+    document.getElementById('recHint').innerHTML = '🎬 <b>Broadcast MP4 (1080p, Edge-TTS):</b> the Remotion renderer in <code>apps/video-renderer</code> produces this, but it needs a Docker host (it can’t run on Cloudflare Workers). Set <code>AIDP.CONFIG.VIDEO_RENDER_URL</code> in <code>assets/aidp-api.js</code> to your deployed render endpoint and this button will POST the AIDP brief, poll progress, and embed the MP4 here at 1.0×. See the deploy steps shared in chat.';
+    return;
+  }
+  startMp4Render(cfg);
 }
-function renderFinale(){
-  const ring=document.getElementById('ring');
-  const rag = health&&health.rag?health.rag:'na';
-  ring.className='ring '+(rag==='green'||rag==='amber'||rag==='red'?rag:'');
-  ring.textContent = health&&health.health_score!=null?health.health_score:'–';
-  document.getElementById('ragLabel').textContent = health? ((rag||'na').toUpperCase()+(health.health_score!=null?(' · '+health.health_score+'/100'):'')) : 'Awaiting run';
-  document.getElementById('progId').textContent = programId||'';
-  document.getElementById('graphKv').innerHTML = (nodeCount||edgeCount)? ('<b>'+nodeCount+'</b> nodes · <b>'+edgeCount+'</b> edges in the lineage graph') : '';
-  document.getElementById('narr').textContent = health&&health.summary?health.summary:'';
+async function startMp4Render(base){
+  try{
+    document.getElementById('mp4Btn').textContent='🎬 Rendering…';
+    const brief = aidpBrief();
+    const r = await fetch(base.replace(/\/+$/,'')+'/render',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ compositionId:'ExecutiveBrief', brief }) });
+    const j = await r.json(); const runId = j.runId || j.id;
+    if(!runId) throw new Error(j.error||'no runId');
+    const poll = async()=>{ const s=await (await fetch(base.replace(/\/+$/,'')+'/runs/'+runId)).json();
+      document.getElementById('mp4Btn').textContent='🎬 '+(s.status||'…')+' '+(s.progress!=null?Math.round(s.progress*100)+'%':'');
+      if(s.status==='done'||s.url){ showMp4(s.url); document.getElementById('mp4Btn').textContent='🎬 Generate broadcast MP4 (1080p)'; return; }
+      if(s.status==='error'){ toast('Render failed: '+(s.error||'')); document.getElementById('mp4Btn').textContent='🎬 Generate broadcast MP4 (1080p)'; return; }
+      setTimeout(poll, 2500); };
+    poll();
+  }catch(e){ toast('Render backend error: '+e.message); document.getElementById('mp4Btn').textContent='🎬 Generate broadcast MP4 (1080p)'; }
 }
-function toggleButtons(on){ ['runLive','runScript','recScreen'].forEach(id=>document.getElementById(id).disabled=on); }
+function showMp4(url){ if(!url) return; const w=document.createElement('div'); w.className='bar2';
+  w.innerHTML='<video src="'+url+'" controls style="width:100%;border-radius:12px" playbackrate="1"></video><a class="btn dl" href="'+url+'" download>⬇ Download MP4</a>';
+  document.querySelector('.player').after(w); const v=w.querySelector('video'); if(v){ v.playbackRate=1.0; } }
+function aidpBrief(){
+  return {
+    id:'aidp-product-'+Date.now().toString(36),
+    useCaseTitle:'AIDP · Agentic Delivery & Testing Platform',
+    persona:'exec', length:'standard', voice:'en-US-AriaNeural',
+    brand:{ primary:'#C8921A', accent:'#1A2238', logo:null },
+    profile:{ role:'Platform', region:'Global', domain:'Enterprise modernization', bankName:'AIDP' },
+    objectives:[
+      { id:'o1', text:'Run discovery → delivery → testing → governance as one traced system', severity:'High', owner:'Platform' },
+      { id:'o2', text:'Make every program audit-ready and self-testing by default', severity:'High', owner:'Risk' },
+      { id:'o3', text:'Score live program health and surface portfolio trends', severity:'Med', owner:'Exec' }
+    ],
+    painPoints:[
+      { id:'p1', text:'Discovery, requirements, architecture and testing live in disconnected tools', severity:'High', owner:'Delivery' },
+      { id:'p2', text:'Quality checks happen late and by hand; nothing is traceable end to end', severity:'High', owner:'QA' },
+      { id:'p3', text:'No single source of truth or evidence for what was built or why', severity:'Med', owner:'Audit' }
+    ],
+    metrics:{ currentRunRateUsd:14200000, futureRunRateUsd:8800000, threeYearSavingsUsd:16200000, paybackYears:1.4, throughputDeltaPct:300, programMonths:9 },
+    narration: SCENES.map(s=>({ sceneId:s.id, text:s.narration, durationSec:s.dur })),
+    scenesScript: SCENES.map(s=>({ id:s.id, headline:s.headline, eyebrow:s.eyebrow, narration:s.narration, durationSec:s.dur }))
+  };
+}
 
-/* boot */
-function boot(){ renderSteps(); renderFinale(); draw(performance.now()); }
-boot();
+/* ════════ interactive live run ════════ */
+async function runLive(){
+  const out=document.getElementById('runout'); out.style.display='block'; out.textContent='Creating program and driving the lifecycle DAG…';
+  try{
+    if(!window.AIDP) throw new Error('AIDP client not loaded');
+    const start=await AIDP.callAgent('ORCHESTRATOR','program_start',{title:'Demo run '+new Date().toISOString().slice(0,19),tenant_id:'demo'});
+    const pid=start.program_id;
+    const run=await AIDP.callAgent('ORCHESTRATOR','program_run_full',{program_id:pid,scope:'fleet'});
+    const g=await AIDP.callAgent('ORCHESTRATOR','program_graph',{program_id:pid});
+    const rep=await AIDP.callAgent('INSIGHTS','insights_tenant_report',{program_id:pid,tenant_id:'demo'});
+    const steps=(run.steps||[]).map(s=>'  '+(s.ok===false?'✗':'✓')+' '+s.step+(s.count!=null?(' ('+s.count+')'):'')).join('\n');
+    out.textContent='Program '+pid+'\n'+steps+'\n\nLineage: '+((g.nodes||[]).length)+' nodes / '+((g.edges||[]).length)+' edges'+
+      (rep&&rep.health_score!=null?('\nHealth: '+rep.health_score+'/100 ('+(rep.rag||'').toUpperCase()+')'):'')+
+      '\n\nOpen program.html and insights.html to see the graph and the AI narrative.';
+  }catch(e){ out.textContent='⚠ '+e.message; }
+}
+
+function toast(m){ try{ if(window.DI&&DI.toast) DI.toast(m); }catch(e){} }
+
+/* embed + autoplay via query (?embed=1 &play=narrated) */
+(function(){ const q=new URLSearchParams(location.search);
+  if(q.get('embed')==='1') document.body.classList.add('embed');
+  showScene(0); idx=0; document.getElementById('caption').textContent = SCENES[0].narration;
+  document.getElementById('caption').textContent='Press play to start the narrated walkthrough.';
+  if(q.get('play')==='narrated'){ const go=()=>{ togglePlay(); window.removeEventListener('pointerdown',go); window.removeEventListener('keydown',go); };
+    // autoplay audio needs a user gesture; arm the first interaction, and also try immediately
+    setTimeout(()=>{ try{ togglePlay(); }catch(e){} },400);
+    window.addEventListener('pointerdown',go,{once:true}); window.addEventListener('keydown',go,{once:true}); }
+})();
 </script>
 </body>
 </html>

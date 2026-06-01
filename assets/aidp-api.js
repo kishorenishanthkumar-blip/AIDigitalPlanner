@@ -39,7 +39,11 @@
       INSIGHTS:     `https://aiagenticplanner-insights.${SUBDOMAIN}.workers.dev`
     },
     DEFAULT_USER: 'guest@aidp.demo',
-    TIMEOUT_MS: 30000
+    TIMEOUT_MS: 30000,
+    /* Optional Remotion video-renderer endpoint (apps/video-renderer container).
+       Leave '' until you deploy the Docker host (it can't run on Workers).
+       When set, demo.html's "Generate broadcast MP4" POSTs the AIDP brief here. */
+    VIDEO_RENDER_URL: ''
   };
 
   function getUserEmail() {

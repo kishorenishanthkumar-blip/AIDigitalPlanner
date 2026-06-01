@@ -168,6 +168,7 @@ body{background:linear-gradient(180deg,#F8FAFD,#EEF2F8);color:var(--t1);font-fam
     <div>
       <h3 class="suggest-old-h">Suggested prompts</h3>
       <div class="suggest" id="suggest">
+        <button onclick="sendSuggested('Show me a 5-minute narrated demo of the AIDP platform')">🎬 5-minute AIDP demo (narrated video)</button>
         <button onclick="sendSuggested('Start an RFP-style questionnaire for me — I am a Solution Architect for a Tier-1 retail bank in Singapore.')">Start RFP-style questionnaire (Solution Architect, MAS/Singapore)</button>
         <button onclick="sendSuggested('Generate a discovery summary for the Core Payments module on AWS, target FY26 H2.')">Discovery summary · Core Payments · AWS</button>
         <button onclick="sendSuggested('What are the regulatory must-haves for a Treasury workload in the EU (London + Frankfurt)?')">Regulatory must-haves · Treasury · EU</button>
@@ -654,6 +655,9 @@ async function sendMessage(){
   bumpCount(text);
   ta.value = '';
 
+  // Niche-I · "show me a demo of the application" → embed the narrated player
+  if (maybeDemoIntent(text)) { return; }
+
   // CLI mode local commands
   if (sess.mode === 'cli' && text.startsWith('/')) {
     handleCliCommand(text);
@@ -731,6 +735,45 @@ async function sendMessage(){
 function sendSuggested(prompt){
   document.getElementById('ta').value = prompt;
   sendMessage();
+}
+
+/* ── Niche-I demo launcher ───────────────────────────────
+   Detects "show me a demo / walkthrough / how the app works" and embeds
+   the narrated 5-minute explainer player (demo.html) right in the chat. */
+function maybeDemoIntent(text){
+  const t = (text || '').toLowerCase();
+  const hit =
+    /\b(demo|walkthrough|explainer|overview video|product video)\b/.test(t) ||
+    /(show|give|play|generate|create|make).{0,30}(demo|walkthrough|video|overview)/.test(t) ||
+    /how (does|do|is) .{0,30}(app|application|platform|aidp|product).{0,20}(work|built|architected)/.test(t) ||
+    /(explain|walk me through).{0,30}(app|application|platform|aidp|whole|entire)/.test(t);
+  if (!hit) return false;
+  appendDemoCard();
+  document.getElementById('status-text').textContent = 'Loaded the AIDP narrated demo';
+  bumpCount('demo');
+  return true;
+}
+
+function appendDemoCard(){
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.innerHTML =
+    '<div class="msg-av">N</div>' +
+    '<div class="msg-body">' +
+      'Here’s a ≈ 5-minute <b>narrated walkthrough</b> of the whole AIDP platform — the problem it solves, the agent-fleet architecture, the lifecycle, and the benefits. Press <b>▶ Play</b> (turn audio on); captions are on by default and it runs at 1.0×.' +
+      '<div style="margin-top:10px;border:1px solid var(--b1);border-radius:12px;overflow:hidden;background:#0B1220">' +
+        '<iframe src="demo.html?embed=1&play=narrated" title="AIDP narrated demo" ' +
+          'style="width:100%;aspect-ratio:16/9;border:0;display:block" ' +
+          'allow="autoplay; fullscreen; display-capture"></iframe>' +
+      '</div>' +
+      '<div style="margin-top:8px;font-size:12px">' +
+        '<a href="demo.html?play=narrated" target="_blank" rel="noopener" style="color:var(--amber);font-weight:600">Open the full demo ↗</a>' +
+        ' · inside it you can <b>record a shareable video</b> or generate a broadcast 1080p MP4.' +
+      '</div>' +
+      '<div class="time">' + nowStr() + '</div>' +
+    '</div>';
+  document.getElementById('messages').appendChild(div);
+  scrollToBot();
 }
 
 async function callClaude(userText){
