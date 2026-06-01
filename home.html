@@ -345,7 +345,7 @@ function exportPlatformSnapshot() {
     <a class="tile" data-tile-id="status" href="status.html">
       <button class="tile-pin" title="Pin / unpin" aria-label="Pin Platform Status" onclick="togglePin('status',event)">★</button>
       <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#E8FBF4,#BCEFD9);color:#0A8462">🟢</div><div class="tile-name">Platform Status</div></div>
-      <div class="tile-desc">Live health grid across all 14 Workers. Polls each /health endpoint every 60s. Shows D1, bindings, version, build age, latency per worker.</div>
+      <div class="tile-desc">Live health grid across all 25+ Workers. Polls each /health endpoint every 60s. Shows D1, bindings, version, build age, latency per worker.</div>
       <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
     </a>
 
@@ -353,6 +353,55 @@ function exportPlatformSnapshot() {
       <button class="tile-pin" title="Pin / unpin" aria-label="Pin Cost analytics" onclick="togglePin('cost',event)">★</button>
       <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#EEF2FF,#C7D2FE);color:#1D4ED8">💰</div><div class="tile-name">Cost analytics</div></div>
       <div class="tile-desc">Live LLM spend, model breakdown, cache-hit rate, and per-user call history. Pulls from master agent's <code>/cost/summary</code> over the agent_calls audit table. 24h / 7d / 30d windows.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="program-flow" href="program.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Program Flow" onclick="togglePin('program-flow',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#EEF2FF,#C7D2FE);color:#4338CA">🕸</div><div class="tile-name">Program Flow</div></div>
+      <div class="tile-desc">The unified agentic spine — run the lifecycle DAG and watch the lineage graph + correlation trace build in real time.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="fleet" href="fleet.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Fleet Architecture" onclick="togglePin('fleet',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#E8FBF4,#BCEFD9);color:#0A8462">🛰</div><div class="tile-name">Fleet Architecture</div></div>
+      <div class="tile-desc">Every worker in the fleet grouped by tier, with live <code>/health</code> — the runtime architecture as one view.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="console" href="console.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Console" onclick="togglePin('console',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#F1F5F9,#CBD5E1);color:#334155">🎛</div><div class="tile-name">Console</div></div>
+      <div class="tile-desc">Fleet control center — live health, version, latency, a one-click smoke action and a studio link for every agent.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="insights" href="insights.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Program Insights" onclick="togglePin('insights',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-green">📈</div><div class="tile-name">Program Insights</div></div>
+      <div class="tile-desc">Per-program R/A/G health score, scoring drivers, an AI executive narrative, and cross-program trends.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="demo" href="demo.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin E2E Demo" onclick="togglePin('demo',event)">★</button>
+      <div class="tile-head"><div class="tile-icon" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#92400E">🎬</div><div class="tile-name">E2E Demo &amp; Video</div></div>
+      <div class="tile-desc">A ~5-minute narrated walkthrough of the whole platform — voice-over, captions, 1.0×. Record it to a shareable video.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="arch-diagram" href="arch-diagram.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Architecture Diagram" onclick="togglePin('arch-diagram',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-blue">🗺</div><div class="tile-name">Architecture Diagram</div></div>
+      <div class="tile-desc">The full fleet flow diagram — router, orchestrator spine, agents, testing fan-out, stores and data flows. Download as SVG.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
+    </a>
+
+    <a class="tile" data-tile-id="flow-diagram" href="flow-diagram.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Program Flow Diagram" onclick="togglePin('flow-diagram',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-purple">🔀</div><div class="tile-name">Program Flow Diagram</div></div>
+      <div class="tile-desc">The lifecycle DAG — every stage's entity nodes and the relationship edges that build one lineage graph.</div>
       <div class="tile-foot"><span class="tile-status ok">Live</span><span class="tile-cta">Open →</span></div>
     </a>
 

@@ -306,6 +306,153 @@ const FEATURES = {
     ],
     openHref: 'program-governance.html',
     anim: 'export'
+  },
+  'program-flow': {
+    title: 'Program Flow',
+    titleEm: 'the unified agentic spine',
+    subtitle: 'Run the lifecycle DAG end to end and watch one traced lineage graph build across every agent.',
+    color: '#4338CA', accent: '#E0E7FF',
+    desc: 'The orchestrator drives discovery → requirements → architecture → SOW → governance → IaC → test design → test data → the eight testing disciplines as one directed flow. Each step writes a node and an edge into a single lineage graph, with a correlation trace recorded for every cross-agent hop — so you can see, and audit, exactly how a program was built.',
+    benefits: [
+      'One run drives every agent — no manual hand-offs',
+      'A live lineage graph (nodes + relationship edges) builds as it runs',
+      'Correlation trace captures every cross-agent hop',
+      'Backed by the live orchestrator worker'
+    ],
+    steps: [
+      'Open Program Flow and start (or pick) a program',
+      'Click Run full lifecycle',
+      'Watch stages light up and the graph + trace populate',
+      'Open Insights for the health score and AI narrative'
+    ],
+    openHref: 'program.html',
+    anim: 'architecture'
+  },
+  fleet: {
+    title: 'Fleet Architecture',
+    titleEm: 'one system, live',
+    subtitle: 'Every worker in the fleet grouped by tier, with live /health — the runtime architecture as one view.',
+    color: '#0A8462', accent: '#D1FAE5',
+    desc: 'A live map of all 25+ workers organized by tier — entry router, orchestrator spine, delivery agents, the testing fleet, and the shared substrate — each probed in real time for health, version and latency. Pairs with the static architecture flow diagram for the full wiring.',
+    benefits: [
+      'Live /health, version and latency per worker',
+      'Grouped by architectural tier',
+      'Links straight to the architecture flow diagram',
+      'One glance tells you what is up'
+    ],
+    steps: [
+      'Open Fleet Architecture',
+      'Re-probe health on demand',
+      'Open the Architecture Diagram for the wiring',
+      'Drill into any agent from the Console'
+    ],
+    openHref: 'fleet.html',
+    anim: 'architecture'
+  },
+  console: {
+    title: 'Console',
+    titleEm: 'fleet control center',
+    subtitle: 'Live health, version, latency, a one-click smoke action and a studio link for every agent.',
+    color: '#334155', accent: '#E2E8F0',
+    desc: 'A single control center for the whole platform: probe any worker, fire a one-click smoke action against its real tools, and jump straight to its studio — without leaving the page.',
+    benefits: [
+      'Every agent in one place, by role',
+      'One-click quick actions hit the live tools',
+      'Deep links to each studio',
+      'Re-probe the whole fleet on demand'
+    ],
+    steps: [
+      'Open the Console',
+      'Scan the live health cards',
+      'Run a quick action or open a studio',
+      'Re-probe any time'
+    ],
+    openHref: 'console.html',
+    anim: 'export'
+  },
+  insights: {
+    title: 'Program Insights',
+    titleEm: 'the lineage graph becomes a decision',
+    subtitle: 'A red/amber/green health score, scoring drivers, an AI executive narrative, and cross-program trends.',
+    color: '#15803D', accent: '#DCFCE7',
+    desc: 'The insights agent reads the lineage graph for a program and computes an R/A/G health score from stage coverage, testing depth and open defects, lists the drivers, and writes a ~200-word executive narrative with on-platform AI. Trends roll up anonymized across the whole portfolio.',
+    benefits: [
+      'R/A/G health score with explained drivers',
+      'AI-written executive narrative',
+      'Cross-program trends and RAG distribution',
+      'Backed by the live insights worker'
+    ],
+    steps: [
+      'Open Program Insights',
+      'Pick a program and Generate report',
+      'Read the score, drivers and narrative',
+      'Switch to Cross-program trends'
+    ],
+    openHref: 'insights.html',
+    anim: 'export'
+  },
+  demo: {
+    title: 'E2E Demo & Video',
+    titleEm: 'a narrated 5-minute walkthrough',
+    subtitle: 'A voice-over explainer of the whole platform with synced captions at 1.0× — record it to a shareable video.',
+    color: '#92400E', accent: '#FEF3C7',
+    desc: 'A YouTube-style narrated player that walks through the problem, the agent-fleet architecture, the lifecycle and the benefits — with real voice-over, captions and player controls. Record the run to a video, or generate a broadcast 1080p MP4 via the Remotion renderer.',
+    benefits: [
+      '~5-minute narrated, captioned explainer at 1.0×',
+      'Record to a shareable video (screen + audio)',
+      'Optional broadcast 1080p MP4 path',
+      'Also launchable from Niche-I'
+    ],
+    steps: [
+      'Open E2E Demo & Video',
+      'Press Play (allow audio)',
+      'Record the narrated video, or run a live program',
+      'Or ask Niche-I to play the demo'
+    ],
+    openHref: 'demo.html',
+    anim: 'knowledge'
+  },
+  'arch-diagram': {
+    title: 'Architecture Diagram',
+    titleEm: 'the full fleet wiring',
+    subtitle: 'A flow diagram of the entire fleet — router, spine, agents, testing fan-out, stores and data flows.',
+    color: '#1D4ED8', accent: '#DBEAFE',
+    desc: 'A detailed, downloadable flow diagram of how every worker wires together at runtime: solid arrows are Cloudflare service bindings, dashed arrows cross to GitHub Actions CI, color-coded by tier with the data plane (D1, R2, Vectorize, KV, Workers AI) shown explicitly.',
+    benefits: [
+      'Whole-fleet runtime wiring on one canvas',
+      'Bindings vs. CI dispatch clearly distinguished',
+      'Color-coded tiers + data plane',
+      'Download as SVG'
+    ],
+    steps: [
+      'Open the Architecture Diagram',
+      'Trace router → spine → agents → testing → stores',
+      'Download the SVG if you need it',
+      'Or ask Niche-I to generate it'
+    ],
+    openHref: 'arch-diagram.html',
+    anim: 'architecture'
+  },
+  'flow-diagram': {
+    title: 'Program Flow Diagram',
+    titleEm: 'the lifecycle DAG',
+    subtitle: 'Every stage’s entity nodes and the relationship edges that build one lineage graph.',
+    color: '#5B21B6', accent: '#EDE9FE',
+    desc: 'A diagram of what program_run_full drives: each stage’s typed entity nodes connected by the real relationship edges (derives, covers, seeds, tests, found_in, escalates_to, fixes), including the defect → change-request / patch / requirement loop and insights reading the whole graph.',
+    benefits: [
+      'Lifecycle stages → entity types → edges',
+      'Shows the closed defect escalation loop',
+      'Matches the real program_edge relationships',
+      'Download as SVG'
+    ],
+    steps: [
+      'Open the Program Flow Diagram',
+      'Follow the stages and edge labels',
+      'Download the SVG if you need it',
+      'Or ask Niche-I to generate it'
+    ],
+    openHref: 'flow-diagram.html',
+    anim: 'architecture'
   }
 };
 
