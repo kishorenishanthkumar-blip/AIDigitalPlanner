@@ -438,3 +438,40 @@
     })
     .catch(function () {});
 })();
+
+/* ENT-ACT-01 · Front-end activity capture -> auth-bff /api/activity.
+   Sensitive data is redacted SERVER-SIDE; this only sends action context.
+   No-ops cleanly when signed out (401) or when the flag is off (204). */
+(function () {
+  var BFF = 'https://aiagenticplanner-auth-bff.kishorenishanthkumar.workers.dev';
+  function post(ev) {
+    try {
+      fetch(BFF + '/api/activity', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ev), keepalive: true
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  // Public API for agent actions:
+  //   window.aidpTrack('agent.tool_call', { agent:'fraud', resource:'case:1', summary:'Reviewed alert', detail:{...} })
+  window.aidpTrack = function (action, opts) {
+    opts = opts || {};
+    post({ action: action || 'agent.action', agent: opts.agent, resource: opts.resource,
+           summary: opts.summary, detail: opts.detail, risk: opts.risk });
+  };
+  // Auto-capture: page views.
+  window.addEventListener('load', function () {
+    post({ action: 'nav.page', resource: 'page:' + location.pathname,
+           summary: 'Viewed ' + ((document.title || location.pathname) + '').slice(0, 140) });
+  });
+  // Auto-capture: clicks on elements tagged data-aidp-action="...".
+  document.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('[data-aidp-action]') : null;
+    if (!el) return;
+    post({ action: el.getAttribute('data-aidp-action') || 'ui.click',
+           agent: el.getAttribute('data-aidp-agent') || undefined,
+           resource: el.getAttribute('data-aidp-resource') || ('page:' + location.pathname),
+           summary: ((el.getAttribute('data-aidp-summary') || el.textContent || '') + '').trim().slice(0, 140) });
+  }, true);
+})();
