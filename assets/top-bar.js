@@ -389,3 +389,52 @@
     };
   });
 })();
+
+/* ENT-01 · Reflect the real auth-bff session in the top bar (Day 2).
+   Calls /me cross-site with cookie credentials; shows the signed-in
+   operator. Only the non-sensitive session profile is cached (no tokens). */
+(function () {
+  var BFF = 'https://aiagenticplanner-auth-bff.kishorenishanthkumar.workers.dev';
+  function applyProfile(me) {
+    var email = me.principal || '';
+    var role  = (me.roles && me.roles[0]) || 'user';
+    var prof = {
+      name: email, email: email, role: role,
+      tenantId: me.tenantId || '', region: me.tenantId || 'NA',
+      initials: email ? email.slice(0, 2).toUpperCase() : '?',
+      signedInAt: new Date().toISOString(), source: 'oidc'
+    };
+    try { sessionStorage.setItem('di_account_profile', JSON.stringify(prof)); } catch (e) {}
+    return prof;
+  }
+  function paint(prof, tries) {
+    tries = tries || 0;
+    var nameEl = document.querySelector('.di-tb-user-name');
+    if (nameEl) {
+      nameEl.textContent = prof.email;
+      var subEl = document.querySelector('.di-tb-user-sub');
+      var avEl  = document.querySelector('.di-tb-avatar');
+      if (subEl) subEl.textContent = prof.role + ' \u00b7 signed in';
+      if (avEl)  avEl.textContent  = prof.initials;
+      return;
+    }
+    if (tries < 40) setTimeout(function () { paint(prof, tries + 1); }, 100);
+  }
+  window.addEventListener('load', function () {
+    window.signOutNow = function () {
+      if (!confirm('Sign out now?')) return;
+      try { sessionStorage.removeItem('di_account_profile'); } catch (e) {}
+      location.href = BFF + '/logout';
+    };
+  });
+  fetch(BFF + '/me', { credentials: 'include' })
+    .then(function (r) { return r.json(); })
+    .then(function (me) {
+      if (me && me.authenticated) { paint(applyProfile(me)); return; }
+      try {
+        var cur = JSON.parse(sessionStorage.getItem('di_account_profile') || 'null');
+        if (cur && cur.source === 'oidc') sessionStorage.removeItem('di_account_profile');
+      } catch (e) {}
+    })
+    .catch(function () {});
+})();

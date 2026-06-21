@@ -728,10 +728,10 @@ input,select,textarea{font-family:var(--f-ui)}
         <div class="div-text">or continue with</div>
 
         <div class="sso">
-          <button class="sso-btn" onclick="ssoToast('sso')">🛡 SSO / Enterprise Login</button>
+          <button class="sso-btn" onclick="location.href='https://aiagenticplanner-auth-bff.kishorenishanthkumar.workers.dev/login';return false">🛡 SSO / Enterprise Login</button>
           <div class="sso-row2">
-            <button class="sso-btn" onclick="ssoToast('google')"><span class="g" style="background:#4285F4"></span> Google</button>
-            <button class="sso-btn" onclick="ssoToast('microsoft')"><span class="g" style="background:#0078D4"></span> Microsoft</button>
+            <button class="sso-btn" onclick="location.href='https://aiagenticplanner-auth-bff.kishorenishanthkumar.workers.dev/login?connection=google-oauth2';return false"><span class="g" style="background:#4285F4"></span> Google</button>
+            <button class="sso-btn" onclick="location.href='https://aiagenticplanner-auth-bff.kishorenishanthkumar.workers.dev/login?connection=windowslive';return false"><span class="g" style="background:#0078D4"></span> Microsoft</button>
           </div>
         </div>
 
