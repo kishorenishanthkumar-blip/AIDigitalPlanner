@@ -224,7 +224,7 @@
           body: _body,
           signal: controller.signal
         });
-        if (resp.status === 401) resp = await _direct();
+        if (resp.status === 401 || resp.status === 404) resp = await _direct();
       } else {
         resp = await _direct();
       }
