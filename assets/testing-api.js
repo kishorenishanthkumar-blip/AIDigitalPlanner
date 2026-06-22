@@ -37,6 +37,10 @@
   };
 
   async function callTool(toolName, args) {
+    // UI-02 · route through the authenticated MCP gateway when available.
+    if (window.AIDP && typeof window.AIDP.callAgent === 'function') {
+      return window.AIDP.callAgent('TESTING_MASTER', toolName, args || {}, { timeoutMs: TIMEOUT_MS });
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
