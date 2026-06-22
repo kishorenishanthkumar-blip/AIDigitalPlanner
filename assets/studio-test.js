@@ -62,6 +62,18 @@
     }
     if (!silent) toast('info', 'Running tests · ' + scope, 'tm_run_suite started · ~3-5s');
 
+    // UI-02 · prefer the authenticated MCP gateway; fall back to direct on failure.
+    if (window.AIDP && typeof window.AIDP.callAgent === 'function') {
+      try {
+        const report = await window.AIDP.callAgent('TESTING_MASTER', 'tm_run_suite', {
+          scope: scope, layers: opts.layers,
+          ref: opts.ref || ('studio-button://' + (location.pathname || '')),
+          trigger_source: 'manual', triggered_by: getUserEmail()
+        }, { timeoutMs: 60000 });
+        if (!silent) renderVerdictToast(report);
+        return report;
+      } catch (e) { /* fall through to direct */ }
+    }
     try {
       const resp = await fetch(TM_BASE_URL + '/mcp', {
         method: 'POST',
