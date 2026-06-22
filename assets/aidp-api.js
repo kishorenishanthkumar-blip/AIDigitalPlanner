@@ -39,6 +39,8 @@
       INSIGHTS:     `https://aiagenticplanner-insights.${SUBDOMAIN}.workers.dev`,
       COST:         `https://aiagenticplanner-cost.${SUBDOMAIN}.workers.dev`
     },
+    GATEWAY_URL: `https://aiagenticplanner-auth-bff.${SUBDOMAIN}.workers.dev/api/mcp`,
+    USE_GATEWAY: true,
     DEFAULT_USER: 'guest@aidp.demo',
     TIMEOUT_MS: 30000,
     /* Optional Remotion video-renderer endpoint (apps/video-renderer container).
@@ -197,17 +199,35 @@
     const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
 
     try {
-      const resp = await fetch(`${baseUrl}/mcp`, {
+      /* UI-03 · authenticated MCP gateway. Route via the BFF (carrying the session
+         cookie) so calls hit live agents as the signed-in operator; fall back to a
+         direct call only when signed out (gateway returns 401). */
+      const _slug = (baseUrl.match(/aiagenticplanner-([^.]+)\./) || [])[1];
+      const _body = JSON.stringify({
+        jsonrpc: '2.0',
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        method: 'tools/call',
+        params: { name: toolName, arguments: args }
+      });
+      const _direct = () => fetch(`${baseUrl}/mcp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-          method: 'tools/call',
-          params: { name: toolName, arguments: args }
-        }),
+        body: _body,
         signal: controller.signal
       });
+      let resp;
+      if (CONFIG.USE_GATEWAY && _slug) {
+        resp = await fetch(`${CONFIG.GATEWAY_URL}/${_slug}`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: _body,
+          signal: controller.signal
+        });
+        if (resp.status === 401) resp = await _direct();
+      } else {
+        resp = await _direct();
+      }
 
       if (!resp.ok) throw new Error(`HTTP ${resp.status} from ${agentName}.${toolName}`);
 
