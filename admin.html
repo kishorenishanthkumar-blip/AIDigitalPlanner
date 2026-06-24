@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tenant Admin · DI Platform</title>
+<meta name="description" content="Provision tenants with scoped API keys; secret status. ENT-06 / GOV-02."/>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<script src="assets/admin-api.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+.bk-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.bk-wrap{max-width:1100px;margin:0 auto}
+.bk-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.bk-h1{font-family:var(--f-head);font-size:24px;font-weight:600}.bk-h1 em{font-style:italic;color:var(--gold)}
+.bk-sub{color:var(--ink-2);margin-top:4px;font-size:13px}
+.bk-main{max-width:1100px;margin:0 auto;padding:22px 24px 40px;display:grid;grid-template-columns:1fr 1.1fr;gap:18px}
+@media (max-width:850px){.bk-main{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow-sm);margin-bottom:18px}
+.card h2{font-family:var(--f-head);font-size:15px;font-weight:600;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.field input{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--canvas);color:var(--ink)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:600;background:var(--canvas);border:1px solid var(--border);color:var(--ink)}
+.btn:hover{border-color:var(--gold)}.btn-primary{background:var(--gold);color:#1A2238;border:none}.btn-primary:hover{filter:brightness(1.05)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.muted{color:var(--ink-2)}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:10.5px;font-weight:700}
+.pill.ok{background:var(--green-bg);color:#0A8462}.pill.bad{background:#FDE7E7;color:var(--red)}
+.t{width:100%;border-collapse:collapse;font-size:12.5px}
+.t th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2);border-bottom:1px solid var(--border);padding:7px 6px}
+.t td{padding:8px 6px;border-bottom:1px solid var(--border)}
+.keybox{background:#1A2238;color:#FFD070;border-radius:8px;padding:12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all;margin-top:8px}
+.keywrap{border:1px dashed var(--gold);border-radius:10px;padding:12px 14px;margin-top:12px;background:#FFFCF4;display:none}
+.err-box{background:#FDE7E7;border:1px solid var(--red);color:#A21C1C;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:10px;display:none}
+.sec{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.warn{font-size:11.5px;color:#8a5a00;background:#FFF3E0;border:1px solid var(--orange);border-radius:8px;padding:8px 10px;margin-top:8px}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<div class="bk-hero"><div class="bk-wrap">
+  <div class="bk-eyebrow">Governance · Tenancy &amp; Secrets</div>
+  <div class="bk-h1">Tenant <em>Administration</em></div>
+  <div class="bk-sub">Provision a tenant with a scoped API key (GOV-02), revoke keys, and review secret status (ENT-06). Admin only.</div>
+</div></div>
+<div class="bk-main">
+  <div>
+    <div class="card">
+      <h2>Provision a tenant</h2>
+      <div class="field"><label>Tenant name</label><input id="t-name" placeholder="e.g. Acme Bank"/></div>
+      <div class="row">
+        <div class="field"><label>Region</label><input id="t-region" value="global"/></div>
+        <div class="field"><label>Admin email</label><input id="t-email" placeholder="ops@acme.example"/></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-primary" id="b-provision">Provision tenant + key →</button></div>
+      <div class="muted" style="font-size:11.5px;margin-top:8px">Creates a tenant, an admin principal, an <span class="mono">admin</span> role binding, and one scoped API key. Only the key's SHA-256 hash is stored.</div>
+      <div id="err" class="err-box"></div>
+      <div class="keywrap" id="keywrap">
+        <div style="font-weight:700">✓ Tenant <span id="k-tid" class="mono"></span> provisioned</div>
+        <div class="muted" style="font-size:11.5px;margin-top:4px">Copy this scoped API key now — it will not be shown again:</div>
+        <div class="keybox" id="k-key"></div>
+        <div class="btn-row">
+          <button class="btn" id="b-copy">Copy key</button>
+          <button class="btn" id="b-revoke">Revoke this key</button>
+        </div>
+        <div class="warn">Use as <span class="mono">Authorization: Bearer &lt;key&gt;</span> when calling an agent directly. The key is scoped to this tenant only.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Secret status <span class="muted" style="font-size:11px">· auth-bff</span></h2>
+      <div id="secrets"><p class="muted" style="padding:10px 0">Loading…</p></div>
+      <div class="muted" style="font-size:11.5px;margin-top:8px">Presence only — values are never returned. Rotate with <span class="mono">wrangler secret put</span>.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Tenants <button class="btn" id="b-refresh" style="float:right;padding:5px 10px;font-size:11px">↻</button></h2>
+    <table class="t"><thead><tr><th>Tenant</th><th>Region</th><th>Status</th><th>Principals</th><th>Keys</th></tr></thead>
+      <tbody id="tbody"><tr><td colspan="5" class="muted" style="padding:16px 6px">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+<script>
+(function () {
+  var lastKeyId = null;
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+  function showErr(e) { var b = $('err'); b.style.display = 'block'; b.textContent = (e && e.message) || String(e); }
+  function clearErr() { $('err').style.display = 'none'; }
+  function loadTenants() {
+    AdminAPI.listTenants().then(function (r) {
+      var rows = r.tenants || [];
+      if (!rows.length) { $('tbody').innerHTML = '<tr><td colspan="5" class="muted" style="padding:16px 6px">No tenants yet.</td></tr>'; return; }
+      $('tbody').innerHTML = rows.map(function (t) {
+        return '<tr><td><strong>' + esc(t.name) + '</strong><div class="muted mono" style="font-size:11px">' + esc(t.id) + '</div></td>' +
+          '<td>' + esc(t.region) + '</td><td><span class="pill ' + (t.status === 'active' ? 'ok' : 'bad') + '">' + esc(t.status) + '</span></td>' +
+          '<td>' + (t.principals != null ? t.principals : '—') + '</td><td>' + (t.active_keys != null ? t.active_keys : '—') + '</td></tr>';
+      }).join('');
+    }).catch(function (e) { $('tbody').innerHTML = '<tr><td colspan="5" class="muted" style="padding:16px 6px">' + esc((e && e.message) || e) + '</td></tr>'; });
+  }
+  function loadSecrets() {
+    AdminAPI.secrets().then(function (r) {
+      $('secrets').innerHTML = (r.secrets || []).map(function (s) {
+        return '<div class="sec"><span class="mono">' + esc(s.name) + '</span><span class="pill ' + (s.set ? 'ok' : 'bad') + '">' + (s.set ? 'set' : 'missing') + '</span></div>';
+      }).join('');
+    }).catch(function (e) { $('secrets').innerHTML = '<p class="muted">' + esc((e && e.message) || e) + '</p>'; });
+  }
+  $('b-provision').onclick = function () {
+    clearErr();
+    var name = $('t-name').value.trim(), region = $('t-region').value.trim() || 'global', email = $('t-email').value.trim();
+    if (!name || !email) { showErr(new Error('Tenant name and admin email are required.')); return; }
+    $('b-provision').disabled = true; $('b-provision').textContent = 'Provisioning…';
+    AdminAPI.provision({ name: name, region: region, adminEmail: email }).then(function (r) {
+      lastKeyId = r.keyId;
+      $('k-tid').textContent = r.tenantId;
+      $('k-key').textContent = r.apiKey;
+      $('keywrap').style.display = 'block';
+      loadTenants();
+    }).catch(showErr).finally(function () { $('b-provision').disabled = false; $('b-provision').textContent = 'Provision tenant + key →'; });
+  };
+  $('b-copy').onclick = function () { try { navigator.clipboard.writeText($('k-key').textContent); $('b-copy').textContent = 'Copied ✓'; setTimeout(function () { $('b-copy').textContent = 'Copy key'; }, 1500); } catch (e) {} };
+  $('b-revoke').onclick = function () { if (!lastKeyId) return; AdminAPI.revokeKey(lastKeyId).then(function () { $('keywrap').style.display = 'none'; loadTenants(); }).catch(showErr); };
+  $('b-refresh').onclick = loadTenants;
+  window.addEventListener('load', function () { loadTenants(); loadSecrets(); });
+})();
+</script>
+</body>
+</html>

@@ -66,7 +66,8 @@
     { id: 'comms',        icon: '\u2709',       name: 'Customer Comms', desc: 'Send and track messages across channels.', badge: 'LIVE', href: 'comms.html' },
     { id: 'risk',         icon: '\uD83D\uDCC9', name: 'Risk & ECL',     desc: 'IFRS 9 staging and Expected Credit Loss.', badge: 'LIVE', href: 'risk.html' },
     { id: 'approvals',    icon: '\uD83D\uDEC2', name: 'Approvals Queue', desc: 'Human-in-the-loop \u2014 action high-risk items held by the agents.', badge: 'LIVE', href: 'approvals.html' },
-    { id: 'audit',        icon: '\uD83D\uDCDC', name: 'Audit Trail',     desc: 'WORM hash-chained decision trail with tamper-evidence proof.', badge: 'LIVE', href: 'audit.html' }
+    { id: 'audit',        icon: '\uD83D\uDCDC', name: 'Audit Trail',     desc: 'WORM hash-chained decision trail with tamper-evidence proof.', badge: 'LIVE', href: 'audit.html' },
+    { id: 'admin',        icon: '\uD83C\uDFDB', name: 'Tenant Admin',    desc: 'Provision tenants with scoped API keys; secret status.', badge: 'LIVE', href: 'admin.html' }
   ];
 
   // Top-level navigation

@@ -250,6 +250,12 @@ function exportPlatformSnapshot() {
 <section class="section">
   <div class="section-h">Feature workspaces</div>
   <div class="tiles" id="tiles-grid">
+    <a class="tile" data-tile-id="admin" href="admin.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Tenant Admin" onclick="togglePin('admin',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-gold">🏛</div><div class="tile-name">Tenant Admin</div></div>
+      <div class="tile-desc">Provision tenants with scoped API keys, revoke keys, and review secret status — admin only (GOV-02 / ENT-06).</div>
+      <div class="tile-foot"><span class="tile-status ok">Live · Admin</span><span class="tile-cta">Open →</span></div>
+    </a>
     <a class="tile" data-tile-id="audit" href="audit.html">
       <button class="tile-pin" title="Pin / unpin" aria-label="Pin Audit Trail" onclick="togglePin('audit',event)">★</button>
       <div class="tile-head"><div class="tile-icon icon-blue">📜</div><div class="tile-name">Audit &amp; Explainability</div></div>
