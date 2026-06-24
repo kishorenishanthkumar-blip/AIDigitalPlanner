@@ -250,6 +250,24 @@ function exportPlatformSnapshot() {
 <section class="section">
   <div class="section-h">Feature workspaces</div>
   <div class="tiles" id="tiles-grid">
+    <a class="tile" data-tile-id="onboarding" href="onboarding.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Onboarding" onclick="togglePin('onboarding',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-gold">🪪</div><div class="tile-name">Onboarding</div></div>
+      <div class="tile-desc">Customer onboarding journey — open a KYC/KYB case, run screening, and record a decision on live agent data.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live agent</span><span class="tile-cta">Open →</span></div>
+    </a>
+    <a class="tile" data-tile-id="kyc" href="kyc.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin KYC Screening" onclick="togglePin('kyc',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-blue">🛡</div><div class="tile-name">KYC &amp; Screening</div></div>
+      <div class="tile-desc">Sanctions name &amp; ISO 20022 screening plus AML transaction monitoring — live, through the authenticated gateway.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live agent</span><span class="tile-cta">Open →</span></div>
+    </a>
+    <a class="tile" data-tile-id="payments" href="payments.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Payments" onclick="togglePin('payments',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-pink">💸</div><div class="tile-name">Payments</div></div>
+      <div class="tile-desc">Route across rails, initiate, track and reconcile payments — live, through the authenticated gateway.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live agent</span><span class="tile-cta">Open →</span></div>
+    </a>
 
     <a class="tile" data-tile-id="discovery" href="discovery-studio.html">
       <button class="tile-pin" title="Pin / unpin" aria-label="Pin Discovery Studio" onclick="togglePin('discovery',event)">★</button>

@@ -52,7 +52,10 @@
     { id: 'console',      icon: '🎛', name: 'Console',              desc: 'Fleet control center · live health, version, latency, quick-run actions and studio links for every agent.', badge: 'LIVE', href: 'console.html' },
     { id: 'demo',         icon: '🎬', name: 'E2E Demo & Video',     desc: 'Drive the whole fleet end-to-end on a live canvas · record the run to WebM or export a GIF.', badge: 'LIVE', href: 'demo.html' },
     { id: 'arch-diagram', icon: '🗺', name: 'Architecture Diagram', desc: 'Full fleet flow diagram — router, orchestrator spine, agents, testing fan-out, stores and data flows.', badge: 'LIVE', href: 'arch-diagram.html' },
-    { id: 'flow-diagram', icon: '🔀', name: 'Program Flow Diagram', desc: 'The lifecycle DAG — every stage’s entity nodes and the relationship edges that build one lineage graph.', badge: 'LIVE', href: 'flow-diagram.html' }
+    { id: 'flow-diagram', icon: '🔀', name: 'Program Flow Diagram', desc: 'The lifecycle DAG — every stage’s entity nodes and the relationship edges that build one lineage graph.', badge: 'LIVE', href: 'flow-diagram.html' },
+    { id: 'onboarding',   icon: '\uD83E\uDEAA', name: 'Onboarding',      desc: 'Open a KYC/KYB case, run screening, and record a decision \u2014 live banking agent.', badge: 'LIVE', href: 'onboarding.html' },
+    { id: 'kyc',          icon: '\uD83D\uDEE1', name: 'KYC & Screening', desc: 'Sanctions name & ISO 20022 screening plus AML transaction monitoring.', badge: 'LIVE', href: 'kyc.html' },
+    { id: 'payments',     icon: '\uD83D\uDCB8', name: 'Payments',        desc: 'Route, initiate, track and reconcile payments across rails.', badge: 'LIVE', href: 'payments.html' }
   ];
 
   // Top-level navigation
