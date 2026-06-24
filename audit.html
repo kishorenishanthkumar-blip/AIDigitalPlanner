@@ -65,11 +65,11 @@ button{font-family:var(--f-ui);cursor:pointer;border:none}
 </div></div>
 <div class="bk-main">
   <div class="filters">
-    <select id="f-agent"><option value="">All agents</option></select>
-    <select id="f-action"><option value="">All actions</option></select>
-    <select id="f-decision"><option value="">Any decision</option><option value="allow">allow</option><option value="deny">deny</option><option value="pending">pending</option><option value="n/a">n/a</option></select>
+    <select id="f-agent" multiple><option value="">All agents</option></select>
+    <select id="f-action" multiple><option value="">All actions</option></select>
+    <select id="f-decision" multiple><option value="allow">allow</option><option value="deny">deny</option><option value="pending">pending</option><option value="n/a">n/a</option></select>
     <input id="f-q" placeholder="Search action / agent / resource / principal…"/>
-    <button class="btn" id="b-apply">Apply</button>
+    <button class="btn btn-primary" id="b-apply">Apply</button>
     <button class="btn" id="b-reset">Reset</button>
   </div>
   <div id="err" class="err-box"></div>
@@ -113,24 +113,32 @@ button{font-family:var(--f-ui);cursor:pointer;border:none}
     (actions || []).forEach(function (a) { var o = document.createElement('option'); o.value = a; o.textContent = a; ac.appendChild(o); });
     facetsLoaded = true;
   }
+  function sel(id) { var e = $(id); return Array.prototype.map.call(e.selectedOptions || [], function (o) { return o.value; }).filter(Boolean).join(','); }
+  function clearSel(id) { var e = $(id); Array.prototype.forEach.call(e.options, function (o) { o.selected = false; }); }
   function load() {
     clearErr();
     $('list').innerHTML = '<div class="empty">Loading…</div>';
-    AuditAPI.list({ agent: $('f-agent').value, action: $('f-action').value, decision: $('f-decision').value, q: $('f-q').value.trim(), limit: 200 })
+    AuditAPI.list({ agent: sel('f-agent'), action: sel('f-action'), decision: sel('f-decision'), q: $('f-q').value.trim(), limit: 200 })
       .then(function (r) { fillFacets(r.agents, r.actions); render(r.events || []); })
       .catch(function (e) { showErr(e); $('list').innerHTML = '<div class="empty">Could not load audit events.</div>'; });
   }
   $('b-verify').onclick = function () {
     var chip = $('chain'); chip.className = 'chain idle'; chip.textContent = 'verifying…';
     AuditAPI.verify().then(function (r) {
-      if (r.ok) { chip.className = 'chain ok'; chip.innerHTML = '✓ Chain verified · ' + r.checked + ' events · head <span class="mono">' + esc((r.head || '').slice(0, 12)) + '…</span>'; }
-      else { chip.className = 'chain bad'; chip.textContent = '✗ Chain broken at seq ' + r.brokenAtSeq + ' · ' + (r.reason || ''); }
+      if (r.ok) {
+        chip.className = 'chain ok';
+        var f = r.forks ? ' · ' + r.forks + ' concurrency fork' + (r.forks === 1 ? '' : 's') : '';
+        chip.innerHTML = '✓ Content verified · ' + r.checked + ' events' + f + ' · head <span class="mono">' + esc((r.head || '').slice(0, 12)) + '…</span>';
+        if (r.forks) chip.title = 'Forks are linkage discontinuities from concurrent audit writes — not tampering. Per-row hashes all verified.';
+      } else {
+        chip.className = 'chain bad';
+        chip.textContent = '✗ Tampering detected at seq ' + r.brokenAtSeq + ' · ' + (r.reason || '');
+      }
     }).catch(function (e) { chip.className = 'chain bad'; chip.textContent = '✗ ' + ((e && e.message) || e); });
   };
   $('b-apply').onclick = load;
   $('f-q').addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
-  ['f-agent', 'f-action', 'f-decision'].forEach(function (id) { $(id).addEventListener('change', load); });
-  $('b-reset').onclick = function () { $('f-agent').value = ''; $('f-action').value = ''; $('f-decision').value = ''; $('f-q').value = ''; load(); };
+  $('b-reset').onclick = function () { clearSel('f-agent'); clearSel('f-action'); clearSel('f-decision'); $('f-q').value = ''; load(); };
   window.addEventListener('load', load);
 })();
 </script>
