@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fraud Review · DI Platform</title>
+<meta name="description" content="Score transactions for fraud and triage alerts on live agent data."/>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<script src="assets/fraud-api.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+.bk-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.bk-wrap{max-width:1100px;margin:0 auto}
+.bk-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.bk-h1{font-family:var(--f-head);font-size:24px;font-weight:600}.bk-h1 em{font-style:italic;color:var(--gold)}
+.bk-sub{color:var(--ink-2);margin-top:4px;font-size:13px}
+.bk-main{max-width:1100px;margin:0 auto;padding:22px 24px 40px;display:grid;grid-template-columns:1fr 1.1fr;gap:18px}
+@media (max-width:850px){.bk-main{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow-sm)}
+.card h2{font-family:var(--f-head);font-size:15px;font-weight:600;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.field input,.field select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--canvas);color:var(--ink)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:600;background:var(--canvas);border:1px solid var(--border);color:var(--ink)}
+.btn:hover{border-color:var(--gold)}.btn-primary{background:var(--gold);color:#1A2238;border:none}.btn-primary:hover{filter:brightness(1.05)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.muted{color:var(--ink-2)}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.pill.ok{background:var(--green-bg);color:#0A8462}.pill.warn{background:#FFF3E0;color:var(--orange)}.pill.err{background:#FDE7E7;color:var(--red)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.kv .k{color:var(--ink-2);font-weight:600}.kv .v{text-align:right;word-break:break-word}
+pre.raw{background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11.5px;overflow:auto;max-height:300px;white-space:pre-wrap}
+.note{font-size:11.5px;color:var(--ink-2);margin-top:10px}
+.err-box{background:#FDE7E7;border:1px solid var(--red);color:#A21C1C;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:10px}
+.alert{border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:12px;display:flex;justify-content:space-between}
+.gauge{font-family:var(--f-head);font-size:30px;font-weight:600}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<div class="bk-hero"><div class="bk-wrap">
+  <div class="bk-eyebrow">Servicing · Risk</div>
+  <div class="bk-h1">Fraud <em>Review</em></div>
+  <div class="bk-sub">Score a transaction for fraud risk and triage open alerts — live, through the authenticated agent gateway.</div>
+</div></div>
+<div class="bk-main">
+  <div class="card">
+    <h2>Score a transaction</h2>
+    <div class="row"><div class="field"><label>Account</label><input id="f-account" placeholder="e.g. ACC-1001"/></div><div class="field"><label>Txn ref</label><input id="f-txn" placeholder="e.g. TXN-55012"/></div></div>
+    <div class="row"><div class="field"><label>Amount</label><input id="f-amount" type="number" value="4200"/></div><div class="field"><label>Currency</label><input id="f-currency" value="USD"/></div></div>
+    <div class="row">
+      <div class="field"><label>Channel</label><select id="f-channel"><option>ecommerce</option><option>pos</option><option>atm</option><option>wallet</option></select></div>
+      <div class="field"><label>Country</label><input id="f-country" value="US"/></div>
+      <div class="field"><label>MCC</label><input id="f-mcc" value="5732"/></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary" id="b-score">Score transaction →</button><button class="btn" id="b-alerts">List alerts</button></div>
+    <div class="note">Calls <code>fraud_score_transaction</code> (audited). "List alerts" runs <code>fraud_list_alerts</code>.</div>
+    <div id="err" class="err-box" style="display:none"></div>
+  </div>
+  <div class="card">
+    <h2>Result <span id="ctx" class="muted"></span></h2>
+    <div class="result" id="result"><p class="muted" style="padding:18px 0">Score a transaction or list alerts to see live results here.</p></div>
+    <details style="margin-top:12px"><summary class="muted" style="cursor:pointer;font-size:12px">Raw response</summary><pre class="raw" id="raw">—</pre></details>
+  </div>
+</div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function showErr(e){var b=$('err');b.style.display='block';b.textContent=(e&&e.message)||String(e);}
+  function clearErr(){$('err').style.display='none';}
+  function setRaw(o){$('raw').textContent=JSON.stringify(o,null,2);}
+  function kv(k,v){return '<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
+  function pill(s){s=(s||'').toString();var l=s.toLowerCase();var c=/low|clear|approve|ok|pass|allow/.test(l)?'ok':/high|block|decline|fraud|deny/.test(l)?'err':'warn';return '<span class="pill '+c+'">'+(s||'pending')+'</span>';}
+  function render(res,ctx){
+    setRaw(res);$('ctx').textContent=ctx?'· '+ctx:'';
+    var html='';
+    if(res.score!==undefined) html+='<div class="gauge">'+res.score+'<span class="muted" style="font-size:13px"> risk score</span></div>';
+    if(res.decision||res.recommendation) html+=kv('Decision',pill(res.decision||res.recommendation));
+    if(res.riskBand||res.band) html+=kv('Risk band',pill(res.riskBand||res.band));
+    if(res.caseId) html+=kv('Case',res.caseId);
+    var reasons=res.reasons||res.signals||res.factors;
+    if(Array.isArray(reasons)&&reasons.length){html+='<div style="margin-top:10px"><div class="muted" style="font-size:11px;font-weight:700;text-transform:uppercase">Signals</div>';reasons.slice(0,8).forEach(function(r){html+='<div class="alert"><span>'+(r.name||r.code||r)+'</span><span class="muted">'+(r.weight!==undefined?r.weight:(r.score!==undefined?r.score:''))+'</span></div>';});html+='</div>';}
+    var alerts=res.alerts||res.items;
+    if(Array.isArray(alerts)){html+='<div style="margin-top:10px"><div class="muted" style="font-size:11px;font-weight:700;text-transform:uppercase">Alerts ('+alerts.length+')</div>';alerts.slice(0,10).forEach(function(a){html+='<div class="alert"><span>'+(a.caseId||a.txnRef||a.id||'—')+'</span><span>'+pill(a.status||a.riskBand||a.score)+'</span></div>';});html+='</div>';}
+    $('result').innerHTML=html||'<p class="muted" style="padding:14px 0">Response received — see raw below.</p>';
+  }
+  async function guard(ctx,fn){clearErr();try{var r=await fn();render(r,ctx);}catch(e){showErr(e);setRaw({error:String(e&&e.message||e)});}}
+  $('b-score').onclick=function(){guard('score',function(){return FraudAPI.score({account:$('f-account').value.trim(),txnRef:$('f-txn').value.trim(),amount:Number($('f-amount').value),currency:$('f-currency').value.trim(),channel:$('f-channel').value,country:$('f-country').value.trim(),mcc:$('f-mcc').value.trim()});});};
+  $('b-alerts').onclick=function(){guard('alerts',function(){return FraudAPI.listAlerts(20);});};
+})();
+</script>
+</body>
+</html>

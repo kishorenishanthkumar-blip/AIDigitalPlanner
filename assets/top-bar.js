@@ -55,7 +55,11 @@
     { id: 'flow-diagram', icon: '🔀', name: 'Program Flow Diagram', desc: 'The lifecycle DAG — every stage’s entity nodes and the relationship edges that build one lineage graph.', badge: 'LIVE', href: 'flow-diagram.html' },
     { id: 'onboarding',   icon: '\uD83E\uDEAA', name: 'Onboarding',      desc: 'Open a KYC/KYB case, run screening, and record a decision \u2014 live banking agent.', badge: 'LIVE', href: 'onboarding.html' },
     { id: 'kyc',          icon: '\uD83D\uDEE1', name: 'KYC & Screening', desc: 'Sanctions name & ISO 20022 screening plus AML transaction monitoring.', badge: 'LIVE', href: 'kyc.html' },
-    { id: 'payments',     icon: '\uD83D\uDCB8', name: 'Payments',        desc: 'Route, initiate, track and reconcile payments across rails.', badge: 'LIVE', href: 'payments.html' }
+    { id: 'payments',     icon: '\uD83D\uDCB8', name: 'Payments',        desc: 'Route, initiate, track and reconcile payments across rails.', badge: 'LIVE', href: 'payments.html' },
+    { id: 'fraud',        icon: '\uD83D\uDED1', name: 'Fraud Review',    desc: 'Score transactions for fraud and triage open alerts.', badge: 'LIVE', href: 'fraud.html' },
+    { id: 'dispute',      icon: '\u2696',       name: 'Disputes',        desc: 'Open disputes, raise chargebacks and record resolutions.', badge: 'LIVE', href: 'dispute.html' },
+    { id: 'cards',        icon: '\uD83D\uDCB3', name: 'Cards Servicing', desc: 'Issue, activate, block and check cards.', badge: 'LIVE', href: 'cards.html' },
+    { id: 'overdraft',    icon: '\uD83C\uDFE6', name: 'Overdraft',       desc: 'Assess eligibility, set limits and check status.', badge: 'LIVE', href: 'overdraft.html' }
   ];
 
   // Top-level navigation

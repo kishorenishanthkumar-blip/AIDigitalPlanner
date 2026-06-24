@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cards Servicing · DI Platform</title>
+<meta name="description" content="Issue, activate, block and check cards on live agent data."/>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<script src="assets/cards-api.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+.bk-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.bk-wrap{max-width:1100px;margin:0 auto}
+.bk-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.bk-h1{font-family:var(--f-head);font-size:24px;font-weight:600}.bk-h1 em{font-style:italic;color:var(--gold)}
+.bk-sub{color:var(--ink-2);margin-top:4px;font-size:13px}
+.bk-main{max-width:1100px;margin:0 auto;padding:22px 24px 40px;display:grid;grid-template-columns:1fr 1.1fr;gap:18px}
+@media (max-width:850px){.bk-main{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow-sm)}
+.card h2{font-family:var(--f-head);font-size:15px;font-weight:600;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.field input,.field select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--canvas);color:var(--ink)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:600;background:var(--canvas);border:1px solid var(--border);color:var(--ink)}
+.btn:hover{border-color:var(--gold)}.btn-primary{background:var(--gold);color:#1A2238;border:none}.btn-primary:hover{filter:brightness(1.05)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.muted{color:var(--ink-2)}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.pill.ok{background:var(--green-bg);color:#0A8462}.pill.warn{background:#FFF3E0;color:var(--orange)}.pill.err{background:#FDE7E7;color:var(--red)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.kv .k{color:var(--ink-2);font-weight:600}.kv .v{text-align:right;word-break:break-word}
+pre.raw{background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11.5px;overflow:auto;max-height:300px;white-space:pre-wrap}
+.note{font-size:11.5px;color:var(--ink-2);margin-top:10px}
+.err-box{background:#FDE7E7;border:1px solid var(--red);color:#A21C1C;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:10px}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<div class="bk-hero"><div class="bk-wrap">
+  <div class="bk-eyebrow">Servicing · Cards</div>
+  <div class="bk-h1">Cards <em>Servicing</em></div>
+  <div class="bk-sub">Issue a card, then activate, block or check its status — live, through the authenticated agent gateway.</div>
+</div></div>
+<div class="bk-main">
+  <div class="card">
+    <h2>Issue a card</h2>
+    <div class="field"><label>Account</label><input id="c-account" placeholder="e.g. ACC-1001"/></div>
+    <div class="field"><label>Product</label><select id="c-product"><option value="debit">Debit</option><option value="credit">Credit</option><option value="prepaid">Prepaid</option><option value="virtual">Virtual</option></select></div>
+    <div class="btn-row"><button class="btn btn-primary" id="b-issue">Issue card →</button><button class="btn" id="b-load">Load by card ID</button></div>
+    <div class="note">Calls <code>card_issue</code> (audited).</div>
+    <div id="err" class="err-box" style="display:none"></div>
+  </div>
+  <div class="card">
+    <h2>Card <span id="card-id" class="muted">— none —</span></h2>
+    <div class="btn-row" id="card-actions" style="display:none">
+      <button class="btn btn-primary" id="b-activate">Activate</button>
+      <button class="btn" id="b-block">Block</button>
+      <button class="btn" id="b-status">Refresh status</button>
+    </div>
+    <div class="result" id="result" style="margin-top:8px"><p class="muted" style="padding:18px 0">Issue or load a card to see live results here.</p></div>
+    <details style="margin-top:12px"><summary class="muted" style="cursor:pointer;font-size:12px">Raw response</summary><pre class="raw" id="raw">—</pre></details>
+  </div>
+</div>
+<script>
+(function () {
+  var current=null;
+  var $=function(id){return document.getElementById(id);};
+  function showErr(e){var b=$('err');b.style.display='block';b.textContent=(e&&e.message)||String(e);}
+  function clearErr(){$('err').style.display='none';}
+  function setRaw(o){$('raw').textContent=JSON.stringify(o,null,2);}
+  function kv(k,v){return '<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
+  function pill(s){s=(s||'').toString();var l=s.toLowerCase();var c=/active|issued|ok|clear/.test(l)?'ok':/block|cancel|expired|declin/.test(l)?'err':'warn';return '<span class="pill '+c+'">'+(s||'pending')+'</span>';}
+  function render(res){
+    setRaw(res);
+    current=res.cardId||res.id||current;
+    $('card-id').textContent=current?'#'+current:'—';
+    $('card-actions').style.display=current?'flex':'none';
+    var html='';
+    if(res.status) html+=kv('Status',pill(res.status));
+    if(res.product) html+=kv('Product',res.product);
+    if(res.account) html+=kv('Account',res.account);
+    if(res.last4||res.pan) html+=kv('Card','•••• '+(res.last4||String(res.pan).slice(-4)));
+    if(res.expiry||res.expiresAt) html+=kv('Expiry',res.expiry||res.expiresAt);
+    if(res.blockReason||res.reason) html+=kv('Reason',res.blockReason||res.reason);
+    $('result').innerHTML=html||'<p class="muted" style="padding:14px 0">Response received — see raw below.</p>';
+  }
+  async function guard(fn){clearErr();try{var r=await fn();render(r);}catch(e){showErr(e);setRaw({error:String(e&&e.message||e)});}}
+  $('b-issue').onclick=function(){guard(function(){return CardsAPI.issue($('c-account').value.trim(),$('c-product').value);});};
+  $('b-load').onclick=function(){var id=prompt('Card ID:');if(!id)return;current=id;guard(function(){return CardsAPI.status(id);});};
+  $('b-activate').onclick=function(){if(current)guard(function(){return CardsAPI.activate(current);});};
+  $('b-block').onclick=function(){if(current){var reason=prompt('Block reason:','lost')||'lost';guard(function(){return CardsAPI.block(current,reason);});}};
+  $('b-status').onclick=function(){if(current)guard(function(){return CardsAPI.status(current);});};
+})();
+</script>
+</body>
+</html>
