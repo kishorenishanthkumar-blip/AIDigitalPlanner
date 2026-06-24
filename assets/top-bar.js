@@ -59,7 +59,12 @@
     { id: 'fraud',        icon: '\uD83D\uDED1', name: 'Fraud Review',    desc: 'Score transactions for fraud and triage open alerts.', badge: 'LIVE', href: 'fraud.html' },
     { id: 'dispute',      icon: '\u2696',       name: 'Disputes',        desc: 'Open disputes, raise chargebacks and record resolutions.', badge: 'LIVE', href: 'dispute.html' },
     { id: 'cards',        icon: '\uD83D\uDCB3', name: 'Cards Servicing', desc: 'Issue, activate, block and check cards.', badge: 'LIVE', href: 'cards.html' },
-    { id: 'overdraft',    icon: '\uD83C\uDFE6', name: 'Overdraft',       desc: 'Assess eligibility, set limits and check status.', badge: 'LIVE', href: 'overdraft.html' }
+    { id: 'overdraft',    icon: '\uD83C\uDFE6', name: 'Overdraft',       desc: 'Assess eligibility, set limits and check status.', badge: 'LIVE', href: 'overdraft.html' },
+    { id: 'lending',      icon: '\uD83D\uDCB7', name: 'Lending',        desc: 'Apply, underwrite and decision loans.', badge: 'LIVE', href: 'lending.html' },
+    { id: 'ledger',       icon: '\uD83D\uDCD2', name: 'General Ledger', desc: 'Open accounts, post double-entry journals, read balances.', badge: 'LIVE', href: 'ledger.html' },
+    { id: 'openbanking',  icon: '\uD83D\uDD17', name: 'Open Banking',   desc: 'Create, inspect and revoke TPP consents (PSD2/CDR).', badge: 'LIVE', href: 'openbanking.html' },
+    { id: 'comms',        icon: '\u2709',       name: 'Customer Comms', desc: 'Send and track messages across channels.', badge: 'LIVE', href: 'comms.html' },
+    { id: 'risk',         icon: '\uD83D\uDCC9', name: 'Risk & ECL',     desc: 'IFRS 9 staging and Expected Credit Loss.', badge: 'LIVE', href: 'risk.html' }
   ];
 
   // Top-level navigation

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Open Banking · DI Platform</title>
+<meta name="description" content="Create, inspect and revoke open-banking consents on live agent data."/>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<script src="assets/openbanking-api.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+.bk-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.bk-wrap{max-width:1100px;margin:0 auto}
+.bk-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.bk-h1{font-family:var(--f-head);font-size:24px;font-weight:600}.bk-h1 em{font-style:italic;color:var(--gold)}
+.bk-sub{color:var(--ink-2);margin-top:4px;font-size:13px}
+.bk-main{max-width:1100px;margin:0 auto;padding:22px 24px 40px;display:grid;grid-template-columns:1fr 1.1fr;gap:18px}
+@media (max-width:850px){.bk-main{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow-sm)}
+.card h2{font-family:var(--f-head);font-size:15px;font-weight:600;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.field input,.field select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--canvas);color:var(--ink)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:600;background:var(--canvas);border:1px solid var(--border);color:var(--ink)}
+.btn:hover{border-color:var(--gold)}.btn-primary{background:var(--gold);color:#1A2238;border:none}.btn-primary:hover{filter:brightness(1.05)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.muted{color:var(--ink-2)}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.pill.ok{background:var(--green-bg);color:#0A8462}.pill.warn{background:#FFF3E0;color:var(--orange)}.pill.err{background:#FDE7E7;color:var(--red)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.kv .k{color:var(--ink-2);font-weight:600}.kv .v{text-align:right;word-break:break-word}
+pre.raw{background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11.5px;overflow:auto;max-height:300px;white-space:pre-wrap}
+.note{font-size:11.5px;color:var(--ink-2);margin-top:10px}
+.err-box{background:#FDE7E7;border:1px solid var(--red);color:#A21C1C;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:10px}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<div class="bk-hero"><div class="bk-wrap">
+  <div class="bk-eyebrow">Open Banking · Consent</div>
+  <div class="bk-h1">Open Banking <em>Consents</em></div>
+  <div class="bk-sub">Create, inspect and revoke TPP consents (PSD2/CDR-style) — live, through the authenticated agent gateway.</div>
+</div></div>
+<div class="bk-main">
+  <div class="card">
+    <h2>Create consent</h2>
+    <div class="row"><div class="field"><label>Subject (customer)</label><input id="o-subject" placeholder="e.g. CUST-1001"/></div><div class="field"><label>TPP</label><input id="o-tpp" placeholder="e.g. acme-aggregator"/></div></div>
+    <div class="field"><label>Scopes (comma-separated)</label><input id="o-scopes" value="accounts,balances,transactions"/></div>
+    <div class="row"><div class="field"><label>Accounts (comma-separated)</label><input id="o-accounts" value="ACC-1001"/></div><div class="field"><label>Expiry (days)</label><input id="o-expiry" type="number" value="90"/></div></div>
+    <div class="btn-row"><button class="btn btn-primary" id="b-create">Create consent →</button><button class="btn" id="b-load">Load by consent ID</button></div>
+    <div class="note">Calls <code>ob_create_consent</code> (audited).</div>
+    <div id="err" class="err-box" style="display:none"></div>
+  </div>
+  <div class="card">
+    <h2>Consent <span id="consent-id" class="muted">— none —</span></h2>
+    <div class="btn-row" id="consent-actions" style="display:none">
+      <button class="btn" id="b-accounts">List accounts</button>
+      <button class="btn" id="b-get">Refresh</button>
+      <button class="btn" id="b-revoke">Revoke</button>
+    </div>
+    <div class="result" id="result" style="margin-top:8px"><p class="muted" style="padding:18px 0">Create or load a consent to see live results here.</p></div>
+    <details style="margin-top:12px"><summary class="muted" style="cursor:pointer;font-size:12px">Raw response</summary><pre class="raw" id="raw">—</pre></details>
+  </div>
+</div>
+<script>
+(function () {
+  var current=null;var $=function(id){return document.getElementById(id);};
+  function showErr(e){var b=$('err');b.style.display='block';b.textContent=(e&&e.message)||String(e);}
+  function clearErr(){$('err').style.display='none';}
+  function setRaw(o){$('raw').textContent=JSON.stringify(o,null,2);}
+  function kv(k,v){return '<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
+  function pill(s){s=(s||'').toString();var l=s.toLowerCase();var c=/auth|active|grant|valid|ok/.test(l)?'ok':/revok|expired|reject|denied/.test(l)?'err':'warn';return '<span class="pill '+c+'">'+(s||'pending')+'</span>';}
+  function csv(v){return (v||'').split(',').map(function(x){return x.trim();}).filter(Boolean);}
+  function render(res){
+    setRaw(res);current=res.consentId||res.id||current;
+    $('consent-id').textContent=current?'#'+current:'—';$('consent-actions').style.display=current?'flex':'none';
+    var html='';
+    if(res.status) html+=kv('Status',pill(res.status));
+    if(res.tpp) html+=kv('TPP',res.tpp);
+    if(res.subject) html+=kv('Subject',res.subject);
+    if(res.scopes) html+=kv('Scopes',Array.isArray(res.scopes)?res.scopes.join(', '):res.scopes);
+    if(res.expiresAt||res.expiry) html+=kv('Expires',res.expiresAt||res.expiry);
+    var accts=res.accounts;
+    if(Array.isArray(accts)&&accts.length){html+='<div style="margin-top:10px"><div class="muted" style="font-size:11px;font-weight:700;text-transform:uppercase">Accounts ('+accts.length+')</div>';accts.slice(0,12).forEach(function(a){html+=kv(a.accountNo||a.id||a,(a.balance!==undefined?a.balance+(a.currency?' '+a.currency:''):''));});html+='</div>';}
+    $('result').innerHTML=html||'<p class="muted" style="padding:14px 0">Response received — see raw below.</p>';
+  }
+  async function guard(fn){clearErr();try{var r=await fn();render(r);}catch(e){showErr(e);setRaw({error:String(e&&e.message||e)});}}
+  $('b-create').onclick=function(){guard(function(){return OpenBankingAPI.createConsent({subject:$('o-subject').value.trim(),tpp:$('o-tpp').value.trim(),scopes:csv($('o-scopes').value),accounts:csv($('o-accounts').value),expiryDays:Number($('o-expiry').value)});});};
+  $('b-load').onclick=function(){var id=prompt('Consent ID:');if(!id)return;current=id;guard(function(){return OpenBankingAPI.getConsent(id);});};
+  $('b-accounts').onclick=function(){if(current)guard(function(){return OpenBankingAPI.accounts(current);});};
+  $('b-get').onclick=function(){if(current)guard(function(){return OpenBankingAPI.getConsent(current);});};
+  $('b-revoke').onclick=function(){if(current)guard(function(){return OpenBankingAPI.revokeConsent(current);});};
+})();
+</script>
+</body>
+</html>

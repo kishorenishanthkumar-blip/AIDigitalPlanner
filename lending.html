@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lending · DI Platform</title>
+<meta name="description" content="Loan application, underwriting and decisioning on live agent data."/>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<script src="assets/lending-api.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+.bk-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.bk-wrap{max-width:1100px;margin:0 auto}
+.bk-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.bk-h1{font-family:var(--f-head);font-size:24px;font-weight:600}.bk-h1 em{font-style:italic;color:var(--gold)}
+.bk-sub{color:var(--ink-2);margin-top:4px;font-size:13px}
+.bk-main{max-width:1100px;margin:0 auto;padding:22px 24px 40px;display:grid;grid-template-columns:1fr 1.1fr;gap:18px}
+@media (max-width:850px){.bk-main{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow-sm)}
+.card h2{font-family:var(--f-head);font-size:15px;font-weight:600;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.field input,.field select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--canvas);color:var(--ink)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:600;background:var(--canvas);border:1px solid var(--border);color:var(--ink)}
+.btn:hover{border-color:var(--gold)}.btn-primary{background:var(--gold);color:#1A2238;border:none}.btn-primary:hover{filter:brightness(1.05)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.muted{color:var(--ink-2)}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.pill.ok{background:var(--green-bg);color:#0A8462}.pill.warn{background:#FFF3E0;color:var(--orange)}.pill.err{background:#FDE7E7;color:var(--red)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.kv .k{color:var(--ink-2);font-weight:600}.kv .v{text-align:right;word-break:break-word}
+pre.raw{background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11.5px;overflow:auto;max-height:300px;white-space:pre-wrap}
+.note{font-size:11.5px;color:var(--ink-2);margin-top:10px}
+.err-box{background:#FDE7E7;border:1px solid var(--red);color:#A21C1C;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:10px}
+.gauge{font-family:var(--f-head);font-size:28px;font-weight:600}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<div class="bk-hero"><div class="bk-wrap">
+  <div class="bk-eyebrow">Lending · Credit</div>
+  <div class="bk-h1">Lending <em>Origination</em></div>
+  <div class="bk-sub">Apply, underwrite and decision a loan — live, through the authenticated agent gateway.</div>
+</div></div>
+<div class="bk-main">
+  <div class="card">
+    <h2>New loan application</h2>
+    <div class="field"><label>Applicant</label><input id="l-applicant" placeholder="e.g. Jordan Avery"/></div>
+    <div class="row"><div class="field"><label>Amount</label><input id="l-amount" type="number" value="20000"/></div><div class="field"><label>Term (months)</label><input id="l-term" type="number" value="36"/></div></div>
+    <div class="row"><div class="field"><label>Annual income</label><input id="l-income" type="number" value="54000"/></div><div class="field"><label>Existing debt</label><input id="l-debt" type="number" value="8000"/></div></div>
+    <div class="btn-row"><button class="btn btn-primary" id="b-apply">Apply →</button><button class="btn" id="b-load">Load by loan ID</button></div>
+    <div class="note">Calls <code>lending_apply</code> (audited).</div>
+    <div id="err" class="err-box" style="display:none"></div>
+  </div>
+  <div class="card">
+    <h2>Loan <span id="loan-id" class="muted">— none —</span></h2>
+    <div class="btn-row" id="loan-actions" style="display:none">
+      <button class="btn" id="b-underwrite">Underwrite</button>
+      <button class="btn btn-primary" id="b-approve">Approve</button>
+      <button class="btn" id="b-reject">Reject</button>
+      <button class="btn" id="b-status">Refresh</button>
+    </div>
+    <div class="result" id="result" style="margin-top:8px"><p class="muted" style="padding:18px 0">Apply or load a loan to see live results here.</p></div>
+    <details style="margin-top:12px"><summary class="muted" style="cursor:pointer;font-size:12px">Raw response</summary><pre class="raw" id="raw">—</pre></details>
+  </div>
+</div>
+<script>
+(function () {
+  var current=null;var $=function(id){return document.getElementById(id);};
+  function showErr(e){var b=$('err');b.style.display='block';b.textContent=(e&&e.message)||String(e);}
+  function clearErr(){$('err').style.display='none';}
+  function setRaw(o){$('raw').textContent=JSON.stringify(o,null,2);}
+  function kv(k,v){return '<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
+  function pill(s){s=(s||'').toString();var l=s.toLowerCase();var c=/approv|eligible|fund|ok|pass/.test(l)?'ok':/declin|reject|denied|fail/.test(l)?'err':'warn';return '<span class="pill '+c+'">'+(s||'pending')+'</span>';}
+  function render(res){
+    setRaw(res);current=res.loanId||res.id||current;
+    $('loan-id').textContent=current?'#'+current:'—';$('loan-actions').style.display=current?'flex':'none';
+    var html='';
+    if(res.decision||res.status) html+=kv('Decision',pill(res.decision||res.status));
+    if(res.approvedAmount!==undefined) html+='<div class="gauge">'+Number(res.approvedAmount).toLocaleString()+'<span class="muted" style="font-size:13px"> approved</span></div>';
+    if(res.apr!==undefined) html+=kv('APR',res.apr+'%');
+    if(res.dti!==undefined) html+=kv('DTI',res.dti);
+    if(res.riskGrade||res.grade) html+=kv('Risk grade',pill(res.riskGrade||res.grade));
+    if(res.monthlyPayment!==undefined) html+=kv('Monthly payment',res.monthlyPayment);
+    if(res.reasons&&res.reasons.length) html+=kv('Reasons',res.reasons.join(', '));
+    $('result').innerHTML=html||'<p class="muted" style="padding:14px 0">Response received — see raw below.</p>';
+  }
+  async function guard(fn){clearErr();try{var r=await fn();render(r);}catch(e){showErr(e);setRaw({error:String(e&&e.message||e)});}}
+  $('b-apply').onclick=function(){guard(function(){return LendingAPI.apply({applicant:$('l-applicant').value.trim(),amount:Number($('l-amount').value),term:Number($('l-term').value),income:Number($('l-income').value),existingDebt:Number($('l-debt').value)});});};
+  $('b-load').onclick=function(){var id=prompt('Loan ID:');if(!id)return;current=id;guard(function(){return LendingAPI.status(id);});};
+  $('b-underwrite').onclick=function(){if(current)guard(function(){return LendingAPI.underwrite(current);});};
+  $('b-approve').onclick=function(){if(current)guard(function(){return LendingAPI.decision(current,'approve');});};
+  $('b-reject').onclick=function(){if(current)guard(function(){return LendingAPI.decision(current,'reject');});};
+  $('b-status').onclick=function(){if(current)guard(function(){return LendingAPI.status(current);});};
+})();
+</script>
+</body>
+</html>

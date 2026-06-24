@@ -250,6 +250,36 @@ function exportPlatformSnapshot() {
 <section class="section">
   <div class="section-h">Feature workspaces</div>
   <div class="tiles" id="tiles-grid">
+    <a class="tile" data-tile-id="lending" href="lending.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Lending" onclick="togglePin('lending',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-gold">💷</div><div class="tile-name">Lending</div></div>
+      <div class="tile-desc">Apply, underwrite and decision loans — live, through the authenticated gateway.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live agent</span><span class="tile-cta">Open →</span></div>
+    </a>
+    <a class="tile" data-tile-id="ledger" href="ledger.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Ledger" onclick="togglePin('ledger',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-blue">📒</div><div class="tile-name">General Ledger</div></div>
+      <div class="tile-desc">Open accounts, post balanced double-entry journals, read balances & statements.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live agent</span><span class="tile-cta">Open →</span></div>
+    </a>
+    <a class="tile" data-tile-id="openbanking" href="openbanking.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Open Banking" onclick="togglePin('openbanking',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-pink">🔗</div><div class="tile-name">Open Banking</div></div>
+      <div class="tile-desc">Create, inspect and revoke TPP consents (PSD2/CDR) — live, through the gateway.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live agent</span><span class="tile-cta">Open →</span></div>
+    </a>
+    <a class="tile" data-tile-id="comms" href="comms.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Comms" onclick="togglePin('comms',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-gold">✉️</div><div class="tile-name">Customer Comms</div></div>
+      <div class="tile-desc">Send and track customer messages across channels — live, through the gateway.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live agent</span><span class="tile-cta">Open →</span></div>
+    </a>
+    <a class="tile" data-tile-id="risk" href="risk.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Risk" onclick="togglePin('risk',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-blue">📉</div><div class="tile-name">Risk &amp; ECL</div></div>
+      <div class="tile-desc">IFRS 9 staging and Expected Credit Loss — per-exposure and portfolio.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live agent</span><span class="tile-cta">Open →</span></div>
+    </a>
     <a class="tile" data-tile-id="fraud" href="fraud.html">
       <button class="tile-pin" title="Pin / unpin" aria-label="Pin Fraud Review" onclick="togglePin('fraud',event)">★</button>
       <div class="tile-head"><div class="tile-icon icon-pink">🛑</div><div class="tile-name">Fraud Review</div></div>

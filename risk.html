@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Risk · IFRS 9 ECL · DI Platform</title>
+<meta name="description" content="IFRS 9 staging and Expected Credit Loss computation on live agent data."/>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<script src="assets/risk-api.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+.bk-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.bk-wrap{max-width:1100px;margin:0 auto}
+.bk-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.bk-h1{font-family:var(--f-head);font-size:24px;font-weight:600}.bk-h1 em{font-style:italic;color:var(--gold)}
+.bk-sub{color:var(--ink-2);margin-top:4px;font-size:13px}
+.bk-main{max-width:1100px;margin:0 auto;padding:22px 24px 40px;display:grid;grid-template-columns:1fr 1.1fr;gap:18px}
+@media (max-width:850px){.bk-main{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow-sm)}
+.card h2{font-family:var(--f-head);font-size:15px;font-weight:600;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.field input,.field select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--canvas);color:var(--ink)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;margin-bottom:12px}
+.btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:600;background:var(--canvas);border:1px solid var(--border);color:var(--ink)}
+.btn:hover{border-color:var(--gold)}.btn-primary{background:var(--gold);color:#1A2238;border:none}.btn-primary:hover{filter:brightness(1.05)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.muted{color:var(--ink-2)}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.pill.ok{background:var(--green-bg);color:#0A8462}.pill.warn{background:#FFF3E0;color:var(--orange)}.pill.err{background:#FDE7E7;color:var(--red)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.kv .k{color:var(--ink-2);font-weight:600}.kv .v{text-align:right;word-break:break-word}
+pre.raw{background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11.5px;overflow:auto;max-height:300px;white-space:pre-wrap}
+.note{font-size:11.5px;color:var(--ink-2);margin-top:10px}
+.err-box{background:#FDE7E7;border:1px solid var(--red);color:#A21C1C;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:10px}
+.gauge{font-family:var(--f-head);font-size:28px;font-weight:600}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<div class="bk-hero"><div class="bk-wrap">
+  <div class="bk-eyebrow">Risk · IFRS 9</div>
+  <div class="bk-h1">Credit <em>Risk &amp; ECL</em></div>
+  <div class="bk-sub">IFRS 9 staging and Expected Credit Loss — per-exposure and portfolio — live, through the authenticated gateway.</div>
+</div></div>
+<div class="bk-main">
+  <div class="card">
+    <h2>Compute ECL for an exposure</h2>
+    <div class="field"><label>Exposure ref</label><input id="r-ref" placeholder="e.g. EXP-7781"/></div>
+    <div class="row"><div class="field"><label>EAD (exposure)</label><input id="r-ead" type="number" value="100000"/></div><div class="field"><label>Stage (1/2/3)</label><select id="r-stage"><option>1</option><option>2</option><option>3</option></select></div></div>
+    <div class="row"><div class="field"><label>PD</label><input id="r-pd" type="number" step="0.01" value="0.02"/></div><div class="field"><label>LGD</label><input id="r-lgd" type="number" step="0.01" value="0.45"/></div></div>
+    <div class="row"><div class="field"><label>Days past due</label><input id="r-dpd" type="number" value="0"/></div></div>
+    <div class="chk"><input type="checkbox" id="r-sicr"/><label for="r-sicr" style="margin:0">SICR (significant increase in credit risk)</label></div>
+    <div class="btn-row"><button class="btn btn-primary" id="b-ecl">Compute ECL →</button><button class="btn" id="b-stage">Assess stage only</button><button class="btn" id="b-portfolio">Portfolio ECL</button></div>
+    <div class="note">Calls <code>risk_ecl_compute</code> / <code>risk_stage_assess</code> / <code>risk_portfolio_ecl</code> (audited).</div>
+    <div id="err" class="err-box" style="display:none"></div>
+  </div>
+  <div class="card">
+    <h2>Result <span id="ctx" class="muted"></span></h2>
+    <div class="result" id="result"><p class="muted" style="padding:18px 0">Compute an ECL, assess a stage, or run the portfolio to see live results here.</p></div>
+    <details style="margin-top:12px"><summary class="muted" style="cursor:pointer;font-size:12px">Raw response</summary><pre class="raw" id="raw">—</pre></details>
+  </div>
+</div>
+<script>
+(function () {
+  var $=function(id){return document.getElementById(id);};
+  function showErr(e){var b=$('err');b.style.display='block';b.textContent=(e&&e.message)||String(e);}
+  function clearErr(){$('err').style.display='none';}
+  function setRaw(o){$('raw').textContent=JSON.stringify(o,null,2);}
+  function kv(k,v){return '<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
+  function money(v){return (typeof v==='number')?v.toLocaleString(undefined,{maximumFractionDigits:2}):v;}
+  function stagePill(s){var c=(''+s).indexOf('3')>=0?'err':(''+s).indexOf('2')>=0?'warn':'ok';return '<span class="pill '+c+'">Stage '+s+'</span>';}
+  function render(res,ctx){
+    setRaw(res);$('ctx').textContent=ctx?'· '+ctx:'';
+    var html='';
+    var ecl=res.ecl!==undefined?res.ecl:(res.eclAmount!==undefined?res.eclAmount:res.totalEcl);
+    if(ecl!==undefined) html+='<div class="gauge">'+money(ecl)+'<span class="muted" style="font-size:13px"> ECL</span></div>';
+    if(res.stage!==undefined) html+=kv('Stage',stagePill(res.stage));
+    if(res.provisionId) html+=kv('Provision',res.provisionId);
+    if(res.coverage!==undefined||res.coverageRatio!==undefined) html+=kv('Coverage',(res.coverage!=null?res.coverage:res.coverageRatio));
+    if(res.pd!==undefined) html+=kv('PD',res.pd);
+    if(res.lgd!==undefined) html+=kv('LGD',res.lgd);
+    if(res.ead!==undefined) html+=kv('EAD',money(res.ead));
+    if(res.exposures!==undefined||res.count!==undefined) html+=kv('Exposures',res.exposures!=null?res.exposures:res.count);
+    if(res.sicr!==undefined) html+=kv('SICR',res.sicr?'yes':'no');
+    $('result').innerHTML=html||'<p class="muted" style="padding:14px 0">Response received — see raw below.</p>';
+  }
+  async function guard(ctx,fn){clearErr();try{var r=await fn();render(r,ctx);}catch(e){showErr(e);setRaw({error:String(e&&e.message||e)});}}
+  $('b-ecl').onclick=function(){guard('ECL',function(){return RiskAPI.eclCompute({exposureRef:$('r-ref').value.trim(),ead:Number($('r-ead').value),pd:Number($('r-pd').value),lgd:Number($('r-lgd').value),stage:Number($('r-stage').value),daysPastDue:Number($('r-dpd').value),sicr:$('r-sicr').checked});});};
+  $('b-stage').onclick=function(){guard('stage',function(){return RiskAPI.stageAssess(Number($('r-dpd').value),$('r-sicr').checked);});};
+  $('b-portfolio').onclick=function(){guard('portfolio',function(){return RiskAPI.portfolioEcl();});};
+})();
+</script>
+</body>
+</html>
