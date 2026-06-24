@@ -250,6 +250,12 @@ function exportPlatformSnapshot() {
 <section class="section">
   <div class="section-h">Feature workspaces</div>
   <div class="tiles" id="tiles-grid">
+    <a class="tile" data-tile-id="audit" href="audit.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Audit Trail" onclick="togglePin('audit',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-blue">📜</div><div class="tile-name">Audit &amp; Explainability</div></div>
+      <div class="tile-desc">WORM hash-chained decision trail — filter every action by agent, decision and principal, with one-click chain-integrity proof.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live · WORM</span><span class="tile-cta">Open →</span></div>
+    </a>
     <a class="tile" data-tile-id="approvals" href="approvals.html">
       <button class="tile-pin" title="Pin / unpin" aria-label="Pin Approvals" onclick="togglePin('approvals',event)">★</button>
       <div class="tile-head"><div class="tile-icon icon-pink">🛂</div><div class="tile-name">Approvals Queue</div></div>

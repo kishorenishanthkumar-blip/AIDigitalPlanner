@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Audit & Explainability · DI Platform</title>
+<meta name="description" content="WORM hash-chained audit trail — filterable decision timeline with chain-integrity proof."/>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<script src="assets/audit-viewer-api.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+.bk-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.bk-wrap{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px}
+.bk-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.bk-h1{font-family:var(--f-head);font-size:24px;font-weight:600}.bk-h1 em{font-style:italic;color:var(--gold)}
+.bk-sub{color:var(--ink-2);margin-top:4px;font-size:13px}
+.bk-main{max-width:1100px;margin:0 auto;padding:18px 24px 40px}
+.verify{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:600;background:var(--canvas);border:1px solid var(--border);color:var(--ink)}
+.btn:hover{border-color:var(--gold)}
+.btn-primary{background:var(--gold);color:#1A2238;border:none}
+.chain{font-size:12px;font-weight:700;padding:6px 12px;border-radius:99px}
+.chain.ok{background:var(--green-bg);color:#0A8462}.chain.bad{background:#FDE7E7;color:var(--red)}.chain.idle{background:var(--canvas);color:var(--ink-2);border:1px solid var(--border)}
+.chain .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.filters select,.filters input{padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:inherit;background:#fff;color:var(--ink)}
+.filters input{flex:1;min-width:180px}
+.tl{position:relative}
+.ev{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:8px;box-shadow:var(--shadow-sm)}
+.ev-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.ev-title{font-weight:700;font-size:13.5px}
+.ev-title .agent{color:var(--gold)}
+.ev-meta{font-size:11.5px;color:var(--ink-2)}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:10.5px;font-weight:700}
+.pill.allow{background:var(--green-bg);color:#0A8462}.pill.deny{background:#FDE7E7;color:var(--red)}.pill.pending{background:#FFF3E0;color:var(--orange)}.pill.na{background:var(--canvas);color:var(--ink-2)}
+.ev-detail{margin-top:8px;display:none;border-top:1px dashed var(--border);padding-top:8px;font-size:12px}
+.ev.open .ev-detail{display:block}
+.kv{display:flex;gap:18px;flex-wrap:wrap}
+.kv .item .k{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2);font-weight:700}
+.kv .item .v{font-size:12px;word-break:break-all}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.empty{text-align:center;color:var(--ink-2);padding:48px 0}
+.err-box{background:#FDE7E7;border:1px solid var(--red);color:#A21C1C;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-bottom:12px;display:none}
+.muted{color:var(--ink-2)}
+.count{font-size:12px;color:var(--ink-2);margin-bottom:6px}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<div class="bk-hero"><div class="bk-wrap">
+  <div>
+    <div class="bk-eyebrow">Governance · Explainability</div>
+    <div class="bk-h1">Audit <em>Trail</em></div>
+    <div class="bk-sub">WORM hash-chained decision trail (ENT-4) — every action, who did it, and a tamper-evidence proof.</div>
+  </div>
+  <div class="verify">
+    <button class="btn btn-primary" id="b-verify">🔒 Verify chain integrity</button>
+    <span class="chain idle" id="chain">not verified yet</span>
+  </div>
+</div></div>
+<div class="bk-main">
+  <div class="filters">
+    <select id="f-agent"><option value="">All agents</option></select>
+    <select id="f-action"><option value="">All actions</option></select>
+    <select id="f-decision"><option value="">Any decision</option><option value="allow">allow</option><option value="deny">deny</option><option value="pending">pending</option><option value="n/a">n/a</option></select>
+    <input id="f-q" placeholder="Search action / agent / resource / principal…"/>
+    <button class="btn" id="b-apply">Apply</button>
+    <button class="btn" id="b-reset">Reset</button>
+  </div>
+  <div id="err" class="err-box"></div>
+  <div class="count" id="count"></div>
+  <div class="tl" id="list"><div class="empty">Loading…</div></div>
+</div>
+<script>
+(function () {
+  var facetsLoaded = false;
+  var $ = function (id) { return document.getElementById(id); };
+  function showErr(e) { var b = $('err'); b.style.display = 'block'; b.textContent = (e && e.message) || String(e); }
+  function clearErr() { $('err').style.display = 'none'; }
+  function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+  function when(ts) { try { return new Date(ts).toLocaleString(); } catch (e) { return ts; } }
+  function decClass(d) { d = (d || 'n/a'); return d === 'allow' ? 'allow' : d === 'deny' ? 'deny' : d === 'pending' ? 'pending' : 'na'; }
+  function evCard(e) {
+    return '<div class="ev" data-seq="' + e.seq + '">' +
+      '<div class="ev-top"><div class="ev-title"><span class="agent">' + esc(e.agent || 'ui') + '</span> · ' + esc(e.action) +
+      (e.resource ? ' <span class="muted">· ' + esc(e.resource) + '</span>' : '') + '</div>' +
+      '<div><span class="pill ' + decClass(e.decision) + '">' + esc(e.decision || 'n/a') + '</span></div></div>' +
+      '<div class="ev-meta">#' + e.seq + ' · ' + esc(e.principal) + ' · ' + when(e.ts) + ' · <span class="mono">' + esc(e.hash) + '…</span></div>' +
+      '<div class="ev-detail"><div class="kv">' +
+        '<div class="item"><span class="k">Tool</span><span class="v">' + esc(e.tool || '—') + '</span></div>' +
+        '<div class="item"><span class="k">Request ID</span><span class="v mono">' + esc(e.request_id || '—') + '</span></div>' +
+        '<div class="item"><span class="k">Event ID</span><span class="v mono">' + esc(e.id) + '</span></div>' +
+        '<div class="item"><span class="k">Chain hash</span><span class="v mono">' + esc(e.hash) + '…</span></div>' +
+      '</div></div></div>';
+  }
+  function render(events) {
+    $('count').textContent = events.length + ' event' + (events.length === 1 ? '' : 's');
+    if (!events.length) { $('list').innerHTML = '<div class="empty">No matching audit events.</div>'; return; }
+    $('list').innerHTML = events.map(evCard).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('.ev'), function (el) {
+      el.querySelector('.ev-top').onclick = function () { el.classList.toggle('open'); };
+    });
+  }
+  function fillFacets(agents, actions) {
+    if (facetsLoaded) return;
+    var ag = $('f-agent'), ac = $('f-action');
+    (agents || []).forEach(function (a) { var o = document.createElement('option'); o.value = a; o.textContent = a; ag.appendChild(o); });
+    (actions || []).forEach(function (a) { var o = document.createElement('option'); o.value = a; o.textContent = a; ac.appendChild(o); });
+    facetsLoaded = true;
+  }
+  function load() {
+    clearErr();
+    $('list').innerHTML = '<div class="empty">Loading…</div>';
+    AuditAPI.list({ agent: $('f-agent').value, action: $('f-action').value, decision: $('f-decision').value, q: $('f-q').value.trim(), limit: 200 })
+      .then(function (r) { fillFacets(r.agents, r.actions); render(r.events || []); })
+      .catch(function (e) { showErr(e); $('list').innerHTML = '<div class="empty">Could not load audit events.</div>'; });
+  }
+  $('b-verify').onclick = function () {
+    var chip = $('chain'); chip.className = 'chain idle'; chip.textContent = 'verifying…';
+    AuditAPI.verify().then(function (r) {
+      if (r.ok) { chip.className = 'chain ok'; chip.innerHTML = '✓ Chain verified · ' + r.checked + ' events · head <span class="mono">' + esc((r.head || '').slice(0, 12)) + '…</span>'; }
+      else { chip.className = 'chain bad'; chip.textContent = '✗ Chain broken at seq ' + r.brokenAtSeq + ' · ' + (r.reason || ''); }
+    }).catch(function (e) { chip.className = 'chain bad'; chip.textContent = '✗ ' + ((e && e.message) || e); });
+  };
+  $('b-apply').onclick = load;
+  $('f-q').addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  ['f-agent', 'f-action', 'f-decision'].forEach(function (id) { $(id).addEventListener('change', load); });
+  $('b-reset').onclick = function () { $('f-agent').value = ''; $('f-action').value = ''; $('f-decision').value = ''; $('f-q').value = ''; load(); };
+  window.addEventListener('load', load);
+})();
+</script>
+</body>
+</html>
