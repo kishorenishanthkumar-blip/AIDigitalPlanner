@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KYC / Sanctions Screening · DI Platform</title>
+<meta name="description" content="Sanctions name screening, ISO 20022 screening and AML transaction monitoring on live agent data."/>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<script src="assets/kyc-api.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+.bk-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.bk-wrap{max-width:1100px;margin:0 auto}
+.bk-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.bk-h1{font-family:var(--f-head);font-size:24px;font-weight:600}.bk-h1 em{font-style:italic;color:var(--gold)}
+.bk-sub{color:var(--ink-2);margin-top:4px;font-size:13px}
+.bk-main{max-width:1100px;margin:0 auto;padding:22px 24px 40px;display:grid;grid-template-columns:1fr 1.1fr;gap:18px}
+@media (max-width:850px){.bk-main{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow-sm);margin-bottom:18px}
+.card h2{font-family:var(--f-head);font-size:15px;font-weight:600;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--canvas);color:var(--ink)}
+.field textarea{min-height:60px;resize:vertical}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:600;background:var(--canvas);border:1px solid var(--border);color:var(--ink)}
+.btn:hover{border-color:var(--gold)}.btn-primary{background:var(--gold);color:#1A2238;border:none}.btn-primary:hover{filter:brightness(1.05)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.muted{color:var(--ink-2)}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.pill.ok{background:var(--green-bg);color:#0A8462}.pill.warn{background:#FFF3E0;color:var(--orange)}.pill.err{background:#FDE7E7;color:var(--red)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.kv .k{color:var(--ink-2);font-weight:600}.kv .v{text-align:right;word-break:break-word}
+pre.raw{background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11.5px;overflow:auto;max-height:300px;white-space:pre-wrap}
+.note{font-size:11.5px;color:var(--ink-2);margin-top:10px}
+.err-box{background:#FDE7E7;border:1px solid var(--red);color:#A21C1C;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:10px}
+.hit{border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:12px}
+.hit .nm{font-weight:700}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+
+<div class="bk-hero"><div class="bk-wrap">
+  <div class="bk-eyebrow">Compliance · Screening</div>
+  <div class="bk-h1">KYC &amp; <em>Sanctions Screening</em></div>
+  <div class="bk-sub">Name &amp; ISO 20022 sanctions screening plus AML transaction monitoring — live, through the authenticated agent gateway.</div>
+</div></div>
+
+<div class="bk-main">
+  <div>
+    <div class="card">
+      <h2>Sanctions name screening</h2>
+      <div class="field"><label>Name</label><input id="s-name" placeholder="e.g. Vladimir Ivanov"/></div>
+      <div class="row">
+        <div class="field"><label>Country</label><input id="s-country" placeholder="e.g. RU"/></div>
+        <div class="field"><label>Match threshold</label><input id="s-threshold" type="number" min="0" max="100" value="85"/></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-primary" id="b-name">Screen name →</button><button class="btn" id="b-refresh">Refresh lists</button></div>
+      <div class="note">Calls <code>screening_screen_name</code> (audited). "Refresh lists" runs <code>screening_refresh_lists</code>.</div>
+    </div>
+    <div class="card">
+      <h2>AML transaction monitoring</h2>
+      <div class="field"><label>Transaction ref</label><input id="t-ref" placeholder="e.g. TXN-88421"/></div>
+      <div class="row">
+        <div class="field"><label>Amount</label><input id="t-amount" type="number" value="25000"/></div>
+        <div class="field"><label>Corridor</label><input id="t-corridor" placeholder="e.g. GB-AE" value="GB-AE"/></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-primary" id="b-monitor">Monitor transaction →</button></div>
+      <div class="note">Calls <code>aml_monitor_transaction</code> on live flows.</div>
+      <div id="err" class="err-box" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Result <span id="ctx" class="muted"></span></h2>
+    <div class="result" id="result"><p class="muted" style="padding:18px 0">Run a screening or monitor a transaction to see live results here.</p></div>
+    <details style="margin-top:12px"><summary class="muted" style="cursor:pointer;font-size:12px">Raw response</summary><pre class="raw" id="raw">—</pre></details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function showErr(e) { var b = $('err'); b.style.display = 'block'; b.textContent = (e && e.message) || String(e); }
+  function clearErr() { $('err').style.display = 'none'; }
+  function setRaw(o) { $('raw').textContent = JSON.stringify(o, null, 2); }
+  function kv(k, v) { return '<div class="kv"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'; }
+  function pill(s) { s = (s || '').toString(); var l = s.toLowerCase(); var c = /clear|pass|ok|no.?hit|green|low/.test(l) ? 'ok' : /hit|block|fail|high|red/.test(l) ? 'err' : 'warn'; return '<span class="pill ' + c + '">' + (s || 'pending') + '</span>'; }
+  function render(res, ctx) {
+    setRaw(res); $('ctx').textContent = ctx ? '· ' + ctx : '';
+    var html = '';
+    var status = res.status || res.decision || res.verdict || res.result;
+    if (status) html += kv('Status', pill(status));
+    var matches = res.matches || res.hits || (res.screening && res.screening.matches);
+    var n = Array.isArray(matches) ? matches.length : (typeof res.hits === 'number' ? res.hits : undefined);
+    if (n !== undefined) html += kv('Matches', n);
+    if (res.score !== undefined) html += kv('Top score', res.score);
+    if (res.riskRating) html += kv('Risk', pill(res.riskRating));
+    if (res.listVersion) html += kv('List version', res.listVersion);
+    if (res.refreshedAt || res.updatedAt) html += kv('Refreshed', new Date(res.refreshedAt || res.updatedAt).toLocaleString());
+    if (Array.isArray(matches) && matches.length) {
+      html += '<div style="margin-top:12px">';
+      matches.slice(0, 8).forEach(function (m) {
+        html += '<div class="hit"><div class="nm">' + (m.name || m.matchedName || '—') + '</div><div class="muted">' +
+          [(m.list || m.source || ''), (m.score !== undefined ? 'score ' + m.score : ''), (m.country || '')].filter(Boolean).join(' · ') + '</div></div>';
+      });
+      html += '</div>';
+    }
+    $('result').innerHTML = html || '<p class="muted" style="padding:14px 0">Response received — see raw below.</p>';
+  }
+  async function guard(ctx, fn) { clearErr(); try { var r = await fn(); render(r, ctx); } catch (e) { showErr(e); setRaw({ error: String(e && e.message || e) }); } }
+
+  $('b-name').onclick = function () { guard('name screening', function () { return KYCAPI.screenName($('s-name').value.trim(), $('s-country').value.trim(), Number($('s-threshold').value)); }); };
+  $('b-refresh').onclick = function () { guard('list refresh', function () { return KYCAPI.refreshLists(); }); };
+  $('b-monitor').onclick = function () { guard('AML monitor', function () { return KYCAPI.monitorTxn($('t-ref').value.trim(), Number($('t-amount').value), $('t-corridor').value.trim()); }); };
+})();
+</script>
+</body>
+</html>
