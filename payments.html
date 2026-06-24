@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Payments · DI Platform</title>
+<meta name="description" content="Route, initiate, track and reconcile payments across rails — live, through the authenticated agent gateway."/>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<script src="assets/payments-api.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+.bk-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.bk-wrap{max-width:1100px;margin:0 auto}
+.bk-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.bk-h1{font-family:var(--f-head);font-size:24px;font-weight:600}.bk-h1 em{font-style:italic;color:var(--gold)}
+.bk-sub{color:var(--ink-2);margin-top:4px;font-size:13px}
+.bk-main{max-width:1100px;margin:0 auto;padding:22px 24px 40px;display:grid;grid-template-columns:1fr 1.1fr;gap:18px}
+@media (max-width:850px){.bk-main{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow-sm);margin-bottom:18px}
+.card h2{font-family:var(--f-head);font-size:15px;font-weight:600;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--canvas);color:var(--ink)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:600;background:var(--canvas);border:1px solid var(--border);color:var(--ink)}
+.btn:hover{border-color:var(--gold)}.btn-primary{background:var(--gold);color:#1A2238;border:none}.btn-primary:hover{filter:brightness(1.05)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.muted{color:var(--ink-2)}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.pill.ok{background:var(--green-bg);color:#0A8462}.pill.warn{background:#FFF3E0;color:var(--orange)}.pill.err{background:#FDE7E7;color:var(--red)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.kv .k{color:var(--ink-2);font-weight:600}.kv .v{text-align:right;word-break:break-word}
+pre.raw{background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11.5px;overflow:auto;max-height:300px;white-space:pre-wrap}
+.note{font-size:11.5px;color:var(--ink-2);margin-top:10px}
+.err-box{background:#FDE7E7;border:1px solid var(--red);color:#A21C1C;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:10px}
+.rail{border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:12px;display:flex;justify-content:space-between}
+.rail .nm{font-weight:700}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+
+<div class="bk-hero"><div class="bk-wrap">
+  <div class="bk-eyebrow">Banking · Money Movement</div>
+  <div class="bk-h1">Payments <em>Orchestration</em></div>
+  <div class="bk-sub">Route across rails, initiate, track and reconcile — live, through the authenticated agent gateway.</div>
+</div></div>
+
+<div class="bk-main">
+  <div class="card">
+    <h2>New payment</h2>
+    <div class="row">
+      <div class="field"><label>Amount</label><input id="p-amount" type="number" value="15000"/></div>
+      <div class="field"><label>Currency</label><input id="p-currency" value="EUR"/></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Corridor</label><input id="p-corridor" placeholder="e.g. GB-DE" value="GB-DE"/></div>
+      <div class="field"><label>Urgency</label><select id="p-urgency"><option value="standard">Standard</option><option value="instant">Instant</option><option value="priority">Priority</option></select></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Rail (for initiate)</label><input id="p-rail" placeholder="e.g. SEPA / SWIFT / FedNow" value="SEPA"/></div>
+      <div class="field"><label>Beneficiary</label><input id="p-bene" placeholder="e.g. DE89 3704 0044 ..."/></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="b-route">Route (preview rails) →</button>
+      <button class="btn btn-primary" id="b-initiate">Initiate payment →</button>
+    </div>
+    <div class="note">"Route" runs <code>payments_route</code>; "Initiate" runs <code>payments_initiate</code> — both audited as your identity.</div>
+    <div id="err" class="err-box" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <h2>Result <span id="pay-id" class="muted"></span></h2>
+    <div class="btn-row" id="pay-actions" style="display:none">
+      <button class="btn" id="b-status">Refresh status</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div class="field"><label>Reconcile rail</label><input id="r-rail" value="SEPA"/></div>
+      <div class="field"><label>Window</label><input id="r-window" value="1d"/></div>
+    </div>
+    <div class="btn-row"><button class="btn" id="b-reconcile">Reconcile →</button></div>
+    <div class="result" id="result" style="margin-top:10px"><p class="muted" style="padding:14px 0">Route or initiate a payment to see live results here.</p></div>
+    <details style="margin-top:12px"><summary class="muted" style="cursor:pointer;font-size:12px">Raw response</summary><pre class="raw" id="raw">—</pre></details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var currentPay = null;
+  var $ = function (id) { return document.getElementById(id); };
+  function showErr(e) { var b = $('err'); b.style.display = 'block'; b.textContent = (e && e.message) || String(e); }
+  function clearErr() { $('err').style.display = 'none'; }
+  function setRaw(o) { $('raw').textContent = JSON.stringify(o, null, 2); }
+  function kv(k, v) { return '<div class="kv"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'; }
+  function pill(s) { s = (s || '').toString(); var l = s.toLowerCase(); var c = /settl|complet|success|clear|ok|sent|accepted/.test(l) ? 'ok' : /fail|reject|error|return/.test(l) ? 'err' : 'warn'; return '<span class="pill ' + c + '">' + (s || 'pending') + '</span>'; }
+  function render(res) {
+    setRaw(res);
+    currentPay = res.paymentId || res.id || currentPay;
+    $('pay-id').textContent = currentPay ? '· #' + currentPay : '';
+    $('pay-actions').style.display = currentPay ? 'flex' : 'none';
+    var html = '';
+    if (res.status) html += kv('Status', pill(res.status));
+    if (res.selectedRail || res.rail) html += kv('Rail', res.selectedRail || res.rail);
+    if (res.eta || res.estimatedSettlement) html += kv('ETA', res.eta || res.estimatedSettlement);
+    if (res.fee !== undefined) html += kv('Fee', res.fee);
+    if (res.fxRate !== undefined) html += kv('FX rate', res.fxRate);
+    if (res.matched !== undefined) html += kv('Reconciled', res.matched + (res.total !== undefined ? ' / ' + res.total : ''));
+    var rails = res.rails || res.options || res.routes;
+    if (Array.isArray(rails) && rails.length) {
+      html += '<div style="margin-top:12px">';
+      rails.slice(0, 8).forEach(function (r) {
+        html += '<div class="rail"><span class="nm">' + (r.rail || r.name || '—') + '</span><span class="muted">' +
+          [(r.fee !== undefined ? 'fee ' + r.fee : ''), (r.eta || r.settlement || ''), (r.score !== undefined ? 'score ' + r.score : '')].filter(Boolean).join(' · ') + '</span></div>';
+      });
+      html += '</div>';
+    }
+    $('result').innerHTML = html || '<p class="muted" style="padding:14px 0">Response received — see raw below.</p>';
+  }
+  async function guard(fn) { clearErr(); try { var r = await fn(); render(r); } catch (e) { showErr(e); setRaw({ error: String(e && e.message || e) }); } }
+
+  $('b-route').onclick = function () { guard(function () { return PaymentsAPI.route(Number($('p-amount').value), $('p-currency').value.trim(), $('p-corridor').value.trim(), $('p-urgency').value); }); };
+  $('b-initiate').onclick = function () { guard(function () { return PaymentsAPI.initiate({
+    amount: Number($('p-amount').value), currency: $('p-currency').value.trim(), rail: $('p-rail').value.trim(),
+    beneficiary: $('p-bene').value.trim(), corridor: $('p-corridor').value.trim(), urgency: $('p-urgency').value
+  }); }); };
+  $('b-status').onclick = function () { if (currentPay) guard(function () { return PaymentsAPI.status(currentPay); }); };
+  $('b-reconcile').onclick = function () { guard(function () { return PaymentsAPI.reconcile($('r-rail').value.trim(), $('r-window').value.trim()); }); };
+})();
+</script>
+</body>
+</html>

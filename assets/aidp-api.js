@@ -37,7 +37,20 @@
       TESTING_MASTER: `https://aiagenticplanner-testing-master.${SUBDOMAIN}.workers.dev`,
       ORCHESTRATOR: `https://aiagenticplanner-orchestrator.${SUBDOMAIN}.workers.dev`,
       INSIGHTS:     `https://aiagenticplanner-insights.${SUBDOMAIN}.workers.dev`,
-      COST:         `https://aiagenticplanner-cost.${SUBDOMAIN}.workers.dev`
+      COST:         `https://aiagenticplanner-cost.${SUBDOMAIN}.workers.dev`,
+      /* UI-01 · banking journey agents */
+      ONBOARDING:   `https://aiagenticplanner-onboarding.${SUBDOMAIN}.workers.dev`,
+      KYC_AML:      `https://aiagenticplanner-kyc-aml.${SUBDOMAIN}.workers.dev`,
+      PAYMENTS:     `https://aiagenticplanner-payments.${SUBDOMAIN}.workers.dev`,
+      FRAUD:        `https://aiagenticplanner-fraud.${SUBDOMAIN}.workers.dev`,
+      DISPUTE:      `https://aiagenticplanner-dispute.${SUBDOMAIN}.workers.dev`,
+      CARDS:        `https://aiagenticplanner-cards.${SUBDOMAIN}.workers.dev`,
+      OVERDRAFT:    `https://aiagenticplanner-overdraft.${SUBDOMAIN}.workers.dev`,
+      LENDING:      `https://aiagenticplanner-lending.${SUBDOMAIN}.workers.dev`,
+      LEDGER:       `https://aiagenticplanner-ledger.${SUBDOMAIN}.workers.dev`,
+      OPENBANKING:  `https://aiagenticplanner-openbanking.${SUBDOMAIN}.workers.dev`,
+      COMMS:        `https://aiagenticplanner-comms.${SUBDOMAIN}.workers.dev`,
+      RISK:         `https://aiagenticplanner-risk.${SUBDOMAIN}.workers.dev`
     },
     GATEWAY_URL: `https://aiagenticplanner-auth-bff.${SUBDOMAIN}.workers.dev/api/mcp`,
     USE_GATEWAY: true,
