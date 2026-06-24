@@ -250,6 +250,12 @@ function exportPlatformSnapshot() {
 <section class="section">
   <div class="section-h">Feature workspaces</div>
   <div class="tiles" id="tiles-grid">
+    <a class="tile" data-tile-id="approvals" href="approvals.html">
+      <button class="tile-pin" title="Pin / unpin" aria-label="Pin Approvals" onclick="togglePin('approvals',event)">★</button>
+      <div class="tile-head"><div class="tile-icon icon-pink">🛂</div><div class="tile-name">Approvals Queue</div></div>
+      <div class="tile-desc">Human-in-the-loop — action high-risk items held by the agents (e.g. high-value payments), with audited decisions.</div>
+      <div class="tile-foot"><span class="tile-status ok">Live · HITL</span><span class="tile-cta">Open →</span></div>
+    </a>
     <a class="tile" data-tile-id="lending" href="lending.html">
       <button class="tile-pin" title="Pin / unpin" aria-label="Pin Lending" onclick="togglePin('lending',event)">★</button>
       <div class="tile-head"><div class="tile-icon icon-gold">💷</div><div class="tile-name">Lending</div></div>

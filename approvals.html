@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Approvals · DI Platform</title>
+<meta name="description" content="Human-in-the-loop approvals queue — action high-risk items held by the agents."/>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/aidp-enterprise.css">
+<script src="assets/top-bar.js" defer></script>
+<script src="assets/aidp-api.js"></script>
+<script src="assets/approvals-api.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--canvas),var(--canvas-2));color:var(--ink);font-family:var(--f-ui);font-size:13.5px;line-height:1.5;min-height:100vh}
+button{font-family:var(--f-ui);cursor:pointer;border:none}
+.bk-hero{padding:22px 24px;background:linear-gradient(180deg,#fff,var(--canvas));border-bottom:1px solid var(--border)}
+.bk-wrap{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px}
+.bk-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.bk-h1{font-family:var(--f-head);font-size:24px;font-weight:600}.bk-h1 em{font-style:italic;color:var(--gold)}
+.bk-sub{color:var(--ink-2);margin-top:4px;font-size:13px}
+.bk-main{max-width:1100px;margin:0 auto;padding:18px 24px 40px}
+.tabs{display:flex;gap:4px;background:var(--canvas);padding:3px;border-radius:9px;border:1px solid var(--border);width:max-content;margin-bottom:16px}
+.tabs button{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;background:transparent;color:var(--ink-2)}
+.tabs button.act{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+.row-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:8px 14px;border-radius:8px;font-size:12.5px;font-weight:600;background:var(--canvas);border:1px solid var(--border);color:var(--ink)}
+.btn:hover{border-color:var(--gold)}
+.btn-approve{background:var(--green,#13A36B);color:#fff;border:none}
+.btn-reject{background:#FDE7E7;color:#A21C1C;border:1px solid var(--red)}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow-sm);margin-bottom:12px}
+.appr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.appr-title{font-weight:700;font-size:14px}
+.appr-meta{font-size:11.5px;color:var(--ink-2);margin-top:3px}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.pill.high{background:#FDE7E7;color:var(--red)}.pill.elevated{background:#FFF3E0;color:var(--orange)}.pill.normal{background:var(--green-bg);color:#0A8462}
+.pill.approved{background:var(--green-bg);color:#0A8462}.pill.rejected{background:#FDE7E7;color:var(--red)}.pill.pending{background:#FFF3E0;color:var(--orange)}
+.kv{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px}
+.kv .item{font-size:12px}.kv .item .k{color:var(--ink-2);font-weight:600;display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em}
+.args{margin-top:10px;background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11.5px;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;max-height:140px;overflow:auto}
+.empty{text-align:center;color:var(--ink-2);padding:48px 0}
+.err-box{background:#FDE7E7;border:1px solid var(--red);color:#A21C1C;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-bottom:12px;display:none}
+.muted{color:var(--ink-2)}
+.refresh{font-size:12px;color:var(--gold);font-weight:700;cursor:pointer;background:none;border:none}
+</style>
+</head>
+<body>
+<div data-di-topbar></div>
+<div class="bk-hero"><div class="bk-wrap">
+  <div>
+    <div class="bk-eyebrow">Human-in-the-loop · Controls</div>
+    <div class="bk-h1">Approvals <em>Queue</em></div>
+    <div class="bk-sub">High-risk actions held by the agents (RTE-02) await your decision — every decision is audited.</div>
+  </div>
+  <button class="refresh" id="b-refresh">↻ Refresh</button>
+</div></div>
+<div class="bk-main">
+  <div class="tabs">
+    <button class="act" data-status="pending">Pending</button>
+    <button data-status="approved">Approved</button>
+    <button data-status="rejected">Rejected</button>
+  </div>
+  <div id="err" class="err-box"></div>
+  <div id="list"><div class="empty">Loading…</div></div>
+</div>
+<script>
+(function () {
+  var statusFilter = 'pending';
+  var canApprove = false;
+  var $ = function (id) { return document.getElementById(id); };
+  function showErr(e) { var b = $('err'); b.style.display = 'block'; b.textContent = (e && e.message) || String(e); }
+  function clearErr() { $('err').style.display = 'none'; }
+  function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+  function ago(ts) { if (!ts) return ''; var s = Math.floor((Date.now() - ts) / 1000); if (s < 60) return s + 's ago'; if (s < 3600) return Math.floor(s/60) + 'm ago'; if (s < 86400) return Math.floor(s/3600) + 'h ago'; return Math.floor(s/86400) + 'd ago'; }
+  function amountOf(args) { try { var a = JSON.parse(args || '{}'); var v = a.amount != null ? a.amount : (a.value != null ? a.value : null); return v != null ? (typeof v === 'number' ? v.toLocaleString() : v) + (a.currency ? ' ' + a.currency : '') : null; } catch (e) { return null; } }
+  function card(a) {
+    var amt = amountOf(a.args_json);
+    var risk = (a.risk || 'normal').toLowerCase();
+    var statusPill = '<span class="pill ' + esc(a.status) + '">' + esc(a.status) + '</span>';
+    var actions = '';
+    if (a.status === 'pending' && canApprove) {
+      actions = '<div class="row-actions">' +
+        '<button class="btn btn-approve" data-act="approve" data-id="' + esc(a.id) + '">Approve</button>' +
+        '<button class="btn btn-reject" data-act="reject" data-id="' + esc(a.id) + '">Reject</button></div>';
+    } else if (a.status === 'pending') {
+      actions = '<span class="muted" style="font-size:11.5px">view-only · your role can\'t approve</span>';
+    } else {
+      actions = '<div class="muted" style="font-size:11.5px;text-align:right">by ' + esc(a.decided_by || '—') + '<br>' + (a.reason ? esc(a.reason) : '') + '</div>';
+    }
+    return '<div class="card">' +
+      '<div class="appr-top"><div><div class="appr-title">' + esc(a.agent) + ' · ' + esc(a.action || a.tool) + '</div>' +
+      '<div class="appr-meta">requested by ' + esc(a.requested_by) + ' · ' + ago(a.created_at) + (a.status === statusFilter ? '' : '') + '</div></div>' +
+      '<div style="text-align:right">' + statusPill + ' <span class="pill ' + risk + '">' + risk + '</span></div></div>' +
+      '<div class="kv">' +
+        (amt ? '<div class="item"><span class="k">Amount</span>' + esc(amt) + '</div>' : '') +
+        '<div class="item"><span class="k">Tool</span>' + esc(a.tool) + '</div>' +
+        '<div class="item"><span class="k">Approval ID</span>' + esc(a.id).slice(0, 8) + '…</div>' +
+      '</div>' +
+      '<details><summary class="muted" style="cursor:pointer;font-size:11.5px;margin-top:8px">Request args</summary><div class="args">' + esc(a.args_json || '{}') + '</div></details>' +
+      '<div style="margin-top:10px;display:flex;justify-content:flex-end">' + actions + '</div>' +
+    '</div>';
+  }
+  function render(list) {
+    if (!list.length) { $('list').innerHTML = '<div class="empty">No ' + statusFilter + ' approvals.</div>'; return; }
+    $('list').innerHTML = list.map(card).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('[data-act]'), function (btn) {
+      btn.onclick = function () {
+        var id = btn.getAttribute('data-id'); var approve = btn.getAttribute('data-act') === 'approve';
+        var reason = prompt((approve ? 'Approve' : 'Reject') + ' — reason (optional):') || undefined;
+        if (approve === false && reason === undefined) { /* allow reject without reason */ }
+        btn.disabled = true; btn.textContent = '…';
+        HITLAPI.decide(id, approve, reason).then(function () { load(); }).catch(function (e) { showErr(e); btn.disabled = false; });
+      };
+    });
+  }
+  function load() {
+    clearErr();
+    $('list').innerHTML = '<div class="empty">Loading…</div>';
+    HITLAPI.list(statusFilter).then(function (r) {
+      canApprove = !!r.canApprove;
+      render(r.approvals || []);
+    }).catch(function (e) { showErr(e); $('list').innerHTML = '<div class="empty">Could not load approvals.</div>'; });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (b) {
+    b.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (x) { x.classList.remove('act'); });
+      b.classList.add('act'); statusFilter = b.getAttribute('data-status'); load();
+    };
+  });
+  $('b-refresh').onclick = load;
+  window.addEventListener('load', load);
+})();
+</script>
+</body>
+</html>

@@ -64,7 +64,8 @@
     { id: 'ledger',       icon: '\uD83D\uDCD2', name: 'General Ledger', desc: 'Open accounts, post double-entry journals, read balances.', badge: 'LIVE', href: 'ledger.html' },
     { id: 'openbanking',  icon: '\uD83D\uDD17', name: 'Open Banking',   desc: 'Create, inspect and revoke TPP consents (PSD2/CDR).', badge: 'LIVE', href: 'openbanking.html' },
     { id: 'comms',        icon: '\u2709',       name: 'Customer Comms', desc: 'Send and track messages across channels.', badge: 'LIVE', href: 'comms.html' },
-    { id: 'risk',         icon: '\uD83D\uDCC9', name: 'Risk & ECL',     desc: 'IFRS 9 staging and Expected Credit Loss.', badge: 'LIVE', href: 'risk.html' }
+    { id: 'risk',         icon: '\uD83D\uDCC9', name: 'Risk & ECL',     desc: 'IFRS 9 staging and Expected Credit Loss.', badge: 'LIVE', href: 'risk.html' },
+    { id: 'approvals',    icon: '\uD83D\uDEC2', name: 'Approvals Queue', desc: 'Human-in-the-loop \u2014 action high-risk items held by the agents.', badge: 'LIVE', href: 'approvals.html' }
   ];
 
   // Top-level navigation
