@@ -103,9 +103,14 @@ pre.raw{background:var(--canvas);border:1px solid var(--border);border-radius:8p
     currentPay = res.paymentId || res.id || currentPay;
     $('pay-id').textContent = currentPay ? '· #' + currentPay : '';
     $('pay-actions').style.display = currentPay ? 'flex' : 'none';
+    var d = (res.decision && typeof res.decision === 'object') ? res.decision : null;
+    var status = (d && d.status) || res.status;
+    if (d && d.paymentId) { currentPay = d.paymentId; $('pay-id').textContent = '· #' + currentPay; $('pay-actions').style.display = 'flex'; }
     var html = '';
-    if (res.status) html += kv('Status', pill(res.status));
-    if (res.selectedRail || res.rail) html += kv('Rail', res.selectedRail || res.rail);
+    if (status) html += kv('Status', pill(status));
+    if (d && d.gate && d.gate.approvalId) html += kv('Held · approval', String(d.gate.approvalId).slice(0, 8) + '… (action it in Approvals Queue)');
+    if (res.rationale) html += kv('Why', res.rationale);
+    if ((d && d.rail) || res.selectedRail || res.rail) html += kv('Rail', (d && d.rail) || res.selectedRail || res.rail);
     if (res.eta || res.estimatedSettlement) html += kv('ETA', res.eta || res.estimatedSettlement);
     if (res.fee !== undefined) html += kv('Fee', res.fee);
     if (res.fxRate !== undefined) html += kv('FX rate', res.fxRate);
