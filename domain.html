@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Domain · AIDP</title>
+<meta name="description" content="AIDP domain — products and features, each deep-linking into the live console."/>
+<link rel="stylesheet" href="assets/portal.css">
+<script src="assets/portal-links.js"></script>
+<script src="assets/portal-chrome.js" defer></script>
+</head>
+<body data-page="solutions">
+<div data-portal-header></div>
+<div class="wrap">
+  <div style="margin:18px 0 0"><a href="solutions.html" style="font-size:13px;color:var(--sky);font-weight:600">← All solutions</a></div>
+  <section class="hero" style="padding:30px 36px"><div class="hero-in">
+    <span class="hbadge" id="d-eyebrow">Domain</span>
+    <h1 id="d-name" style="font-size:30px">Domain</h1>
+    <p id="d-blurb"></p>
+    <div class="hero-btns"><a class="btn primary" href="home.html">Open portal <i class="ti ti-arrow-right"></i></a></div>
+  </div></section>
+  <div id="d-products"></div>
+</div>
+<div data-portal-footer></div>
+<script>
+(function () {
+  var P = window.AIDP_PORTAL; if (!P) return;
+  function qp(k) { try { return new URLSearchParams(location.search).get(k); } catch (e) { return null; } }
+  var id = qp('d') || 'delivery';
+  var d = P.domain(id); if (!d) { d = P.domains[0]; id = d.id; }
+  document.title = d.name + ' · AIDP';
+  document.getElementById('d-eyebrow').textContent = (id === 'defi' ? 'Roadmap' : 'Domain');
+  document.getElementById('d-name').textContent = d.name;
+  document.getElementById('d-blurb').textContent = d.blurb;
+  function badge(s) { var m = { live: 'live', beta: 'beta', plan: 'plan' }; var t = { live: 'Live', beta: 'Beta', plan: 'Roadmap' }; return '<span class="badge ' + (m[s] || 'plan') + '">' + (t[s] || s) + '</span>'; }
+  function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+  var prods = P.byDomain(id);
+  document.getElementById('d-products').innerHTML = prods.map(function (p) {
+    var open = p.route
+      ? '<a class="open" href="' + p.route + '">Open in console →</a>'
+      : '<span class="badge plan">Roadmap</span>';
+    var feats = (p.features || []).map(function (f) {
+      var right = f.route
+        ? badge(f.status) + ' <a href="' + f.route + '" style="color:var(--sky);font-weight:600;margin-left:10px">Open →</a>'
+        : badge(f.status);
+      return '<div class="feat"><span>' + esc(f.name) + '</span><span>' + right + '</span></div>';
+    }).join('');
+    return '<div class="card" style="margin-bottom:14px;border-top-color:' + (p.route ? 'var(--sky)' : 'var(--plan)') + '">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+      '<h3 style="margin:0">' + esc(p.name) + ' ' + badge(p.status) + '</h3>' + open + '</div>' +
+      feats + '</div>';
+  }).join('');
+})();
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+</body>
+</html>

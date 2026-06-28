@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AIDP — Agentic AI for Banking Modernization</title>
+<meta name="description" content="One agentic-AI platform for centralized and decentralized banking — 7 domains, 15 products and 12 live banking agents, operable from one governed, audit-ready console."/>
+<link rel="stylesheet" href="assets/portal.css">
+<script src="assets/portal-links.js"></script>
+<script src="assets/portal-chrome.js" defer></script>
+</head>
+<body data-page="home">
+<div data-portal-header></div>
+
+<div class="wrap">
+  <section class="hero"><div class="hero-in">
+    <span class="hbadge">Centralized + decentralized finance</span>
+    <h1>One agentic-AI platform for centralized &amp; decentralized banking</h1>
+    <p>AIDP delivers banking as a solution across two finance models — traditional bank-run rails for accounts, cards, payments, servicing and compliance, and on-chain finance with tokenized assets and stablecoin / x402 settlement — unified under one agentic operating model.</p>
+    <div class="hero-btns">
+      <a class="btn primary" href="solutions.html">Explore solutions <i class="ti ti-arrow-right"></i></a>
+      <a class="btn" href="home.html">Open portal</a>
+    </div>
+  </div></section>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="sh"><h2>Explore by domain</h2><span class="line"></span></div>
+  <div class="grid d3" id="domains"></div>
+
+  <div class="trust" style="margin-top:22px">
+    <b>Trust by design</b>
+    <span><i class="ti ti-lock"></i> Authenticated gateway</span>
+    <span><i class="ti ti-list-check"></i> WORM hash-chained audit</span>
+    <span><i class="ti ti-user-check"></i> Human-in-the-loop approvals</span>
+    <span><i class="ti ti-building"></i> Multi-tenant with scoped keys</span>
+  </div>
+
+  <div class="sh"><h2>Two finance models, one platform</h2><span class="line"></span></div>
+  <div class="fin">
+    <a class="fincard" href="cefi.html">
+      <h3 style="color:var(--navy);font-size:16px;margin-bottom:6px">Centralized Finance</h3>
+      <p style="font-size:13px;color:#3A4658;margin-bottom:10px">Traditional bank-run rails and ledgers — accounts, cards, payments, servicing and compliance, modernized with agentic AI.</p>
+      <span class="open" style="color:var(--sky);font-weight:600;font-size:13px">Explore centralized finance →</span>
+    </a>
+    <a class="fincard" href="defi.html">
+      <h3 style="color:var(--navy);font-size:16px;margin-bottom:6px">Decentralized Finance</h3>
+      <p style="font-size:13px;color:#3A4658;margin-bottom:10px">On-chain banking — tokenized assets, smart contracts and stablecoin / x402 payments settled on distributed ledgers.</p>
+      <span class="open" style="color:var(--sky);font-weight:600;font-size:13px">Explore decentralized finance →</span>
+    </a>
+  </div>
+</div>
+
+<div data-portal-footer></div>
+
+<script>
+(function () {
+  var P = window.AIDP_PORTAL; if (!P) return;
+  var c = P.counts;
+  document.getElementById('stats').innerHTML =
+    '<div class="stat"><b>' + c.domains + '</b><span>Domains</span></div>' +
+    '<div class="stat"><b>' + c.products + '</b><span>Products</span></div>' +
+    '<div class="stat"><b>' + c.features + '</b><span>Features</span></div>' +
+    '<div class="stat"><b>' + c.live + '</b><span>Agents live</span></div>' +
+    '<div class="stat"><b>2</b><span>Finance models</span></div>';
+  document.getElementById('domains').innerHTML = P.domains.map(function (d) {
+    var prods = P.byDomain(d.id);
+    var roadmap = d.id === 'defi';
+    var count = prods.length + ' product' + (prods.length === 1 ? '' : 's');
+    return '<a class="card' + (roadmap ? ' plan' : '') + '" href="domain.html?d=' + d.id + '">' +
+      '<i class="ti ' + d.icon + ' ci"' + (roadmap ? ' style="color:var(--plan)"' : '') + '></i>' +
+      '<h3>' + d.name + '</h3><p>' + d.blurb + '</p>' +
+      (roadmap ? '<span class="badge plan">Roadmap</span>' : '<span class="open">' + count + ' · open →</span>') +
+      '</a>';
+  }).join('');
+})();
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+</body>
+</html>

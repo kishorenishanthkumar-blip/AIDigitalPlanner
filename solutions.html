@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Solutions · AIDP</title>
+<meta name="description" content="AIDP solutions — 7 domains, 15 products spanning centralized and decentralized banking, each operable from the live console."/>
+<link rel="stylesheet" href="assets/portal.css">
+<script src="assets/portal-links.js"></script>
+<script src="assets/portal-chrome.js" defer></script>
+</head>
+<body data-page="solutions">
+<div data-portal-header></div>
+<div class="wrap">
+  <section class="hero" style="padding:30px 36px"><div class="hero-in">
+    <span class="hbadge">Browse by domain</span>
+    <h1 style="font-size:30px">Solutions across centralized &amp; decentralized banking</h1>
+    <p>Seven domains, fifteen products, sixty-three features — each product opens its live, governed console.</p>
+  </div></section>
+  <div class="grid d3" id="domains"></div>
+  <div class="trust" style="margin-top:22px">
+    <b>Every action</b>
+    <span><i class="ti ti-lock"></i> Authenticated</span>
+    <span><i class="ti ti-list-check"></i> Audited (WORM)</span>
+    <span><i class="ti ti-user-check"></i> HITL-gated where it matters</span>
+  </div>
+</div>
+<div data-portal-footer></div>
+<script>
+(function () {
+  var P = window.AIDP_PORTAL; if (!P) return;
+  document.getElementById('domains').innerHTML = P.domains.map(function (d) {
+    var prods = P.byDomain(d.id);
+    var roadmap = d.id === 'defi';
+    var live = prods.filter(function (p) { return p.status !== 'plan'; }).length;
+    var sub = roadmap ? 'Roadmap' : (prods.length + ' products · ' + live + ' live');
+    return '<a class="card' + (roadmap ? ' plan' : '') + '" href="domain.html?d=' + d.id + '">' +
+      '<i class="ti ' + d.icon + ' ci"' + (roadmap ? ' style="color:var(--plan)"' : '') + '></i>' +
+      '<h3>' + d.name + '</h3><p>' + d.blurb + '</p>' +
+      (roadmap ? '<span class="badge plan">Roadmap</span>' : '<span class="open">' + sub + ' · open →</span>') +
+      '</a>';
+  }).join('');
+})();
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+</body>
+</html>
