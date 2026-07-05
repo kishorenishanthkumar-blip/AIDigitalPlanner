@@ -384,7 +384,7 @@
             '<div class="row"><span class="key">Data residency</span><span class="pill-ok">🔒 LOCAL · this browser only</span></div>' +
             '<div class="row"><span class="key">Server transmission</span><span class="pill-ok">NONE</span></div>' +
             '<div class="row"><span class="key">Audit events</span><strong>' + ((window.DI && window.DI.audit && window.DI.audit.getAll()) || []).length + '</strong></div>'
-          ) : '<div class="sub" style="color:#1A2238;font-size:13px">Click <a href="index.html" style="color:#C8921A;font-weight:700">Sign in</a> to access the platform.</div>') +
+          ) : '<div class="sub" style="color:#1A2238;font-size:13px">Click <a href="signin.html" style="color:#C8921A;font-weight:700">Sign in</a> to access the platform.</div>') +
           '<div class="actions">' +
             (profile ? '<button class="ghost" onclick="window.DI.audit&&window.DI.audit.show();document.getElementById(\'di-session-modal\').remove()">📜 View audit log</button>' : '') +
             (profile ? '<button class="danger" onclick="signOutNow()">Sign out</button>' : '') +
@@ -400,7 +400,7 @@
       if (!confirm('Sign out now? Local data is preserved; you can sign back in.')) return;
       try { sessionStorage.removeItem('di_account_profile'); } catch (e) {}
       if (window.DI && window.DI.audit) window.DI.audit.log('auth', 'sign-out', {});
-      location.href = 'index.html';
+      location.href = 'signin.html';
     };
   });
 })();
