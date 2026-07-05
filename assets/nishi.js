@@ -74,7 +74,7 @@
   const KB = {
     studios: [
       { key: 'discovery',     name: 'Discovery Studio',      path: 'discovery-studio.html',     blurb: 'Current vs Future systems analysis, asset & CMDB discovery, SLA management. Board-ready.' },
-      { key: 'requirements',  name: 'AI Requirements',       path: 'index.html',                blurb: 'Six-agent pipeline that turns unstructured discovery into Jira/Rally backlogs.' },
+      { key: 'requirements',  name: 'AI Requirements',       path: 'requirements.html',                blurb: 'Six-agent pipeline that turns unstructured discovery into Jira/Rally backlogs.' },
       { key: 'architecture',  name: 'Architecture Studio',   path: 'architecture-studio.html',  blurb: 'Six deployment targets — Private DC, AWS, Azure, GCP, OCI, IBM — with full blueprints.' },
       { key: 'governance',    name: 'Program Governance',    path: 'program-governance.html',   blurb: 'End-to-end plan: requirements, RAID, 7R timeline, cost, MS Project export, DR runlog.' }
     ],

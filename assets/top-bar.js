@@ -250,7 +250,7 @@
                           ? (profile.firstName[0] + profile.lastName[0]).toUpperCase()
                           : (profile && profile.name ? profile.name.slice(0,2).toUpperCase() : '?'));
 
-      const userHref = profile ? 'home.html' : 'index.html';
+      const userHref = profile ? 'home.html' : 'signin.html';
       const sessionSub = profile
         ? (timeSince(profile.signedInAt || profile.createdAt) + ' · ' + detectBrowser())
         : 'Not signed in';
