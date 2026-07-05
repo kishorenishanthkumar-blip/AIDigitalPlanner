@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Centralized Finance · AIDP</title>
+<meta name="description" content="AIDP for centralized finance — traditional bank-run rails for accounts, cards, payments, servicing and compliance, modernized with agentic AI."/>
+<link rel="stylesheet" href="assets/portal.css">
+<script src="assets/portal-links.js"></script>
+<script src="assets/portal-chrome.js" defer></script>
+</head>
+<body data-page="cefi">
+<div data-portal-header></div>
+<div class="wrap">
+  <section class="hero" style="padding:30px 36px"><div class="hero-in">
+    <span class="hbadge">Centralized Finance · CeFi</span>
+    <h1 style="font-size:30px">Traditional bank rails, modernized with agentic AI</h1>
+    <p>Accounts, cards, payments, servicing, core banking and compliance — the bank-run domains, each operable from a governed, audit-ready console.</p>
+    <div class="hero-btns"><a class="btn primary" href="home.html">Open portal <i class="ti ti-arrow-right"></i></a><a class="btn" href="solutions.html">All solutions</a></div>
+  </div></section>
+  <div class="grid d3" id="domains"></div>
+</div>
+<div data-portal-footer></div>
+<script>
+(function () {
+  var P = window.AIDP_PORTAL; if (!P) return;
+  var cefi = P.domains.filter(function (d) { return d.id !== 'defi'; });
+  document.getElementById('domains').innerHTML = cefi.map(function (d) {
+    var prods = P.byDomain(d.id);
+    return '<a class="card" href="domain.html?d=' + d.id + '">' +
+      '<i class="ti ' + d.icon + ' ci"></i><h3>' + d.name + '</h3><p>' + d.blurb + '</p>' +
+      '<span class="open">' + prods.length + ' products · open →</span></a>';
+  }).join('');
+})();
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+</body>
+</html>

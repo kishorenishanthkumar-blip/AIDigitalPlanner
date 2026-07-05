@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>All products · AIDP</title>
+<meta name="description" content="Every AIDP product across 7 domains — searchable, each opening its live console."/>
+<link rel="stylesheet" href="assets/portal.css">
+<script src="assets/portal-links.js"></script>
+<script src="assets/portal-chrome.js" defer></script>
+</head>
+<body data-page="solutions">
+<div data-portal-header></div>
+<div class="wrap">
+  <section class="hero" style="padding:26px 36px"><div class="hero-in">
+    <span class="hbadge">All products</span>
+    <h1 style="font-size:28px">Every product, one search</h1>
+    <p>15 products across 7 domains. Search by name or domain; each opens its live, governed console.</p>
+    <input id="q" placeholder="Search products or domains…" style="margin-top:12px;width:100%;max-width:420px;height:40px;border:1px solid var(--rule2);border-radius:9px;padding:0 14px;font-size:14px;outline:none"/>
+  </div></section>
+  <div class="count" id="count" style="font-size:12.5px;color:var(--muted);margin-bottom:8px"></div>
+  <div class="grid d3" id="list"></div>
+</div>
+<div data-portal-footer></div>
+<script>
+(function () {
+  var P = window.AIDP_PORTAL; if (!P) return;
+  function esc(s){return (s==null?'':String(s)).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function badge(s){var t={live:'Live',beta:'Beta',plan:'Roadmap'};var m={live:'live',beta:'beta',plan:'plan'};return '<span class="badge '+(m[s]||'plan')+'">'+(t[s]||s)+'</span>';}
+  var rows = P.products.map(function (p) {
+    var d = P.domain(p.domain) || {};
+    return { p: p, dname: d.name || '', dicon: d.icon || 'ti-box' };
+  });
+  function render(term) {
+    term = (term || '').toLowerCase();
+    var filtered = rows.filter(function (r) {
+      return !term || r.p.name.toLowerCase().indexOf(term) >= 0 || r.dname.toLowerCase().indexOf(term) >= 0;
+    });
+    document.getElementById('count').textContent = filtered.length + ' product' + (filtered.length === 1 ? '' : 's');
+    document.getElementById('list').innerHTML = filtered.map(function (r) {
+      var p = r.p;
+      var open = p.route ? '<a class="open" href="' + p.route + '">Open in console →</a>' : '<span class="badge plan">Roadmap</span>';
+      return '<div class="card"' + (p.route ? '' : ' style="border-top-color:var(--plan)"') + '>' +
+        '<i class="ti ' + r.dicon + ' ci"></i>' +
+        '<div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:3px">' + esc(r.dname) + '</div>' +
+        '<h3 style="margin-bottom:8px">' + esc(p.name) + ' ' + badge(p.status) + '</h3>' + open + '</div>';
+    }).join('');
+  }
+  render('');
+  document.getElementById('q').addEventListener('input', function (e) { render(e.target.value); });
+})();
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+</body>
+</html>

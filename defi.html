@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Decentralized Finance · AIDP</title>
+<meta name="description" content="AIDP for decentralized finance — tokenized assets, smart contracts and stablecoin / x402 settlement. On the roadmap."/>
+<link rel="stylesheet" href="assets/portal.css">
+<script src="assets/portal-links.js"></script>
+<script src="assets/portal-chrome.js" defer></script>
+</head>
+<body data-page="defi">
+<div data-portal-header></div>
+<div class="wrap">
+  <section class="hero" style="padding:30px 36px;background:#EEF4F8"><div class="hero-in">
+    <span class="hbadge" style="background:var(--plan-bg);border-color:#D3DBE3;color:var(--plan)">Decentralized Finance · Roadmap</span>
+    <h1 style="font-size:30px">On-chain banking — tokenized assets &amp; agentic settlement</h1>
+    <p>Bridging bank rails to tokenized assets, stablecoins, CBDC and x402 agentic payments settled on distributed ledgers. This domain is on the roadmap — the catalog is published; on-chain settlement agents are deferred to a later sprint.</p>
+    <div class="hero-btns"><a class="btn" href="solutions.html">All solutions</a></div>
+  </div></section>
+  <div id="products"></div>
+</div>
+<div data-portal-footer></div>
+<script>
+(function () {
+  var P = window.AIDP_PORTAL; if (!P) return;
+  function esc(s){return (s==null?'':String(s)).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  var prods = P.byDomain('defi');
+  document.getElementById('products').innerHTML = prods.map(function (p) {
+    var feats = (p.features || []).map(function (f) {
+      return '<div class="feat"><span>' + esc(f.name) + '</span><span class="badge plan">Roadmap</span></div>';
+    }).join('');
+    return '<div class="card plan" style="margin-bottom:14px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+      '<h3 style="margin:0">' + esc(p.name) + ' <span class="badge plan">Roadmap</span></h3></div>' + feats + '</div>';
+  }).join('');
+})();
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+</body>
+</html>
