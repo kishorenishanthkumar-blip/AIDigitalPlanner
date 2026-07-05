@@ -30,7 +30,7 @@
 (function () {
   var P = window.AIDP_PORTAL; if (!P) return;
   document.getElementById('domains').innerHTML = P.domains.map(function (d) {
-    var prods = P.byDomain(d.id);
+    var prods = P.byDomain(d.id).filter(function (p) { return !p.crosscut; });
     var roadmap = d.id === 'defi';
     var live = prods.filter(function (p) { return p.status !== 'plan'; }).length;
     var sub = roadmap ? 'Roadmap' : (prods.length + ' products · ' + live + ' live');

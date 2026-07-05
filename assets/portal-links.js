@@ -69,7 +69,7 @@
       { name: 'Market Risk', status: 'live', route: 'risk.html' },
       { name: 'Basel / IFRS-9 Reporting', status: 'live', route: 'risk.html' },
       { name: 'Stress Testing', status: 'beta', route: 'risk.html' } ] },
-    { id: 'gov',     domain: 'platform',   name: 'Governance & Trust', status: 'live', route: 'audit.html', features: [
+    { id: 'gov',     domain: 'platform',   name: 'Governance & Trust', status: 'live', crosscut: true, route: 'audit.html', features: [
       { name: 'Approvals Queue (HITL)', status: 'live', route: 'approvals.html' },
       { name: 'Audit & Explainability', status: 'live', route: 'audit.html' },
       { name: 'Tenant Admin & Keys', status: 'live', route: 'admin.html' } ] },
@@ -97,7 +97,8 @@
   function domain(id) { return DOMAINS.filter(function (d) { return d.id === id; })[0]; }
   window.AIDP_PORTAL = {
     domains: DOMAINS, products: PRODUCTS, byDomain: byDomain, domain: domain,
-    counts: { domains: DOMAINS.length, products: PRODUCTS.length,
+    counts: { domains: DOMAINS.length,
+      products: PRODUCTS.filter(function (p) { return !p.crosscut; }).length,
       features: PRODUCTS.reduce(function (n, p) { return n + (p.features ? p.features.length : 0); }, 0),
       live: 12 },
     console: { home: 'home.html', signin: 'signin.html' }

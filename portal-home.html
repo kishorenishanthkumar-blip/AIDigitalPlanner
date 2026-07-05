@@ -64,7 +64,7 @@
     '<div class="stat"><b>' + c.live + '</b><span>Agents live</span></div>' +
     '<div class="stat"><b>2</b><span>Finance models</span></div>';
   document.getElementById('domains').innerHTML = P.domains.map(function (d) {
-    var prods = P.byDomain(d.id);
+    var prods = P.byDomain(d.id).filter(function (p) { return !p.crosscut; });
     var roadmap = d.id === 'defi';
     var count = prods.length + ' product' + (prods.length === 1 ? '' : 's');
     return '<a class="card' + (roadmap ? ' plan' : '') + '" href="domain.html?d=' + d.id + '">' +
