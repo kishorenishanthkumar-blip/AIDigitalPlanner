@@ -75,7 +75,7 @@ pre.raw{background:var(--canvas);border:1px solid var(--border);border-radius:8p
   function clearErr(){$('err').style.display='none';}
   function setRaw(o){$('raw').textContent=JSON.stringify(o,null,2);}
   function kv(k,v){return '<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
-  function pill(s){s=(s||'').toString();var l=s.toLowerCase();var c=/auth|active|grant|valid|ok/.test(l)?'ok':/revok|expired|reject|denied/.test(l)?'err':'warn';return '<span class="pill '+c+'">'+(s||'pending')+'</span>';}
+  function pill(s){s=(function(v){if(v==null)return'';if(typeof v==='object')return String(v.action||v.status||v.label||v.outcome||v.decision||v.verdict||v.recommendation||v.result||v.rating||v.grade||JSON.stringify(v));return String(v);})(s);var l=s.toLowerCase();var c=/auth|active|grant|valid|ok/.test(l)?'ok':/revok|expired|reject|denied/.test(l)?'err':'warn';return '<span class="pill '+c+'">'+(s||'pending')+'</span>';}
   function csv(v){return (v||'').split(',').map(function(x){return x.trim();}).filter(Boolean);}
   function render(res){
     setRaw(res);current=res.consentId||res.id||current;

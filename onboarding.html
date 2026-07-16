@@ -99,7 +99,7 @@ pre.raw{background:var(--canvas);border:1px solid var(--border);border-radius:8p
   function setRaw(o) { $('raw').textContent = JSON.stringify(o, null, 2); }
   function kv(k, v) { return '<div class="kv"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'; }
   function pill(status) {
-    var s = (status || '').toString().toLowerCase();
+    var __s=(function(v){if(v==null)return'';if(typeof v==='object')return String(v.action||v.status||v.label||v.outcome||v.decision||v.verdict||v.recommendation||v.result||v.rating||v.grade||JSON.stringify(v));return String(v);})(status);status=__s;var s=__s.toLowerCase();
     var cls = /approv|clear|pass|ok|complete/.test(s) ? 'ok' : /reject|fail|block|hit/.test(s) ? 'err' : 'warn';
     return '<span class="pill ' + cls + '">' + (status || 'pending') + '</span>';
   }

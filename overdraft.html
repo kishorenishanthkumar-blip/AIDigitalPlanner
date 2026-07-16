@@ -72,7 +72,7 @@ pre.raw{background:var(--canvas);border:1px solid var(--border);border-radius:8p
   function clearErr(){$('err').style.display='none';}
   function setRaw(o){$('raw').textContent=JSON.stringify(o,null,2);}
   function kv(k,v){return '<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
-  function pill(s){s=(s||'').toString();var l=s.toLowerCase();var c=/approv|eligible|active|ok|grant/.test(l)?'ok':/declin|denied|ineligible|reject/.test(l)?'err':'warn';return '<span class="pill '+c+'">'+(s||'pending')+'</span>';}
+  function pill(s){s=(function(v){if(v==null)return'';if(typeof v==='object')return String(v.action||v.status||v.label||v.outcome||v.decision||v.verdict||v.recommendation||v.result||v.rating||v.grade||JSON.stringify(v));return String(v);})(s);var l=s.toLowerCase();var c=/approv|eligible|active|ok|grant/.test(l)?'ok':/declin|denied|ineligible|reject/.test(l)?'err':'warn';return '<span class="pill '+c+'">'+(s||'pending')+'</span>';}
   function money(v){return (typeof v==='number')?v.toLocaleString():v;}
   function render(res,ctx){
     setRaw(res);$('ctx').textContent=ctx?'· '+ctx:'';
